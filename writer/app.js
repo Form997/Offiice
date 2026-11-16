@@ -685,7 +685,9 @@
         const importedFolders=Array.isArray(data.folders)?data.folders.map(x=>String(x).trim().slice(0,40)).filter(Boolean):[];
         const cleanFolders=[...new Set(mode==='merge'?[...folders,...importedFolders]:importedFolders)].slice(0,100);
         if(!cleanFolders.includes('Chưa phân loại'))cleanFolders.unshift('Chưa phân loại');
-        const imported=normalizeDocuments(data.documents.filter(d=>d&&typeof d==='object'&&typeof d.html==='string').map(d=>({...d,title:String(d.title||'Tài liệu khôi phục').slice(0,120),html:sanitizeHTML(d.html)})));
+        const sourceDocs=data.documents.filter(d=>d&&typeof d==='object'&&typeof d.html==='string');
+        const imported=normalizeDocuments(sourceDocs.map(d=>({...d,title:String(d.title||'Tài liệu khôi phục').slice(0,120),html:sanitizeHTML(d.html)})));
+        imported.forEach((d,i)=>{const folder=String(sourceDocs[i].folder||'Chưa phân loại');d.folder=cleanFolders.includes(folder)?folder:'Chưa phân loại';});
         if(!imported.length)throw new Error('Không tìm thấy tài liệu hợp lệ trong bản sao lưu.');
         const nextDocs=mode==='merge'?documents.map(d=>({...d})):[];
         if(mode==='merge'){
