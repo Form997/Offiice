@@ -144,7 +144,7 @@
     const has=list.length>0;['previewVersion','restoreVersion'].forEach(id=>{const b=$('#'+id);if(b)b.disabled=!has;});const count=$('#versionHistoryCount');if(count)count.textContent=list.length+'/'+HISTORY_PER_DOCUMENT+' mốc';
   }
   function recordVersionSnapshot(force=false,reason='Tự động'){
-    const doc=current();if(!doc)return false;const content=editor.innerHTML;if(content.length>HISTORY_MAX_CHARS){if(force)alert('Nội dung quá lớn để lưu lịch sử (giới hạn 350 KB mỗi mốc). Hãy xuất bản sao lưu trước.');return false;}
+    const doc=current();if(!doc)return false;const content=editor.innerHTML;if(content.length>HISTORY_MAX_CHARS){if(force)alert('Nội dung quá lớn để lưu lịch sử (giới hạn 160.000 ký tự mỗi mốc). Hãy xuất bản sao lưu trước.');return false;}
     const list=versionHistory[doc.id]||(versionHistory[doc.id]=[]),last=list[list.length-1];
     if(last&&last.html===content)return true;
     if(!force&&last&&Date.now()-last.createdAt<AUTO_HISTORY_INTERVAL)return false;
@@ -680,17 +680,54 @@
       try{
         const data=JSON.parse(String(reader.result||''));
         if(data.format!=='HAI-DAT-WRITER-BACKUP'||![1,2,3,4].includes(data.version)||!Array.isArray(data.documents)||!data.documents.length)throw new Error('Sai định dạng hoặc phiên bản bản sao lưu.');
-        if(Array.isArray(data.folders))folders=[...new Set(data.folders.map(x=>String(x).trim().slice(0,40)).filter(Boolean))].slice(0,100);if(!folders.includes('Chưa phân loại'))folders.unshift('Chưa phân loại');
-        const restored=normalizeDocuments(data.documents.filter(d=>d&&typeof d==='object'&&typeof d.html==='string').map(d=>({...d,title:String(d.title||'Tài liệu khôi phục').slice(0,120),html:sanitizeHTML(d.html)})));
-        if(!restored.length)throw new Error('Không tìm thấy tài liệu hợp lệ trong bản sao lưu.');
-        if(!confirm('Khôi phục '+restored.length+' tài liệu? Danh sách hiện tại sẽ được thay thế. Hãy chắc chắn đã sao lưu dữ liệu đang có.'))return;
-        documents=restored;versionHistory={};if(data.versionHistory&&typeof data.versionHistory==='object'&&!Array.isArray(data.versionHistory)){restored.forEach(d=>{const items=data.versionHistory[d.id];if(Array.isArray(items))versionHistory[d.id]=items.filter(v=>v&&typeof v.html==='string'&&v.html.length<=HISTORY_MAX_CHARS).slice(-HISTORY_PER_DOCUMENT).map(v=>({...v,html:sanitizeHTML(v.html),reason:String(v.reason||'Bản sao lưu').slice(0,40),createdAt:Number(v.createdAt)||Date.now()}));});}saveVersionHistory();let preferred=restored.find(d=>d.id===data.activeId&&!d.deletedAt)||restored.find(d=>!d.deletedAt);if(!preferred){preferred={id:makeId(),title:'Tài liệu mới',html:'<h1>Tài liệu mới</h1><p><br></p>',createdAt:Date.now(),updatedAt:Date.now(),folder:'Chưa phân loại',category:'Khác',pinned:false};documents.push(preferred);}activeId=preferred.id;
-        localStorage.setItem(STORE,JSON.stringify(documents));localStorage.setItem(FOLDERS_STORE,JSON.stringify(folders));
-        if(data.printSettings&&typeof data.printSettings==='object')localStorage.setItem(PRINT_STORE,JSON.stringify({header:String(data.printSettings.header||'').slice(0,120),footer:String(data.printSettings.footer||'').slice(0,120),numbers:data.printSettings.numbers!==false}));
-        if(data.pageSettings&&typeof data.pageSettings==='object')localStorage.setItem('haidat-writer-page-settings',JSON.stringify({paper:['A4','A5','Letter'].includes(data.pageSettings.paper)?data.pageSettings.paper:'A4',margin:Math.max(5,Math.min(50,Number(data.pageSettings.margin)||20))}));
-        loadDoc(activeId);loadPrintSettings();
+        const mode=$('#backupMode')?.value||'merge';
+        const importedFolders=Array.isArray(data.folders)?data.folders.map(x=>String(x).trim().slice(0,40)).filter(Boolean):[];
+        const cleanFolders=[...new Set(mode==='merge'?[...folders,...importedFolders]:importedFolders)].slice(0,100);
+        if(!cleanFolders.includes('Chưa phân loại'))cleanFolders.unshift('Chưa phân loại');
+        const imported=normalizeDocuments(data.documents.filter(d=>d&&typeof d==='object'&&typeof d.html==='string').map(d=>({...d,title:String(d.title||'Tài liệu khôi phục').slice(0,120),html:sanitizeHTML(d.html)})));
+        if(!imported.length)throw new Error('Không tìm thấy tài liệu hợp lệ trong bản sao lưu.');
+        const nextDocs=mode==='merge'?documents.map(d=>({...d})):[];
+        if(mode==='merge'){
+          const byId=new Map(nextDocs.map((d,i)=>[d.id,i]));
+          imported.forEach(incoming=>{
+            const at=byId.get(incoming.id);
+            if(at===undefined){byId.set(incoming.id,nextDocs.length);nextDocs.push(incoming);}
+            else if((Number(incoming.updatedAt)||0)>=(Number(nextDocs[at].updatedAt)||0))nextDocs[at]=incoming;
+          });
+        }else nextDocs.push(...imported);
+        const nextHistory=mode==='merge'?JSON.parse(JSON.stringify(versionHistory)):{};
+        if(data.versionHistory&&typeof data.versionHistory==='object'&&!Array.isArray(data.versionHistory)){
+          imported.forEach(d=>{
+            const incoming=data.versionHistory[d.id];if(!Array.isArray(incoming))return;
+            const existing=Array.isArray(nextHistory[d.id])?nextHistory[d.id]:[];
+            const merged=new Map(existing.filter(v=>v&&typeof v.html==='string').map(v=>[String(v.versionId||('legacy-'+v.createdAt)),v]));
+            incoming.filter(v=>v&&typeof v.html==='string'&&v.html.length<=HISTORY_MAX_CHARS).forEach((v,i)=>{
+              const versionId=String(v.versionId||('backup-'+(Number(v.createdAt)||Date.now())+'-'+i));
+              merged.set(versionId,{...v,versionId,html:sanitizeHTML(v.html),reason:String(v.reason||'Bản sao lưu').slice(0,40),createdAt:Number(v.createdAt)||Date.now()});
+            });
+            nextHistory[d.id]=[...merged.values()].sort((a,b)=>(Number(a.createdAt)||0)-(Number(b.createdAt)||0)).slice(-HISTORY_PER_DOCUMENT);
+          });
+        }
+        const activeFromBackup=imported.find(d=>d.id===data.activeId&&!d.deletedAt);
+        const currentActive=nextDocs.find(d=>d.id===activeId&&!d.deletedAt);
+        let preferred=mode==='replace'?(activeFromBackup||nextDocs.find(d=>!d.deletedAt)):(activeFromBackup||currentActive||nextDocs.find(d=>!d.deletedAt));
+        if(!preferred){preferred={id:makeId(),title:'Tài liệu mới',html:'<h1>Tài liệu mới</h1><p><br></p>',createdAt:Date.now(),updatedAt:Date.now(),folder:'Chưa phân loại',category:'Khác',pinned:false};nextDocs.push(preferred);}
+        const oldValues={[STORE]:localStorage.getItem(STORE),[FOLDERS_STORE]:localStorage.getItem(FOLDERS_STORE),[HISTORY_STORE]:localStorage.getItem(HISTORY_STORE),[PRINT_STORE]:localStorage.getItem(PRINT_STORE),'haidat-writer-page-settings':localStorage.getItem('haidat-writer-page-settings')};
+        try{
+          localStorage.setItem(STORE,JSON.stringify(nextDocs));
+          localStorage.setItem(FOLDERS_STORE,JSON.stringify(cleanFolders));
+          localStorage.setItem(HISTORY_STORE,JSON.stringify(nextHistory));
+          if(mode==='replace'&&data.printSettings&&typeof data.printSettings==='object')localStorage.setItem(PRINT_STORE,JSON.stringify({header:String(data.printSettings.header||'').slice(0,120),footer:String(data.printSettings.footer||'').slice(0,120),numbers:data.printSettings.numbers!==false}));
+          if(mode==='replace'&&data.pageSettings&&typeof data.pageSettings==='object')localStorage.setItem('haidat-writer-page-settings',JSON.stringify({paper:['A4','A5','Letter'].includes(data.pageSettings.paper)?data.pageSettings.paper:'A4',margin:Math.max(5,Math.min(50,Number(data.pageSettings.margin)||20))}));
+        }catch(storageError){
+          Object.entries(oldValues).forEach(([key,value])=>{try{if(value===null)localStorage.removeItem(key);else localStorage.setItem(key,value);}catch{}});
+          throw new Error('Bộ nhớ thiết bị không đủ. Dữ liệu trước khi khôi phục đã được giữ nguyên.');
+        }
+        documents=nextDocs;folders=cleanFolders;versionHistory=nextHistory;activeId=preferred.id;
+        loadDoc(activeId);renderFolderControls();loadPrintSettings();
         const ps=JSON.parse(localStorage.getItem('haidat-writer-page-settings')||'{}');$('#paperSize').value=ps.paper||'A4';$('#pageMargin').value=ps.margin||20;applyPageSettings();
-        setState('Đã khôi phục bản sao lưu','saved');alert('Khôi phục thành công '+restored.length+' tài liệu.');
+        setState(mode==='merge'?'Đã hợp nhất bản sao lưu':'Đã thay thế bằng bản sao lưu','saved');
+        alert((mode==='merge'?'Hợp nhất':'Khôi phục')+' thành công. Có '+nextDocs.length+' tài liệu trong Writer.\nID tài liệu được giữ nguyên; bản trùng ID ưu tiên phiên bản cập nhật mới hơn.');
       }catch(err){alert('Không thể khôi phục: '+err.message);}
     };
     reader.readAsText(file);
