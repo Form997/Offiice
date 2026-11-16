@@ -63,3 +63,9 @@ footer{text-align:center;color:var(--muted);padding:22px;font-size:12px}
 #pageSetupRibbon .setting input{width:76px}
 #pageSetupRibbon .setting select{width:92px}
 @media(max-width:600px){.ribbon{position:sticky;top:0}.ribbon-tabs{padding-left:5px}.ribbon-tab{padding:7px 11px;font-size:13px}.ribbon-panel{min-height:74px;padding:7px;gap:6px}.ribbon-panel .tool-group{min-width:max-content}.ribbon-tools{flex-wrap:nowrap}.ribbon-panel button{font-size:12px;padding:7px 9px}}
+
+/* V1.3.1: prevent duplicate legacy action panel controls */
+.sidepanel>button,.sidepanel>.file-button{display:none!important}
+.sidepanel>h2:first-child,.sidepanel>hr{display:none}
+.sidepanel{display:block}
+@media(max-width:900px){.sidepanel{display:none!important}}
