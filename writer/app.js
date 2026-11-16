@@ -324,6 +324,7 @@
   ['wordCount','charCount','paraCount'].forEach(id=>{const el=$('#'+id);if(el)statsObserver.observe(el,{childList:true,characterData:true,subtree:true});});
   syncRibbonStats();
   $('#focusEditor').onclick=()=>{editor.focus();editor.scrollIntoView({behavior:'smooth',block:'center'});};
+  ['openFile','openDocx'].forEach(id=>{const input=$('#'+id);if(input){input.classList.add('ribbon-file-input');document.body.append(input);}});
   document.querySelectorAll('[data-proxy]').forEach(btn=>btn.addEventListener('click',()=>{
     const target=$('#'+btn.dataset.proxy);if(!target)return;
     if(target.type==='file')target.click();else target.click();
