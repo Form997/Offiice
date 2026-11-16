@@ -5,7 +5,27 @@
   const STORE = 'haidat-writer-documents-v2';
   let documents = [], activeId = null, saveTimer = null, deferredInstall = null, dirty = false, savedEditorRange = null, currentFileHandle = null, workDirectoryHandle = null;
 
-  const makeId = () => 'doc-' + Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+  const makeId = () => {
+    const d=new Date(),date=[d.getFullYear(),String(d.getMonth()+1).padStart(2,'0'),String(d.getDate()).padStart(2,'0')].join('');
+    let id;
+    do { const token=(window.crypto&&crypto.randomUUID?crypto.randomUUID().replace(/-/g,'').slice(0,8):Math.random().toString(36).slice(2,10)).toUpperCase(); id='HDW-'+date+'-'+token; }
+    while(documents.some(x=>x&&x.id===id));
+    return id;
+  };
+  function normalizeDocuments(items){
+    const used=new Set(),now=Date.now();
+    return items.map(d=>{
+      const x={...d};
+      if(typeof x.id!=='string'||!x.id.trim()||used.has(x.id))x.id=makeId();
+      used.add(x.id);
+      x.title=String(x.title||'Tài liệu chưa đặt tên').slice(0,120);
+      x.html=typeof x.html==='string'?x.html:'<p><br></p>';
+      x.createdAt=Number(x.createdAt)||Number(x.updatedAt)||now;
+      x.updatedAt=Number(x.updatedAt)||x.createdAt;
+      x.appType='writer';x.schemaVersion=1;
+      return x;
+    });
+  }
   const safeName = (name) => (name || 'van-ban').replace(/[\\/:*?"<>|]+/g, '-').trim().slice(0, 90) || 'van-ban';
   const setState = (text, state='') => { const el=$('#saveState'); el.textContent=text; el.dataset.state=state; };
 
@@ -97,6 +117,7 @@
     const doc=current(); if (!doc) return;
     doc.title=titleInput.value.trim() || 'Tài liệu chưa đặt tên';
     doc.html=editor.innerHTML;
+    doc.appType='writer';doc.schemaVersion=1;doc.createdAt=Number(doc.createdAt)||doc.updatedAt||Date.now();
     doc.updatedAt=Date.now();
     try {
       localStorage.setItem(STORE, JSON.stringify(documents));
@@ -347,13 +368,15 @@
 
   try {
     const stored=JSON.parse(localStorage.getItem(STORE)||'[]');
-    if(Array.isArray(stored)) documents=stored.filter(d=>d && typeof d.id==='string');
+    if(Array.isArray(stored)) documents=normalizeDocuments(stored.filter(d=>d&&typeof d==='object'));
     if(!documents.length) {
       const legacy=JSON.parse(localStorage.getItem('haidat-writer')||'null');
       documents=[{id:makeId(),title:legacy?.title||'Tài liệu chưa đặt tên',html:legacy?.html||editor.innerHTML,updatedAt:Date.now()}];
     }
   } catch { documents=[{id:makeId(),title:'Tài liệu chưa đặt tên',html:editor.innerHTML,updatedAt:Date.now()}]; }
+  documents=normalizeDocuments(documents);
   activeId=documents[0].id; loadDoc(activeId);
+  try{localStorage.setItem(STORE,JSON.stringify(documents));}catch{}
 
   editor.addEventListener('input',()=>{rememberEditorSelection();scheduleSave();scheduleTocUpdate();});
   document.addEventListener('selectionchange',rememberEditorSelection);
@@ -581,7 +604,7 @@
   }
   function exportBackup(){
     if(dirty)persist(false);
-    const payload={format:'HAI-DAT-WRITER-BACKUP',version:1,createdAt:new Date().toISOString(),activeId,documents,printSettings:readPrintSettings(),pageSettings:(()=>{try{return JSON.parse(localStorage.getItem('haidat-writer-page-settings')||'{}');}catch{return {};}})()};
+    const payload={format:'HAI-DAT-WRITER-BACKUP',version:2,appType:'writer',createdAt:new Date().toISOString(),activeId,documents,printSettings:readPrintSettings(),pageSettings:(()=>{try{return JSON.parse(localStorage.getItem('haidat-writer-page-settings')||'{}');}catch{return {};}})()};
     download('hai-dat-writer-backup-'+new Date().toISOString().slice(0,10)+'.json',JSON.stringify(payload,null,2),'application/json;charset=utf-8');
     setState('Đã tạo bản sao lưu','saved');
   }
@@ -592,8 +615,8 @@
     reader.onload=()=>{
       try{
         const data=JSON.parse(String(reader.result||''));
-        if(data.format!=='HAI-DAT-WRITER-BACKUP'||data.version!==1||!Array.isArray(data.documents)||!data.documents.length)throw new Error('Sai định dạng hoặc phiên bản bản sao lưu.');
-        const restored=data.documents.filter(d=>d&&typeof d.id==='string'&&typeof d.html==='string').map(d=>({id:d.id,title:String(d.title||'Tài liệu khôi phục').slice(0,120),html:sanitizeHTML(d.html),updatedAt:Number(d.updatedAt)||Date.now()}));
+        if(data.format!=='HAI-DAT-WRITER-BACKUP'||![1,2].includes(data.version)||!Array.isArray(data.documents)||!data.documents.length)throw new Error('Sai định dạng hoặc phiên bản bản sao lưu.');
+        const restored=normalizeDocuments(data.documents.filter(d=>d&&typeof d==='object'&&typeof d.html==='string').map(d=>({...d,title:String(d.title||'Tài liệu khôi phục').slice(0,120),html:sanitizeHTML(d.html)})));
         if(!restored.length)throw new Error('Không tìm thấy tài liệu hợp lệ trong bản sao lưu.');
         if(!confirm('Khôi phục '+restored.length+' tài liệu? Danh sách hiện tại sẽ được thay thế. Hãy chắc chắn đã sao lưu dữ liệu đang có.'))return;
         documents=restored;activeId=restored.some(d=>d.id===data.activeId)?data.activeId:restored[0].id;
