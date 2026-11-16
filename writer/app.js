@@ -740,7 +740,40 @@
     };
     reader.readAsText(file);
   }
+  function checkDataHealth(){
+    if(dirty)persist(false);
+    const ids=new Set(),duplicates=[],invalid=[],live=documents.filter(d=>!d.deletedAt),trashed=documents.length-live.length;
+    documents.forEach((d,i)=>{
+      if(!d||typeof d!=='object'){invalid.push('Bản ghi '+(i+1));return;}
+      if(typeof d.id!=='string'||!d.id.trim())invalid.push('Tài liệu thiếu ID ở vị trí '+(i+1));
+      else if(ids.has(d.id))duplicates.push(d.id);else ids.add(d.id);
+      if(typeof d.html!=='string')invalid.push((d.title||d.id||'Tài liệu')+' · nội dung không hợp lệ');
+    });
+    let storageBytes=0,storageReadable=true;
+    try{for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i)||'',v=localStorage.getItem(k)||'';storageBytes+=(k.length+v.length)*2;}}catch{storageReadable=false;}
+    const historyEntries=Object.values(versionHistory).flatMap(x=>Array.isArray(x)?x:[]);
+    const historyChars=historyEntries.reduce((n,v)=>n+String(v.html||'').length,0);
+    const fmt=n=>n<1024?(n+' B'):(n<1024*1024?(n/1024).toFixed(1)+' KB':(n/1024/1024).toFixed(2)+' MB');
+    const problems=duplicates.length+invalid.length;
+    const report=[
+      'KIỂM TRA KHO DỮ LIỆU HAI ĐẤT WRITER V2.4',
+      'Thời điểm: '+new Date().toLocaleString('vi-VN'),
+      'Tài liệu đang hoạt động: '+live.length,
+      'Tài liệu trong thùng rác: '+trashed,
+      'ID trùng: '+(duplicates.length?duplicates.join(', '):'Không phát hiện'),
+      'Bản ghi bất thường: '+(invalid.length?invalid.join('; '):'Không phát hiện'),
+      'Mốc lịch sử: '+historyEntries.length+' · '+fmt(historyChars*2)+' ước tính',
+      'Dung lượng localStorage: '+(storageReadable?fmt(storageBytes)+' ước tính':'Không đọc được'),
+      'Lưu ý: dung lượng ước tính theo UTF-16; giới hạn thực tế tùy trình duyệt và thiết bị.'
+    ].join('\n');
+    const status=$('#dataHealthStatus');
+    status.textContent=(problems?'Cần xem lại '+problems+' vấn đề':'Kho dữ liệu không phát hiện lỗi cấu trúc')+' · '+live.length+' tài liệu · '+fmt(storageBytes);
+    status.dataset.state=problems?'error':'saved';
+    alert(report);
+    return {problems,storageBytes,live:live.length,trashed};
+  }
   $('#backupExport').onclick=exportBackup;
+  $('#checkDataHealth').onclick=checkDataHealth;
   $('#backupImport').onclick=()=>$('#backupFile').click();
   $('#backupFile').onchange=e=>{importBackup(e.target.files[0]);e.target.value='';};
   ['headerText','footerText','showPageNumbers'].forEach(id=>$('#'+id).addEventListener('change',applyPrintSettings));
