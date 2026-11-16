@@ -23,11 +23,11 @@
           const key=attr.name.toLowerCase(), val=attr.value;
           if (key.startsWith('on') || key === 'contenteditable') child.removeAttribute(attr.name);
           else if (key === 'id') { if (!/^hd-[a-z0-9-]+$/i.test(val)) child.removeAttribute(attr.name); }
-          else if (key === 'class') { const allowedClasses=new Set(['page-break','hd-toc','hd-citation','toc-level-h1','toc-level-h2','toc-level-h3']); if (!val.split(/\s+/).every(c=>allowedClasses.has(c))) child.removeAttribute(attr.name); }
+          else if (key === 'class') { const allowedClasses=new Set(['page-break','section-break','hd-toc','hd-citation','toc-level-h1','toc-level-h2','toc-level-h3']); if (!val.split(/\s+/).every(c=>allowedClasses.has(c))) child.removeAttribute(attr.name); }
           else if (key === 'href' && !/^(https?:|mailto:|tel:)/i.test(val) && !/^#hd-[a-z0-9-]+$/i.test(val)) child.removeAttribute(attr.name);
           else if (key === 'src' && child.tagName === 'IMG' && !/^(data:image\/(png|jpeg|gif|webp);base64,|https?:)/i.test(val)) child.removeAttribute(attr.name);
           else if (key === 'style') {
-            const safe = val.split(';').filter(rule => /^(color|background-color|font-weight|font-style|text-decoration|text-align|font-size|font-family|width|max-width|height)\s*:/i.test(rule.trim()) && !/url\s*\(|expression|javascript/i.test(rule)).join(';');
+            const safe = val.split(';').filter(rule => /^(color|background-color|font-weight|font-style|text-decoration|text-align|font-size|font-family|width|max-width|height|line-height|margin-top|margin-bottom|text-indent)\s*:/i.test(rule.trim()) && !/url\s*\(|expression|javascript/i.test(rule)).join(';');
             if (safe) child.setAttribute('style', safe); else child.removeAttribute('style');
           } else if (!['href','src','alt','title','colspan','rowspan','style','width','height'].includes(key)) child.removeAttribute(attr.name);
         });
@@ -94,6 +94,29 @@
     $('#paraCount').textContent=[...editor.querySelectorAll('p,h1,h2,h3,h4,li,blockquote')].filter(el=>el.innerText.trim()).length;
   }
   function command(cmd,value=null) { editor.focus(); document.execCommand(cmd,false,value); scheduleSave(); }
+
+  function applyParagraphFormatting(){
+    const line=Number($('#lineSpacing').value)||1.15,after=Number($('#paragraphAfter').value)||0;
+    const sel=window.getSelection();
+    let block=sel&&sel.anchorNode?(sel.anchorNode.nodeType===Node.ELEMENT_NODE?sel.anchorNode:sel.anchorNode.parentElement):null;
+    while(block&&block!==editor&&!/^(P|H1|H2|H3|H4|LI|BLOCKQUOTE)$/.test(block.tagName))block=block.parentElement;
+    const targets=block&&block!==editor?[block]:[...editor.querySelectorAll('p,h1,h2,h3,h4,li,blockquote')];
+    targets.forEach(el=>{el.style.lineHeight=String(line);el.style.marginBottom=after+'pt';});
+    scheduleSave();setState('Đã áp dụng định dạng đoạn','saved');
+  }
+  const TEMPLATE_HTML={
+    report:'<h1>BÁO CÁO</h1><p><strong>Đơn vị:</strong> …</p><p><strong>Thời gian:</strong> …</p><h2>I. MỤC ĐÍCH</h2><p>…</p><h2>II. NỘI DUNG</h2><p>…</p><h2>III. KẾT QUẢ</h2><p>…</p><h2>IV. KIẾN NGHỊ</h2><p>…</p><p>…, ngày … tháng … năm …</p><p style="text-align:right"><strong>NGƯỜI LẬP BÁO CÁO</strong></p>',
+    letter:'<p style="text-align:center"><strong>CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM</strong></p><p style="text-align:center">Độc lập - Tự do - Hạnh phúc</p><p style="text-align:right">…, ngày … tháng … năm …</p><h1 style="text-align:center">TÊN VĂN BẢN</h1><p><strong>Kính gửi:</strong> …</p><p>…</p><p>Trân trọng.</p><p style="text-align:right"><strong>NGƯỜI KÝ</strong></p>',
+    minutes:'<h1 style="text-align:center">BIÊN BẢN</h1><p><strong>Thời gian:</strong> …</p><p><strong>Địa điểm:</strong> …</p><p><strong>Thành phần tham dự:</strong> …</p><h2>I. NỘI DUNG CUỘC HỌP</h2><p>…</p><h2>II. KẾT LUẬN</h2><p>…</p><p>Biên bản kết thúc hồi … giờ … cùng ngày.</p><p style="text-align:right"><strong>CHỦ TRÌ / THƯ KÝ</strong></p>',
+    thesis:'<h1 style="text-align:center">TÊN ĐỀ TÀI NGHIÊN CỨU</h1><p style="text-align:center">Tác giả: …</p><h2>TÓM TẮT</h2><p>…</p><h2>1. ĐẶT VẤN ĐỀ</h2><p>…</p><h2>2. VẬT LIỆU VÀ PHƯƠNG PHÁP</h2><p>…</p><h2>3. KẾT QUẢ VÀ THẢO LUẬN</h2><p>…</p><h2>4. KẾT LUẬN VÀ KIẾN NGHỊ</h2><p>…</p><h2>TÀI LIỆU THAM KHẢO</h2><p>…</p>'
+  };
+  function applyDocumentTemplate(){
+    const key=$('#documentTemplate').value;
+    if(!key||!TEMPLATE_HTML[key]){alert('Hãy chọn một mẫu văn bản.');return;}
+    if(editor.innerText.trim()&&!confirm('Áp dụng mẫu sẽ thay nội dung tài liệu hiện tại. Nên sao lưu trước. Tiếp tục?'))return;
+    editor.innerHTML=TEMPLATE_HTML[key];scheduleSave();updateStats();editor.focus();
+  }
+
   function insertTable() {
     const rows=Math.max(1,Math.min(20,Number(prompt('Số hàng (1–20):','3'))||0));
     const cols=Math.max(1,Math.min(10,Number(prompt('Số cột (1–10):','3'))||0));
@@ -258,6 +281,8 @@
   titleInput.addEventListener('input',scheduleSave);
   document.querySelectorAll('[data-cmd]').forEach(btn=>btn.addEventListener('click',()=>command(btn.dataset.cmd)));
   document.querySelectorAll('[data-action]').forEach(btn=>btn.addEventListener('click',()=>command(btn.dataset.action)));
+  $('#applyParagraphSpacing').onclick=applyParagraphFormatting;
+  $('#applyTemplate').onclick=applyDocumentTemplate;
   $('#findNext').onclick=findNextText;$('#replaceOne').onclick=replaceCurrent;$('#replaceAll').onclick=replaceAllText;
   $('#findText').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();findNextText();}});
   $('#blockType').addEventListener('change',e=>command('formatBlock',e.target.value));
@@ -335,7 +360,7 @@
     return [...node.childNodes].map(runXML).join('');
   }
   function paragraphXML(el){
-    if(el.classList?.contains('page-break'))return '<w:p><w:r><w:br w:type="page"/></w:r></w:p>';
+    if(el.classList?.contains('page-break')||el.classList?.contains('section-break'))return '<w:p><w:r><w:br w:type="page"/></w:r></w:p>';
     let pPr='';
     const tag=el.tagName;
     if(/^H[1-3]$/.test(tag))pPr='<w:pPr><w:pStyle w:val="Heading'+tag.slice(1)+'"/></w:pPr>';
@@ -494,6 +519,7 @@
   $('#openDocx').onchange=e=>{const f=e.target.files[0];if(f)importDocx(f);e.target.value='';};
   $('#paperSize').onchange=applyPageSettings;$('#pageMargin').onchange=applyPageSettings;
   $('#insertPageBreak').onclick=()=>command('insertHTML','<div class="page-break"></div><p><br></p>');
+  $('#insertSectionBreak').onclick=()=>command('insertHTML','<div class="section-break"></div><p><br></p>');
   try{const ps=JSON.parse(localStorage.getItem('haidat-writer-page-settings')||'null');if(ps){$('#paperSize').value=ps.paper||'A4';$('#pageMargin').value=ps.margin||20;}}catch{}
   applyPageSettings();
   updateStats();
