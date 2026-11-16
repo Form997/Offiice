@@ -311,3 +311,21 @@
   applyPageSettings();
   updateStats();
 })();
+  // Ribbon tabs: switch panels without changing editor content or save state.
+  document.querySelectorAll('.ribbon-tab').forEach(tab=>tab.addEventListener('click',()=>{
+    document.querySelectorAll('.ribbon-tab').forEach(t=>{const active=t===tab;t.classList.toggle('active',active);t.setAttribute('aria-selected',String(active));});
+    document.querySelectorAll('.ribbon-panel').forEach(panel=>{const active=panel.id==='panel-'+tab.dataset.tab;panel.hidden=!active;panel.classList.toggle('active',active);});
+  }));
+  // Keep the existing page controls and statistics in their corresponding ribbon tabs.
+  const pagePanel=$('#pageSetupRibbon'), side=$('.sidepanel');
+  if(pagePanel&&side){const labels=[...side.querySelectorAll('.setting')];labels.forEach(label=>pagePanel.append(label));const pageBreak=$('#insertPageBreak');if(pageBreak)pagePanel.append(pageBreak);}
+  const statsPanel=$('#panel-view');
+  const syncRibbonStats=()=>{[['wordCount','ribbonWordCount'],['charCount','ribbonCharCount'],['paraCount','ribbonParaCount']].forEach(([a,b])=>{const x=$('#'+a),y=$('#'+b);if(x&&y)y.textContent=x.textContent;});};
+  const statsObserver=new MutationObserver(syncRibbonStats);
+  ['wordCount','charCount','paraCount'].forEach(id=>{const el=$('#'+id);if(el)statsObserver.observe(el,{childList:true,characterData:true,subtree:true});});
+  syncRibbonStats();
+  $('#focusEditor').onclick=()=>{editor.focus();editor.scrollIntoView({behavior:'smooth',block:'center'});};
+  document.querySelectorAll('[data-proxy]').forEach(btn=>btn.addEventListener('click',()=>{
+    const target=$('#'+btn.dataset.proxy);if(!target)return;
+    if(target.type==='file')target.click();else target.click();
+  }));
