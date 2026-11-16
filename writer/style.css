@@ -89,3 +89,15 @@ footer{text-align:center;color:var(--muted);padding:22px;font-size:12px}
 .find-tools input{min-width:125px;width:155px;min-height:36px;font-size:13px}
 .find-tools button{font-size:12px;padding:7px 9px}
 @media(max-width:600px){.find-tools{min-width:100%;display:grid;grid-template-columns:1fr 1fr}.find-tools input{width:100%;min-width:0}.find-tools button{width:100%}}
+
+/* V1.6 print metadata and backup tools */
+.print-fields{min-width:240px}
+.print-fields .setting{display:flex;gap:8px;align-items:center;justify-content:space-between}
+.print-fields .setting input[type=text]{width:170px;min-width:0}
+.check-setting{display:flex;align-items:center;gap:7px;font-size:13px}
+.check-setting input{min-height:auto}
+@media(max-width:600px){.print-fields{min-width:230px}.print-fields .setting input[type=text]{width:135px}}
+@media print{
+ @page{margin:20mm}
+ .page{margin-top:0}
+}
