@@ -12,7 +12,7 @@
 - Sao lưu JSON phiên bản 4 bao gồm lịch sử; vẫn nhận bản sao lưu phiên bản 1, 2 và 3.
 - Giới hạn: tối đa 6 mốc/tài liệu, tối đa 160.000 ký tự HTML/mốc và khoảng 1,1 triệu ký tự lịch sử toàn ứng dụng. Nội dung vượt giới hạn không được lưu vào lịch sử; tài liệu hiện tại vẫn được lưu bình thường.
 - Lưu trữ lịch sử tại localStorage riêng `haidat-writer-history-v1`; dữ liệu vẫn chỉ nằm trên trình duyệt/thiết bị hiện tại, chưa đồng bộ đám mây.
-- Service Worker cache: `haidat-writer-v2-2`; script: `app.js?v=2.2`.
+- Service Worker cache: `haidat-writer-v2-2-r1`; script: `app.js?v=2.2`.
 
 ## Kiểm tra
 - Đã kiểm tra cú pháp JavaScript.
