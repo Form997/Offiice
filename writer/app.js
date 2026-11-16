@@ -391,6 +391,7 @@
     let style=$('#dynamicPrintStyle');if(!style){style=document.createElement('style');style.id='dynamicPrintStyle';document.head.append(style);}
     style.textContent='@page{size:'+$('#paperSize').value+';margin:'+margin+'mm}';
     try{localStorage.setItem('haidat-writer-page-settings',JSON.stringify({paper:$('#paperSize').value,margin}));}catch{}
+    if(typeof applyPrintSettings==='function')applyPrintSettings();
   }
 
 
