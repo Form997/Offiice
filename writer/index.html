@@ -35,15 +35,15 @@
       <button class="ribbon-tab" type="button" role="tab" aria-selected="false" aria-controls="panel-view" data-tab="view">Xem</button>
     </div>
     <section class="ribbon-panel active" id="panel-file" role="tabpanel">
-      <div class="ribbon-group"><strong>Mẫu văn bản</strong><div class="ribbon-tools"><select id="documentTemplate" aria-label="Chọn mẫu văn bản"><option value="">Chọn mẫu…</option><option value="report">Báo cáo</option><option value="letter">Công văn / thư</option><option value="minutes">Biên bản</option><option value="thesis">Bài nghiên cứu</option></select><button type="button" id="applyTemplate">Áp dụng mẫu</button></div></div>
+      <div class="ribbon-group file-workflow-group"><strong>Quản lý tệp</strong><div class="ribbon-tools file-workflow-tools">
+<button type="button" id="openLocalFile">Mở tệp</button><button type="button" id="saveFile" class="primary">Lưu</button><button type="button" id="saveAsFile">Lưu thành</button><button type="button" id="closeFile">Đóng tệp</button><button type="button" id="chooseWorkFolder">Chọn thư mục làm việc</button><button type="button" id="openWorkFolder">Mở từ thư mục</button></div><small id="workFolderStatus">Chưa chọn thư mục làm việc</small></div><div class="ribbon-group"><strong>Mẫu văn bản</strong><div class="ribbon-tools"><select id="documentTemplate" aria-label="Chọn mẫu văn bản"><option value="">Chọn mẫu…</option><option value="report">Báo cáo</option><option value="letter">Công văn / thư</option><option value="minutes">Biên bản</option><option value="thesis">Bài nghiên cứu</option></select><button type="button" id="applyTemplate">Áp dụng mẫu</button></div></div>
       <div class="ribbon-group"><div class="ribbon-tools">
-        <button type="button" data-proxy="saveNow" class="primary">Lưu ngay</button>
+        <button type="button" data-proxy="saveFile" class="primary">Lưu tệp</button>
         <button type="button" data-proxy="exportDocx">Xuất DOCX</button>
         <button type="button" data-proxy="exportHtml">Xuất HTML</button>
         <button type="button" data-proxy="exportTxt">Xuất TXT</button>
         <button type="button" data-proxy="printDoc">In / PDF</button>
-        <button type="button" data-proxy="openFile">Mở HTML / TXT</button>
-        <button type="button" data-proxy="openDocx">Mở Word</button>
+        <button type="button" data-proxy="openLocalFile">Mở tệp bất kỳ</button>
         <button type="button" id="backupExport">Sao lưu toàn bộ</button>
         <button type="button" id="backupImport">Khôi phục bản sao</button>
         <input id="backupFile" type="file" accept=".json,application/json" hidden>
@@ -134,8 +134,8 @@
       <button id="exportDocx" class="primary">Xuất DOCX (Word)</button>
       <button id="exportTxt">Tải TXT</button>
       <button id="printDoc">In / Lưu PDF</button>
-      <label class="file-button">Mở HTML / TXT <input id="openFile" type="file" accept=".html,.htm,.txt,text/html,text/plain"></label>
-      <label class="file-button">Mở Word DOCX <input id="openDocx" type="file" accept=".docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document"></label>
+      <label class="file-button">Mở HTML / TXT <input id="openFile" type="file" accept=".html,.htm,.txt,.md,.markdown,.csv,.rtf,text/html,text/plain"></label>
+      <label class="file-button">Mở Word DOCX <input id="openDocx" type="file" accept=".docx,.odt,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.oasis.opendocument.text"></label>
       <hr>
       <hr>
       <h2>Thiết lập trang</h2>
@@ -150,7 +150,7 @@
   <input id="imageFile" type="file" accept="image/*" hidden>
   <p class="muted">Tự lưu khi nội dung thay đổi · Hỗ trợ ngoại tuyến sau khi ứng dụng được tải lần đầu.</p>
 </main>
-<footer>HAI ĐẤT OFFICE · WRITER V1.10</footer>
+<footer>HAI ĐẤT OFFICE · WRITER V1.11</footer>
 <script>
   window.addEventListener('error', function (event) {
     var box = document.getElementById('runtimeError');
@@ -173,6 +173,6 @@
     box.textContent = 'Writer gặp lỗi tác vụ: ' + String(event.reason && event.reason.message || event.reason || 'Không rõ nguyên nhân');
   });
 </script>
-<script src="app.js?v=1.10"></script>
+<script src="app.js?v=1.11"></script>
 </body>
 </html>
