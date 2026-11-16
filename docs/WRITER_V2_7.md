@@ -15,7 +15,7 @@
 6. Verify email signup, login, logout and password-reset email.
 
 ## Important current boundary
-V2.7 does NOT yet upload local documents or switch the editor to cloud storage. Login only establishes identity. The local document list remains in this browser. The schema/RLS is the secure foundation for the next cloud-sync and sharing UI milestone. Do not tell users that cross-device sharing works until cloud sync and ACL integration are implemented and tested.
+V2.7 does NOT yet upload local documents or switch the editor to cloud storage. Login only establishes identity. The local document list remains in this browser. The schema/RLS is the secure foundation for the next cloud-sync and sharing UI milestone. The full owner-facing permission checkbox manager, request inbox, group administration screens and cloud document sync are not yet connected in this release. Do not tell users that cross-device sharing works until cloud sync and ACL integration are implemented and tested.
 
 ## Permission semantics
 - `can_read`: read content.
@@ -25,6 +25,7 @@ V2.7 does NOT yet upload local documents or switch the editor to cloud storage. 
 - `can_download`: download/export source content, requires read.
 - Direct user grants and group grants are evaluated at request time. Removing a member removes inherited access on the next server request.
 - Only the document owner can grant, modify or revoke permissions.
+- `can_copy` and `can_download` gate the app's built-in copy/export operations. A person who can read content can still capture it manually (screenshots, retyping, browser tools); software cannot revoke information already seen.
 - Offline copies already downloaded cannot be remotely revoked.
 
 ## QA checklist
