@@ -254,7 +254,8 @@
   $('#openFile').onchange=e=>{openFile(e.target.files[0]);e.target.value='';};
   document.addEventListener('keydown',e=>{
     const mod=e.ctrlKey||e.metaKey;
-    if(mod && e.key.toLowerCase()==='f'){e.preventDefault();$('#findText').focus();$('#findText').select();}\n    if(mod && e.key.toLowerCase()==='s'){e.preventDefault();clearTimeout(saveTimer);persist();}
+    if(mod && e.key.toLowerCase()==='f'){e.preventDefault();$('#findText').focus();$('#findText').select();}
+    if(mod && e.key.toLowerCase()==='s'){e.preventDefault();clearTimeout(saveTimer);persist();}
     if(mod && e.key.toLowerCase()==='b' && document.activeElement===editor){e.preventDefault();command('bold');}
     if(mod && e.key.toLowerCase()==='i' && document.activeElement===editor){e.preventDefault();command('italic');}
     if(mod && e.key.toLowerCase()==='u' && document.activeElement===editor){e.preventDefault();command('underline');}
