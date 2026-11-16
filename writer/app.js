@@ -5,7 +5,7 @@
   const STORE = 'haidat-writer-documents-v2';
   const FOLDERS_STORE='haidat-writer-folders-v1';
   const HISTORY_STORE='haidat-writer-history-v1';
-  const HISTORY_PER_DOCUMENT=8, HISTORY_MAX_CHARS=350000, HISTORY_TOTAL_CHARS=3200000, AUTO_HISTORY_INTERVAL=5*60*1000;
+  const HISTORY_PER_DOCUMENT=6, HISTORY_MAX_CHARS=160000, HISTORY_TOTAL_CHARS=1100000, AUTO_HISTORY_INTERVAL=5*60*1000;
   const DEFAULT_FOLDERS=['Chưa phân loại','Công việc','Học tập','Cá nhân'];
   let folders=(()=>{try{const v=JSON.parse(localStorage.getItem(FOLDERS_STORE)||'null');return Array.isArray(v)&&v.length?v.filter(x=>typeof x==='string'&&x.trim()).slice(0,100):DEFAULT_FOLDERS.slice();}catch{return DEFAULT_FOLDERS.slice();}})();if(!folders.includes('Chưa phân loại'))folders.unshift('Chưa phân loại');
   let documents = [], activeId = null, saveTimer = null, deferredInstall = null, dirty = false, savedEditorRange = null, currentFileHandle = null, workDirectoryHandle = null;
@@ -132,11 +132,11 @@
   function readVersionHistory(){try{const v=JSON.parse(localStorage.getItem(HISTORY_STORE)||'{}');return v&&typeof v==='object'&&!Array.isArray(v)?v:{};}catch{return {};}}
   let versionHistory=readVersionHistory();
   function saveVersionHistory(){
-    const ids=new Set(documents.map(d=>d.id));Object.keys(versionHistory).forEach(id=>{if(!ids.has(id))delete versionHistory[id];});
-    let entries=Object.entries(versionHistory).flatMap(([id,list])=>(Array.isArray(list)?list:[]).map(v=>({id,v}))).sort((a,b)=>(a.v.createdAt||0)-(b.v.createdAt||0));
-    let total=entries.reduce((n,x)=>n+(String(x.v.html||'').length),0);
-    while(total>HISTORY_TOTAL_CHARS&&entries.length){const old=entries.shift();total-=String(old.v.html||'').length;const list=versionHistory[old.id]||[];const index=list.findIndex(v=>v.versionId===old.v.versionId);if(index>=0)list.splice(index,1);if(!list.length)delete versionHistory[old.id];}
-    try{localStorage.setItem(HISTORY_STORE,JSON.stringify(versionHistory));return true;}catch{return false;}
+    const ids=new Set(documents.map(d=>d.id)),candidate={};Object.entries(versionHistory).forEach(([id,list])=>{if(ids.has(id)&&Array.isArray(list))candidate[id]=list.slice();});
+    let entries=Object.entries(candidate).flatMap(([id,list])=>list.map(v=>({id,v}))).sort((a,b)=>(a.v.createdAt||0)-(b.v.createdAt||0));
+    let total=entries.reduce((n,x)=>n+String(x.v.html||'').length,0);
+    while(total>HISTORY_TOTAL_CHARS&&entries.length){const old=entries.shift();total-=String(old.v.html||'').length;const list=candidate[old.id]||[];const index=list.findIndex(v=>v.versionId===old.v.versionId);if(index>=0)list.splice(index,1);if(!list.length)delete candidate[old.id];}
+    try{localStorage.setItem(HISTORY_STORE,JSON.stringify(candidate));versionHistory=candidate;return true;}catch{return false;}
   }
   function renderVersionHistory(){
     const select=$('#versionHistoryList');if(!select)return;const doc=current(),list=doc?(versionHistory[doc.id]||[]):[];select.replaceChildren();
@@ -149,7 +149,7 @@
     if(last&&last.html===content)return true;
     if(!force&&last&&Date.now()-last.createdAt<AUTO_HISTORY_INTERVAL)return false;
     const textContent=editor.innerText||editor.textContent||'';
-    const snap={versionId:'HDWV-'+Date.now()+'-'+Math.random().toString(36).slice(2,7).toUpperCase(),createdAt:Date.now(),reason,html:content,title:doc.title,wordCount:(textContent.trim().match(/[\\p{L}\\p{N}]+/gu)||[]).length,charCount:textContent.length};
+    const snap={versionId:'HDWV-'+Date.now()+'-'+Math.random().toString(36).slice(2,7).toUpperCase(),createdAt:Date.now(),reason,html:content,title:doc.title,wordCount:(textContent.trim().match(/[\p{L}\p{N}]+/gu)||[]).length,charCount:textContent.length};
     list.push(snap);while(list.length>HISTORY_PER_DOCUMENT)list.shift();
     if(!saveVersionHistory()){list.pop();if(!list.length)delete versionHistory[doc.id];if(force)alert('Không đủ bộ nhớ để lưu mốc phiên bản.');return false;}
     renderVersionHistory();return true;
