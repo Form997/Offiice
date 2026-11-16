@@ -101,3 +101,11 @@ footer{text-align:center;color:var(--muted);padding:22px;font-size:12px}
  @page{margin:20mm}
  .page{margin-top:0}
 }
+
+/* V1.7 automatic table of contents */
+.toc-auto-setting{display:flex;align-items:center;gap:7px;font-size:13px;white-space:nowrap}
+.toc-auto-setting input{min-height:0}
+.hd-toc .toc-updated{margin:.6em 0 0;color:#64748b;font-size:11px;font-style:italic}
+.hd-toc a{color:#176b57;text-decoration:none}
+.hd-toc a:hover{text-decoration:underline}
+@media print{.hd-toc .toc-updated{display:none}}
