@@ -21,8 +21,9 @@
         if (!allowed.has(child.tagName)) { clean(child); child.replaceWith(...child.childNodes); return; }
         [...child.attributes].forEach(attr => {
           const key=attr.name.toLowerCase(), val=attr.value;
-          if (key.startsWith('on') || key === 'contenteditable' || key === 'id') child.removeAttribute(attr.name);\n          else if (key === 'class') { if (!(child.tagName === 'DIV' && val.split(/\\s+/).includes('page-break'))) child.removeAttribute(attr.name); }
-          else if (key === 'href' && !/^(https?:|mailto:|tel:)/i.test(val)) child.removeAttribute(attr.name);
+          if (key.startsWith('on') || key === 'contenteditable') child.removeAttribute(attr.name);
+          else if (key === 'id') { if (!/^hd-[a-z0-9-]+$/i.test(val)) child.removeAttribute(attr.name); }\n          else if (key === 'class') { if (!(child.tagName === 'DIV' && val.split(/\\s+/).includes('page-break'))) child.removeAttribute(attr.name); }
+          else if (key === 'href' && !/^(https?:|mailto:|tel:)/i.test(val) && !/^#hd-[a-z0-9-]+$/i.test(val)) child.removeAttribute(attr.name);
           else if (key === 'src' && child.tagName === 'IMG' && !/^(data:image\\/(png|jpeg|gif|webp);base64,|https?:)/i.test(val)) child.removeAttribute(attr.name);
           else if (key === 'style') {
             const safe = val.split(';').filter(rule => /^(color|background-color|font-weight|font-style|text-decoration|text-align|font-size|font-family|width|max-width|height)\\s*:/i.test(rule.trim()) && !/url\\s*\\(|expression|javascript/i.test(rule)).join(';');
@@ -126,6 +127,44 @@
     reader.readAsText(file);
   }
 
+  // Reference tools are stored as semantic HTML inside each document.
+  function safeHeadingId(index){return 'hd-heading-'+index;}
+  function buildToc(){
+    const headings=[...editor.querySelectorAll('h1,h2,h3')].filter(h=>h.textContent.trim());
+    if(!headings.length){alert('Chưa có tiêu đề. Hãy định dạng đoạn bằng Tiêu đề 1, 2 hoặc 3 trước.');return;}
+    headings.forEach((h,i)=>{if(!/^hd-heading-\\d+$/.test(h.id||''))h.id=safeHeadingId(i+1);});
+    const items=headings.map(h=>'<li class="toc-level-'+h.tagName.toLowerCase()+'"><a href="#'+h.id+'">'+escapeHTML(h.textContent.trim())+'</a></li>').join('');
+    const toc='<section class="hd-toc" id="hd-toc"><h2>MỤC LỤC</h2><ol>'+items+'</ol></section>';
+    const existing=editor.querySelector('#hd-toc');
+    if(existing)existing.outerHTML=toc;else editor.insertAdjacentHTML('afterbegin',toc);
+    scheduleSave();
+  }
+  function insertFootnote(){
+    const note=prompt('Nội dung chú thích:');if(!note||!note.trim())return;
+    const notes=editor.querySelector('#hd-footnotes')||(()=>{editor.insertAdjacentHTML('beforeend','<section id="hd-footnotes"><h2>CHÚ THÍCH</h2><ol></ol></section>');return editor.querySelector('#hd-footnotes');})();
+    const list=notes.querySelector('ol'),n=list.children.length+1,id='hd-footnote-'+n;
+    list.insertAdjacentHTML('beforeend','<li id="'+id+'">'+escapeHTML(note.trim())+' <a href="#hd-footnote-ref-'+n+'" aria-label="Trở lại vị trí chú thích">↩</a></li>');
+    command('insertHTML','<sup><a id="hd-footnote-ref-'+n+'" href="#'+id+'">['+n+']</a></sup>');
+    scheduleSave();
+  }
+  function addCitation(){
+    const author=prompt('Tác giả / cơ quan:');if(!author||!author.trim())return;
+    const title=prompt('Tên tài liệu:');if(!title||!title.trim())return;
+    const year=prompt('Năm xuất bản (có thể để trống):')||'';
+    const publisher=prompt('Nhà xuất bản / tạp chí / đường dẫn (có thể để trống):')||'';
+    const list=editor.querySelector('#hd-bibliography-list')||(()=>{editor.insertAdjacentHTML('beforeend','<section id="hd-bibliography"><h2>TÀI LIỆU THAM KHẢO</h2><ol id="hd-bibliography-list"></ol></section>');return editor.querySelector('#hd-bibliography-list');})();
+    const n=list.children.length+1,entry=[author.trim(),title.trim(),year.trim(),publisher.trim()].filter(Boolean).join('. ');
+    list.insertAdjacentHTML('beforeend','<li data-citation="'+n+'">'+escapeHTML(entry)+'.</li>');
+    command('insertHTML','<span class="hd-citation">['+n+']</span>');
+    scheduleSave();
+  }
+  function buildBibliography(){
+    const list=editor.querySelector('#hd-bibliography-list');
+    if(!list||!list.children.length){alert('Chưa có tài liệu tham khảo. Hãy dùng “Thêm trích dẫn” trước.');return;}
+    editor.querySelector('#hd-bibliography').scrollIntoView({behavior:'smooth',block:'center'});
+    scheduleSave();
+  }
+
   try {
     const stored=JSON.parse(localStorage.getItem(STORE)||'[]');
     if(Array.isArray(stored)) documents=stored.filter(d=>d && typeof d.id==='string');
@@ -147,6 +186,8 @@
   $('#highlightColor').addEventListener('input',e=>command('hiliteColor',e.target.value));
   $('#outdent').onclick=()=>command('outdent'); $('#indent').onclick=()=>command('indent');
   $('#addLink').onclick=insertLink; $('#addTable').onclick=insertTable;
+  $('#insertToc').onclick=buildToc; $('#insertFootnote').onclick=insertFootnote;
+  $('#addCitation').onclick=addCitation; $('#buildBibliography').onclick=buildBibliography;
   $('#addImage').onclick=()=>$('#imageFile').click();
   $('#imageFile').onchange=e=>{addImage(e.target.files[0]);e.target.value='';};
   $('#clearFormat').onclick=()=>command('removeFormat');
