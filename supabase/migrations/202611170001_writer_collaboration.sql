@@ -79,23 +79,23 @@ create table if not exists public.hd_access_audit (
   created_at timestamptz not null default now()
 );
 
-create or replace function public.hd_is_group_member(p_group uuid, p_user uuid default auth.uid())
+create or replace function public.hd_is_group_member(p_group uuid)
 returns boolean language sql stable security definer set search_path=public
-as $$ select exists(select 1 from public.hd_group_members m where m.group_id=p_group and m.user_id=p_user); $$;
+as $ select auth.uid() is not null and exists(select 1 from public.hd_group_members m where m.group_id=p_group and m.user_id=auth.uid()); $;
 
-create or replace function public.hd_is_group_manager(p_group uuid, p_user uuid default auth.uid())
+create or replace function public.hd_is_group_manager(p_group uuid)
 returns boolean language sql stable security definer set search_path=public
-as $$ select exists(select 1 from public.hd_groups g where g.id=p_group and g.owner_user_id=p_user)
-   or exists(select 1 from public.hd_group_members m where m.group_id=p_group and m.user_id=p_user and m.role='manager'); $$;
+as $ select auth.uid() is not null and (exists(select 1 from public.hd_groups g where g.id=p_group and g.owner_user_id=auth.uid())
+   or exists(select 1 from public.hd_group_members m where m.group_id=p_group and m.user_id=auth.uid() and m.role='manager')); $;
 
-create or replace function public.hd_has_doc_permission(p_document text, p_permission text, p_user uuid default auth.uid())
+create or replace function public.hd_has_doc_permission(p_document text, p_permission text)
 returns boolean language sql stable security definer set search_path=public
 as $$
  select exists(
    select 1 from public.hd_documents d
    where d.id=p_document and d.deleted_at is null
    and (
-     d.owner_user_id=p_user
+     d.owner_user_id=auth.uid()
      or exists(
        select 1 from public.hd_document_permissions p
        where p.document_id=d.id and p.revoked_at is null
@@ -107,13 +107,22 @@ as $$
          when 'download' then p.can_read and p.can_download
          else false end
        and (
-         (p.subject_type='user' and p.subject_id=p_user)
-         or (p.subject_type='group' and public.hd_is_group_member(p.subject_id,p_user))
+         (p.subject_type='user' and p.subject_id=auth.uid())
+         or (p.subject_type='group' and public.hd_is_group_member(p.subject_id))
        )
      )
    )
  );
 $$;
+
+
+-- Helper functions are callable only by authenticated users and always use the caller's JWT identity.
+revoke all on function public.hd_is_group_member(uuid) from public, anon;
+revoke all on function public.hd_is_group_manager(uuid) from public, anon;
+revoke all on function public.hd_has_doc_permission(text,text) from public, anon;
+grant execute on function public.hd_is_group_member(uuid) to authenticated;
+grant execute on function public.hd_is_group_manager(uuid) to authenticated;
+grant execute on function public.hd_has_doc_permission(text,text) to authenticated;
 
 alter table public.hd_groups enable row level security;
 alter table public.hd_group_members enable row level security;
@@ -209,7 +218,7 @@ begin
   if auth.uid() is null then raise exception 'Authentication required'; end if;
   if p_new_id !~ '^HDW-[0-9]{8}-[A-Z0-9]{8}$' then raise exception 'Invalid new document ID'; end if;
   if char_length(coalesce(p_new_title,'')) not between 1 and 120 then raise exception 'Invalid title'; end if;
-  if not public.hd_has_doc_permission(p_source_id,'copy',auth.uid()) then raise exception 'Copy permission denied'; end if;
+  if not public.hd_has_doc_permission(p_source_id,'copy') then raise exception 'Copy permission denied'; end if;
   select * into source_doc from public.hd_documents where id=p_source_id and deleted_at is null;
   if not found then raise exception 'Document unavailable'; end if;
   insert into public.hd_documents(id,owner_user_id,title,content_html,content_type,version)
