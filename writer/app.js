@@ -56,24 +56,35 @@
   }
   async function openFromComputer(){
     if(!window.showOpenFilePicker){$('#openFile').click();return;}
-    try{const o={multiple:false,types:[{description:'Tài liệu',accept:{'application/vnd.openxmlformats-officedocument.wordprocessingml.document':['.docx'],'application/vnd.oasis.opendocument.text':['.odt'],'text/html':['.html','.htm'],'text/plain':['.txt','.md','.csv'],'application/rtf':['.rtf']}}]};if(workDirectoryHandle)o.startIn=workDirectoryHandle;const [h]=await window.showOpenFilePicker(o);await openAnyFile(await h.getFile());currentFileHandle=h;await storeHandle('file',h);}catch(e){if(e.name!=='AbortError')alert('Không mở được: '+e.message);}
+    try{const o={multiple:false,types:[{description:'Tài liệu',accept:{'application/vnd.openxmlformats-officedocument.wordprocessingml.document':['.docx'],'application/vnd.oasis.opendocument.text':['.odt'],'text/html':['.html','.htm'],'text/plain':['.txt','.md','.csv'],'application/rtf':['.rtf']}}]};if(workDirectoryHandle)o.startIn=workDirectoryHandle;const [h]=await window.showOpenFilePicker(o);const opened=await openAnyFile(await h.getFile());if(opened){currentFileHandle=h;await storeHandle('file',h);}}catch(e){if(e.name!=='AbortError')alert('Không mở được: '+e.message);}
   }
-  function addLoadedFile(name,content){const d={id:makeId(),title:name.replace(/\.[^.]+$/,''),html:sanitizeHTML(content||'<p><br></p>'),updatedAt:Date.now()};documents.push(d);loadDoc(d.id);scheduleSave();}
+  function addLoadedFile(name,content){
+    const title=name.replace(/\.[^.]+$/,'').slice(0,120)||'Tài liệu nhập';
+    const html=sanitizeHTML(content||'<p><br></p>');
+    const duplicate=documents.find(d=>d.title.trim().toLocaleLowerCase('vi')===title.trim().toLocaleLowerCase('vi')&&d.html===html);
+    if(duplicate){
+      if(confirm('Tài liệu này đã có trong Writer với cùng tên và nội dung. Mở tài liệu hiện có thay vì tạo bản trùng?')){
+        loadDoc(duplicate.id);return true;
+      }
+    }
+    const d={id:makeId(),title,html,createdAt:Date.now(),updatedAt:Date.now(),appType:'writer',schemaVersion:1};
+    documents.push(d);loadDoc(d.id);scheduleSave();return true;
+  }
   async function openAnyFile(file){
-    if(!file)return;const ext=extOf(file.name);
+    if(!file)return false;const ext=extOf(file.name);
     try{
-      if(ext==='docx'){await importDocx(file);return;}
+      if(ext==='docx')return await importDocx(file);
       if(ext==='doc')throw new Error('DOC cũ (Word 97–2003) chưa đọc trực tiếp được. Hãy chuyển sang DOCX bằng Word hoặc LibreOffice.');
       if(ext==='pdf')throw new Error('PDF chưa chuyển thành văn bản chỉnh sửa được; dùng In / Lưu PDF để xuất PDF.');
-      if(ext==='odt'){const x=await unzipText(file,'content.xml'),d=new DOMParser().parseFromString(x,'application/xml');if(d.querySelector('parsererror'))throw new Error('Tệp ODT lỗi XML.');const ns='urn:oasis:names:tc:opendocument:xmlns:text:1.0';addLoadedFile(file.name,[...d.getElementsByTagNameNS(ns,'p'),...d.getElementsByTagNameNS(ns,'h')].map(p=>'<p>'+escapeHTML(p.textContent)+'</p>').join(''));return;}
+      if(ext==='odt'){const x=await unzipText(file,'content.xml'),d=new DOMParser().parseFromString(x,'application/xml');if(d.querySelector('parsererror'))throw new Error('Tệp ODT lỗi XML.');const ns='urn:oasis:names:tc:opendocument:xmlns:text:1.0';return addLoadedFile(file.name,[...d.getElementsByTagNameNS(ns,'p'),...d.getElementsByTagNameNS(ns,'h')].map(p=>'<p>'+escapeHTML(p.textContent)+'</p>').join(''));}
       const raw=await file.text();let body='';
       if(['html','htm'].includes(ext))body=raw;
       else if(ext==='rtf')body='<p>'+escapeHTML(raw.replace(/\\par[d]?/g,'\n').replace(/\\[a-z]+-?\d* ?/gi,'').replace(/[{}]/g,'')).replace(/\n/g,'</p><p>')+'</p>';
       else if(ext==='csv'){body='<table><tbody>'+raw.split(/\r?\n/).filter(Boolean).map((r,i)=>'<tr>'+r.split(',').map(c=>(i===0?'<th>':'<td>')+escapeHTML(c)+(i===0?'</th>':'</td>')).join('')+'</tr>').join('')+'</tbody></table>';}
       else if(['txt','md','markdown'].includes(ext))body='<p>'+escapeHTML(raw).replace(/\r?\n/g,'</p><p>')+'</p>';
       else throw new Error('Định dạng .'+ext+' chưa hỗ trợ.');
-      addLoadedFile(file.name,body);
-    }catch(e){alert('Không mở được '+file.name+': '+e.message);}
+      return addLoadedFile(file.name,body);
+    }catch(e){alert('Không mở được '+file.name+': '+e.message);return false;}
   }
   async function openFromChosenFolder(){await openFromComputer();}
   function closeCurrentFile(){
@@ -144,7 +155,7 @@
   function loadDoc(id) {
     const doc=documents.find(d=>d.id===id); if(!doc) return;
     clearTimeout(saveTimer); activeId=id; titleInput.value=doc.title; editor.innerHTML=sanitizeHTML(doc.html || '<p><br></p>');
-    dirty=false; renderDocList(); updateStats(); setState('Đã mở tài liệu','saved');
+    dirty=false; renderDocList(); updateStats(); const identity=$('#docIdDisplay');if(identity)identity.textContent='ID: '+doc.id; setState('Đã mở tài liệu','saved');
   }
   function createDoc() {
     if(dirty) persist(false);
@@ -409,6 +420,7 @@
   $('#newDoc').onclick=createDoc;
   $('#docList').onchange=e=>{if(dirty)persist(false);loadDoc(e.target.value);};
   $('#renameDoc').onclick=()=>{titleInput.focus();titleInput.select();};
+  $('#copyDocId').onclick=async()=>{const id=current()?.id;if(!id)return;try{await navigator.clipboard.writeText(id);setState('Đã sao chép ID tài liệu','saved');}catch{prompt('ID tài liệu:',id);}};
   $('#deleteDoc').onclick=()=>{
     if(documents.length===1){if(!confirm('Xóa nội dung tài liệu hiện tại?'))return;current().html='<p><br></p>';current().title='Tài liệu chưa đặt tên';loadDoc(activeId);scheduleSave();return;}
     if(!confirm('Xóa hẳn tài liệu này khỏi thiết bị?'))return;
@@ -565,9 +577,8 @@
           html+='</tbody></table>';
         }
       }
-      const newDoc={id:makeId(),title:file.name.replace(/\.docx$/i,''),html:sanitizeHTML(html||'<p><br></p>'),updatedAt:Date.now()};
-      documents.push(newDoc);loadDoc(newDoc.id);scheduleSave();
-    }catch(err){alert('Không mở được DOCX: '+err.message);}
+      return addLoadedFile(file.name,html||'<p><br></p>');
+    }catch(err){alert('Không mở được DOCX: '+err.message);return false;}
   }
   function applyPageSettings(){
     const sizes={A4:[210,297],A5:[148,210],Letter:[216,279]},s=sizes[$('#paperSize').value]||sizes.A4;
@@ -640,7 +651,6 @@
 
 
   $('#exportDocx').onclick=exportDocx;
-  $('#openDocx').onchange=e=>{const f=e.target.files[0];if(f)importDocx(f);e.target.value='';};
   $('#paperSize').onchange=applyPageSettings;$('#pageMargin').onchange=applyPageSettings;
   $('#insertPageBreak').onclick=()=>command('insertHTML','<div class="page-break"></div><p><br></p>');
   $('#insertSectionBreak').onclick=()=>command('insertHTML','<div class="section-break"></div><p><br></p>');
