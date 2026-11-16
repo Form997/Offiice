@@ -112,3 +112,51 @@ footer{text-align:center;color:var(--muted);padding:22px;font-size:12px}
 
 /* V1.8 paragraph controls, templates and section breaks */
 .paragraph-tools{gap:8px;align-items:center}.paragraph-tools label{display:flex;align-items:center;gap:5px;font-size:12px;white-space:nowrap}.paragraph-tools select{min-height:34px;padding:5px}.section-break{break-before:page;page-break-before:always;border-top:2px dashed #6f988b;margin:24px 0;height:0;position:relative}.section-break:after{content:'NGẮT PHẦN';position:relative;top:-13px;display:inline-block;padding:0 7px;background:#fff;color:#64748b;font-size:10px;letter-spacing:.08em}@media print{.section-break{border:0;margin:0}.section-break:after{display:none}}
+
+
+/* V1.9 — refined workspace, compact mobile controls and live editor status */
+:root{--brand:#176b57;--bg:#edf2f1;--line:#d7e2de}
+.topbar{background:linear-gradient(115deg,#103c34,#176b57);padding:14px clamp(12px,2vw,28px)}
+.brand{font-size:17px;letter-spacing:.055em}
+main{max-width:1560px;margin:14px auto;padding:0 clamp(8px,1.5vw,22px)}
+.docbar{position:sticky;top:0;z-index:12;box-shadow:0 3px 14px #102b2410;padding:9px 12px}
+#docTitle{border-color:transparent;background:#f7faf8;min-width:120px}
+#docTitle:focus{border-color:#82b5a5;background:#fff;outline:2px solid #176b5720}
+.doc-actions{gap:6px}
+.doc-actions button,.doc-actions select{min-height:36px}
+.quick-save{background:#e7f3ee!important;color:#145744!important;border-color:#c9e2d7!important;font-weight:700}
+.ribbon{top:59px;border-radius:12px}
+.ribbon-tabs{background:#f1f6f3}
+.ribbon-tab{padding:8px 16px}
+.ribbon-tab.active{box-shadow:inset 0 -3px 0 var(--brand);color:#145744}
+.ribbon-panel{min-height:78px}
+.workspace{grid-template-columns:minmax(0,1fr)}
+.page-wrap{padding:clamp(8px,2vw,22px);background:#e5ece9;border-color:#d4dfda;border-radius:14px}
+.editor-quickbar{position:sticky;top:138px;z-index:6;display:flex;align-items:center;gap:5px;flex-wrap:wrap;width:min(100%,920px);margin:0 auto 12px;padding:7px;background:#ffffffed;border:1px solid #d8e3de;border-radius:11px;box-shadow:0 4px 14px #183b2d0d;backdrop-filter:blur(8px)}
+.editor-quickbar button{min-width:36px;min-height:35px;padding:6px 10px;font-size:13px}
+.editor-quickbar button:active{background:#e4f1eb}
+.quick-divider{height:23px;border-left:1px solid #dce5e0;margin:0 3px}
+.page{width:min(100%,920px);min-height:1120px;padding:clamp(28px,5vw,76px) clamp(20px,6vw,82px);border:1px solid #e2e7e4;border-radius:3px;box-shadow:0 7px 28px #203d3214;font-family:Arial,"Segoe UI",sans-serif;font-size:12pt;line-height:1.65}
+.page p{margin:0 0 6pt}
+.page h1{font-size:24pt}.page h2{font-size:18pt}.page h3{font-size:14pt}
+.page:empty:before{content:"Bắt đầu nhập nội dung…";color:#a0aaa5}
+.editor-statusbar{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;width:min(100%,920px);margin:9px auto 0;padding:7px 3px;color:#64756d;font-size:11px;font-variant-numeric:tabular-nums}
+.sidepanel{display:none!important}
+@media(max-width:700px){
+  main{margin:8px auto}
+  .docbar{position:relative;top:auto;padding:8px;gap:7px}
+  #docTitle{font-size:16px;width:100%}
+  .doc-actions{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));width:100%}
+  .doc-actions select{grid-column:1/-1;grid-row:1}
+  .doc-actions button{font-size:12px;padding:6px 5px}
+  .ribbon{top:0;position:sticky}
+  .ribbon-panel{overflow-x:auto;align-items:flex-start}
+  .ribbon-panel .tool-group{min-width:0;flex:0 0 auto}
+  .editor-quickbar{top:0;position:sticky;gap:4px;padding:5px;margin-bottom:8px}
+  .editor-quickbar button{min-width:34px;min-height:34px;padding:5px 8px}
+  .page-wrap{padding:6px;border-radius:10px}
+  .page{width:100%!important;min-height:72vh!important;padding:24px 18px!important;font-size:11pt;box-shadow:0 3px 12px #203d3210}
+  .editor-statusbar{font-size:10px;gap:4px}
+}
+@media(min-width:701px){.page-wrap{padding:20px}.editor-quickbar{top:138px}}
+@media print{.editor-quickbar,.editor-statusbar{display:none!important}.page{border:0;border-radius:0}}
