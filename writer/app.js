@@ -22,7 +22,7 @@
       x.html=typeof x.html==='string'?x.html:'<p><br></p>';
       x.createdAt=Number(x.createdAt)||Number(x.updatedAt)||now;
       x.updatedAt=Number(x.updatedAt)||x.createdAt;
-      x.appType='writer';x.schemaVersion=1;
+      x.appType='writer';x.schemaVersion=2;x.deletedAt=Number(x.deletedAt)||null;
       return x;
     });
   }
@@ -128,7 +128,7 @@
     const doc=current(); if (!doc) return;
     doc.title=titleInput.value.trim() || 'Tài liệu chưa đặt tên';
     doc.html=editor.innerHTML;
-    doc.appType='writer';doc.schemaVersion=1;doc.createdAt=Number(doc.createdAt)||doc.updatedAt||Date.now();
+    doc.appType='writer';doc.schemaVersion=2;doc.createdAt=Number(doc.createdAt)||doc.updatedAt||Date.now();
     doc.updatedAt=Date.now();
     try {
       localStorage.setItem(STORE, JSON.stringify(documents));
@@ -146,11 +146,16 @@
   }
   function renderDocList() {
     const list=$('#docList'); if(!list) return;
+    const query=($('#documentSearch')?.value||'').trim().toLocaleLowerCase('vi');
     list.replaceChildren();
-    documents.slice().sort((a,b)=>(b.updatedAt||0)-(a.updatedAt||0)).forEach(doc=>{
-      const option=document.createElement('option'); option.value=doc.id; option.textContent=doc.title || 'Chưa đặt tên'; list.append(option);
-    });
-    list.value=activeId;
+    documents.filter(d=>!d.deletedAt&&(!query||d.title.toLocaleLowerCase('vi').includes(query)||d.id.toLocaleLowerCase('en').includes(query)))
+      .sort((a,b)=>(b.updatedAt||0)-(a.updatedAt||0)).forEach(doc=>{
+        const option=document.createElement('option'); option.value=doc.id; option.textContent=doc.title||'Chưa đặt tên'; list.append(option);
+      });
+    if(documents.some(d=>d.id===activeId&&!d.deletedAt))list.value=activeId;
+    const trash=$('#trashList');
+    if(trash){trash.replaceChildren();documents.filter(d=>d.deletedAt).sort((a,b)=>b.deletedAt-a.deletedAt).forEach(doc=>{const o=document.createElement('option');o.value=doc.id;o.textContent=doc.title+' · '+new Date(doc.deletedAt).toLocaleDateString('vi-VN');trash.append(o);});}
+    const count=$('#documentCount');if(count)count.textContent=documents.filter(d=>!d.deletedAt).length+' tài liệu';
   }
   function loadDoc(id) {
     const doc=documents.find(d=>d.id===id); if(!doc) return;
@@ -422,10 +427,16 @@
   $('#renameDoc').onclick=()=>{titleInput.focus();titleInput.select();};
   $('#copyDocId').onclick=async()=>{const id=current()?.id;if(!id)return;try{await navigator.clipboard.writeText(id);setState('Đã sao chép ID tài liệu','saved');}catch{prompt('ID tài liệu:',id);}};
   $('#deleteDoc').onclick=()=>{
-    if(documents.length===1){if(!confirm('Xóa nội dung tài liệu hiện tại?'))return;current().html='<p><br></p>';current().title='Tài liệu chưa đặt tên';loadDoc(activeId);scheduleSave();return;}
-    if(!confirm('Xóa hẳn tài liệu này khỏi thiết bị?'))return;
-    documents=documents.filter(d=>d.id!==activeId);activeId=documents[0].id;loadDoc(activeId);persist();
+    const doc=current();if(!doc)return;
+    if(!confirm('Chuyển “'+doc.title+'” vào Thùng rác? Có thể khôi phục sau.'))return;
+    doc.deletedAt=Date.now();doc.updatedAt=Date.now();
+    const next=documents.find(d=>!d.deletedAt);
+    if(next){activeId=next.id;loadDoc(next.id);}else{const fresh={id:makeId(),title:'Tài liệu mới',html:'<h1>Tài liệu mới</h1><p><br></p>',createdAt:Date.now(),updatedAt:Date.now(),appType:'writer',schemaVersion:2};documents.push(fresh);activeId=fresh.id;loadDoc(fresh.id);}
+    persist();setState('Đã chuyển tài liệu vào Thùng rác','saved');
   };
+  $('#documentSearch').addEventListener('input',renderDocList);
+  $('#restoreTrash').onclick=()=>{const d=documents.find(x=>x.id===$('#trashList').value&&x.deletedAt);if(!d){alert('Chọn tài liệu trong Thùng rác trước.');return;}d.deletedAt=null;d.updatedAt=Date.now();loadDoc(d.id);persist();setState('Đã khôi phục tài liệu','saved');};
+  $('#purgeTrash').onclick=()=>{const d=documents.find(x=>x.id===$('#trashList').value&&x.deletedAt);if(!d){alert('Chọn tài liệu trong Thùng rác trước.');return;}if(!confirm('Xóa vĩnh viễn “'+d.title+'”? Không thể khôi phục.'))return;documents=documents.filter(x=>x.id!==d.id);persist();renderDocList();};
   $('#saveNow').onclick=()=>{clearTimeout(saveTimer);persist();};
   $('#openLocalFile').onclick=openFromComputer;$('#saveFile').onclick=saveCurrentFile;$('#saveAsFile').onclick=saveAsFile;$('#closeFile').onclick=closeCurrentFile;$('#chooseWorkFolder').onclick=chooseWorkFolder;$('#openWorkFolder').onclick=openFromChosenFolder;
   initFileHandles();
