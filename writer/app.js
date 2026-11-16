@@ -3,7 +3,7 @@
   const $ = (s) => document.querySelector(s);
   const editor = $('#editor'), titleInput = $('#docTitle');
   const STORE = 'haidat-writer-documents-v2';
-  let documents = [], activeId = null, saveTimer = null, deferredInstall = null, dirty = false;
+  let documents = [], activeId = null, saveTimer = null, deferredInstall = null, dirty = false, savedEditorRange = null;
 
   const makeId = () => 'doc-' + Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
   const safeName = (name) => (name || 'van-ban').replace(/[\\/:*?"<>|]+/g, '-').trim().slice(0, 90) || 'van-ban';
@@ -92,8 +92,29 @@
     $('#wordCount').textContent=text ? (text.match(/[\p{L}\p{N}]+(?:[’'-][\p{L}\p{N}]+)*/gu)||[]).length : 0;
     $('#charCount').textContent=text.length;
     $('#paraCount').textContent=[...editor.querySelectorAll('p,h1,h2,h3,h4,li,blockquote')].filter(el=>el.innerText.trim()).length;
+    const words=Number($('#wordCount').textContent)||0,chars=Number($('#charCount').textContent)||0;
+    const live=$('#editorLiveStats'),read=$('#editorReadTime');
+    if(live)live.textContent=words.toLocaleString('vi-VN')+' từ · '+chars.toLocaleString('vi-VN')+' ký tự';
+    if(read)read.textContent='Đọc khoảng '+(words?Math.max(1,Math.ceil(words/200)):0)+' phút';
   }
-  function command(cmd,value=null) { editor.focus(); document.execCommand(cmd,false,value); scheduleSave(); }
+  function rememberEditorSelection(){
+    const sel=window.getSelection();
+    if(!sel||!sel.rangeCount)return;
+    const range=sel.getRangeAt(0);
+    if(editor.contains(range.commonAncestorContainer))savedEditorRange=range.cloneRange();
+  }
+  function restoreEditorSelection(){
+    if(!savedEditorRange)return false;
+    if(!editor.contains(savedEditorRange.commonAncestorContainer)){savedEditorRange=null;return false;}
+    const sel=window.getSelection();sel.removeAllRanges();sel.addRange(savedEditorRange);return true;
+  }
+  function command(cmd,value=null) {
+    restoreEditorSelection();
+    editor.focus();
+    document.execCommand(cmd,false,value);
+    rememberEditorSelection();
+    scheduleSave();
+  }
 
   function applyParagraphFormatting(){
     const line=Number($('#lineSpacing').value)||1.15,after=Number($('#paragraphAfter').value)||0;
@@ -277,7 +298,9 @@
   } catch { documents=[{id:makeId(),title:'Tài liệu chưa đặt tên',html:editor.innerHTML,updatedAt:Date.now()}]; }
   activeId=documents[0].id; loadDoc(activeId);
 
-  editor.addEventListener('input',()=>{scheduleSave();scheduleTocUpdate();});
+  editor.addEventListener('input',()=>{rememberEditorSelection();scheduleSave();scheduleTocUpdate();});
+  document.addEventListener('selectionchange',rememberEditorSelection);
+  $('#quickPageBreak').onclick=()=>command('insertHTML','<div class="page-break"></div><p><br></p>');
   titleInput.addEventListener('input',scheduleSave);
   document.querySelectorAll('[data-cmd]').forEach(btn=>btn.addEventListener('click',()=>command(btn.dataset.cmd)));
   document.querySelectorAll('[data-action]').forEach(btn=>btn.addEventListener('click',()=>command(btn.dataset.action)));
@@ -317,6 +340,8 @@
     const mod=e.ctrlKey||e.metaKey;
     if(mod && e.key.toLowerCase()==='f'){e.preventDefault();$('#findText').focus();$('#findText').select();}
     if(mod && e.key.toLowerCase()==='s'){e.preventDefault();clearTimeout(saveTimer);persist();}
+    if(mod && e.key==='Enter' && document.activeElement===editor){e.preventDefault();command('insertHTML','<div class="page-break"></div><p><br></p>');}
+    if(mod && e.shiftKey && e.key.toLowerCase()==='l' && document.activeElement===editor){e.preventDefault();command('insertUnorderedList');}
     if(mod && e.key.toLowerCase()==='b' && document.activeElement===editor){e.preventDefault();command('bold');}
     if(mod && e.key.toLowerCase()==='i' && document.activeElement===editor){e.preventDefault();command('italic');}
     if(mod && e.key.toLowerCase()==='u' && document.activeElement===editor){e.preventDefault();command('underline');}
