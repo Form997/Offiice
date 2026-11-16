@@ -18,7 +18,7 @@
       [...node.childNodes].forEach(child => {
         if (child.nodeType === Node.COMMENT_NODE) { child.remove(); return; }
         if (child.nodeType !== Node.ELEMENT_NODE) return;
-        if (!allowed.has(child.tagName)) { child.replaceWith(...child.childNodes); return; }
+        if (!allowed.has(child.tagName)) { clean(child); child.replaceWith(...child.childNodes); return; }
         [...child.attributes].forEach(attr => {
           const key=attr.name.toLowerCase(), val=attr.value;
           if (key.startsWith('on') || key === 'contenteditable' || key === 'id' || key === 'class') child.removeAttribute(attr.name);
