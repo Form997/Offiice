@@ -196,6 +196,21 @@
     clearTimeout(saveTimer); activeId=id; titleInput.value=doc.title; editor.innerHTML=sanitizeHTML(doc.html || '<p><br></p>');
     dirty=false;renderDocList();renderVersionHistory();updateStats();const identity=$('#docIdDisplay');if(identity)identity.textContent='ID: '+doc.id;const cat=$('#docCategory');if(cat)cat.value=doc.category||'Khác';const pin=$('#togglePin');if(pin)pin.textContent=doc.pinned?'★ Đã ghim':'☆ Ghim tài liệu';setState('Đã mở tài liệu','saved');
   }
+
+  // Public, narrow bridge for the optional cloud-collaboration module.
+  window.HD_WRITER = {
+    getCurrentDocument(){ if(dirty)persist(false); const d=current(); return d?{...d,html:editor.innerHTML,title:titleInput.value.trim()||d.title}:null; },
+    importCloudDocument(remote){
+      if(!remote||typeof remote.id!=='string'||!/^HDW-[0-9]{8}-[A-Z0-9]{8}$/.test(remote.id))throw new Error('ID tài liệu đám mây không hợp lệ.');
+      if(dirty)persist(false);
+      const safe=sanitizeHTML(remote.content_html||'<p><br></p>');
+      let d=documents.find(x=>x.id===remote.id);
+      if(d){d.title=String(remote.title||d.title).slice(0,120);d.html=safe;d.updatedAt=Date.parse(remote.updated_at)||Date.now();d.deletedAt=null;}
+      else{d={id:remote.id,title:String(remote.title||'Tài liệu từ kho chung').slice(0,120),html:safe,createdAt:Date.parse(remote.created_at)||Date.now(),updatedAt:Date.parse(remote.updated_at)||Date.now(),folder:'Chưa phân loại',category:'Khác',pinned:false,appType:'writer',schemaVersion:3};documents.push(d);}
+      loadDoc(d.id);persist(false);return d.id;
+    }
+  };
+
   function cloneCurrentDocument(){
     if(dirty)persist(false);
     const source=current();
