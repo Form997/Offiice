@@ -117,6 +117,7 @@
   }
 
   function applyParagraphFormatting(){
+    restoreEditorSelection();
     const line=Number($('#lineSpacing').value)||1.15,after=Number($('#paragraphAfter').value)||0;
     const sel=window.getSelection();
     let block=sel&&sel.anchorNode?(sel.anchorNode.nodeType===Node.ELEMENT_NODE?sel.anchorNode:sel.anchorNode.parentElement):null;
@@ -300,6 +301,7 @@
 
   editor.addEventListener('input',()=>{rememberEditorSelection();scheduleSave();scheduleTocUpdate();});
   document.addEventListener('selectionchange',rememberEditorSelection);
+  document.addEventListener('pointerdown',e=>{if(e.target.closest('.ribbon,.editor-quickbar'))rememberEditorSelection();},true);
   $('#quickPageBreak').onclick=()=>command('insertHTML','<div class="page-break"></div><p><br></p>');
   titleInput.addEventListener('input',scheduleSave);
   document.querySelectorAll('[data-cmd]').forEach(btn=>btn.addEventListener('click',()=>command(btn.dataset.cmd)));
