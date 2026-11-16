@@ -214,3 +214,9 @@ main{max-width:1560px;margin:14px auto;padding:0 clamp(8px,1.5vw,22px)}
 #dataHealthStatus{display:block;max-width:360px;white-space:normal;line-height:1.45;font-size:11px;color:var(--muted)}
 #dataHealthStatus[data-state=error]{color:var(--danger);font-weight:700}
 #checkDataHealth{white-space:normal}
+
+
+/* HAI DAT WRITER V2.5 — independent document clone */
+#cloneDoc{border-color:#b8d8cb;background:#f0f8f4;color:#145744;font-weight:650}
+#cloneDoc:hover{background:#e2f1e9;border-color:#7eb39e}
+@media(max-width:700px){#cloneDoc{min-height:38px}}
