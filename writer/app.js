@@ -166,6 +166,48 @@
     scheduleSave();
   }
 
+  function findTextNodes() {
+    const walker=document.createTreeWalker(editor,NodeFilter.SHOW_TEXT,{
+      acceptNode(node){return node.nodeValue && node.nodeValue.trim() ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_REJECT;}
+    });
+    const nodes=[];while(walker.nextNode())nodes.push(walker.currentNode);return nodes;
+  }
+  function findNextText(){
+    const query=$('#findText').value;if(!query){$('#findText').focus();return;}
+    const nodes=findTextNodes(),sel=window.getSelection();
+    let startIndex=0,startOffset=0;
+    if(sel&&sel.focusNode){
+      const i=nodes.indexOf(sel.focusNode);
+      if(i>=0){startIndex=i;startOffset=sel.focusOffset;}
+    }
+    const ordered=nodes.slice(startIndex).map((node,i)=>({node,from:i===0?startOffset:0})).concat(nodes.slice(0,startIndex).map(node=>({node,from:0})));
+    const q=query.toLocaleLowerCase('vi');
+    for(const item of ordered){
+      const value=item.node.nodeValue,at=value.toLocaleLowerCase('vi').indexOf(q,item.from);
+      if(at>=0){
+        const range=document.createRange();range.setStart(item.node,at);range.setEnd(item.node,at+query.length);
+        sel.removeAllRanges();sel.addRange(range);editor.focus();return true;
+      }
+    }
+    alert('Đã tìm hết tài liệu, không thấy nội dung này.');return false;
+  }
+  function replaceCurrent(){
+    const query=$('#findText').value,replacement=$('#replaceText').value,sel=window.getSelection();
+    if(!query){alert('Hãy nhập nội dung cần tìm.');return;}
+    if(sel&&sel.rangeCount&&sel.toString().toLocaleLowerCase('vi')===query.toLocaleLowerCase('vi')&&editor.contains(sel.anchorNode)){
+      document.execCommand('insertText',false,replacement);scheduleSave();findNextText();
+    }else findNextText();
+  }
+  function replaceAllText(){
+    const query=$('#findText').value,replacement=$('#replaceText').value;
+    if(!query){alert('Hãy nhập nội dung cần tìm.');return;}
+    const escaped=query.replace(/[.*+?^${}()|[\]\\]/g,'\\  try {
+    const stored=JSON.parse(localStorage.getItem(STORE)||'[]');');
+    const re=new RegExp(escaped,'giu');let count=0;
+    findTextNodes().forEach(node=>{const next=node.nodeValue.replace(re,()=>{count++;return replacement;});if(next!==node.nodeValue)node.nodeValue=next;});
+    if(count){scheduleSave();alert('Đã thay '+count+' vị trí.');}else alert('Không tìm thấy nội dung cần thay.');
+  }
+
   try {
     const stored=JSON.parse(localStorage.getItem(STORE)||'[]');
     if(Array.isArray(stored)) documents=stored.filter(d=>d && typeof d.id==='string');
@@ -180,7 +222,7 @@
   titleInput.addEventListener('input',scheduleSave);
   document.querySelectorAll('[data-cmd]').forEach(btn=>btn.addEventListener('click',()=>command(btn.dataset.cmd)));
   document.querySelectorAll('[data-action]').forEach(btn=>btn.addEventListener('click',()=>command(btn.dataset.action)));
-  $('#blockType').addEventListener('change',e=>command('formatBlock',e.target.value));
+  $('#findNext').onclick=findNextText;$('#replaceOne').onclick=replaceCurrent;$('#replaceAll').onclick=replaceAllText;\n  $('#findText').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();findNextText();}});\n  $('#blockType').addEventListener('change',e=>command('formatBlock',e.target.value));
   $('#fontName').addEventListener('change',e=>command('fontName',e.target.value));
   $('#fontSize').addEventListener('change',e=>command('fontSize',e.target.value));
   $('#textColor').addEventListener('input',e=>command('foreColor',e.target.value));
@@ -207,7 +249,7 @@
   $('#openFile').onchange=e=>{openFile(e.target.files[0]);e.target.value='';};
   document.addEventListener('keydown',e=>{
     const mod=e.ctrlKey||e.metaKey;
-    if(mod && e.key.toLowerCase()==='s'){e.preventDefault();clearTimeout(saveTimer);persist();}
+    if(mod && e.key.toLowerCase()==='f'){e.preventDefault();$('#findText').focus();$('#findText').select();}\n    if(mod && e.key.toLowerCase()==='s'){e.preventDefault();clearTimeout(saveTimer);persist();}
     if(mod && e.key.toLowerCase()==='b' && document.activeElement===editor){e.preventDefault();command('bold');}
     if(mod && e.key.toLowerCase()==='i' && document.activeElement===editor){e.preventDefault();command('italic');}
     if(mod && e.key.toLowerCase()==='u' && document.activeElement===editor){e.preventDefault();command('underline');}
