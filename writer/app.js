@@ -674,6 +674,7 @@
   }
   function importBackup(file){
     if(!file)return;
+    if(dirty)persist(false);
     if(file.size>20*1024*1024){alert('Bản sao lưu vượt quá 20 MB.');return;}
     const reader=new FileReader();
     reader.onload=()=>{
@@ -708,6 +709,11 @@
             nextHistory[d.id]=[...merged.values()].sort((a,b)=>(Number(a.createdAt)||0)-(Number(b.createdAt)||0)).slice(-HISTORY_PER_DOCUMENT);
           });
         }
+        const allowedHistoryIds=new Set(nextDocs.map(d=>d.id));
+        Object.keys(nextHistory).forEach(id=>{if(!allowedHistoryIds.has(id)||!Array.isArray(nextHistory[id]))delete nextHistory[id];else nextHistory[id]=nextHistory[id].slice(-HISTORY_PER_DOCUMENT);});
+        let historyEntries=Object.entries(nextHistory).flatMap(([id,list])=>list.map(v=>({id,v}))).sort((a,b)=>(Number(a.v.createdAt)||0)-(Number(b.v.createdAt)||0));
+        let historyChars=historyEntries.reduce((n,x)=>n+String(x.v.html||'').length,0);
+        while(historyChars>HISTORY_TOTAL_CHARS&&historyEntries.length){const oldest=historyEntries.shift();historyChars-=String(oldest.v.html||'').length;const list=nextHistory[oldest.id]||[];const at=list.findIndex(v=>v.versionId===oldest.v.versionId);if(at>=0)list.splice(at,1);if(!list.length)delete nextHistory[oldest.id];}
         const activeFromBackup=imported.find(d=>d.id===data.activeId&&!d.deletedAt);
         const currentActive=nextDocs.find(d=>d.id===activeId&&!d.deletedAt);
         let preferred=mode==='replace'?(activeFromBackup||nextDocs.find(d=>!d.deletedAt)):(activeFromBackup||currentActive||nextDocs.find(d=>!d.deletedAt));
