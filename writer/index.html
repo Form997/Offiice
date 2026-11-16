@@ -1,1 +1,77 @@
-<!doctype html><html lang="vi"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#123f36"><link rel="manifest" href="manifest.webmanifest"><link rel="stylesheet" href="style.css"><title>HAI ĐẤT WRITER</title></head><body><header><div><div class="brand">HAI ĐẤT WRITER</div><div class="sub">Soạn thảo văn bản · V1</div></div><button id="install" hidden>Cài ứng dụng</button></header><main><div class="toolbar"><button data-cmd="bold"><b>B</b></button><button data-cmd="italic"><i>I</i></button><button data-cmd="underline"><u>U</u></button><select id="size"><option value="3">Cỡ chữ thường</option><option value="4">Lớn</option><option value="5">Rất lớn</option><option value="2">Nhỏ</option></select><button data-cmd="justifyLeft">Trái</button><button data-cmd="justifyCenter">Giữa</button><button data-cmd="justifyRight">Phải</button><button id="save" class="primary">Lưu</button><button id="txt">Tải TXT</button><button id="html">Tải HTML</button><button onclick="print()">In / PDF</button></div><section class="panel"><input id="title" value="Tài liệu chưa đặt tên" style="width:100%;font-size:20px;font-weight:700;margin-bottom:12px"><div id="editor" contenteditable="true" spellcheck="true" style="min-height:60vh;padding:18px;border:1px solid var(--line);border-radius:8px;outline-color:#176b57"><h2>Bắt đầu soạn thảo</h2><p>Nhập nội dung văn bản tại đây...</p></div></section><p class="muted">Tự lưu trên thiết bị khi có thay đổi. Dùng In / PDF để lưu thành PDF.</p></main><footer>HAI ĐẤT OFFICE · Hoạt động ngoại tuyến sau lần mở đầu tiên</footer><script src="app.js"></script></body></html>
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#123f36">
+  <meta name="description" content="HAI ĐẤT WRITER - Trình soạn thảo văn bản gọn nhẹ, ưu tiên ngoại tuyến.">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="stylesheet" href="style.css">
+  <title>HAI ĐẤT WRITER</title>
+</head>
+<body>
+<header class="topbar">
+  <div><div class="brand">HAI ĐẤT WRITER</div><div class="sub">Trình soạn thảo văn bản · V1.1</div></div>
+  <div class="top-actions"><span id="saveState" class="save-state" role="status">Sẵn sàng</span><button id="install" hidden>Cài ứng dụng</button></div>
+</header>
+<main>
+  <section class="docbar">
+    <label class="sr-only" for="docTitle">Tên tài liệu</label>
+    <input id="docTitle" value="Tài liệu chưa đặt tên" maxlength="120" aria-label="Tên tài liệu">
+    <div class="doc-actions">
+      <button id="newDoc">Tài liệu mới</button>
+      <select id="docList" aria-label="Chọn tài liệu"></select>
+      <button id="renameDoc">Đổi tên</button>
+      <button id="deleteDoc" class="danger">Xóa</button>
+    </div>
+  </section>
+  <nav class="toolbar" aria-label="Công cụ soạn thảo">
+    <div class="tool-group">
+      <button data-action="undo" title="Hoàn tác (Ctrl+Z)">↶</button><button data-action="redo" title="Làm lại (Ctrl+Y)">↷</button>
+    </div>
+    <div class="tool-group">
+      <select id="blockType" aria-label="Kiểu đoạn"><option value="P">Đoạn văn</option><option value="H1">Tiêu đề 1</option><option value="H2">Tiêu đề 2</option><option value="H3">Tiêu đề 3</option><option value="BLOCKQUOTE">Trích dẫn</option><option value="PRE">Mã / văn bản thô</option></select>
+      <select id="fontName" aria-label="Phông chữ"><option value="Arial">Arial</option><option value="Georgia">Georgia</option><option value="Times New Roman">Times New Roman</option><option value="Verdana">Verdana</option><option value="Tahoma">Tahoma</option><option value="Courier New">Courier New</option></select>
+      <select id="fontSize" aria-label="Cỡ chữ"><option value="2">10 pt</option><option value="3" selected>12 pt</option><option value="4">14 pt</option><option value="5">18 pt</option><option value="6">24 pt</option><option value="7">36 pt</option></select>
+    </div>
+    <div class="tool-group">
+      <button data-cmd="bold" title="Đậm"><b>B</b></button><button data-cmd="italic" title="Nghiêng"><i>I</i></button><button data-cmd="underline" title="Gạch chân"><u>U</u></button><button data-cmd="strikeThrough" title="Gạch ngang"><s>S</s></button>
+      <label class="color-tool" title="Màu chữ">A <input id="textColor" type="color" value="#17212b" aria-label="Màu chữ"></label>
+      <label class="color-tool" title="Màu nền chữ">▧ <input id="highlightColor" type="color" value="#fff29a" aria-label="Màu đánh dấu"></label>
+    </div>
+    <div class="tool-group">
+      <button data-cmd="justifyLeft" title="Căn trái">Trái</button><button data-cmd="justifyCenter" title="Căn giữa">Giữa</button><button data-cmd="justifyRight" title="Căn phải">Phải</button><button data-cmd="justifyFull" title="Căn đều">Đều</button>
+    </div>
+    <div class="tool-group">
+      <button data-cmd="insertUnorderedList">• Danh sách</button><button data-cmd="insertOrderedList">1. Danh sách</button><button id="outdent">Giảm lề</button><button id="indent">Tăng lề</button>
+    </div>
+    <div class="tool-group">
+      <button id="addLink">Chèn liên kết</button><button id="addTable">Chèn bảng</button><button id="addImage">Chèn ảnh</button><button id="clearFormat">Xóa định dạng</button>
+    </div>
+  </nav>
+  <section class="workspace">
+    <div class="page-wrap">
+      <article id="editor" class="page" contenteditable="true" spellcheck="true" role="textbox" aria-label="Nội dung tài liệu" aria-multiline="true">
+        <h1>Bắt đầu soạn thảo</h1><p>Nhập nội dung văn bản tại đây...</p>
+      </article>
+    </div>
+    <aside class="sidepanel">
+      <h2>Tệp và xuất bản</h2>
+      <button id="saveNow" class="primary">Lưu ngay</button>
+      <button id="exportHtml">Tải HTML</button>
+      <button id="exportTxt">Tải TXT</button>
+      <button id="printDoc">In / Lưu PDF</button>
+      <label class="file-button">Mở tệp <input id="openFile" type="file" accept=".html,.htm,.txt,text/html,text/plain"></label>
+      <hr>
+      <h2>Thống kê</h2>
+      <dl class="stats"><dt>Từ</dt><dd id="wordCount">0</dd><dt>Ký tự</dt><dd id="charCount">0</dd><dt>Đoạn</dt><dd id="paraCount">0</dd></dl>
+      <p class="hint">Tài liệu được lưu trong bộ nhớ trình duyệt trên thiết bị này. Hãy xuất tệp định kỳ để sao lưu.</p>
+    </aside>
+  </section>
+  <input id="imageFile" type="file" accept="image/*" hidden>
+  <p class="muted">Tự lưu khi nội dung thay đổi · Hỗ trợ ngoại tuyến sau khi ứng dụng được tải lần đầu.</p>
+</main>
+<footer>HAI ĐẤT OFFICE · WRITER V1.1</footer>
+<script src="app.js"></script>
+</body>
+</html>
