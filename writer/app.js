@@ -225,7 +225,9 @@
   titleInput.addEventListener('input',scheduleSave);
   document.querySelectorAll('[data-cmd]').forEach(btn=>btn.addEventListener('click',()=>command(btn.dataset.cmd)));
   document.querySelectorAll('[data-action]').forEach(btn=>btn.addEventListener('click',()=>command(btn.dataset.action)));
-  $('#findNext').onclick=findNextText;$('#replaceOne').onclick=replaceCurrent;$('#replaceAll').onclick=replaceAllText;\n  $('#findText').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();findNextText();}});\n  $('#blockType').addEventListener('change',e=>command('formatBlock',e.target.value));
+  $('#findNext').onclick=findNextText;$('#replaceOne').onclick=replaceCurrent;$('#replaceAll').onclick=replaceAllText;
+  $('#findText').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();findNextText();}});
+  $('#blockType').addEventListener('change',e=>command('formatBlock',e.target.value));
   $('#fontName').addEventListener('change',e=>command('fontName',e.target.value));
   $('#fontSize').addEventListener('change',e=>command('fontSize',e.target.value));
   $('#textColor').addEventListener('input',e=>command('foreColor',e.target.value));
