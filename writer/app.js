@@ -130,15 +130,48 @@
 
   // Reference tools are stored as semantic HTML inside each document.
   function safeHeadingId(index){return 'hd-heading-'+index;}
-  function buildToc(){
+  function ensureHeadingIds(headings){
+    const used=new Set();
+    headings.forEach((h,i)=>{
+      let id=h.id;
+      if(!/^hd-heading-[a-z0-9-]+$/i.test(id||'')||used.has(id)){
+        id=safeHeadingId(i+1);
+        let suffix=1;while(used.has(id)||editor.querySelector('#'+CSS.escape(id)))id=safeHeadingId(i+1)+'-'+(++suffix);
+        h.id=id;
+      }
+      used.add(id);
+    });
+  }
+  function renderToc(showMessage=false){
     const headings=[...editor.querySelectorAll('h1,h2,h3')].filter(h=>h.textContent.trim()&&!h.closest('#hd-toc'));
-    if(!headings.length){alert('Chưa có tiêu đề. Hãy định dạng đoạn bằng Tiêu đề 1, 2 hoặc 3 trước.');return;}
-    headings.forEach((h,i)=>{if(!/^hd-heading-\d+$/.test(h.id||''))h.id=safeHeadingId(i+1);});
-    const items=headings.map(h=>'<li class="toc-level-'+h.tagName.toLowerCase()+'"><a href="#'+h.id+'">'+escapeHTML(h.textContent.trim())+'</a></li>').join('');
-    const toc='<section class="hd-toc" id="hd-toc"><h2>MỤC LỤC</h2><ol>'+items+'</ol></section>';
     const existing=editor.querySelector('#hd-toc');
-    if(existing)existing.outerHTML=toc;else editor.insertAdjacentHTML('afterbegin',toc);
-    scheduleSave();
+    if(!headings.length){
+      if(existing)existing.remove();
+      if(showMessage)alert('Chưa có tiêu đề. Hãy định dạng đoạn bằng Tiêu đề 1, 2 hoặc 3 trước.');
+      return false;
+    }
+    ensureHeadingIds(headings);
+    const items=headings.map(h=>{
+      const level=h.tagName.toLowerCase();
+      return '<li class="toc-level-'+level+'"><a href="#'+escapeHTML(h.id)+'">'+escapeHTML(h.textContent.trim())+'</a></li>';
+    }).join('');
+    const toc='<section class="hd-toc" id="hd-toc"><h2>MỤC LỤC</h2><ol>'+items+'</ol><p class="toc-updated">Tự cập nhật theo các tiêu đề trong tài liệu</p></section>';
+    if(existing)existing.outerHTML=toc;
+    else editor.insertAdjacentHTML('afterbegin',toc);
+    return true;
+  }
+  function buildToc(){
+    if(renderToc(true)){scheduleSave();setState('Đã tạo / cập nhật mục lục','saved');}
+  }
+  const TOC_AUTO_STORE='haidat-writer-toc-auto-v1';
+  let tocUpdateTimer=null;
+  function scheduleTocUpdate(){
+    if(!editor.querySelector('#hd-toc'))return;
+    if(localStorage.getItem(TOC_AUTO_STORE)==='false')return;
+    clearTimeout(tocUpdateTimer);
+    tocUpdateTimer=setTimeout(()=>{
+      if(renderToc(false)){scheduleSave();}
+    },350);
   }
   function insertFootnote(){
     const note=prompt('Nội dung chú thích:');if(!note||!note.trim())return;
@@ -221,7 +254,7 @@
   } catch { documents=[{id:makeId(),title:'Tài liệu chưa đặt tên',html:editor.innerHTML,updatedAt:Date.now()}]; }
   activeId=documents[0].id; loadDoc(activeId);
 
-  editor.addEventListener('input',scheduleSave);
+  editor.addEventListener('input',()=>{scheduleSave();scheduleTocUpdate();});
   titleInput.addEventListener('input',scheduleSave);
   document.querySelectorAll('[data-cmd]').forEach(btn=>btn.addEventListener('click',()=>command(btn.dataset.cmd)));
   document.querySelectorAll('[data-action]').forEach(btn=>btn.addEventListener('click',()=>command(btn.dataset.action)));
@@ -234,7 +267,10 @@
   $('#highlightColor').addEventListener('input',e=>command('hiliteColor',e.target.value));
   $('#outdent').onclick=()=>command('outdent'); $('#indent').onclick=()=>command('indent');
   $('#addLink').onclick=insertLink; $('#addTable').onclick=insertTable;
-  $('#insertToc').onclick=buildToc; $('#insertFootnote').onclick=insertFootnote;
+  $('#insertToc').onclick=buildToc;
+  const tocAutoToggle=$('#tocAutoUpdate');
+  tocAutoToggle.checked=localStorage.getItem('haidat-writer-toc-auto-v1')!=='false';
+  tocAutoToggle.addEventListener('change',()=>{localStorage.setItem('haidat-writer-toc-auto-v1',String(tocAutoToggle.checked));if(tocAutoToggle.checked&&editor.querySelector('#hd-toc')){renderToc(false);scheduleSave();}}); $('#insertFootnote').onclick=insertFootnote;
   $('#addCitation').onclick=addCitation; $('#buildBibliography').onclick=buildBibliography;
   $('#addImage').onclick=()=>$('#imageFile').click();
   $('#imageFile').onchange=e=>{addImage(e.target.files[0]);e.target.value='';};
