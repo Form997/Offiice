@@ -3,11 +3,65 @@
   const $ = (s) => document.querySelector(s);
   const editor = $('#editor'), titleInput = $('#docTitle');
   const STORE = 'haidat-writer-documents-v2';
-  let documents = [], activeId = null, saveTimer = null, deferredInstall = null, dirty = false, savedEditorRange = null;
+  let documents = [], activeId = null, saveTimer = null, deferredInstall = null, dirty = false, savedEditorRange = null, currentFileHandle = null, workDirectoryHandle = null;
 
   const makeId = () => 'doc-' + Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
   const safeName = (name) => (name || 'van-ban').replace(/[\\/:*?"<>|]+/g, '-').trim().slice(0, 90) || 'van-ban';
   const setState = (text, state='') => { const el=$('#saveState'); el.textContent=text; el.dataset.state=state; };
+
+  const FILE_DB='haidat-writer-file-handles-v1', FILE_STORE='handles';
+  function handleDB(){return new Promise((resolve,reject)=>{if(!('indexedDB' in window)){resolve(null);return;}const r=indexedDB.open(FILE_DB,1);r.onupgradeneeded=()=>{if(!r.result.objectStoreNames.contains(FILE_STORE))r.result.createObjectStore(FILE_STORE);};r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error);});}
+  async function storeHandle(k,v){const db=await handleDB();if(!db)return;return new Promise((resolve,reject)=>{const tx=db.transaction(FILE_STORE,'readwrite');tx.objectStore(FILE_STORE).put(v,k);tx.oncomplete=()=>{db.close();resolve();};tx.onerror=()=>{db.close();reject(tx.error);};});}
+  async function readHandle(k){const db=await handleDB();if(!db)return null;return new Promise((resolve,reject)=>{const tx=db.transaction(FILE_STORE,'readonly'),r=tx.objectStore(FILE_STORE).get(k);r.onsuccess=()=>{db.close();resolve(r.result||null);};r.onerror=()=>{db.close();reject(r.error);};});}
+  async function permission(h,write=false){if(!h)return false;const o={mode:write?'readwrite':'read'};if(await h.queryPermission(o)==='granted')return true;return await h.requestPermission(o)==='granted';}
+  async function initFileHandles(){try{workDirectoryHandle=await readHandle('directory');currentFileHandle=await readHandle('file');if(workDirectoryHandle)$('#workFolderStatus').textContent='Thư mục làm việc: '+workDirectoryHandle.name;}catch{}}
+  function extOf(n){return (String(n).match(/\.([^.]+)$/)||[])[1]?.toLowerCase()||'docx';}
+  function makeHtmlFile(){const d=current();return '<!doctype html><html lang="vi"><head><meta charset="utf-8"><title>'+escapeHTML(d.title)+'</title></head><body>'+editor.innerHTML+'</body></html>';}
+  function makeFileBlob(ext){if(ext==='docx')return exportDocx(true);if(['html','htm'].includes(ext))return new Blob([makeHtmlFile()],{type:'text/html;charset=utf-8'});if(['txt','md','markdown','csv'].includes(ext))return new Blob([plainText()],{type:ext==='txt'?'text/plain;charset=utf-8':'text/markdown;charset=utf-8'});if(ext==='rtf')return new Blob(['{\\rtf1\\ansi '+plainText().replace(/[{}\\]/g,' ')+'}'],{type:'application/rtf'});throw new Error('Chưa hỗ trợ lưu .'+ext+'. Hãy chọn DOCX, HTML, TXT, MD hoặc RTF.');}
+  async function writeFile(h,b){const w=await h.createWritable();await w.write(b);await w.close();}
+  async function saveAsFile(){
+    clearTimeout(saveTimer);persist(false);
+    if(window.showSaveFilePicker){try{const h=await window.showSaveFilePicker({suggestedName:safeName(current().title)+'.docx',types:[{description:'Word',accept:{'application/vnd.openxmlformats-officedocument.wordprocessingml.document':['.docx']}},{description:'HTML',accept:{'text/html':['.html']}},{description:'Text',accept:{'text/plain':['.txt']}},{description:'RTF',accept:{'application/rtf':['.rtf']}},{description:'Markdown',accept:{'text/markdown':['.md']}}]});await writeFile(h,makeFileBlob(extOf(h.name)));currentFileHandle=h;await storeHandle('file',h);setState('Đã lưu: '+h.name,'saved');return;}catch(e){if(e.name!=='AbortError')alert('Lỗi lưu tệp: '+e.message);return;}}
+    const b=makeFileBlob('docx'),u=URL.createObjectURL(b),a=document.createElement('a');a.href=u;a.download=safeName(current().title)+'.docx';a.click();setTimeout(()=>URL.revokeObjectURL(u),1500);setState('Đã tải DOCX xuống thiết bị','saved');
+  }
+  async function saveCurrentFile(){
+    clearTimeout(saveTimer);persist(false);
+    try{if(currentFileHandle&&await permission(currentFileHandle,true)){await writeFile(currentFileHandle,makeFileBlob(extOf(currentFileHandle.name)));setState('Đã lưu: '+currentFileHandle.name,'saved');return;}}catch(e){setState('Không ghi được tệp hiện tại','error');}
+    if(workDirectoryHandle&&await permission(workDirectoryHandle,true)){try{const n=safeName(current().title)+'.docx',h=await workDirectoryHandle.getFileHandle(n,{create:true});await writeFile(h,makeFileBlob('docx'));currentFileHandle=h;await storeHandle('file',h);setState('Đã lưu trong '+workDirectoryHandle.name,'saved');return;}catch(e){alert('Lỗi thư mục: '+e.message);return;}}
+    await saveAsFile();
+  }
+  async function chooseWorkFolder(){
+    if(!window.showDirectoryPicker){alert('Chọn thư mục trực tiếp cần Chrome hoặc Edge mới trên máy tính. Trình duyệt này vẫn dùng được hộp thoại Mở/Lưu thành.');return;}
+    try{const h=await window.showDirectoryPicker({id:'haidat-writer-workspace',mode:'readwrite'});if(!await permission(h,true))return;workDirectoryHandle=h;await storeHandle('directory',h);$('#workFolderStatus').textContent='Thư mục làm việc: '+h.name;setState('Đã chọn thư mục','saved');}catch(e){if(e.name!=='AbortError')alert(e.message);}
+  }
+  async function openFromComputer(){
+    if(!window.showOpenFilePicker){$('#universalOpenFile').click();return;}
+    try{const o={multiple:false,types:[{description:'Tài liệu',accept:{'application/vnd.openxmlformats-officedocument.wordprocessingml.document':['.docx'],'application/vnd.oasis.opendocument.text':['.odt'],'text/html':['.html','.htm'],'text/plain':['.txt','.md','.csv'],'application/rtf':['.rtf']}}]};if(workDirectoryHandle)o.startIn=workDirectoryHandle;const [h]=await window.showOpenFilePicker(o);await openAnyFile(await h.getFile());currentFileHandle=h;await storeHandle('file',h);}catch(e){if(e.name!=='AbortError')alert('Không mở được: '+e.message);}
+  }
+  function addLoadedFile(name,content){const d={id:makeId(),title:name.replace(/\.[^.]+$/,''),html:sanitizeHTML(content||'<p><br></p>'),updatedAt:Date.now()};documents.push(d);loadDoc(d.id);scheduleSave();}
+  async function openAnyFile(file){
+    if(!file)return;const ext=extOf(file.name);
+    try{
+      if(ext==='docx'){await importDocx(file);return;}
+      if(ext==='doc')throw new Error('DOC cũ (Word 97–2003) chưa đọc trực tiếp được. Hãy chuyển sang DOCX bằng Word hoặc LibreOffice.');
+      if(ext==='pdf')throw new Error('PDF chưa chuyển thành văn bản chỉnh sửa được; dùng In / Lưu PDF để xuất PDF.');
+      if(ext==='odt'){const x=await unzipText(file,'content.xml'),d=new DOMParser().parseFromString(x,'application/xml');if(d.querySelector('parsererror'))throw new Error('Tệp ODT lỗi XML.');const ns='urn:oasis:names:tc:opendocument:xmlns:text:1.0';addLoadedFile(file.name,[...d.getElementsByTagNameNS(ns,'p'),...d.getElementsByTagNameNS(ns,'h')].map(p=>'<p>'+escapeHTML(p.textContent)+'</p>').join(''));return;}
+      const raw=await file.text();let body='';
+      if(['html','htm'].includes(ext))body=raw;
+      else if(ext==='rtf')body='<p>'+escapeHTML(raw.replace(/\\par[d]?/g,'\n').replace(/\\[a-z]+-?\d* ?/gi,'').replace(/[{}]/g,'')).replace(/\n/g,'</p><p>')+'</p>';
+      else if(ext==='csv'){body='<table><tbody>'+raw.split(/\r?\n/).filter(Boolean).map((r,i)=>'<tr>'+r.split(',').map(c=>(i===0?'<th>':'<td>')+escapeHTML(c)+(i===0?'</th>':'</td>')).join('')+'</tr>').join('')+'</tbody></table>';}
+      else if(['txt','md','markdown'].includes(ext))body='<p>'+escapeHTML(raw).replace(/\r?\n/g,'</p><p>')+'</p>';
+      else throw new Error('Định dạng .'+ext+' chưa hỗ trợ.');
+      addLoadedFile(file.name,body);
+    }catch(e){alert('Không mở được '+file.name+': '+e.message);}
+  }
+  async function openFromChosenFolder(){await openFromComputer();}
+  function closeCurrentFile(){
+    if(dirty&&!confirm('Tài liệu có thay đổi chưa lưu. Đóng tệp? Bản đang lưu trên thiết bị sẽ vẫn được giữ.'))return;
+    if(dirty)persist(false);currentFileHandle=null;storeHandle('file',null).catch(()=>{});
+    const d={id:makeId(),title:'Tài liệu mới',html:'<h1>Tài liệu mới</h1><p><br></p>',updatedAt:Date.now()};documents.push(d);loadDoc(d.id);persist(false);setState('Đã đóng tệp · bản nội bộ vẫn được giữ','saved');
+  }
+
   const current = () => documents.find(d => d.id === activeId);
   const plainText = () => editor.innerText || editor.textContent || '';
 
@@ -338,6 +392,8 @@
     documents=documents.filter(d=>d.id!==activeId);activeId=documents[0].id;loadDoc(activeId);persist();
   };
   $('#saveNow').onclick=()=>{clearTimeout(saveTimer);persist();};
+  $('#openLocalFile').onclick=openFromComputer;$('#saveFile').onclick=saveCurrentFile;$('#saveAsFile').onclick=saveAsFile;$('#closeFile').onclick=closeCurrentFile;$('#chooseWorkFolder').onclick=chooseWorkFolder;$('#openWorkFolder').onclick=openFromChosenFolder;
+  $('#universalOpenFile').onchange=e=>{const f=e.target.files[0];if(f)openAnyFile(f);e.target.value='';};initFileHandles();
   $('#exportHtml').onclick=exportHTML;
   $('#exportTxt').onclick=()=>{persist(false);download(safeName(current().title)+'.txt',plainText(),'text/plain;charset=utf-8');};
   $('#printDoc').onclick=()=>{persist(false);window.print();};
@@ -415,7 +471,7 @@
     const rows=[...table.rows].map(row=>'<w:tr>'+[...row.cells].map(cell=>'<w:tc><w:tcPr><w:tcW w:w="2400" w:type="dxa"/></w:tcPr>'+([...cell.children].map(ch=>paragraphXML(ch)).join('')||'<w:p>'+xmlEscape(cell.textContent||'')+'</w:p>')+'</w:tc>').join('')+'</w:tr>').join('');
     return '<w:tbl><w:tblPr><w:tblBorders><w:top w:val="single" w:sz="4"/><w:left w:val="single" w:sz="4"/><w:bottom w:val="single" w:sz="4"/><w:right w:val="single" w:sz="4"/><w:insideH w:val="single" w:sz="4"/><w:insideV w:val="single" w:sz="4"/></w:tblBorders></w:tblPr>'+rows+'</w:tbl>';
   }
-  function exportDocx(){
+  function exportDocx(returnBlob=false){
     persist(false);
     const body=[...editor.children].map(el=>el.tagName==='TABLE'?tableXML(el):paragraphXML(el)).join('')||'<w:p/>';
     const paper=$('#paperSize').value,margin=Math.round(Number($('#pageMargin').value||20)*56.7);
