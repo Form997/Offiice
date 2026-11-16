@@ -198,3 +198,27 @@ grant usage,select on sequence public.hd_access_audit_id_seq to authenticated;
 
 -- Important: these policies protect access, but service_role bypasses RLS.
 -- Never put service_role keys in the PWA. Keep document HTML private until authenticated.
+
+-- Server-side copy operation: requires explicit can_copy permission and creates a new owner-owned ID.
+create or replace function public.hd_copy_document(p_source_id text, p_new_id text, p_new_title text)
+returns public.hd_documents
+language plpgsql security definer set search_path=public
+as $$
+declare source_doc public.hd_documents; copied public.hd_documents;
+begin
+  if auth.uid() is null then raise exception 'Authentication required'; end if;
+  if p_new_id !~ '^HDW-[0-9]{8}-[A-Z0-9]{8}$' then raise exception 'Invalid new document ID'; end if;
+  if char_length(coalesce(p_new_title,'')) not between 1 and 120 then raise exception 'Invalid title'; end if;
+  if not public.hd_has_doc_permission(p_source_id,'copy',auth.uid()) then raise exception 'Copy permission denied'; end if;
+  select * into source_doc from public.hd_documents where id=p_source_id and deleted_at is null;
+  if not found then raise exception 'Document unavailable'; end if;
+  insert into public.hd_documents(id,owner_user_id,title,content_html,content_type,version)
+  values(p_new_id,auth.uid(),p_new_title,source_doc.content_html,source_doc.content_type,1)
+  returning * into copied;
+  insert into public.hd_access_audit(document_id,actor_user_id,action,details)
+  values(p_source_id,auth.uid(),'copy',jsonb_build_object('new_document_id',p_new_id));
+  return copied;
+end;
+$$;
+revoke all on function public.hd_copy_document(text,text,text) from public;
+grant execute on function public.hd_copy_document(text,text,text) to authenticated;
