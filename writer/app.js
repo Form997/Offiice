@@ -35,7 +35,7 @@
     try{const h=await window.showDirectoryPicker({id:'haidat-writer-workspace',mode:'readwrite'});if(!await permission(h,true))return;workDirectoryHandle=h;await storeHandle('directory',h);$('#workFolderStatus').textContent='Thư mục làm việc: '+h.name;setState('Đã chọn thư mục','saved');}catch(e){if(e.name!=='AbortError')alert(e.message);}
   }
   async function openFromComputer(){
-    if(!window.showOpenFilePicker){$('#universalOpenFile').click();return;}
+    if(!window.showOpenFilePicker){$('#openFile').click();return;}
     try{const o={multiple:false,types:[{description:'Tài liệu',accept:{'application/vnd.openxmlformats-officedocument.wordprocessingml.document':['.docx'],'application/vnd.oasis.opendocument.text':['.odt'],'text/html':['.html','.htm'],'text/plain':['.txt','.md','.csv'],'application/rtf':['.rtf']}}]};if(workDirectoryHandle)o.startIn=workDirectoryHandle;const [h]=await window.showOpenFilePicker(o);await openAnyFile(await h.getFile());currentFileHandle=h;await storeHandle('file',h);}catch(e){if(e.name!=='AbortError')alert('Không mở được: '+e.message);}
   }
   function addLoadedFile(name,content){const d={id:makeId(),title:name.replace(/\.[^.]+$/,''),html:sanitizeHTML(content||'<p><br></p>'),updatedAt:Date.now()};documents.push(d);loadDoc(d.id);scheduleSave();}
@@ -393,11 +393,11 @@
   };
   $('#saveNow').onclick=()=>{clearTimeout(saveTimer);persist();};
   $('#openLocalFile').onclick=openFromComputer;$('#saveFile').onclick=saveCurrentFile;$('#saveAsFile').onclick=saveAsFile;$('#closeFile').onclick=closeCurrentFile;$('#chooseWorkFolder').onclick=chooseWorkFolder;$('#openWorkFolder').onclick=openFromChosenFolder;
-  $('#universalOpenFile').onchange=e=>{const f=e.target.files[0];if(f)openAnyFile(f);e.target.value='';};initFileHandles();
+  initFileHandles();
   $('#exportHtml').onclick=exportHTML;
   $('#exportTxt').onclick=()=>{persist(false);download(safeName(current().title)+'.txt',plainText(),'text/plain;charset=utf-8');};
   $('#printDoc').onclick=()=>{persist(false);window.print();};
-  $('#openFile').onchange=e=>{openFile(e.target.files[0]);e.target.value='';};
+  ['openFile','openDocx'].forEach(id=>{const input=$('#'+id);if(input)input.onchange=e=>{const f=e.target.files[0];if(f)openAnyFile(f);e.target.value='';};});
   document.addEventListener('keydown',e=>{
     const mod=e.ctrlKey||e.metaKey;
     if(mod && e.key.toLowerCase()==='f'){e.preventDefault();$('#findText').focus();$('#findText').select();}
