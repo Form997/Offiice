@@ -393,6 +393,66 @@
     try{localStorage.setItem('haidat-writer-page-settings',JSON.stringify({paper:$('#paperSize').value,margin}));}catch{}
   }
 
+
+  // Print header/footer settings are stored separately from document body.
+  const PRINT_STORE='haidat-writer-print-settings-v1';
+  function readPrintSettings(){
+    try{return JSON.parse(localStorage.getItem(PRINT_STORE)||'{}')||{};}catch{return {};}
+  }
+  function applyPrintSettings(){
+    const settings={header:$('#headerText').value.trim(),footer:$('#footerText').value.trim(),numbers:$('#showPageNumbers').checked};
+    try{localStorage.setItem(PRINT_STORE,JSON.stringify(settings));}catch{}
+    let style=$('#dynamicPrintStyle');
+    if(!style){style=document.createElement('style');style.id='dynamicPrintStyle';document.head.append(style);}
+    const paper=$('#paperSize').value,margin=Math.max(5,Math.min(50,Number($('#pageMargin').value)||20));
+    const header=escapeHTML(settings.header),footer=escapeHTML(settings.footer);
+    style.textContent='@page{size:'+paper+';margin:'+margin+'mm;'+
+      '@top-center{content:"'+header+'";font:9pt Arial,sans-serif;color:#555}'+
+      (settings.numbers?'@bottom-center{content:"'+(footer?footer+' · ':'')+'Trang " counter(page) " / " counter(pages);font:9pt Arial,sans-serif;color:#555}':'@bottom-center{content:"'+footer+'";font:9pt Arial,sans-serif;color:#555}')+'}'+
+      '@media print{.page{position:relative}.print-running-header{display:none!important}.print-running-footer{display:none!important}}';
+  }
+  function loadPrintSettings(){
+    const p=readPrintSettings();
+    $('#headerText').value=p.header||'';$('#footerText').value=p.footer||'';$('#showPageNumbers').checked=p.numbers!==false;
+    applyPrintSettings();
+  }
+  function exportBackup(){
+    if(dirty)persist(false);
+    const payload={format:'HAI-DAT-WRITER-BACKUP',version:1,createdAt:new Date().toISOString(),activeId,documents,printSettings:readPrintSettings(),pageSettings:(()=>{try{return JSON.parse(localStorage.getItem('haidat-writer-page-settings')||'{}');}catch{return {};}})()};
+    download('hai-dat-writer-backup-'+new Date().toISOString().slice(0,10)+'.json',JSON.stringify(payload,null,2),'application/json;charset=utf-8');
+    setState('Đã tạo bản sao lưu','saved');
+  }
+  function importBackup(file){
+    if(!file)return;
+    if(file.size>20*1024*1024){alert('Bản sao lưu vượt quá 20 MB.');return;}
+    const reader=new FileReader();
+    reader.onload=()=>{
+      try{
+        const data=JSON.parse(String(reader.result||''));
+        if(data.format!=='HAI-DAT-WRITER-BACKUP'||data.version!==1||!Array.isArray(data.documents)||!data.documents.length)throw new Error('Sai định dạng hoặc phiên bản bản sao lưu.');
+        const restored=data.documents.filter(d=>d&&typeof d.id==='string'&&typeof d.html==='string').map(d=>({id:d.id,title:String(d.title||'Tài liệu khôi phục').slice(0,120),html:sanitizeHTML(d.html),updatedAt:Number(d.updatedAt)||Date.now()}));
+        if(!restored.length)throw new Error('Không tìm thấy tài liệu hợp lệ trong bản sao lưu.');
+        if(!confirm('Khôi phục '+restored.length+' tài liệu? Danh sách hiện tại sẽ được thay thế. Hãy chắc chắn đã sao lưu dữ liệu đang có.'))return;
+        documents=restored;activeId=restored.some(d=>d.id===data.activeId)?data.activeId:restored[0].id;
+        localStorage.setItem(STORE,JSON.stringify(documents));
+        if(data.printSettings&&typeof data.printSettings==='object')localStorage.setItem(PRINT_STORE,JSON.stringify({header:String(data.printSettings.header||'').slice(0,120),footer:String(data.printSettings.footer||'').slice(0,120),numbers:data.printSettings.numbers!==false}));
+        if(data.pageSettings&&typeof data.pageSettings==='object')localStorage.setItem('haidat-writer-page-settings',JSON.stringify({paper:['A4','A5','Letter'].includes(data.pageSettings.paper)?data.pageSettings.paper:'A4',margin:Math.max(5,Math.min(50,Number(data.pageSettings.margin)||20))}));
+        loadDoc(activeId);loadPrintSettings();
+        const ps=JSON.parse(localStorage.getItem('haidat-writer-page-settings')||'{}');$('#paperSize').value=ps.paper||'A4';$('#pageMargin').value=ps.margin||20;applyPageSettings();
+        setState('Đã khôi phục bản sao lưu','saved');alert('Khôi phục thành công '+restored.length+' tài liệu.');
+      }catch(err){alert('Không thể khôi phục: '+err.message);}
+    };
+    reader.readAsText(file);
+  }
+  $('#backupExport').onclick=exportBackup;
+  $('#backupImport').onclick=()=>$('#backupFile').click();
+  $('#backupFile').onchange=e=>{importBackup(e.target.files[0]);e.target.value='';};
+  ['headerText','footerText','showPageNumbers'].forEach(id=>$('#'+id).addEventListener('change',applyPrintSettings));
+  $('#headerText').addEventListener('input',applyPrintSettings);
+  $('#footerText').addEventListener('input',applyPrintSettings);
+  loadPrintSettings();
+
+
   $('#exportDocx').onclick=exportDocx;
   $('#openDocx').onchange=e=>{const f=e.target.files[0];if(f)importDocx(f);e.target.value='';};
   $('#paperSize').onchange=applyPageSettings;$('#pageMargin').onchange=applyPageSettings;
