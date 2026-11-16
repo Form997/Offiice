@@ -25,29 +25,57 @@
       <button id="deleteDoc" class="danger">Xóa</button>
     </div>
   </section>
-  <nav class="toolbar" aria-label="Công cụ soạn thảo">
-    <div class="tool-group">
-      <button data-action="undo" title="Hoàn tác (Ctrl+Z)">↶</button><button data-action="redo" title="Làm lại (Ctrl+Y)">↷</button>
+  <nav class="ribbon" aria-label="Thanh công cụ Writer">
+    <div class="ribbon-tabs" role="tablist" aria-label="Nhóm chức năng">
+      <button class="ribbon-tab active" type="button" role="tab" aria-selected="true" aria-controls="panel-file" data-tab="file">Tệp</button>
+      <button class="ribbon-tab" type="button" role="tab" aria-selected="false" aria-controls="panel-home" data-tab="home">Trang chủ</button>
+      <button class="ribbon-tab" type="button" role="tab" aria-selected="false" aria-controls="panel-insert" data-tab="insert">Chèn</button>
+      <button class="ribbon-tab" type="button" role="tab" aria-selected="false" aria-controls="panel-layout" data-tab="layout">Bố trí</button>
+      <button class="ribbon-tab" type="button" role="tab" aria-selected="false" aria-controls="panel-reference" data-tab="reference">Tham chiếu</button>
+      <button class="ribbon-tab" type="button" role="tab" aria-selected="false" aria-controls="panel-view" data-tab="view">Xem</button>
     </div>
-    <div class="tool-group">
+    <section class="ribbon-panel active" id="panel-file" role="tabpanel">
+      <div class="ribbon-group"><div class="ribbon-tools">
+        <button type="button" data-proxy="saveNow" class="primary">Lưu ngay</button>
+        <button type="button" data-proxy="exportDocx">Xuất DOCX</button>
+        <button type="button" data-proxy="exportHtml">Xuất HTML</button>
+        <button type="button" data-proxy="exportTxt">Xuất TXT</button>
+        <button type="button" data-proxy="printDoc">In / PDF</button>
+        <button type="button" data-proxy="openFile">Mở HTML / TXT</button>
+        <button type="button" data-proxy="openDocx">Mở Word</button>
+      </div><small>Tạo và quản lý tài liệu ở thanh tên tài liệu bên dưới</small></div>
+    </section>
+    <section class="ribbon-panel" id="panel-home" role="tabpanel" hidden>
+          <div class="tool-group">
+      <button data-action="undo" title="Hoàn tác (Ctrl+Z)">↶</button><button data-action="redo" title="Làm lại (Ctrl+Y)">↷</button>
+    </div>\n    <div class="tool-group">
       <select id="blockType" aria-label="Kiểu đoạn"><option value="P">Đoạn văn</option><option value="H1">Tiêu đề 1</option><option value="H2">Tiêu đề 2</option><option value="H3">Tiêu đề 3</option><option value="BLOCKQUOTE">Trích dẫn</option><option value="PRE">Mã / văn bản thô</option></select>
       <select id="fontName" aria-label="Phông chữ"><option value="Arial">Arial</option><option value="Georgia">Georgia</option><option value="Times New Roman">Times New Roman</option><option value="Verdana">Verdana</option><option value="Tahoma">Tahoma</option><option value="Courier New">Courier New</option></select>
       <select id="fontSize" aria-label="Cỡ chữ"><option value="2">10 pt</option><option value="3" selected>12 pt</option><option value="4">14 pt</option><option value="5">18 pt</option><option value="6">24 pt</option><option value="7">36 pt</option></select>
-    </div>
-    <div class="tool-group">
+    </div>\n    <div class="tool-group">
       <button data-cmd="bold" title="Đậm"><b>B</b></button><button data-cmd="italic" title="Nghiêng"><i>I</i></button><button data-cmd="underline" title="Gạch chân"><u>U</u></button><button data-cmd="strikeThrough" title="Gạch ngang"><s>S</s></button>
       <label class="color-tool" title="Màu chữ">A <input id="textColor" type="color" value="#17212b" aria-label="Màu chữ"></label>
       <label class="color-tool" title="Màu nền chữ">▧ <input id="highlightColor" type="color" value="#fff29a" aria-label="Màu đánh dấu"></label>
-    </div>
-    <div class="tool-group">
+    </div>\n    <div class="tool-group">
       <button data-cmd="justifyLeft" title="Căn trái">Trái</button><button data-cmd="justifyCenter" title="Căn giữa">Giữa</button><button data-cmd="justifyRight" title="Căn phải">Phải</button><button data-cmd="justifyFull" title="Căn đều">Đều</button>
-    </div>
-    <div class="tool-group">
+    </div>\n    <div class="tool-group">
       <button data-cmd="insertUnorderedList">• Danh sách</button><button data-cmd="insertOrderedList">1. Danh sách</button><button id="outdent">Giảm lề</button><button id="indent">Tăng lề</button>
     </div>
-    <div class="tool-group">
+    </section>
+    <section class="ribbon-panel" id="panel-insert" role="tabpanel" hidden>
+          <div class="tool-group">
       <button id="addLink">Chèn liên kết</button><button id="addTable">Chèn bảng</button><button id="addImage">Chèn ảnh</button><button id="clearFormat">Xóa định dạng</button>
     </div>
+    </section>
+    <section class="ribbon-panel" id="panel-layout" role="tabpanel" hidden>
+      <div class="ribbon-group" id="pageSetupRibbon"><strong>Thiết lập trang</strong></div>
+    </section>
+    <section class="ribbon-panel" id="panel-reference" role="tabpanel" hidden>
+      <div class="ribbon-group"><strong>Tham chiếu</strong><span>Danh mục, chú thích và trích dẫn sẽ được bổ sung ở phiên bản kế tiếp.</span></div>
+    </section>
+    <section class="ribbon-panel" id="panel-view" role="tabpanel" hidden>
+      <div class="ribbon-group"><strong>Thống kê tài liệu</strong><span>Từ: <b id="ribbonWordCount">0</b> · Ký tự: <b id="ribbonCharCount">0</b> · Đoạn: <b id="ribbonParaCount">0</b></span><button type="button" id="focusEditor">Về vùng soạn thảo</button></div>
+    </section>
   </nav>
   <section class="workspace">
     <div class="page-wrap">
