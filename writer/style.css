@@ -197,3 +197,6 @@ main{max-width:1560px;margin:14px auto;padding:0 clamp(8px,1.5vw,22px)}
 .document-manager #documentCount{font-size:12px;color:var(--muted);align-self:center}
 .document-manager .ribbon-tools{gap:5px}
 @media(max-width:700px){.document-manager{min-width:250px}.document-manager .ribbon-tools{flex-wrap:nowrap}.document-manager #documentSearch{min-width:190px}}
+
+/* HAI DAT WRITER V2.1 */
+.document-manager{min-width:310px;max-width:440px}.document-manager .ribbon-tools{flex-wrap:wrap}.document-manager select{min-width:120px;max-width:190px;font-size:12px}.document-manager #documentSearch{min-width:170px;max-width:230px}.folder-manager{min-width:300px;max-width:430px}.folder-manager .ribbon-tools{display:flex;gap:6px;flex-wrap:wrap}.folder-manager select{min-width:130px;max-width:180px;font-size:12px}.folder-manager button{font-size:12px;padding:7px 9px}.folder-manager small{max-width:360px;white-space:normal}@media(max-width:700px){.document-manager,.folder-manager{min-width:270px}.document-manager .ribbon-tools,.folder-manager .ribbon-tools{flex-wrap:nowrap}.document-manager select,.folder-manager select{min-width:130px;max-width:155px}.folder-manager button{white-space:nowrap}}
