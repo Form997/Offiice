@@ -13,7 +13,7 @@
 
   function sanitizeHTML(input) {
     const parsed = new DOMParser().parseFromString(input, 'text/html');
-    const allowed = new Set(['P','BR','DIV','SPAN','H1','H2','H3','H4','BLOCKQUOTE','PRE','B','STRONG','I','EM','U','S','STRIKE','UL','OL','LI','A','TABLE','THEAD','TBODY','TR','TH','TD','IMG','HR','SUB','SUP']);
+    const allowed = new Set(['P','BR','DIV','SECTION','SPAN','H1','H2','H3','H4','BLOCKQUOTE','PRE','B','STRONG','I','EM','U','S','STRIKE','UL','OL','LI','A','TABLE','THEAD','TBODY','TR','TH','TD','IMG','HR','SUB','SUP']);
     const clean = (node) => {
       [...node.childNodes].forEach(child => {
         if (child.nodeType === Node.COMMENT_NODE) { child.remove(); return; }
@@ -22,11 +22,12 @@
         [...child.attributes].forEach(attr => {
           const key=attr.name.toLowerCase(), val=attr.value;
           if (key.startsWith('on') || key === 'contenteditable') child.removeAttribute(attr.name);
-          else if (key === 'id') { if (!/^hd-[a-z0-9-]+$/i.test(val)) child.removeAttribute(attr.name); }\n          else if (key === 'class') { if (!(child.tagName === 'DIV' && val.split(/\\s+/).includes('page-break'))) child.removeAttribute(attr.name); }
+          else if (key === 'id') { if (!/^hd-[a-z0-9-]+$/i.test(val)) child.removeAttribute(attr.name); }
+          else if (key === 'class') { const allowedClasses=new Set(['page-break','hd-toc','hd-citation','toc-level-h1','toc-level-h2','toc-level-h3']); if (!val.split(/\s+/).every(c=>allowedClasses.has(c))) child.removeAttribute(attr.name); }
           else if (key === 'href' && !/^(https?:|mailto:|tel:)/i.test(val) && !/^#hd-[a-z0-9-]+$/i.test(val)) child.removeAttribute(attr.name);
-          else if (key === 'src' && child.tagName === 'IMG' && !/^(data:image\\/(png|jpeg|gif|webp);base64,|https?:)/i.test(val)) child.removeAttribute(attr.name);
+          else if (key === 'src' && child.tagName === 'IMG' && !/^(data:image\/(png|jpeg|gif|webp);base64,|https?:)/i.test(val)) child.removeAttribute(attr.name);
           else if (key === 'style') {
-            const safe = val.split(';').filter(rule => /^(color|background-color|font-weight|font-style|text-decoration|text-align|font-size|font-family|width|max-width|height)\\s*:/i.test(rule.trim()) && !/url\\s*\\(|expression|javascript/i.test(rule)).join(';');
+            const safe = val.split(';').filter(rule => /^(color|background-color|font-weight|font-style|text-decoration|text-align|font-size|font-family|width|max-width|height)\s*:/i.test(rule.trim()) && !/url\s*\(|expression|javascript/i.test(rule)).join(';');
             if (safe) child.setAttribute('style', safe); else child.removeAttribute('style');
           } else if (!['href','src','alt','title','colspan','rowspan','style','width','height'].includes(key)) child.removeAttribute(attr.name);
         });
@@ -87,8 +88,8 @@
   }
   function escapeHTML(s) { return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
   function updateStats() {
-    const text=plainText().replace(/\\u00a0/g,' ').trim();
-    $('#wordCount').textContent=text ? (text.match(/[\\p{L}\\p{N}]+(?:[’'-][\\p{L}\\p{N}]+)*/gu)||[]).length : 0;
+    const text=plainText().replace(/\u00a0/g,' ').trim();
+    $('#wordCount').textContent=text ? (text.match(/[\p{L}\p{N}]+(?:[’'-][\p{L}\p{N}]+)*/gu)||[]).length : 0;
     $('#charCount').textContent=text.length;
     $('#paraCount').textContent=[...editor.querySelectorAll('p,h1,h2,h3,h4,li,blockquote')].filter(el=>el.innerText.trim()).length;
   }
@@ -120,8 +121,8 @@
     const reader=new FileReader();
     reader.onload=()=>{
       const raw=String(reader.result||'');
-      const html=/\\.html?$/i.test(file.name)||file.type==='text/html' ? raw : '<p>'+escapeHTML(raw).replace(/\\r?\\n/g,'</p><p>')+'</p>';
-      const doc={id:makeId(),title:file.name.replace(/\\.(html?|txt)$/i,''),html:sanitizeHTML(html),updatedAt:Date.now()};
+      const html=/\.html?$/i.test(file.name)||file.type==='text/html' ? raw : '<p>'+escapeHTML(raw).replace(/\r?\n/g,'</p><p>')+'</p>';
+      const doc={id:makeId(),title:file.name.replace(/\.(html?|txt)$/i,''),html:sanitizeHTML(html),updatedAt:Date.now()};
       documents.push(doc); loadDoc(doc.id); scheduleSave();
     };
     reader.readAsText(file);
@@ -130,7 +131,7 @@
   // Reference tools are stored as semantic HTML inside each document.
   function safeHeadingId(index){return 'hd-heading-'+index;}
   function buildToc(){
-    const headings=[...editor.querySelectorAll('h1,h2,h3')].filter(h=>h.textContent.trim());
+    const headings=[...editor.querySelectorAll('h1,h2,h3')].filter(h=>h.textContent.trim()&&!h.closest('#hd-toc'));
     if(!headings.length){alert('Chưa có tiêu đề. Hãy định dạng đoạn bằng Tiêu đề 1, 2 hoặc 3 trước.');return;}
     headings.forEach((h,i)=>{if(!/^hd-heading-\d+$/.test(h.id||''))h.id=safeHeadingId(i+1);});
     const items=headings.map(h=>'<li class="toc-level-'+h.tagName.toLowerCase()+'"><a href="#'+h.id+'">'+escapeHTML(h.textContent.trim())+'</a></li>').join('');
