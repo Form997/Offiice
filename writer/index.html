@@ -117,6 +117,28 @@
   <p class="muted">Tự lưu khi nội dung thay đổi · Hỗ trợ ngoại tuyến sau khi ứng dụng được tải lần đầu.</p>
 </main>
 <footer>HAI ĐẤT OFFICE · WRITER V1.4.1</footer>
-<script src="app.js"></script>
+<script>
+  window.addEventListener('error', function (event) {
+    var box = document.getElementById('runtimeError');
+    if (!box) {
+      box = document.createElement('div');
+      box.id = 'runtimeError';
+      box.style.cssText = 'position:sticky;top:0;z-index:9999;padding:12px;background:#7f1d1d;color:#fff;font:14px/1.5 system-ui';
+      document.body.prepend(box);
+    }
+    box.textContent = 'Writer gặp lỗi khi khởi động: ' + (event.message || 'Không rõ nguyên nhân') + (event.filename ? ' · ' + event.filename.split('/').pop() + ':' + event.lineno : '');
+  });
+  window.addEventListener('unhandledrejection', function (event) {
+    var box = document.getElementById('runtimeError');
+    if (!box) {
+      box = document.createElement('div');
+      box.id = 'runtimeError';
+      box.style.cssText = 'position:sticky;top:0;z-index:9999;padding:12px;background:#7f1d1d;color:#fff;font:14px/1.5 system-ui';
+      document.body.prepend(box);
+    }
+    box.textContent = 'Writer gặp lỗi tác vụ: ' + String(event.reason && event.reason.message || event.reason || 'Không rõ nguyên nhân');
+  });
+</script>
+<script src="app.js?v=1.4.2"></script>
 </body>
 </html>
