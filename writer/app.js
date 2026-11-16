@@ -132,7 +132,7 @@
   function buildToc(){
     const headings=[...editor.querySelectorAll('h1,h2,h3')].filter(h=>h.textContent.trim());
     if(!headings.length){alert('Chưa có tiêu đề. Hãy định dạng đoạn bằng Tiêu đề 1, 2 hoặc 3 trước.');return;}
-    headings.forEach((h,i)=>{if(!/^hd-heading-\\d+$/.test(h.id||''))h.id=safeHeadingId(i+1);});
+    headings.forEach((h,i)=>{if(!/^hd-heading-\d+$/.test(h.id||''))h.id=safeHeadingId(i+1);});
     const items=headings.map(h=>'<li class="toc-level-'+h.tagName.toLowerCase()+'"><a href="#'+h.id+'">'+escapeHTML(h.textContent.trim())+'</a></li>').join('');
     const toc='<section class="hd-toc" id="hd-toc"><h2>MỤC LỤC</h2><ol>'+items+'</ol></section>';
     const existing=editor.querySelector('#hd-toc');
