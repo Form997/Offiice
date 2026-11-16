@@ -46,7 +46,14 @@
       </div><small>Tạo và quản lý tài liệu ở thanh tên tài liệu bên dưới</small></div>
     </section>
     <section class="ribbon-panel" id="panel-home" role="tabpanel" hidden>
-          <div class="tool-group">
+          <div class="tool-group find-tools" aria-label="Tìm kiếm và thay thế">
+      <input id="findText" type="search" placeholder="Tìm nội dung…" aria-label="Từ cần tìm">
+      <input id="replaceText" type="text" placeholder="Thay bằng…" aria-label="Nội dung thay thế">
+      <button type="button" id="findNext">Tìm tiếp</button>
+      <button type="button" id="replaceOne">Thay</button>
+      <button type="button" id="replaceAll">Thay tất cả</button>
+    </div>
+    <div class="tool-group">
       <button data-action="undo" title="Hoàn tác (Ctrl+Z)">↶</button><button data-action="redo" title="Làm lại (Ctrl+Y)">↷</button>
     </div>
     <div class="tool-group">
