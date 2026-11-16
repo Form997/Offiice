@@ -224,3 +224,6 @@ main{max-width:1560px;margin:14px auto;padding:0 clamp(8px,1.5vw,22px)}
 /* V2.6 — privacy status until authenticated sharing is available */
 .access-state{display:inline-flex;align-items:center;gap:5px;padding:5px 9px;border:1px solid #d8e8df;border-radius:999px;background:#f1f8f4;color:#28634c;font-size:12px;font-weight:650;white-space:nowrap}
 @media(max-width:700px){.access-state{white-space:normal}}
+
+/* HAI DAT WRITER V2.7 — Supabase account bootstrap */
+.account-manager{min-width:280px;max-width:410px}.account-manager .ribbon-tools{display:flex;flex-wrap:wrap;gap:6px}.account-manager input{min-width:130px;max-width:185px;width:100%;font-size:12px}.account-manager button{font-size:12px;white-space:nowrap}.account-manager #accountStatus{display:block;max-width:390px;white-space:normal;line-height:1.45;font-size:11px;color:var(--muted)}.account-manager #accountStatus[data-state=error]{color:var(--danger);font-weight:650}.account-manager #accountStatus[data-state=warning]{color:#93631d}@media(max-width:700px){.account-manager{min-width:270px}.account-manager .ribbon-tools{flex-wrap:nowrap}.account-manager input{min-width:125px;max-width:155px}.account-manager button{padding:7px 8px}}
