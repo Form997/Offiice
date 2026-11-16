@@ -21,7 +21,7 @@
         if (!allowed.has(child.tagName)) { clean(child); child.replaceWith(...child.childNodes); return; }
         [...child.attributes].forEach(attr => {
           const key=attr.name.toLowerCase(), val=attr.value;
-          if (key.startsWith('on') || key === 'contenteditable' || key === 'id' || key === 'class') child.removeAttribute(attr.name);
+          if (key.startsWith('on') || key === 'contenteditable' || key === 'id') child.removeAttribute(attr.name);\n          else if (key === 'class') { if (!(child.tagName === 'DIV' && val.split(/\\s+/).includes('page-break'))) child.removeAttribute(attr.name); }
           else if (key === 'href' && !/^(https?:|mailto:|tel:)/i.test(val)) child.removeAttribute(attr.name);
           else if (key === 'src' && child.tagName === 'IMG' && !/^(data:image\\/(png|jpeg|gif|webp);base64,|https?:)/i.test(val)) child.removeAttribute(attr.name);
           else if (key === 'style') {
