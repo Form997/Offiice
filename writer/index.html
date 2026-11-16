@@ -58,12 +58,12 @@
     <aside class="sidepanel">
       <h2>Tệp và xuất bản</h2>
       <button id="saveNow" class="primary">Lưu ngay</button>
-      <button id="exportHtml">Tải HTML</button>
+      <button id="exportHtml">Tải HTML</button>\n      <button id="exportDocx" class="primary">Xuất DOCX (Word)</button>
       <button id="exportTxt">Tải TXT</button>
       <button id="printDoc">In / Lưu PDF</button>
-      <label class="file-button">Mở tệp <input id="openFile" type="file" accept=".html,.htm,.txt,text/html,text/plain"></label>
+      <label class="file-button">Mở HTML / TXT <input id="openFile" type="file" accept=".html,.htm,.txt,text/html,text/plain"></label>\n      <label class="file-button">Mở Word DOCX <input id="openDocx" type="file" accept=".docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document"></label>
       <hr>
-      <h2>Thống kê</h2>
+      <hr>\n      <h2>Thiết lập trang</h2>\n      <label class="setting">Khổ giấy<select id="paperSize"><option value="A4">A4</option><option value="A5">A5</option><option value="Letter">Letter</option></select></label>\n      <label class="setting">Lề trang (mm)<input id="pageMargin" type="number" min="5" max="50" value="20"></label>\n      <button id="insertPageBreak">Ngắt trang</button>\n      <h2>Thống kê</h2>
       <dl class="stats"><dt>Từ</dt><dd id="wordCount">0</dd><dt>Ký tự</dt><dd id="charCount">0</dd><dt>Đoạn</dt><dd id="paraCount">0</dd></dl>
       <p class="hint">Tài liệu được lưu trong bộ nhớ trình duyệt trên thiết bị này. Hãy xuất tệp định kỳ để sao lưu.</p>
     </aside>
