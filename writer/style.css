@@ -181,3 +181,6 @@ main{max-width:1560px;margin:14px auto;padding:0 clamp(8px,1.5vw,22px)}
 @media print{
   .page{overflow-wrap:break-word}
 }
+
+.file-workflow-group{min-width:280px;max-width:100%}.file-workflow-tools{display:flex;flex-wrap:wrap;gap:6px}.file-workflow-tools button{font-size:12px;min-height:36px}#workFolderStatus{max-width:330px;white-space:normal;line-height:1.4}
+@media(min-width:901px){.file-workflow-group{min-width:350px}}@media(max-width:700px){.file-workflow-group{min-width:270px}.file-workflow-tools{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}.file-workflow-tools button{white-space:normal}}
