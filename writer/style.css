@@ -109,3 +109,6 @@ footer{text-align:center;color:var(--muted);padding:22px;font-size:12px}
 .hd-toc a{color:#176b57;text-decoration:none}
 .hd-toc a:hover{text-decoration:underline}
 @media print{.hd-toc .toc-updated{display:none}}
+
+/* V1.8 paragraph controls, templates and section breaks */
+.paragraph-tools{gap:8px;align-items:center}.paragraph-tools label{display:flex;align-items:center;gap:5px;font-size:12px;white-space:nowrap}.paragraph-tools select{min-height:34px;padding:5px}.section-break{break-before:page;page-break-before:always;border-top:2px dashed #6f988b;margin:24px 0;height:0;position:relative}.section-break:after{content:'NGẮT PHẦN';position:relative;top:-13px;display:inline-block;padding:0 7px;background:#fff;color:#64748b;font-size:10px;letter-spacing:.08em}@media print{.section-break{border:0;margin:0}.section-break:after{display:none}}
