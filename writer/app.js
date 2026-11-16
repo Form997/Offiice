@@ -201,10 +201,13 @@
   function replaceAllText(){
     const query=$('#findText').value,replacement=$('#replaceText').value;
     if(!query){alert('Hãy nhập nội dung cần tìm.');return;}
-    const escaped=query.replace(/[.*+?^${}()|[\]\\]/g,'\\  try {
-    const stored=JSON.parse(localStorage.getItem(STORE)||'[]');');
-    const re=new RegExp(escaped,'giu');let count=0;
-    findTextNodes().forEach(node=>{const next=node.nodeValue.replace(re,()=>{count++;return replacement;});if(next!==node.nodeValue)node.nodeValue=next;});
+    const needle=query.toLocaleLowerCase('vi');let count=0;
+    findTextNodes().forEach(node=>{
+      const source=node.nodeValue,lower=source.toLocaleLowerCase('vi');
+      let from=0,at=-1,output='',localCount=0;
+      while((at=lower.indexOf(needle,from))>=0){output+=source.slice(from,at)+replacement;from=at+query.length;count++;localCount++;}
+      if(localCount)node.nodeValue=output+source.slice(from);
+    });
     if(count){scheduleSave();alert('Đã thay '+count+' vị trí.');}else alert('Không tìm thấy nội dung cần thay.');
   }
 
