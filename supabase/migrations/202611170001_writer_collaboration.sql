@@ -199,8 +199,6 @@ using (author_user_id=auth.uid() or exists(select 1 from public.hd_documents d w
 drop policy if exists hd_audit_select on public.hd_access_audit;
 create policy hd_audit_select on public.hd_access_audit for select to authenticated
 using (actor_user_id=auth.uid() or exists(select 1 from public.hd_documents d where d.id=document_id and d.owner_user_id=auth.uid()));
-drop policy if exists hd_audit_insert on public.hd_access_audit;
-create policy hd_audit_insert on public.hd_access_audit for insert to authenticated with check (actor_user_id=auth.uid());
 
 grant select,insert,update,delete on public.hd_groups,public.hd_group_members,public.hd_documents,public.hd_document_permissions,public.hd_access_requests,public.hd_document_comments,public.hd_access_audit to authenticated;
 grant usage,select on sequence public.hd_access_audit_id_seq to authenticated;
