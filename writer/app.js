@@ -13,7 +13,7 @@
 
   function sanitizeHTML(input) {
     const parsed = new DOMParser().parseFromString(input, 'text/html');
-    const allowed = new Set(['P','BR','DIV','SECTION','SPAN','H1','H2','H3','H4','BLOCKQUOTE','PRE','B','STRONG','I','EM','U','S','STRIKE','UL','OL','LI','A','TABLE','THEAD','TBODY','TR','TH','TD','IMG','HR','SUB','SUP']);
+    const allowed = new Set(['P','BR','DIV','SECTION','SPAN','FONT','H1','H2','H3','H4','BLOCKQUOTE','PRE','B','STRONG','I','EM','U','S','STRIKE','UL','OL','LI','A','TABLE','THEAD','TBODY','TR','TH','TD','IMG','HR','SUB','SUP']);
     const clean = (node) => {
       [...node.childNodes].forEach(child => {
         if (child.nodeType === Node.COMMENT_NODE) { child.remove(); return; }
@@ -26,6 +26,7 @@
           else if (key === 'class') { const allowedClasses=new Set(['page-break','section-break','hd-toc','hd-citation','toc-level-h1','toc-level-h2','toc-level-h3']); if (!val.split(/\s+/).every(c=>allowedClasses.has(c))) child.removeAttribute(attr.name); }
           else if (key === 'href' && !/^(https?:|mailto:|tel:)/i.test(val) && !/^#hd-[a-z0-9-]+$/i.test(val)) child.removeAttribute(attr.name);
           else if (key === 'src' && child.tagName === 'IMG' && !/^(data:image\/(png|jpeg|gif|webp);base64,|https?:)/i.test(val)) child.removeAttribute(attr.name);
+          else if (['face','color','size'].includes(key) && child.tagName === 'FONT') { /* safe legacy font attributes */ }
           else if (key === 'style') {
             const safe = val.split(';').filter(rule => /^(color|background-color|font-weight|font-style|text-decoration|text-align|font-size|font-family|width|max-width|height|line-height|margin-top|margin-bottom|text-indent)\s*:/i.test(rule.trim()) && !/url\s*\(|expression|javascript/i.test(rule)).join(';');
             if (safe) child.setAttribute('style', safe); else child.removeAttribute('style');
@@ -110,6 +111,7 @@
   }
   function command(cmd,value=null) {
     restoreEditorSelection();
+    document.execCommand('styleWithCSS',false,true);
     editor.focus();
     document.execCommand(cmd,false,value);
     rememberEditorSelection();
@@ -311,6 +313,8 @@
   $('#findNext').onclick=findNextText;$('#replaceOne').onclick=replaceCurrent;$('#replaceAll').onclick=replaceAllText;
   $('#findText').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();findNextText();}});
   $('#blockType').addEventListener('change',e=>command('formatBlock',e.target.value));
+  // Enable CSS-based formatting so browser-generated styles survive sanitizing and reload.
+  document.execCommand('styleWithCSS',false,true);
   $('#fontName').addEventListener('change',e=>command('fontName',e.target.value));
   $('#fontSize').addEventListener('change',e=>command('fontSize',e.target.value));
   $('#textColor').addEventListener('input',e=>command('foreColor',e.target.value));
@@ -372,19 +376,31 @@
     return new Blob([...chunks,...central,end],{type:'application/vnd.openxmlformats-officedocument.wordprocessingml.document'});
   }
   function runXML(node){
-    const tag=node.tagName,style=node.getAttribute?.('style')||'';
-    if(tag==='BR')return '<w:r><w:br/></w:r>';
-    if(tag==='IMG')return '';
-    if(tag==='TABLE')return '';
     if(node.nodeType===Node.TEXT_NODE)return node.nodeValue?'<w:r><w:t xml:space="preserve">'+xmlEscape(node.nodeValue)+'</w:t></w:r>':'';
     if(node.nodeType!==Node.ELEMENT_NODE)return '';
+    const tag=node.tagName,style=node.getAttribute?.('style')||'';
+    if(tag==='BR')return '<w:r><w:br/></w:r>';
+    if(tag==='IMG'||tag==='TABLE')return '';
     let props='';
-    if(tag==='B'||tag==='STRONG')props+='<w:b/>';
-    if(tag==='I'||tag==='EM')props+='<w:i/>';
-    if(tag==='U')props+='<w:u w:val="single"/>';
-    if(tag==='S'||tag==='STRIKE')props+='<w:strike/>';
-    if(props) return '<w:r><w:rPr>'+props+'</w:rPr><w:t>'+xmlEscape(node.textContent||'')+'</w:t></w:r>';
-    return [...node.childNodes].map(runXML).join('');
+    if(tag==='B'||tag==='STRONG'||/font-weight\s*:\s*(bold|[6-9]00)/i.test(style))props+='<w:b/>';
+    if(tag==='I'||tag==='EM'||/font-style\s*:\s*italic/i.test(style))props+='<w:i/>';
+    if(tag==='U'||/text-decoration\s*:\s*[^;]*underline/i.test(style))props+='<w:u w:val="single"/>';
+    if(tag==='S'||tag==='STRIKE'||/text-decoration\s*:\s*[^;]*line-through/i.test(style))props+='<w:strike/>';
+    const face=node.getAttribute?.('face')||((style.match(/font-family\s*:\s*([^;]+)/i)||[])[1]||'').replace(/["']/g,'').split(',')[0].trim();
+    if(face)props+='<w:rFonts w:ascii="'+xmlEscape(face)+'" w:hAnsi="'+xmlEscape(face)+'"/>';
+    const size=node.getAttribute?.('size');
+    const cssSize=(style.match(/font-size\s*:\s*([0-9.]+)\s*(pt|px)?/i)||[]);
+    const pt=size?({1:8,2:10,3:12,4:14,5:18,6:24,7:36}[size]||12):(cssSize[1]?Number(cssSize[1])*(cssSize[2]==='px'?0.75:1):0);
+    if(pt>0)props+='<w:sz w:val="'+Math.round(pt*2)+'"/>';
+    const color=node.getAttribute?.('color')||((style.match(/(?:^|;)\s*color\s*:\s*(#[0-9a-f]{6})/i)||[])[1]||'');
+    if(color)props+='<w:color w:val="'+color.replace('#','').toUpperCase()+'"/>';
+    const bg=(style.match(/background-color\s*:\s*(#[0-9a-f]{6})/i)||[])[1];
+    if(bg)props+='<w:shd w:val="clear" w:color="auto" w:fill="'+bg.replace('#','').toUpperCase()+'"/>';
+    if(tag==='SUP')props+='<w:vertAlign w:val="superscript"/>';
+    if(tag==='SUB')props+='<w:vertAlign w:val="subscript"/>';
+    let inner=[...node.childNodes].map(runXML).join('');
+    if(props)inner=inner.replace(/<w:r>/g,'<w:r><w:rPr>'+props+'</w:rPr>');
+    return inner;
   }
   function paragraphXML(el){
     if(el.classList?.contains('page-break')||el.classList?.contains('section-break'))return '<w:p><w:r><w:br w:type="page"/></w:r></w:p>';
