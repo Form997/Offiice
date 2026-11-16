@@ -3,6 +3,9 @@
   const $ = (s) => document.querySelector(s);
   const editor = $('#editor'), titleInput = $('#docTitle');
   const STORE = 'haidat-writer-documents-v2';
+  const FOLDERS_STORE='haidat-writer-folders-v1';
+  const DEFAULT_FOLDERS=['Chưa phân loại','Công việc','Học tập','Cá nhân'];
+  let folders=(()=>{try{const v=JSON.parse(localStorage.getItem(FOLDERS_STORE)||'null');return Array.isArray(v)&&v.length?v.filter(x=>typeof x==='string'&&x.trim()).slice(0,100):DEFAULT_FOLDERS.slice();}catch{return DEFAULT_FOLDERS.slice();}})();if(!folders.includes('Chưa phân loại'))folders.unshift('Chưa phân loại');
   let documents = [], activeId = null, saveTimer = null, deferredInstall = null, dirty = false, savedEditorRange = null, currentFileHandle = null, workDirectoryHandle = null;
 
   const makeId = () => {
@@ -22,7 +25,7 @@
       x.html=typeof x.html==='string'?x.html:'<p><br></p>';
       x.createdAt=Number(x.createdAt)||Number(x.updatedAt)||now;
       x.updatedAt=Number(x.updatedAt)||x.createdAt;
-      x.appType='writer';x.schemaVersion=2;x.deletedAt=Number(x.deletedAt)||null;
+      x.appType='writer';x.schemaVersion=3;x.deletedAt=Number(x.deletedAt)||null;x.folder=folders.includes(x.folder)?x.folder:'Chưa phân loại';x.category=String(x.category||'Khác').slice(0,40);x.pinned=!!x.pinned;
       return x;
     });
   }
@@ -67,7 +70,7 @@
         loadDoc(duplicate.id);return true;
       }
     }
-    const d={id:makeId(),title,html,createdAt:Date.now(),updatedAt:Date.now(),appType:'writer',schemaVersion:1};
+    const d={id:makeId(),title,html,createdAt:Date.now(),updatedAt:Date.now(),appType:'writer',schemaVersion:3,folder:'Chưa phân loại',category:'Khác',pinned:false};
     documents.push(d);loadDoc(d.id);scheduleSave();return true;
   }
   async function openAnyFile(file){
@@ -128,7 +131,7 @@
     const doc=current(); if (!doc) return;
     doc.title=titleInput.value.trim() || 'Tài liệu chưa đặt tên';
     doc.html=editor.innerHTML;
-    doc.appType='writer';doc.schemaVersion=2;doc.createdAt=Number(doc.createdAt)||doc.updatedAt||Date.now();
+    doc.appType='writer';doc.schemaVersion=3;doc.folder=folders.includes(doc.folder)?doc.folder:'Chưa phân loại';doc.category=String(doc.category||'Khác');doc.pinned=!!doc.pinned;doc.createdAt=Number(doc.createdAt)||doc.updatedAt||Date.now();
     doc.updatedAt=Date.now();
     try {
       localStorage.setItem(STORE, JSON.stringify(documents));
@@ -144,15 +147,15 @@
     saveTimer=setTimeout(()=>persist(),500);
     updateStats();
   }
+  function renderFolderControls(){const filter=$('#folderFilter'),target=$('#docFolder');[filter,target].forEach((sel,i)=>{if(!sel)return;const old=sel.value;sel.replaceChildren();const first=document.createElement('option');first.value=i===0?'__all__':'__current__';first.textContent=i===0?'Tất cả thư mục':'Chuyển vào thư mục…';sel.append(first);folders.forEach(name=>{const o=document.createElement('option');o.value=name;o.textContent=name;sel.append(o);});if(i===0&&folders.includes(old))sel.value=old;});const d=documents.find(x=>x.id===activeId);if(target&&d&&folders.includes(d.folder))target.value=d.folder;}
   function renderDocList() {
     const list=$('#docList'); if(!list) return;
-    const query=($('#documentSearch')?.value||'').trim().toLocaleLowerCase('vi');
+    const query=($('#documentSearch')?.value||'').trim().toLocaleLowerCase('vi'),folder=$('#folderFilter')?.value||'__all__',sort=$('#documentSort')?.value||'updated';
     list.replaceChildren();
-    documents.filter(d=>!d.deletedAt&&(!query||d.title.toLocaleLowerCase('vi').includes(query)||d.id.toLocaleLowerCase('en').includes(query)))
-      .sort((a,b)=>(b.updatedAt||0)-(a.updatedAt||0)).forEach(doc=>{
-        const option=document.createElement('option'); option.value=doc.id; option.textContent=doc.title||'Chưa đặt tên'; list.append(option);
-      });
+    const visible=documents.filter(d=>!d.deletedAt&&(folder==='__all__'||d.folder===folder)&&(!query||d.title.toLocaleLowerCase('vi').includes(query)||d.id.toLocaleLowerCase('en').includes(query)||String(d.category||'').toLocaleLowerCase('vi').includes(query)));
+    visible.sort((a,b)=>{if(!!a.pinned!==!!b.pinned)return a.pinned?-1:1;if(sort==='name')return a.title.localeCompare(b.title,'vi');if(sort==='oldest')return (a.createdAt||0)-(b.createdAt||0);return (b.updatedAt||0)-(a.updatedAt||0);}).forEach(doc=>{const o=document.createElement('option');o.value=doc.id;o.textContent=(doc.pinned?'★ ':'')+doc.title+' · '+(doc.category||'Khác');list.append(o);});
     if(documents.some(d=>d.id===activeId&&!d.deletedAt))list.value=activeId;
+    renderFolderControls();
     const trash=$('#trashList');
     if(trash){trash.replaceChildren();documents.filter(d=>d.deletedAt).sort((a,b)=>b.deletedAt-a.deletedAt).forEach(doc=>{const o=document.createElement('option');o.value=doc.id;o.textContent=doc.title+' · '+new Date(doc.deletedAt).toLocaleDateString('vi-VN');trash.append(o);});}
     const count=$('#documentCount');if(count)count.textContent=documents.filter(d=>!d.deletedAt).length+' tài liệu';
@@ -160,11 +163,11 @@
   function loadDoc(id) {
     const doc=documents.find(d=>d.id===id); if(!doc) return;
     clearTimeout(saveTimer); activeId=id; titleInput.value=doc.title; editor.innerHTML=sanitizeHTML(doc.html || '<p><br></p>');
-    dirty=false; renderDocList(); updateStats(); const identity=$('#docIdDisplay');if(identity)identity.textContent='ID: '+doc.id; setState('Đã mở tài liệu','saved');
+    dirty=false;renderDocList();updateStats();const identity=$('#docIdDisplay');if(identity)identity.textContent='ID: '+doc.id;const cat=$('#docCategory');if(cat)cat.value=doc.category||'Khác';const pin=$('#togglePin');if(pin)pin.textContent=doc.pinned?'★ Đã ghim':'☆ Ghim tài liệu';setState('Đã mở tài liệu','saved');
   }
   function createDoc() {
     if(dirty) persist(false);
-    const doc={id:makeId(),title:'Tài liệu mới',html:'<h1>Tài liệu mới</h1><p><br></p>',updatedAt:Date.now()};
+    const doc={id:makeId(),title:'Tài liệu mới',html:'<h1>Tài liệu mới</h1><p><br></p>',createdAt:Date.now(),updatedAt:Date.now(),folder:'Chưa phân loại',category:'Khác',pinned:false};
     documents.push(doc); loadDoc(doc.id); titleInput.focus(); titleInput.select(); scheduleSave();
   }
   function download(name,data,type) {
@@ -391,8 +394,8 @@
     }
   } catch { documents=[{id:makeId(),title:'Tài liệu chưa đặt tên',html:editor.innerHTML,updatedAt:Date.now()}]; }
   documents=normalizeDocuments(documents);
-  activeId=documents[0].id; loadDoc(activeId);
-  try{localStorage.setItem(STORE,JSON.stringify(documents));}catch{}
+  const firstActive=documents.find(d=>!d.deletedAt);if(firstActive){activeId=firstActive.id;loadDoc(activeId);}else{const fresh={id:makeId(),title:'Tài liệu mới',html:'<h1>Tài liệu mới</h1><p><br></p>',createdAt:Date.now(),updatedAt:Date.now(),folder:'Chưa phân loại',category:'Khác',pinned:false};documents.push(fresh);activeId=fresh.id;loadDoc(fresh.id);}
+  try{localStorage.setItem(STORE,JSON.stringify(documents));localStorage.setItem(FOLDERS_STORE,JSON.stringify(folders));}catch{}
 
   editor.addEventListener('input',()=>{rememberEditorSelection();scheduleSave();scheduleTocUpdate();});
   document.addEventListener('selectionchange',rememberEditorSelection);
@@ -434,7 +437,12 @@
     if(next){activeId=next.id;loadDoc(next.id);}else{const fresh={id:makeId(),title:'Tài liệu mới',html:'<h1>Tài liệu mới</h1><p><br></p>',createdAt:Date.now(),updatedAt:Date.now(),appType:'writer',schemaVersion:2};documents.push(fresh);activeId=fresh.id;loadDoc(fresh.id);}
     persist();setState('Đã chuyển tài liệu vào Thùng rác','saved');
   };
-  $('#documentSearch').addEventListener('input',renderDocList);
+  $('#documentSearch').addEventListener('input',renderDocList);$('#folderFilter').addEventListener('change',renderDocList);$('#documentSort').addEventListener('change',renderDocList);
+  $('#docFolder').addEventListener('change',e=>{const d=current();if(!d||!folders.includes(e.target.value))return;d.folder=e.target.value;d.updatedAt=Date.now();persist();setState('Đã chuyển tài liệu vào '+d.folder,'saved');});
+  $('#docCategory').addEventListener('change',e=>{const d=current();if(!d)return;d.category=e.target.value;d.updatedAt=Date.now();persist();renderDocList();setState('Đã cập nhật phân loại','saved');});
+  $('#togglePin').onclick=()=>{const d=current();if(!d)return;d.pinned=!d.pinned;d.updatedAt=Date.now();persist();loadDoc(d.id);setState(d.pinned?'Đã ghim tài liệu':'Đã bỏ ghim tài liệu','saved');};
+  $('#createFolder').onclick=()=>{const v=prompt('Tên thư mục mới (tối đa 40 ký tự):');if(v===null)return;const name=v.trim().slice(0,40);if(!name){alert('Tên thư mục không được để trống.');return;}if(folders.some(x=>x.toLocaleLowerCase('vi')===name.toLocaleLowerCase('vi'))){alert('Thư mục đã tồn tại.');return;}if(folders.length>=100){alert('Đã đạt giới hạn 100 thư mục.');return;}folders.push(name);localStorage.setItem(FOLDERS_STORE,JSON.stringify(folders));renderFolderControls();$('#folderFilter').value=name;renderDocList();setState('Đã tạo thư mục '+name,'saved');};
+  $('#deleteFolder').onclick=()=>{const name=$('#folderFilter').value;if(!folders.includes(name)){alert('Hãy chọn thư mục cụ thể để xóa.');return;}if(!confirm('Xóa thư mục “'+name+'”? Tài liệu bên trong chuyển về Chưa phân loại.'))return;documents.forEach(d=>{if(d.folder===name)d.folder='Chưa phân loại';});folders=folders.filter(x=>x!==name);if(!folders.includes('Chưa phân loại'))folders.unshift('Chưa phân loại');localStorage.setItem(FOLDERS_STORE,JSON.stringify(folders));persist();renderFolderControls();renderDocList();};
   $('#restoreTrash').onclick=()=>{const d=documents.find(x=>x.id===$('#trashList').value&&x.deletedAt);if(!d){alert('Chọn tài liệu trong Thùng rác trước.');return;}d.deletedAt=null;d.updatedAt=Date.now();loadDoc(d.id);persist();setState('Đã khôi phục tài liệu','saved');};
   $('#purgeTrash').onclick=()=>{const d=documents.find(x=>x.id===$('#trashList').value&&x.deletedAt);if(!d){alert('Chọn tài liệu trong Thùng rác trước.');return;}if(!confirm('Xóa vĩnh viễn “'+d.title+'”? Không thể khôi phục.'))return;documents=documents.filter(x=>x.id!==d.id);persist();renderDocList();};
   $('#saveNow').onclick=()=>{clearTimeout(saveTimer);persist();};
@@ -626,7 +634,7 @@
   }
   function exportBackup(){
     if(dirty)persist(false);
-    const payload={format:'HAI-DAT-WRITER-BACKUP',version:2,appType:'writer',createdAt:new Date().toISOString(),activeId,documents,printSettings:readPrintSettings(),pageSettings:(()=>{try{return JSON.parse(localStorage.getItem('haidat-writer-page-settings')||'{}');}catch{return {};}})()};
+    const payload={format:'HAI-DAT-WRITER-BACKUP',version:3,appType:'writer',createdAt:new Date().toISOString(),activeId,folders,documents,printSettings:readPrintSettings(),pageSettings:(()=>{try{return JSON.parse(localStorage.getItem('haidat-writer-page-settings')||'{}');}catch{return {};}})()};
     download('hai-dat-writer-backup-'+new Date().toISOString().slice(0,10)+'.json',JSON.stringify(payload,null,2),'application/json;charset=utf-8');
     setState('Đã tạo bản sao lưu','saved');
   }
@@ -637,12 +645,13 @@
     reader.onload=()=>{
       try{
         const data=JSON.parse(String(reader.result||''));
-        if(data.format!=='HAI-DAT-WRITER-BACKUP'||![1,2].includes(data.version)||!Array.isArray(data.documents)||!data.documents.length)throw new Error('Sai định dạng hoặc phiên bản bản sao lưu.');
+        if(data.format!=='HAI-DAT-WRITER-BACKUP'||![1,2,3].includes(data.version)||!Array.isArray(data.documents)||!data.documents.length)throw new Error('Sai định dạng hoặc phiên bản bản sao lưu.');
+        if(Array.isArray(data.folders))folders=[...new Set(data.folders.map(x=>String(x).trim().slice(0,40)).filter(Boolean))].slice(0,100);if(!folders.includes('Chưa phân loại'))folders.unshift('Chưa phân loại');
         const restored=normalizeDocuments(data.documents.filter(d=>d&&typeof d==='object'&&typeof d.html==='string').map(d=>({...d,title:String(d.title||'Tài liệu khôi phục').slice(0,120),html:sanitizeHTML(d.html)})));
         if(!restored.length)throw new Error('Không tìm thấy tài liệu hợp lệ trong bản sao lưu.');
         if(!confirm('Khôi phục '+restored.length+' tài liệu? Danh sách hiện tại sẽ được thay thế. Hãy chắc chắn đã sao lưu dữ liệu đang có.'))return;
-        documents=restored;activeId=restored.some(d=>d.id===data.activeId)?data.activeId:restored[0].id;
-        localStorage.setItem(STORE,JSON.stringify(documents));
+        documents=restored;let preferred=restored.find(d=>d.id===data.activeId&&!d.deletedAt)||restored.find(d=>!d.deletedAt);if(!preferred){preferred={id:makeId(),title:'Tài liệu mới',html:'<h1>Tài liệu mới</h1><p><br></p>',createdAt:Date.now(),updatedAt:Date.now(),folder:'Chưa phân loại',category:'Khác',pinned:false};documents.push(preferred);}activeId=preferred.id;
+        localStorage.setItem(STORE,JSON.stringify(documents));localStorage.setItem(FOLDERS_STORE,JSON.stringify(folders));
         if(data.printSettings&&typeof data.printSettings==='object')localStorage.setItem(PRINT_STORE,JSON.stringify({header:String(data.printSettings.header||'').slice(0,120),footer:String(data.printSettings.footer||'').slice(0,120),numbers:data.printSettings.numbers!==false}));
         if(data.pageSettings&&typeof data.pageSettings==='object')localStorage.setItem('haidat-writer-page-settings',JSON.stringify({paper:['A4','A5','Letter'].includes(data.pageSettings.paper)?data.pageSettings.paper:'A4',margin:Math.max(5,Math.min(50,Number(data.pageSettings.margin)||20))}));
         loadDoc(activeId);loadPrintSettings();
