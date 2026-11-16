@@ -196,6 +196,59 @@
     clearTimeout(saveTimer); activeId=id; titleInput.value=doc.title; editor.innerHTML=sanitizeHTML(doc.html || '<p><br></p>');
     dirty=false;renderDocList();renderVersionHistory();updateStats();const identity=$('#docIdDisplay');if(identity)identity.textContent='ID: '+doc.id;const cat=$('#docCategory');if(cat)cat.value=doc.category||'Khác';const pin=$('#togglePin');if(pin)pin.textContent=doc.pinned?'★ Đã ghim':'☆ Ghim tài liệu';setState('Đã mở tài liệu','saved');
   }
+  function cloneCurrentDocument(){
+    if(dirty)persist(false);
+    const source=current();
+    if(!source||source.deletedAt){alert('Không tìm thấy tài liệu đang mở để nhân bản.');return;}
+    const suggested='Bản sao - '+source.title;
+    const chosen=prompt('Đặt tên cho tài liệu mới:',suggested);
+    if(chosen===null)return;
+    const title=String(chosen).trim().slice(0,120);
+    if(!title){alert('Tên tài liệu không được để trống.');return;}
+    const now=Date.now();
+    const clone={
+      ...source,
+      id:makeId(),
+      title,
+      html:sanitizeHTML(editor.innerHTML),
+      createdAt:now,
+      updatedAt:now,
+      deletedAt:null,
+      pinned:false,
+      appType:'writer',
+      schemaVersion:3
+    };
+    const oldDocs=documents;
+    const oldHistory=versionHistory;
+    documents=[...documents,clone];
+    try{
+      localStorage.setItem(STORE,JSON.stringify(documents));
+      activeId=clone.id;
+      loadDoc(clone.id);
+      const sourceHistory=oldHistory[source.id]||[];
+      if(sourceHistory.length){
+        const copied=sourceHistory.slice(-HISTORY_PER_DOCUMENT).map((v,i)=>({
+          ...v,
+          versionId:'HDWV-'+now+'-'+i+'-'+Math.random().toString(36).slice(2,6).toUpperCase(),
+          createdAt:Number(v.createdAt)||now,
+          reason:'Lịch sử từ bản gốc',
+          html:sanitizeHTML(v.html)
+        })).filter(v=>v.html.length<=HISTORY_MAX_CHARS);
+        versionHistory={...oldHistory,[clone.id]:copied};
+        if(!saveVersionHistory())delete versionHistory[clone.id];
+      }
+      recordVersionSnapshot(true,'Tạo từ bản sao');
+      persist(false);
+      renderVersionHistory();
+      setState('Đã tạo bản sao độc lập','saved');
+      alert('Đã tạo tài liệu mới.\nID mới: '+clone.id+'\nBản gốc vẫn được giữ nguyên.');
+    }catch(err){
+      documents=oldDocs;versionHistory=oldHistory;
+      try{localStorage.setItem(STORE,JSON.stringify(oldDocs));}catch{}
+      loadDoc(source.id);
+      alert('Không thể nhân bản do bộ nhớ hoặc dữ liệu không hợp lệ: '+err.message);
+    }
+  }
   function createDoc() {
     if(dirty) persist(false);
     const doc={id:makeId(),title:'Tài liệu mới',html:'<h1>Tài liệu mới</h1><p><br></p>',createdAt:Date.now(),updatedAt:Date.now(),folder:'Chưa phân loại',category:'Khác',pinned:false};
@@ -774,6 +827,7 @@
   }
   $('#backupExport').onclick=exportBackup;
   $('#checkDataHealth').onclick=checkDataHealth;
+  $('#cloneDoc').onclick=cloneCurrentDocument;
   $('#backupImport').onclick=()=>$('#backupFile').click();
   $('#backupFile').onchange=e=>{importBackup(e.target.files[0]);e.target.value='';};
   ['headerText','footerText','showPageNumbers'].forEach(id=>$('#'+id).addEventListener('change',applyPrintSettings));
