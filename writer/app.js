@@ -310,7 +310,6 @@
   try{const ps=JSON.parse(localStorage.getItem('haidat-writer-page-settings')||'null');if(ps){$('#paperSize').value=ps.paper||'A4';$('#pageMargin').value=ps.margin||20;}}catch{}
   applyPageSettings();
   updateStats();
-})();
   // Ribbon tabs: switch panels without changing editor content or save state.
   document.querySelectorAll('.ribbon-tab').forEach(tab=>tab.addEventListener('click',()=>{
     document.querySelectorAll('.ribbon-tab').forEach(t=>{const active=t===tab;t.classList.toggle('active',active);t.setAttribute('aria-selected',String(active));});
@@ -329,3 +328,5 @@
     const target=$('#'+btn.dataset.proxy);if(!target)return;
     if(target.type==='file')target.click();else target.click();
   }));
+
+})();
