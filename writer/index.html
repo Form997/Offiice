@@ -48,17 +48,21 @@
     <section class="ribbon-panel" id="panel-home" role="tabpanel" hidden>
           <div class="tool-group">
       <button data-action="undo" title="Hoàn tác (Ctrl+Z)">↶</button><button data-action="redo" title="Làm lại (Ctrl+Y)">↷</button>
-    </div>\n    <div class="tool-group">
+    </div>
+    <div class="tool-group">
       <select id="blockType" aria-label="Kiểu đoạn"><option value="P">Đoạn văn</option><option value="H1">Tiêu đề 1</option><option value="H2">Tiêu đề 2</option><option value="H3">Tiêu đề 3</option><option value="BLOCKQUOTE">Trích dẫn</option><option value="PRE">Mã / văn bản thô</option></select>
       <select id="fontName" aria-label="Phông chữ"><option value="Arial">Arial</option><option value="Georgia">Georgia</option><option value="Times New Roman">Times New Roman</option><option value="Verdana">Verdana</option><option value="Tahoma">Tahoma</option><option value="Courier New">Courier New</option></select>
       <select id="fontSize" aria-label="Cỡ chữ"><option value="2">10 pt</option><option value="3" selected>12 pt</option><option value="4">14 pt</option><option value="5">18 pt</option><option value="6">24 pt</option><option value="7">36 pt</option></select>
-    </div>\n    <div class="tool-group">
+    </div>
+    <div class="tool-group">
       <button data-cmd="bold" title="Đậm"><b>B</b></button><button data-cmd="italic" title="Nghiêng"><i>I</i></button><button data-cmd="underline" title="Gạch chân"><u>U</u></button><button data-cmd="strikeThrough" title="Gạch ngang"><s>S</s></button>
       <label class="color-tool" title="Màu chữ">A <input id="textColor" type="color" value="#17212b" aria-label="Màu chữ"></label>
       <label class="color-tool" title="Màu nền chữ">▧ <input id="highlightColor" type="color" value="#fff29a" aria-label="Màu đánh dấu"></label>
-    </div>\n    <div class="tool-group">
+    </div>
+    <div class="tool-group">
       <button data-cmd="justifyLeft" title="Căn trái">Trái</button><button data-cmd="justifyCenter" title="Căn giữa">Giữa</button><button data-cmd="justifyRight" title="Căn phải">Phải</button><button data-cmd="justifyFull" title="Căn đều">Đều</button>
-    </div>\n    <div class="tool-group">
+    </div>
+    <div class="tool-group">
       <button data-cmd="insertUnorderedList">• Danh sách</button><button data-cmd="insertOrderedList">1. Danh sách</button><button id="outdent">Giảm lề</button><button id="indent">Tăng lề</button>
     </div>
     </section>
@@ -86,12 +90,19 @@
     <aside class="sidepanel">
       <h2>Tệp và xuất bản</h2>
       <button id="saveNow" class="primary">Lưu ngay</button>
-      <button id="exportHtml">Tải HTML</button>\n      <button id="exportDocx" class="primary">Xuất DOCX (Word)</button>
+      <button id="exportHtml">Tải HTML</button>
+      <button id="exportDocx" class="primary">Xuất DOCX (Word)</button>
       <button id="exportTxt">Tải TXT</button>
       <button id="printDoc">In / Lưu PDF</button>
-      <label class="file-button">Mở HTML / TXT <input id="openFile" type="file" accept=".html,.htm,.txt,text/html,text/plain"></label>\n      <label class="file-button">Mở Word DOCX <input id="openDocx" type="file" accept=".docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document"></label>
+      <label class="file-button">Mở HTML / TXT <input id="openFile" type="file" accept=".html,.htm,.txt,text/html,text/plain"></label>
+      <label class="file-button">Mở Word DOCX <input id="openDocx" type="file" accept=".docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document"></label>
       <hr>
-      <hr>\n      <h2>Thiết lập trang</h2>\n      <label class="setting">Khổ giấy<select id="paperSize"><option value="A4">A4</option><option value="A5">A5</option><option value="Letter">Letter</option></select></label>\n      <label class="setting">Lề trang (mm)<input id="pageMargin" type="number" min="5" max="50" value="20"></label>\n      <button id="insertPageBreak">Ngắt trang</button>\n      <h2>Thống kê</h2>
+      <hr>
+      <h2>Thiết lập trang</h2>
+      <label class="setting">Khổ giấy<select id="paperSize"><option value="A4">A4</option><option value="A5">A5</option><option value="Letter">Letter</option></select></label>
+      <label class="setting">Lề trang (mm)<input id="pageMargin" type="number" min="5" max="50" value="20"></label>
+      <button id="insertPageBreak">Ngắt trang</button>
+      <h2>Thống kê</h2>
       <dl class="stats"><dt>Từ</dt><dd id="wordCount">0</dd><dt>Ký tự</dt><dd id="charCount">0</dd><dt>Đoạn</dt><dd id="paraCount">0</dd></dl>
       <p class="hint">Tài liệu được lưu trong bộ nhớ trình duyệt trên thiết bị này. Hãy xuất tệp định kỳ để sao lưu.</p>
     </aside>
