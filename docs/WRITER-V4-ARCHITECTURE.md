@@ -139,3 +139,11 @@ Một hồ sơ tài liệu có thể mở ở chế độ Văn bản hoặc Canv
 - Thêm bộ test Node.js `tests/writer-v4-9.test.js` để rà các bất biến tĩnh: kho Writer/schema/ID, phục hồi dữ liệu lỗi, history/backup, đồng bộ Writer–Canvas, Export Studio và phạm vi cache.
 - Hướng dẫn tại `docs/WRITER-V4-9-QA.md`; chạy bằng `node --test tests/writer-v4-9.test.js`.
 - Test tĩnh không thay thế browser/device QA. Trạng thái vẫn là `QA-PENDING-DEVICE`; không tự động merge hoặc phát hành.
+
+
+## V5.0 — Backup & Restore Safety Studio
+- Nhánh riêng `v5-development`, khởi tạo từ V4.9 để giữ nguyên V4 và V3.
+- Bổ sung preflight bản sao lưu: thống kê số tài liệu hợp lệ, bản ghi lỗi, ID trùng/sai, xung đột với kho hiện tại, history và Canvas trước khi nhập.
+- Yêu cầu xác nhận bản xem trước; hủy khôi phục nếu nội dung đang sửa chưa lưu được.
+- Thêm test Node.js và GitHub Actions. Chưa tuyên bố pass cho tới khi CI hoàn tất; chưa thay thế browser/device QA.
+- Giữ document ID, storage key và `schemaVersion: 3`; chưa có checksum/chữ ký số hoặc mã hóa backup.
