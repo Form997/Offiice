@@ -23,3 +23,8 @@ V4 phát triển trên nhánh riêng `v4-development`, kết hợp chế độ V
 
 - Kiến trúc: `../docs/WRITER-V4-ARCHITECTURE.md`
 - Nhật ký: `../docs/WRITER-V4-RELEASE.md`
+
+### Canvas Studio — prototype V4
+- Mở thử: `canvas-studio.html` (từ Writer có nút **Canvas Studio V4**).
+- Đặc tả và ranh giới tích hợp: `../docs/WRITER-V4-CANVAS-STUDIO.md`.
+- Prototype lưu bản thử riêng; chưa đồng bộ vào hồ sơ tài liệu V3. Chưa xem là V4.1 hoàn chỉnh.
