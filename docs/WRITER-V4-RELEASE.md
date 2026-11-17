@@ -23,3 +23,23 @@
 ### Thống kê thay đổi
 - So với V3: 3 tệp thay đổi, 110 dòng thêm, 0 dòng xóa (theo GitHub compare).
 - Đây là thống kê dòng mã/tài liệu; chưa ghi dung lượng byte vì chưa có phép đo blob đáng tin cậy trong phiên này.
+
+
+## 17/11/2026 — Canvas Studio prototype
+
+### Nội dung
+- Tạo `writer/canvas-studio.html` làm không gian Canvas tương tác thử nghiệm.
+- Có công cụ thêm hộp chữ, tiêu đề, hình khối, ảnh, đường kẻ và ghi chú.
+- Có kéo thả, đổi kích thước, chỉnh thuộc tính, danh sách lớp, sắp lớp, undo/redo, lưới và zoom.
+- Thêm lối vào Canvas Studio từ thanh tài liệu Writer.
+- Ghi rõ ranh giới dữ liệu và lộ trình tích hợp trong `docs/WRITER-V4-CANVAS-STUDIO.md`.
+
+### An toàn dữ liệu
+- Canvas prototype lưu bằng khóa riêng `haidat-writer-v4-canvas-preview`.
+- Chưa đọc/ghi kho tài liệu V3; không thay đổi ID, HTML, lịch sử, thư mục hoặc backup hiện có.
+- Không được xem đây là tính năng chuyển đổi Văn bản/Canvas đồng bộ trong cùng hồ sơ ở thời điểm này.
+
+### Kiểm thử / giới hạn
+- Đã ghi mã và tài liệu lên nhánh `v4-development`.
+- Chưa xác nhận kiểm thử trình duyệt thực tế, Android, thao tác cảm ứng, accessibility hoặc xuất DOCX/PDF.
+- Chưa gộp vào V3/main và chưa phát hành chính thức.
