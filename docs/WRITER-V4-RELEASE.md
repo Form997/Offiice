@@ -20,5 +20,6 @@
 - Chưa chạy browser QA, Android QA, DOCX round-trip hoặc CI cho V4.
 - Chưa phát hành và chưa gộp vào main.
 
-### Dung lượng
-- Tệp mới là tài liệu Markdown; dung lượng sẽ được thống kê sau khi đo blob thực tế trên commit.
+### Thống kê thay đổi
+- So với V3: 3 tệp thay đổi, 110 dòng thêm, 0 dòng xóa (theo GitHub compare).
+- Đây là thống kê dòng mã/tài liệu; chưa ghi dung lượng byte vì chưa có phép đo blob đáng tin cậy trong phiên này.
