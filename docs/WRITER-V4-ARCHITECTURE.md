@@ -27,7 +27,7 @@ Một hồ sơ tài liệu có thể mở ở chế độ Văn bản hoặc Canv
 | Mốc | Phạm vi | Điều kiện hoàn thành |
 |---|---|---|
 | V4.1 Canvas Engine | Mở Canvas theo ID, khung trang, zoom/pan, thước, lưới, autosave | Hai chế độ đọc/ghi cùng hồ sơ, giữ ID |
-| V4.2 Object Studio | Chọn nhiều, xoay, nhóm/tách nhóm, kéo nhiều đối tượng, resize, căn trái/giữa/trên | Undo/redo nhất quán cho mọi thao tác và kiểm thử nhóm |
+| V4.2 Object Studio | Chọn nhiều, xoay bằng tay nắm, nhóm/tách nhóm, kéo và resize nhiều đối tượng, căn theo đối tượng/trang | Undo/redo nhất quán, kiểm thử nhóm và xác minh thao tác trên thiết bị |
 | V4.3 Image & Typography | Cắt ảnh, độ trong suốt, phông chữ, bảng, biểu đồ | Nội dung chỉnh sửa được, lưu ổn định |
 | V4.4 Multi-page Studio | Nhiều trang, thứ tự trang, mẫu, lề và vùng in | Phân trang và xem trước nhất quán |
 | V4.5 Document Integration | Đồng bộ mô hình văn bản/Canvas, lịch sử và backup | Không mất dữ liệu khi chuyển chế độ |
@@ -47,4 +47,6 @@ Một hồ sơ tài liệu có thể mở ở chế độ Văn bản hoặc Canv
 - Có thể kéo đồng thời các đối tượng đang chọn; thành viên cùng `groupId` được chọn chung khi chọn một phần tử trong nhóm.
 - Có lệnh Nhóm/Tách nhóm, căn trái/căn giữa/căn trên và thuộc tính góc xoay.
 - Xóa đối tượng áp dụng cho toàn bộ lựa chọn. Mô hình đối tượng vẫn là các bản ghi riêng, không gộp thành ảnh.
-- Đây là mức triển khai ban đầu; chưa xác nhận undo/redo bao phủ toàn bộ thao tác thuộc tính, chưa có resize đồng loạt, xoay bằng tay nắm trực quan, căn theo trang và kiểm thử trình duyệt.
+- Đã bổ sung tay nắm xoay trực quan cho đối tượng đơn, tay nắm resize theo tỉ lệ cho vùng chọn nhiều đối tượng, căn lề trái/giữa/trên theo trang và Ctrl+Shift+Z để làm lại.
+- Undo snapshot được tạo cho thao tác kéo, resize, xoay, căn chỉnh, nhóm/tách nhóm, xóa, thuộc tính và trước khi sửa nội dung văn bản.
+- Chức năng đã được ghi mã; chưa chạy browser automation hoặc kiểm thử thực tế Android/desktop. Cần xác minh các thao tác liên tục, lưu tự động, dữ liệu ảnh và giới hạn bộ nhớ trước khi đánh dấu V4.2 hoàn tất.
