@@ -50,3 +50,16 @@ Writer và Canvas thao tác trên cùng một tài liệu, cùng ID và cùng b�
 
 ## Bảo toàn nhánh
 Chỉ cập nhật `v4-development`. Không sửa, merge hoặc deploy `v3-development` hay `main`.
+
+
+## Kiểm tra logic bổ sung
+Hàm `persist` thực tế được trích từ `writer/app.js` và chạy trong harness với localStorage giả lập:
+- Thay đổi HTML Writer và design Canvas độc lập được hợp nhất, revision tăng.
+- Sửa cùng trường với hai giá trị khác nhau bị chặn; dữ liệu remote không bị ghi đè.
+- Soft-delete được lưu ngay cả khi một tài liệu khác đang mở.
+- Purge một tài liệu được phản ánh mà không xóa tài liệu đang mở.
+
+Đây là kiểm thử logic có mock, không phải kiểm thử browser. Chưa kiểm thử thực tế các sự kiện storage giữa tab, thao tác Canvas UI hoặc thiết bị Android/desktop.
+
+## Cache offline
+Service worker dùng cache key `haidat-writer-v4-5-r1`, cache-bust `app.js?v=4.5` và precache `canvas-studio.html` để tránh giữ app V3 cũ trong cache V4.
