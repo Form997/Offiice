@@ -43,3 +43,10 @@
 - Đã ghi mã và tài liệu lên nhánh `v4-development`.
 - Chưa xác nhận kiểm thử trình duyệt thực tế, Android, thao tác cảm ứng, accessibility hoặc xuất DOCX/PDF.
 - Chưa gộp vào V3/main và chưa phát hành chính thức.
+
+
+### Bổ sung V4.1 — lưu tự động và quay về Writer
+- Thêm lưu tự động có độ trễ ngắn sau thao tác Canvas và thay đổi thuộc tính.
+- Khi quay lại Writer từ bộ nhớ trang (back-forward cache), nạp lại bản ghi cùng ID từ kho cục bộ để nhận metadata Canvas mới nhất.
+- Khi ID gốc không còn hoặc kho dữ liệu không hợp lệ, dừng lưu và báo lỗi thay vì tạo bản ghi khác.
+- Vẫn chưa có kiểm thử trình duyệt/Android/desktop; lưu tự động hiện là mã triển khai ban đầu, cần QA thực tế.
