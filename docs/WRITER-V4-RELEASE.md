@@ -271,3 +271,22 @@
 
 ### Kết luận
 V4.8 đã gia cố hai rủi ro có thể xử lý trực tiếp bằng mã và hoàn tất kiểm tra tĩnh/logic trong phạm vi hiện có. Chưa đủ bằng chứng để gắn nhãn phát hành ổn định. Giữ trạng thái `QA-PENDING-DEVICE`; không merge V3/main và không tuyên bố production-ready.
+
+
+## 17/11/2026 — V4.9 QA Automation & Data Integrity Gate
+
+### Nội dung đã ghi lên nhánh `v4-development`
+- Thêm `tests/writer-v4-9.test.js`: bộ kiểm tra tĩnh tự động bằng Node.js `node:test` cho khóa kho, schemaVersion 3, ID HDW, phục hồi kho lỗi, lịch sử/backup version 5, hợp đồng Writer–Canvas, tích hợp Export Studio và phạm vi cache Service Worker.
+- Thêm `docs/WRITER-V4-9-QA.md`: hướng dẫn chạy test, phạm vi cổng kiểm tra, giới hạn và điều kiện phát hành.
+- Không thay đổi mã chạy Writer/Canvas, dữ liệu người dùng, ID, storage key, schemaVersion hoặc service worker; không tác động nhánh V3.
+
+### Cách chạy
+```bash
+node --test tests/writer-v4-9.test.js
+```
+Yêu cầu Node.js có hỗ trợ `node:test` (khuyến nghị Node.js 18 trở lên). Bộ test kiểm tra mã nguồn tĩnh, không cần API hoặc kết nối mạng.
+
+### Giới hạn và trạng thái
+- Các tệp test và tài liệu đã được tạo trên nhánh; chưa chạy được test trong môi trường clone đầy đủ của repository ở phiên này. Vì vậy chưa công bố số test pass/fail.
+- Đây không phải browser automation, không xác nhận lưu/khôi phục runtime, offline PWA, Android/Samsung A05, desktop hoặc Word/LibreOffice.
+- Giữ trạng thái `QA-PENDING-DEVICE`; không merge V3/main và không deploy production.
