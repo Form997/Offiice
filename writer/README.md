@@ -84,3 +84,10 @@ V4 phát triển trên nhánh riêng `v4-development`, kết hợp chế độ V
 - Module không phụ thuộc CDN/API và được đưa vào precache PWA. Lần đầu vẫn cần tải ứng dụng/module để cache.
 - Chưa kiểm thử trên trình duyệt thật, Word/LibreOffice, Android/desktop; chưa xác nhận PDF/PNG/SVG trên mọi engine. Chưa xem V4.6 là bản phát hành.
 - Đặc tả: `../docs/WRITER-V4-EXPORT-STUDIO.md`.
+
+
+### Mobile & Performance — V4.7 đang phát triển
+- Writer: vùng chạm lớn hơn, thanh công cụ cuộn ngang trên điện thoại, cuộn quán tính vùng tài liệu.
+- Canvas: bố cục điện thoại, ngăn thuộc tính thích ứng, tự căn vừa trang khi xoay/đổi cỡ cửa sổ.
+- Ảnh lớn: cảnh báo từ 1 MB và yêu cầu xác nhận trên 3 MB trước khi nhúng. Chưa nén ảnh, chưa có kho media riêng.
+- Chưa có ảo hóa trang/đối tượng; chưa benchmark trên Samsung A05, Android hoặc máy tính cấu hình thấp. V4.7 chưa qua QA thiết bị.
