@@ -768,6 +768,15 @@
         const data=JSON.parse(String(reader.result||''));
         if(data.format!=='HAI-DAT-WRITER-BACKUP'||![1,2,3,4].includes(data.version)||!Array.isArray(data.documents)||!data.documents.length)throw new Error('Sai định dạng hoặc phiên bản bản sao lưu.');
         const mode=$('#backupMode')?.value||'merge';
+        if(mode==='replace'){
+          const approved=confirm('CHẾ ĐỘ THAY THẾ TOÀN BỘ\\n\\nWriter sẽ tạo một tệp sao lưu dữ liệu hiện tại trước khi khôi phục. Hãy giữ tệp tải xuống ở nơi an toàn. Tiếp tục?');
+          if(!approved)return;
+          const safetyPayload={format:'HAI-DAT-WRITER-BACKUP',version:4,appType:'writer',createdAt:new Date().toISOString(),activeId,folders,documents,versionHistory,printSettings:readPrintSettings(),pageSettings:(()=>{try{return JSON.parse(localStorage.getItem('haidat-writer-page-settings')||'{}');}catch{return {};}})(),safetyCopy:true};
+          download('hai-dat-writer-truoc-khi-thay-the-'+new Date().toISOString().replace(/[:.]/g,'-')+'.json',JSON.stringify(safetyPayload,null,2),'application/json;charset=utf-8');
+          if(!confirm('Đã yêu cầu tải bản sao lưu hiện tại xuống thiết bị. Chỉ bấm OK nếu trình duyệt đã tải tệp hoặc bạn đã tự sao lưu dữ liệu. Nếu chưa, hãy bấm Hủy.')){
+            throw new Error('Đã hủy thay thế để bảo toàn dữ liệu hiện tại.');
+          }
+        }
         const importedFolders=Array.isArray(data.folders)?data.folders.map(x=>String(x).trim().slice(0,40)).filter(Boolean):[];
         const cleanFolders=[...new Set(mode==='merge'?[...folders,...importedFolders]:importedFolders)].slice(0,100);
         if(!cleanFolders.includes('Chưa phân loại'))cleanFolders.unshift('Chưa phân loại');
