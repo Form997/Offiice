@@ -551,7 +551,8 @@
     }
   } catch { let raw=null;try{raw=localStorage.getItem(STORE);if(raw!==null)localStorage.setItem('haidat-writer-recovery-raw-v1',raw);}catch{}storageRecoveryRaw=raw!==null?raw:'__UNREADABLE_STORAGE__';documents=[{id:makeId(),title:'Tài liệu chưa đặt tên',html:editor.innerHTML,updatedAt:Date.now()}]; }
   documents=normalizeDocuments(documents);
-  const firstActive=documents.find(d=>!d.deletedAt);if(firstActive){activeId=firstActive.id;loadDoc(activeId);}else{const fresh={id:makeId(),title:'Tài liệu mới',html:'<h1>Tài liệu mới</h1><p><br></p>',createdAt:Date.now(),updatedAt:Date.now(),folder:'Chưa phân loại',category:'Khác',pinned:false};documents.push(fresh);activeId=fresh.id;loadDoc(fresh.id);}
+  const requestedDocumentId=new URLSearchParams(location.search).get('documentId');
+  const firstActive=documents.find(d=>d.id===requestedDocumentId&&!d.deletedAt)||documents.find(d=>!d.deletedAt);if(firstActive){activeId=firstActive.id;loadDoc(activeId);}else{const fresh={id:makeId(),title:'Tài liệu mới',html:'<h1>Tài liệu mới</h1><p><br></p>',createdAt:Date.now(),updatedAt:Date.now(),folder:'Chưa phân loại',category:'Khác',pinned:false};documents.push(fresh);activeId=fresh.id;loadDoc(fresh.id);}
   if(storageRecoveryRaw===null){try{localStorage.setItem(STORE,JSON.stringify(documents));}catch{storageRecoveryRaw='__UNREADABLE_STORAGE__';}}try{localStorage.setItem(FOLDERS_STORE,JSON.stringify(folders));}catch{}
   baseDocuments=new Map(documents.map(d=>[d.id,cloneJSON(d)]));
   if(storageRecoveryRaw!==null)setState('Cảnh báo: kho cũ không đọc được · chưa ghi đè dữ liệu · hãy sao lưu/khôi phục trước','error');
