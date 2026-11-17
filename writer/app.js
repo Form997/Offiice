@@ -9,7 +9,7 @@
   const DEFAULT_FOLDERS=['Chưa phân loại','Công việc','Học tập','Cá nhân'];
   let folders=(()=>{try{const v=JSON.parse(localStorage.getItem(FOLDERS_STORE)||'null');return Array.isArray(v)&&v.length?v.filter(x=>typeof x==='string'&&x.trim()).slice(0,100):DEFAULT_FOLDERS.slice();}catch{return DEFAULT_FOLDERS.slice();}})();if(!folders.includes('Chưa phân loại'))folders.unshift('Chưa phân loại');
   let documents = [], activeId = null, saveTimer = null, deferredInstall = null, dirty = false, savedEditorRange = null, currentFileHandle = null, workDirectoryHandle = null;
-  let baseDocuments=new Map();
+  let baseDocuments=new Map(),storageRecoveryRaw=null;
   const cloneJSON=value=>value===undefined?undefined:JSON.parse(JSON.stringify(value));
   const sameJSON=(a,b)=>JSON.stringify(a===undefined?null:a)===JSON.stringify(b===undefined?null:b);
 
@@ -548,12 +548,12 @@
       const legacy=JSON.parse(localStorage.getItem('haidat-writer')||'null');
       documents=[{id:makeId(),title:legacy?.title||'Tài liệu chưa đặt tên',html:legacy?.html||editor.innerHTML,updatedAt:Date.now()}];
     }
-  } catch { documents=[{id:makeId(),title:'Tài liệu chưa đặt tên',html:editor.innerHTML,updatedAt:Date.now()}]; }
+  } catch { let raw=null;try{raw=localStorage.getItem(STORE);if(raw!==null)localStorage.setItem('haidat-writer-recovery-raw-v1',raw);}catch{}storageRecoveryRaw=raw!==null?raw:'__UNREADABLE_STORAGE__';documents=[{id:makeId(),title:'Tài liệu chưa đặt tên',html:editor.innerHTML,updatedAt:Date.now()}]; }
   documents=normalizeDocuments(documents);
   const firstActive=documents.find(d=>!d.deletedAt);if(firstActive){activeId=firstActive.id;loadDoc(activeId);}else{const fresh={id:makeId(),title:'Tài liệu mới',html:'<h1>Tài liệu mới</h1><p><br></p>',createdAt:Date.now(),updatedAt:Date.now(),folder:'Chưa phân loại',category:'Khác',pinned:false};documents.push(fresh);activeId=fresh.id;loadDoc(fresh.id);}
-  try{localStorage.setItem(STORE,JSON.stringify(documents));localStorage.setItem(FOLDERS_STORE,JSON.stringify(folders));}catch{}
+  if(storageRecoveryRaw===null){try{localStorage.setItem(STORE,JSON.stringify(documents));}catch{storageRecoveryRaw='__UNREADABLE_STORAGE__';}}try{localStorage.setItem(FOLDERS_STORE,JSON.stringify(folders));}catch{}
   baseDocuments=new Map(documents.map(d=>[d.id,cloneJSON(d)]));
-
+  if(storageRecoveryRaw!==null)setState('Cảnh báo: kho cũ không đọc được · chưa ghi đè dữ liệu · hãy sao lưu/khôi phục trước','error');
 
   const canvasLaunch=$('#canvasLaunch');
   if(canvasLaunch)canvasLaunch.addEventListener('click',()=>{if(dirty)persist(false);const d=current();if(d)canvasLaunch.href='canvas-studio.html?documentId='+encodeURIComponent(d.id);});
