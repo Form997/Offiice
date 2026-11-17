@@ -221,3 +221,29 @@
 - `writer/sw.js`: 1,156 byte.
 - `docs/WRITER-V4-EXPORT-STUDIO.md`: 4,525 byte.
 - Đây là dung lượng toàn tệp tại thời điểm ghi nhận, không phải phần tăng thêm của riêng V4.6.
+
+
+## 17/11/2026 — V4.7 Mobile & Performance (triển khai ban đầu)
+
+### Nội dung đã ghi lên nhánh `v4-development`
+- Writer: tăng vùng chạm nút trên điện thoại, thanh công cụ cuộn ngang, cuộn quán tính vùng tài liệu.
+- Canvas: tối ưu bố cục nhỏ, tăng vùng chạm, ngăn thuộc tính thích ứng, hỗ trợ giảm chuyển động; tự căn vừa trang khi xoay hoặc đổi kích thước cửa sổ nhỏ.
+- Ảnh: kiểm tra loại tệp, cảnh báo từ 1 MB và yêu cầu xác nhận khi ảnh vượt 3 MB trước khi nhúng vào localStorage.
+- Nâng cache key service worker lên `haidat-writer-v4-7-r1`; cập nhật cache-bust app.js và export module.
+- Không đổi ID, storage key, `schemaVersion: 3`; không sửa nhánh V3.
+
+### Kiểm tra và giới hạn
+- Đã kiểm tra các điểm neo mã trước khi thay đổi và xác nhận phạm vi sửa đổi nhắm tới giao diện responsive, luồng ảnh và cache V4.
+- Chưa chạy browser runtime, Android/Samsung A05 hoặc desktop; chưa benchmark CPU/RAM, số lượng đối tượng/trang, ảnh lớn hay tải tệp xuất.
+- Chưa có virtualized rendering; Canvas vẫn dựng lại toàn bộ đối tượng của trang hiện hành khi render.
+- Cảnh báo ảnh không thay thế nén ảnh hoặc kho media. Ảnh lớn vẫn có thể vượt quota localStorage; nên giữ bản sao lưu.
+- V4.7 là triển khai ban đầu, chưa đủ điều kiện phát hành.
+
+### Tệp chính và dung lượng UTF-8 toàn tệp
+- `writer/style.css`: 22,437 byte.
+- `writer/canvas-studio.html`: 50,419 byte.
+- `writer/index.html`: 22,370 byte.
+- `writer/sw.js`: 1,156 byte.
+- `docs/WRITER-V4-ARCHITECTURE.md`: 13,747 byte.
+- `writer/README.md`: 8,328 byte.
+- Đây là dung lượng toàn tệp tại thời điểm ghi nhận, không phải phần tăng thêm riêng V4.7.
