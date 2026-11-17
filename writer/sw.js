@@ -5,7 +5,7 @@ const FILES=[
   './style.css',
   './mobile-v6.css?v=6.0',
   './backup-studio.js?v=5.0',
-  './app.js?v=5.0',
+  './app.js?v=6.0',
   './canvas-studio.html',
   './export-studio.js?v=4.7',
   './manifest.webmanifest',
