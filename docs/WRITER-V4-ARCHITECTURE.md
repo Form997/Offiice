@@ -28,7 +28,7 @@ Một hồ sơ tài liệu có thể mở ở chế độ Văn bản hoặc Canv
 |---|---|---|
 | V4.1 Canvas Engine | Mở Canvas theo ID, khung trang, zoom/pan, thước, lưới, autosave | Hai chế độ đọc/ghi cùng hồ sơ, giữ ID |
 | V4.2 Object Studio | Chọn nhiều, xoay bằng tay nắm, nhóm/tách nhóm, kéo và resize nhiều đối tượng, căn theo đối tượng/trang | Undo/redo nhất quán, kiểm thử nhóm và xác minh thao tác trên thiết bị |
-| V4.3 Image & Typography | Cắt ảnh, độ trong suốt, phông chữ, bảng, biểu đồ | Nội dung chỉnh sửa được, lưu ổn định |
+| V4.3 Image & Typography | Khung cắt ảnh không phá hủy, độ trong suốt, kiểu chữ, bảng ô chỉnh sửa được, biểu đồ cột có dữ liệu | Dữ liệu cấu trúc lưu được, kiểm tra ảnh lớn và khả năng hiển thị |
 | V4.4 Multi-page Studio | Nhiều trang, thứ tự trang, mẫu, lề và vùng in | Phân trang và xem trước nhất quán |
 | V4.5 Document Integration | Đồng bộ mô hình văn bản/Canvas, lịch sử và backup | Không mất dữ liệu khi chuyển chế độ |
 | V4.6 Export Studio | PDF, DOCX, PNG, SVG, HTML, JSON | Kiểm tra tệp xuất thực tế và nêu giới hạn |
@@ -50,3 +50,13 @@ Một hồ sơ tài liệu có thể mở ở chế độ Văn bản hoặc Canv
 - Đã bổ sung tay nắm xoay trực quan cho đối tượng đơn, tay nắm resize theo tỉ lệ cho vùng chọn nhiều đối tượng, căn lề trái/giữa/trên theo trang và Ctrl+Shift+Z để làm lại.
 - Undo snapshot được tạo cho thao tác kéo, resize, xoay, căn chỉnh, nhóm/tách nhóm, xóa, thuộc tính và trước khi sửa nội dung văn bản.
 - Chức năng đã được ghi mã; chưa chạy browser automation hoặc kiểm thử thực tế Android/desktop. Cần xác minh các thao tác liên tục, lưu tự động, dữ liệu ảnh và giới hạn bộ nhớ trước khi đánh dấu V4.2 hoàn tất.
+
+
+## V4.3 — Image & Typography (triển khai ban đầu)
+- Ảnh: khung cắt không phá hủy bằng object-fit/object-position, điều chỉnh tâm cắt ngang/dọc và mức phóng trong khung; có mô tả thay thế (alt text) và độ trong suốt. Tệp ảnh được nhúng dạng data URL vào dữ liệu Canvas cục bộ.
+- Chữ: phông chữ hệ thống (Arial, Georgia, Times New Roman, Verdana, Tahoma, Trebuchet MS, Courier New, system-ui), cỡ chữ, đậm/nghiêng, căn trái/giữa/phải/đều, chiều cao dòng, giãn chữ, màu và độ trong suốt.
+- Bảng: đối tượng bảng có mảng dữ liệu từng ô; nhấp đúp để sửa ô, thêm/xóa hàng và cột, bật/tắt hàng tiêu đề.
+- Biểu đồ: đối tượng biểu đồ cột SVG dựng từ nhãn và giá trị số; sửa dữ liệu bằng hai trường riêng, đổi màu cột và kích thước.
+- Các trường mới là thuộc tính mở rộng tùy chọn trong design.items; không đổi ID tài liệu và không xóa nội dung HTML cũ.
+- Giới hạn hiện tại: cắt ảnh là crop hiển thị không phá hủy, chưa xuất thành tệp ảnh crop mới; phông chữ không được nhúng; biểu đồ hiện là biểu đồ cột cơ bản; chưa có kéo-thả nhập Excel, biểu đồ nhiều chuỗi hay công cụ thiết kế bảng nâng cao.
+- Chưa chạy browser QA/Android/desktop, chưa kiểm tra ảnh lớn, localStorage quota, khả năng in hoặc xuất PDF/DOCX. Không xem đây là bản phát hành.
