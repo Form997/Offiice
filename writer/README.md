@@ -97,3 +97,10 @@ V4 phát triển trên nhánh riêng `v4-development`, kết hợp chế độ V
 - Nếu kho tài liệu bị lỗi đọc, Writer cố giữ chuỗi dữ liệu thô vào khóa dự phòng và không tự ý ghi đè kho chính. Chỉ khi người dùng xác nhận mới cho phép thay thế. Khả năng giữ bản dự phòng phụ thuộc quota/quyền lưu trữ của trình duyệt.
 - Service Worker chỉ xóa cache cũ mang tiền tố `haidat-writer-`, không xóa cache ứng dụng khác cùng origin.
 - Trạng thái: `QA-PENDING-DEVICE`. Cần kiểm thử thực tế Android/desktop, offline, dữ liệu lớn, in PDF và mở DOCX trong Word/LibreOffice trước khi phát hành.
+
+
+### QA Automation & Data Integrity — V4.9
+- Bổ sung bộ kiểm tra tĩnh Node.js tại `../tests/writer-v4-9.test.js`; hướng dẫn tại `../docs/WRITER-V4-9-QA.md`.
+- Kiểm tra các hợp đồng dữ liệu, phục hồi kho lỗi, history/backup, Writer–Canvas, Export Studio và Service Worker.
+- Chạy: `node --test tests/writer-v4-9.test.js` từ thư mục gốc repository.
+- Đây là cổng kiểm tra mã nguồn, không chứng minh runtime hoặc QA thiết bị. V4 vẫn ở trạng thái `QA-PENDING-DEVICE`.
