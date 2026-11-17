@@ -114,7 +114,7 @@ Một hồ sơ tài liệu có thể mở ở chế độ Văn bản hoặc Canv
 ## V4.6 — Export Studio (triển khai ban đầu)
 - Thêm module ngoại tuyến `writer/export-studio.js`, dùng chung trong Writer và Canvas, xác định hồ sơ theo ID hiện hành.
 - Có xuất PDF qua hộp thoại in trình duyệt, DOCX OOXML cục bộ, PNG, SVG, HTML và JSON.
-- HTML chứa nội dung Writer và trang Canvas dạng SVG; SVG/PNG xuất từng trang, nhiều trang đóng gói ZIP; JSON chứa bản ghi và lịch sử của ID.
+- HTML chứa nội dung Writer và trang Canvas dạng SVG; SVG/PNG xuất từng trang, nhiều trang đóng gói ZIP; JSON tạo backup Writer version 5 tương thích chức năng Khôi phục bản sao, gồm một bản ghi và lịch sử của ID; không phải backup toàn kho.
 - DOCX giữ văn bản Writer/Canvas, bảng và dữ liệu biểu đồ; ảnh Canvas hiện thay bằng dòng mô tả. PDF phụ thuộc engine in; chưa phải bộ máy PDF độc lập.
 - Không dùng CDN/API cho module; service worker precache module để dùng ngoại tuyến sau lần tải đầu.
 - Chưa có browser QA, kiểm thử DOCX bằng Word/LibreOffice, PDF cross-browser, PNG/SVG Android, tài liệu lớn hoặc kiểm thử phục hồi. V4.6 chưa được xem là hoàn tất QA/phát hành.
