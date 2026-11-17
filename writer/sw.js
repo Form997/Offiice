@@ -1,4 +1,4 @@
-const CACHE='haidat-work-v6-0-r2';
+const CACHE='haidat-work-v6-0-r3';
 const FILES=[
   './',
   './index.html',
@@ -10,6 +10,8 @@ const FILES=[
   './export-studio.js?v=4.7',
   './manifest.webmanifest',
   './icons/work.svg',
+  './icons/work-192.png',
+  './icons/work-512.png',
   './supabase-config.js?v=2.7',
   './supabase-auth.js?v=2.7',
   './collaboration.js?v=3.0'
