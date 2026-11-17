@@ -165,3 +165,13 @@
 - `writer/canvas-studio.html` — revision-aware save, snapshot Canvas và nhận biết xung đột.
 - `writer/index.html` — nhãn V4.5 và mô tả lịch sử chung.
 - `docs/WRITER-V4-DOCUMENT-INTEGRATION.md` — hợp đồng dữ liệu và quy tắc đồng bộ.
+
+
+### Bổ sung kiểm tra logic V4.5 (harness mô phỏng localStorage)
+- Hợp nhất thành công khi Writer sửa HTML và Canvas sửa `design` độc lập: giữ cả hai thay đổi, revision tăng.
+- Khi hai cửa sổ cùng sửa trường HTML thành hai giá trị khác nhau: hàm persist từ chối ghi và không thay dữ liệu đang lưu.
+- Thao tác chuyển tài liệu vào thùng rác vẫn được lưu khi tài liệu khác đang mở.
+- Xóa vĩnh viễn một tài liệu khỏi bộ nhớ cục bộ vẫn được phản ánh khi một tài liệu khác đang mở.
+- Đây là kiểm tra logic của hàm persist với localStorage giả lập; không thay thế kiểm thử trình duyệt thật, đồng bộ đa tab hoặc Canvas runtime.
+- Service worker được nâng cache key lên `haidat-writer-v4-5-r1`, đổi URL cache-bust sang `app.js?v=4.5` và precache `canvas-studio.html`.
+- Kích thước UTF-8 hiện tại (không phải phần tăng thêm): `app.js` 84,931 byte; `canvas-studio.html` 48,334 byte; `sw.js` 1,129 byte.
