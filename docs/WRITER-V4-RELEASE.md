@@ -63,7 +63,7 @@
 ## 17/11/2026 — V4.2 Object Studio (bản triển khai ban đầu)
 
 ### Nội dung đã ghi lên nhánh `v4-development`
-- Bổ sung chọn nhiều đối tượng bằng Ctrl/Shift + chạm/bấm và chọn toàn bộ bằng Ctrl+A.
+- Bổ sung chọn nhiều đối tượng bằng Ctrl/Shift + chạm/bấm, chế độ Chọn nhiều dành cho màn hình cảm ứng và chọn toàn bộ bằng Ctrl+A.
 - Kéo đồng thời các đối tượng đang chọn; khi chọn một đối tượng đã nhóm, các thành viên cùng nhóm được chọn chung.
 - Bổ sung Nhóm/Tách nhóm bằng metadata `groupId`, không hợp nhất nội dung thành ảnh.
 - Bổ sung căn trái, căn giữa theo trục ngang, căn trên; thêm trường góc xoay cho từng đối tượng.
