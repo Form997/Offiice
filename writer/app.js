@@ -851,7 +851,7 @@
     const fmt=n=>n<1024?(n+' B'):(n<1024*1024?(n/1024).toFixed(1)+' KB':(n/1024/1024).toFixed(2)+' MB');
     const problems=duplicates.length+invalid.length;
     const report=[
-      'KIỂM TRA KHO DỮ LIỆU HAI ĐẤT WRITER V2.4',
+      'KIỂM TRA KHO DỮ LIỆU HAI ĐẤT WRITER V3.0',
       'Thời điểm: '+new Date().toLocaleString('vi-VN'),
       'Tài liệu đang hoạt động: '+live.length,
       'Tài liệu trong thùng rác: '+trashed,
