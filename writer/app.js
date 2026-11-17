@@ -166,6 +166,7 @@
     if(dirty&&!persist(false)){alert('Chưa thể lưu thay đổi hiện tại do xung đột hoặc lỗi bộ nhớ. Hãy xử lý trước khi khôi phục.');return;}doc=current();if(!recordVersionSnapshot(true,'Trước khi khôi phục')){alert('Không tạo được mốc bảo vệ trước khi khôi phục; dữ liệu hiện tại vẫn được giữ nguyên.');return;}doc.html=sanitizeHTML(v.html);if(Object.prototype.hasOwnProperty.call(v,'design'))doc.design=cloneJSON(v.design);doc.updatedAt=Date.now();editor.innerHTML=doc.html;dirty=false;if(!persist(false)){alert('Không thể ghi phiên bản khôi phục do xung đột hoặc lỗi bộ nhớ. Hãy tải lại bản mới nhất và thử lại.');return;}recordVersionSnapshot(true,'Khôi phục phiên bản');loadDoc(doc.id);renderVersionHistory();setState(Object.prototype.hasOwnProperty.call(v,'design')?'Đã khôi phục cả Writer và Canvas':'Đã khôi phục nội dung Writer'+(v.designOmitted?' · bố cục Canvas không có trong mốc này':''),'saved');}
   function persist(show=true) {
     const active=current();if(!active)return false;
+    if(storageRecoveryRaw!==null){if(!confirm('Kho tài liệu hiện tại không đọc được. Ứng dụng đã cố giữ dữ liệu thô tại khóa haidat-writer-recovery-raw-v1. OK: cho phép thay thế kho lỗi bằng kho mới. Hủy: giữ nguyên kho cũ và chưa lưu đè.'))return false;storageRecoveryRaw=null;}
     try{
       const localDocs=documents.map(d=>cloneJSON(d)),activeLocal=localDocs.find(d=>d.id===active.id);
       if(!activeLocal)throw new Error('Không tìm thấy tài liệu đang mở.');
