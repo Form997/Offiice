@@ -818,7 +818,7 @@
   }
   function importBackup(file){
     if(!file)return;
-    if(dirty)persist(false);
+    if(dirty&&!persist(false)){alert('Chưa thể lưu nội dung đang sửa. Đã hủy thao tác khôi phục để bảo toàn dữ liệu.');return;}
     if(file.size>20*1024*1024){alert('Bản sao lưu vượt quá 20 MB.');return;}
     const reader=new FileReader();
     reader.onload=()=>{
@@ -826,6 +826,10 @@
         const data=JSON.parse(String(reader.result||''));
         if(data.format!=='HAI-DAT-WRITER-BACKUP'||![1,2,3,4,5].includes(data.version)||!Array.isArray(data.documents)||!data.documents.length)throw new Error('Sai định dạng hoặc phiên bản bản sao lưu.');
         const mode=$('#backupMode')?.value||'merge';
+        if(!window.HD_BACKUP_STUDIO||typeof window.HD_BACKUP_STUDIO.inspect!=='function')throw new Error('Thiếu mô-đun kiểm tra bản sao lưu. Hãy tải lại ứng dụng trước khi khôi phục.');
+        const preview=window.HD_BACKUP_STUDIO.inspect(data,documents,mode);
+        if(!preview.ok)throw new Error(preview.errors.join('\\n'));
+        if(!confirm(preview.message))return;
         if(mode==='replace'){
           const approved=confirm('CHẾ ĐỘ THAY THẾ TOÀN BỘ\\n\\nWriter sẽ tạo một tệp sao lưu dữ liệu hiện tại trước khi khôi phục. Hãy giữ tệp tải xuống ở nơi an toàn. Tiếp tục?');
           if(!approved)return;
