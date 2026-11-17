@@ -290,3 +290,27 @@ Yêu cầu Node.js có hỗ trợ `node:test` (khuyến nghị Node.js 18 trở 
 - Các tệp test và tài liệu đã được tạo trên nhánh; chưa chạy được test trong môi trường clone đầy đủ của repository ở phiên này. Vì vậy chưa công bố số test pass/fail.
 - Đây không phải browser automation, không xác nhận lưu/khôi phục runtime, offline PWA, Android/Samsung A05, desktop hoặc Word/LibreOffice.
 - Giữ trạng thái `QA-PENDING-DEVICE`; không merge V3/main và không deploy production.
+
+
+## 17/11/2026 — V5.0 Backup & Restore Safety Studio
+
+### Phạm vi triển khai trên nhánh riêng `v5-development`
+- Tạo nhánh V5 từ `v4-development`, giữ nguyên nhánh V4 và V3.
+- Thêm `writer/backup-studio.js`: preflight backup trước khi nhập, thống kê phiên bản, tài liệu hợp lệ/bị bỏ qua, ID sai định dạng/trùng, xung đột với kho hiện tại, mốc lịch sử và dữ liệu Canvas.
+- Writer yêu cầu người dùng xác nhận bản xem trước trước khi thực hiện hợp nhất hoặc thay thế; nếu nội dung đang sửa chưa lưu được thì hủy khôi phục.
+- Service Worker dùng cache key `haidat-writer-v5-0-r1`, precache module backup mới và nạp `app.js?v=5.0`.
+- Thêm unit tests cho preflight và kiểm tra cú pháp/integration; thêm GitHub Actions chạy `node --test tests/*.test.js` trên push/PR nhánh V5.
+- Không đổi ID, storage key, `schemaVersion: 3`, backup version 1–5; không sửa V3/V4.
+
+### Kiểm thử và trạng thái
+- Đã thêm test case cho backup hợp lệ, sai định dạng/version, rỗng, bản ghi hỏng, ID trùng/sai, xung đột merge, chế độ replace và giới hạn 10.000 tài liệu.
+- Đã cấu hình CI; chưa có kết quả CI được xác nhận tại thời điểm ghi nhật ký. Không tuyên bố test pass trước khi GitHub Actions chạy xong.
+- Chưa browser/device QA, Android/Samsung A05, desktop, offline thực tế hoặc kiểm thử Word/LibreOffice. V5.0 chưa được gắn nhãn production-ready.
+- Hạn chế: preflight kiểm tra cấu trúc, chưa có checksum/chữ ký số hoặc mã hóa backup.
+
+### Tệp chính
+- `writer/backup-studio.js`
+- `writer/app.js`, `writer/index.html`, `writer/sw.js`
+- `tests/writer-v5-0-backup.test.js`
+- `.github/workflows/writer-v5-qa.yml`
+- `docs/WRITER-V5-0.md`
