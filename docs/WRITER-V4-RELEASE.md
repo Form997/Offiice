@@ -77,3 +77,21 @@
 - Chưa chạy kiểm thử dữ liệu cũ, lưu offline, xung đột hai tab hoặc hiệu năng với nhiều đối tượng/ảnh lớn.
 - Trạng thái mã: đã bổ sung các hạng mục tương tác còn thiếu trong phạm vi Object Studio ban đầu. Trạng thái QA: chưa xác minh bằng trình duyệt thật hoặc thiết bị Android/desktop; chưa đủ điều kiện tuyên bố V4.2 đạt phát hành.
 - Không phát hành và không gộp vào V3/main.
+
+
+## 17/11/2026 — V4.3 Image & Typography (triển khai ban đầu)
+
+### Nội dung đã ghi lên nhánh v4-development
+- Ảnh: thêm điều chỉnh khung cắt không phá hủy (crop X/Y, zoom), độ trong suốt và alt text; ảnh gốc vẫn được giữ trong data URL.
+- Kiểu chữ: chọn phông chữ hệ thống, cỡ chữ, đậm/nghiêng, căn lề, chiều cao dòng, giãn chữ, màu và độ trong suốt.
+- Bảng: thêm đối tượng bảng dạng dữ liệu ô; nhấp đúp sửa từng ô; thêm/xóa hàng và cột; bật/tắt hàng tiêu đề.
+- Biểu đồ: thêm biểu đồ cột SVG có dữ liệu nhãn/giá trị chỉnh sửa được, màu cột và kích thước riêng.
+- Mở rộng bảng thuộc tính theo loại đối tượng; các thuộc tính mới lưu trong design.items của cùng hồ sơ, không tạo ID tài liệu mới.
+- Thêm autosave sau khi cập nhật thuộc tính và dữ liệu bảng/biểu đồ.
+
+### Giới hạn và kiểm thử còn thiếu
+- Crop hiện là khung hiển thị không phá hủy; chưa tạo file ảnh đã cắt riêng.
+- Phông chữ dùng font hệ thống, chưa nhúng font vào tài liệu; biểu đồ mới hỗ trợ dạng cột cơ bản.
+- Ảnh nhúng dạng data URL có thể làm tăng nhanh dung lượng localStorage; chưa có nén ảnh, cảnh báo quota hoặc kho media riêng.
+- Chưa chạy browser QA, Android/desktop QA, kiểm thử in, xuất DOCX/PDF, phục hồi sau crash hoặc xung đột nhiều tab.
+- Mã đã được ghi lên nhánh phát triển; chưa phát hành, chưa merge vào V3/main.
