@@ -175,3 +175,38 @@
 - Đây là kiểm tra logic của hàm persist với localStorage giả lập; không thay thế kiểm thử trình duyệt thật, đồng bộ đa tab hoặc Canvas runtime.
 - Service worker được nâng cache key lên `haidat-writer-v4-5-r1`, đổi URL cache-bust sang `app.js?v=4.5` và precache `canvas-studio.html`.
 - Kích thước UTF-8 hiện tại (không phải phần tăng thêm): `app.js` 84,931 byte; `canvas-studio.html` 48,334 byte; `sw.js` 1,129 byte.
+
+
+## 17/11/2026 — V4.6 Export Studio (triển khai ban đầu)
+
+### Nội dung đã ghi lên nhánh `v4-development`
+- Tạo `writer/export-studio.js`: module xuất tệp độc lập, không thêm thư viện CDN hoặc API.
+- Tích hợp nút **Xuất tệp** trong Writer và Canvas Studio; định vị hồ sơ bằng ID hiện hành, đọc dữ liệu cùng lịch sử từ localStorage.
+- PDF: mở cửa sổ in, người dùng chọn “Lưu thành PDF”.
+- DOCX: tạo gói OOXML/ZIP tại thiết bị; giữ nội dung văn bản Writer/Canvas, bảng và dữ liệu biểu đồ.
+- PNG/SVG: dựng đối tượng Canvas theo từng trang; nhiều trang được đóng gói ZIP.
+- HTML: xuất nội dung Writer và trang Canvas dạng SVG; JSON: xuất bản ghi cùng lịch sử của tài liệu hiện hành.
+- Nâng service worker cache key lên `haidat-writer-v4-6-r1`, precache `export-studio.js?v=4.6` và đổi cache-bust app.js sang V4.6.
+- Không thay ID, khóa lưu trữ hoặc `schemaVersion: 3`; không chạm V3.
+
+### Kiểm tra đã thực hiện
+- Module `writer/export-studio.js` được phân tích cú pháp tĩnh bằng Function constructor: thành công.
+- Kiểm tra nhánh hiện có và so sánh V3/V4 trước khi sửa: V4 có 73 commit ahead, 0 behind tại thời điểm bắt đầu mốc này.
+
+### Giới hạn và QA còn thiếu
+- Chưa chạy browser runtime hoặc thao tác tải tệp thật trên Android/desktop.
+- Chưa mở DOCX bằng Word/LibreOffice để xác nhận round-trip; ảnh Canvas hiện được thay bằng dòng mô tả trong DOCX.
+- PDF phụ thuộc hộp thoại in và engine của trình duyệt; chưa kiểm thử nhiều trình duyệt.
+- Chưa xác minh PNG/SVG với ảnh nhúng lớn, dữ liệu lớn, popup bị chặn hoặc thiết bị không hỗ trợ Canvas 2D.
+- PNG/SVG xuất phần đồ họa Canvas; nếu không có Canvas thì tạo SVG giản lược từ văn bản Writer. JSON là gói của một tài liệu và lịch sử tương ứng, không phải backup toàn kho.
+- V4.6 mới ở mức triển khai ban đầu; chưa đủ điều kiện tuyên bố phát hành.
+
+### Tệp chính
+- `writer/export-studio.js` — bộ xuất PDF/DOCX/PNG/SVG/HTML/JSON.
+- `writer/index.html` và `writer/canvas-studio.html` — tích hợp giao diện.
+- `writer/sw.js` — cache ngoại tuyến V4.6.
+- `docs/WRITER-V4-EXPORT-STUDIO.md` — đặc tả và giới hạn.
+
+### Bảo toàn nhánh
+- Chỉ cập nhật `v4-development`; không merge/deploy vào `v3-development` hoặc `main`.
+- Supabase vẫn để sau; module xuất không cần tài khoản hoặc khóa bí mật.
