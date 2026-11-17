@@ -63,3 +63,5 @@ V4 phát triển trên nhánh riêng `v4-development`, kết hợp chế độ V
 - Dữ liệu mới lưu trong `design.pages[]` và `activePageId`; `design.items` vẫn phản chiếu trang đang mở để hỗ trợ dữ liệu V4 cũ.
 - Tài liệu cũ chỉ có `design.items` được nạp thành trang đầu tiên; không đổi ID và không nhân bản tài liệu.
 - Giới hạn: chưa có tự động tràn văn bản giữa các trang; vùng in chỉ là đường hướng dẫn; chưa có thumbnail trang hoặc kéo-thả thứ tự; chưa kiểm thử trình duyệt/Android/desktop và in/xuất thực tế.
+
+- Khi thêm trang, có thể chọn mẫu trang trắng, bìa tài liệu, trang nội dung hoặc bảng dữ liệu. Các mẫu là đối tượng Canvas có thể chỉnh sửa, không phải ảnh nền.
