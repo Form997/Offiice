@@ -46,3 +46,11 @@ V4 phát triển trên nhánh riêng `v4-development`, kết hợp chế độ V
 - Căn lề trái, căn giữa ngang, căn trên của lựa chọn theo trang A4; vẫn có căn tương đối giữa các đối tượng.
 - Ctrl+Shift+Z làm lại; snapshot undo được tạo trước các thao tác chỉnh sửa đối tượng, thuộc tính và nội dung.
 - Đây là hoàn thiện mã chức năng trên nhánh phát triển, không đồng nghĩa đã qua kiểm thử thiết bị hoặc sẵn sàng phát hành.
+
+
+### Image & Typography — V4.3 đang phát triển
+- Ảnh: điều chỉnh crop hiển thị theo ngang/dọc/zoom, độ trong suốt, mô tả alt text; ảnh gốc vẫn được giữ.
+- Văn bản: phông chữ, cỡ chữ, đậm/nghiêng, căn lề, chiều cao dòng, giãn chữ, màu và opacity.
+- Bảng: sửa nội dung từng ô, thêm/xóa hàng/cột và bật/tắt hàng tiêu đề.
+- Biểu đồ cột: chỉnh sửa nhãn, giá trị và màu; được lưu dưới dạng dữ liệu cấu trúc và dựng SVG khi hiển thị.
+- Giới hạn: chưa nhúng font, chưa nén ảnh, chưa có biểu đồ nhiều chuỗi; crop hiện không phá hủy; chưa kiểm thử trình duyệt/Android/desktop hoặc xuất PDF/DOCX.
