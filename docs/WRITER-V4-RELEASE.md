@@ -95,3 +95,9 @@
 - Ảnh nhúng dạng data URL có thể làm tăng nhanh dung lượng localStorage; chưa có nén ảnh, cảnh báo quota hoặc kho media riêng.
 - Chưa chạy browser QA, Android/desktop QA, kiểm thử in, xuất DOCX/PDF, phục hồi sau crash hoặc xung đột nhiều tab.
 - Mã đã được ghi lên nhánh phát triển; chưa phát hành, chưa merge vào V3/main.
+
+### Đối chiếu nhánh sau cập nhật V4.3
+- GitHub compare `v3-development...v4-development`: 44 commit ahead, 0 behind tại thời điểm ghi nhận trước commit nhật ký này.
+- 7 tệp khác biệt so với V3: 355 dòng thêm, 1 dòng xóa theo GitHub compare; số liệu gồm cả lịch sử V4.0–V4.3, không phải riêng V4.3.
+- Tệp Canvas Studio có 32.755 ký tự theo nội dung fetch; đây không phải phép đo dung lượng byte.
+- Kiểm tra tĩnh: JavaScript trong trang Canvas phân tích cú pháp thành công; chưa thay thế kiểm thử giao diện trên trình duyệt/thiết bị.
