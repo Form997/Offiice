@@ -4,12 +4,15 @@
 - [ ] JavaScript syntax checks pass for app.js, collaboration.js, supabase-auth.js.
 - [ ] HTML IDs are unique.
 - [ ] Literal DOM IDs referenced by app.js and collaboration.js exist in index.html.
+- [ ] Backup controls exist and replacement restore requests a pre-restore safety download.
+- [ ] Canceling the safety-copy confirmation leaves the current document set unchanged.
 - [ ] V3.0 controls and script cache-busting versions are present.
 
 ## Manual browser checks (required before production)
 - [ ] Open Writer on Android Chrome and desktop Chrome/Firefox.
 - [ ] Create, rename, duplicate, save, close and reopen a document.
 - [ ] Confirm old local documents remain present and readable.
+- [ ] Export a full JSON backup, test merge restore, then test replace restore only with a separate disposable profile and verify the pre-restore backup file.
 - [ ] Change zoom through all available values and reload the page.
 - [ ] Enter focus mode, confirm side panel and Ribbon are hidden, then exit.
 - [ ] Test undo/redo, find/replace, tables, images, page setup and TOC.
