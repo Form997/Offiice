@@ -74,3 +74,13 @@ V4 phát triển trên nhánh riêng `v4-development`, kết hợp chế độ V
 - Lịch sử Writer có thể chứa cả HTML và Canvas; lệnh khôi phục phục hồi cả hai khi snapshot có dữ liệu thiết kế. Canvas tạo mốc trước khi lưu bố cục.
 - Backup version 5 chứa dữ liệu thiết kế, revision và lịch sử; vẫn nhập version 1–5.
 - Giới hạn: localStorage cùng trình duyệt/origin; chưa đồng bộ liên thiết bị; chưa kiểm thử browser/Android/desktop hoặc hai tab sửa đồng thời; revision là phát hiện xung đột lạc quan, không phải khóa giao dịch phân tán tuyệt đối.
+
+
+### Export Studio — V4.6 đang phát triển
+- Nút **Xuất tệp** được tích hợp trong Writer và Canvas; dùng cùng ID tài liệu và dữ liệu cục bộ hiện hành.
+- Định dạng: PDF (mở hộp thoại in để lưu PDF), DOCX, PNG, SVG, HTML và JSON.
+- HTML chứa nội dung Writer và các trang Canvas; SVG/PNG xuất từng trang, nhiều trang đóng ZIP; JSON giữ bản ghi cùng lịch sử của tài liệu.
+- DOCX tạo tại máy, giữ văn bản/bảng/dữ liệu biểu đồ; ảnh Canvas hiện được ghi chú thay vì nhúng. Bố cục tuyệt đối Canvas và font có thể khác bản gốc.
+- Module không phụ thuộc CDN/API và được đưa vào precache PWA. Lần đầu vẫn cần tải ứng dụng/module để cache.
+- Chưa kiểm thử trên trình duyệt thật, Word/LibreOffice, Android/desktop; chưa xác nhận PDF/PNG/SVG trên mọi engine. Chưa xem V4.6 là bản phát hành.
+- Đặc tả: `../docs/WRITER-V4-EXPORT-STUDIO.md`.
