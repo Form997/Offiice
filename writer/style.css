@@ -230,3 +230,20 @@ main{max-width:1560px;margin:14px auto;padding:0 clamp(8px,1.5vw,22px)}
 
 /* HAI DAT WRITER V2.8 — cloud sync and sharing controls */
 .collaboration-manager{min-width:320px;max-width:560px}.collaboration-manager .ribbon-tools{display:flex;align-items:center;gap:7px;flex-wrap:wrap}.collaboration-manager input[type=text]{min-width:145px;max-width:210px;width:100%;font-size:12px}.collaboration-manager input[type=checkbox]{min-height:auto}.collaboration-manager label{display:inline-flex;align-items:center;gap:4px;font-size:12px;white-space:nowrap}.collaboration-manager button{font-size:12px;white-space:nowrap}.collaboration-manager #collaborationStatus{display:block;max-width:530px;white-space:normal;line-height:1.45;font-size:11px;color:var(--muted)}.collaboration-manager #collaborationStatus[data-state=error]{color:var(--danger);font-weight:650}.collaboration-manager #collaborationStatus[data-state=warning]{color:#93631d}@media(max-width:700px){.collaboration-manager{min-width:290px}.collaboration-manager .ribbon-tools{flex-wrap:wrap}.collaboration-manager input[type=text]{min-width:135px;max-width:100%;flex:1 1 145px}}
+
+/* V3.0 — focused writing workspace and accessible zoom */
+.zoom-control{display:inline-flex;align-items:center;gap:7px;font-size:12px;color:var(--muted);white-space:nowrap}
+.zoom-control select{min-height:34px;padding:5px 8px}
+#toggleFocusMode{border-color:#b9d5ca;color:#145744;font-weight:650}
+#focusModeExit{background:#e8f2ef;color:#145744;border-color:#b9d5ca}
+body.focus-mode .topbar,body.focus-mode .docbar,body.focus-mode .ribbon{display:none!important}
+body.focus-mode main{max-width:1200px;margin:12px auto}
+body.focus-mode .page-wrap{min-height:calc(100vh - 28px);padding:clamp(10px,3vw,34px)}
+body.focus-mode .editor-quickbar{top:8px}
+body.focus-mode .page{min-height:calc(100vh - 150px)}
+@media(max-width:700px){
+ body.focus-mode main{margin:0;padding:0}
+ body.focus-mode .page-wrap{min-height:100vh;border:0;border-radius:0;padding:7px}
+ body.focus-mode .page{min-height:calc(100vh - 100px)!important}
+}
+@media print{body.focus-mode .topbar,body.focus-mode .docbar,body.focus-mode .ribbon{display:none!important}}
