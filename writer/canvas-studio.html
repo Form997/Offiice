@@ -13,7 +13,7 @@
 const uid=()=> 'cv-'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,7);
 function snapshot(){history.push(JSON.stringify(items));if(history.length>40)history.shift();future=[]}
 function select(id){selected=id;selectedIds.clear();if(id)selectedIds.add(id);render()}
-function add(kind,extra={}){snapshot();const o={id:uid(),kind,x:90+items.length*16,y:130+items.length*18,w:kind==='title'?470:kind==='shape'?220:kind==='line'?250:300,h:kind==='title'?65:kind==='shape'?130:kind==='line'?4:90,text:kind==='title'?'Tiêu đề mới':kind==='note'?'Ghi chú của bạn':kind==='shape'?'Nội dung khối':'Nhập nội dung tại đây',color:'#20343d',size:kind==='title'?34:kind==='note'?14:20,bg:kind==='shape'?'#e1f2ee':'transparent',...extra};items.push(o);select(o.id)}
+function add(kind,extra={}){snapshot();const o={id:uid(),kind,x:90+items.length*16,y:130+items.length*18,w:kind==='title'?470:kind==='shape'?220:kind==='line'?250:300,h:kind==='title'?65:kind==='shape'?130:kind==='line'?4:90,text:kind==='title'?'Tiêu đề mới':kind==='note'?'Ghi chú của bạn':kind==='shape'?'Nội dung khối':'Nhập nội dung tại đây',color:'#20343d',size:kind==='title'?34:kind==='note'?14:20,bg:kind==='shape'?'#e1f2ee':'transparent',...extra};items.push(o);select(o.id);scheduleCanvasSave()}
 function render(){
  page.querySelectorAll('.obj,.selection-box').forEach(n=>n.remove());
  items.forEach(o=>{
