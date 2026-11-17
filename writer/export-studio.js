@@ -135,7 +135,7 @@ async function run(format){
  const name=safe(rec.title||'Tai-lieu'),ps=pagesOf(rec.design),includeWriter=$('#hdExportWriter')?.checked!==false;
  if(format==='json'){
   let history={};try{history=JSON.parse(localStorage.getItem(HISTORY_KEY)||'{}')}catch{}
-  const payload={format:'HAI-DAT-OFFICE-EXPORT',version:1,exportedAt:new Date().toISOString(),document:rec,history:history[rec.id]||[]};
+  const payload={format:'HAI-DAT-WRITER-BACKUP',version:5,appType:'writer',createdAt:new Date().toISOString(),activeId:rec.id,folders:[rec.folder||'Chưa phân loại'],documents:[rec],versionHistory:{[rec.id]:history[rec.id]||[]},printSettings:{},pageSettings:{}};
   download(new Blob([JSON.stringify(payload,null,2)],{type:'application/json;charset=utf-8'}),name+'.haidat.json');return 'JSON';
  }
  if(format==='html'){download(new Blob([fullHtml(rec,includeWriter)],{type:'text/html;charset=utf-8'}),name+'.html');return 'HTML'}
