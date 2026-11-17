@@ -1,6 +1,6 @@
 # HAI ĐẤT OFFICE — WORK V6.0 (Mobile PWA)
 
-- Nhánh phát triển: `v5-development` (V6 được triển khai nối tiếp trên nhánh tích hợp hiện hành; không sửa nhánh V3/V4).
+- Nhánh phát triển: `v6-development` (tách từ `v5-development`; không sửa nhánh V3/V4).
 - Định hướng: PWA cài lên màn hình chính, ưu tiên điện thoại Android; desktop vẫn hỗ trợ.
 - Tên ứng dụng: WORK. Hai chế độ làm việc bên trong: Writer và Canvas.
 - Dữ liệu: tiếp tục dùng chung kho tài liệu hiện tại, giữ ID tài liệu và schemaVersion 3; không tự ý chuyển đổi hoặc xóa dữ liệu.
