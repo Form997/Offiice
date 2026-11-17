@@ -127,3 +127,9 @@ Một hồ sơ tài liệu có thể mở ở chế độ Văn bản hoặc Canv
 - Tự tính lại mức thu phóng “Vừa trang” khi xoay màn hình hoặc đổi kích thước cửa sổ nhỏ; giữ nguyên kích thước/tọa độ thiết kế gốc.
 - Kiểm tra loại ảnh; cảnh báo từ 1 MB và yêu cầu xác nhận trên 3 MB. Không tự nén ảnh, không khẳng định đã giải quyết quota localStorage.
 - Chưa có virtualized rendering; mỗi lần render vẫn dựng lại các đối tượng của trang hiện hành. Chưa benchmark Android/desktop thực tế.
+
+
+## V4.8 — Final QA
+- Bảo vệ dữ liệu khi kho localStorage hiện hữu bị lỗi phân tích: giữ bản raw ở khóa phục hồi riêng khi có thể, cảnh báo và yêu cầu xác nhận rõ ràng trước khi thay thế kho chính.
+- Service Worker chỉ dọn các cache thuộc họ HAI ĐẤT WRITER, không xóa cache ứng dụng khác cùng origin.
+- Trạng thái phát hành: QA-PENDING-DEVICE; kiểm tra thiết bị thật, trình duyệt, DOCX, offline và dữ liệu lớn vẫn là điều kiện bắt buộc.
