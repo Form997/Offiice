@@ -247,3 +247,27 @@
 - `docs/WRITER-V4-ARCHITECTURE.md`: 13,747 byte.
 - `writer/README.md`: 8,328 byte.
 - Đây là dung lượng toàn tệp tại thời điểm ghi nhận, không phải phần tăng thêm riêng V4.7.
+
+
+## 17/11/2026 — V4.8 Final QA (kiểm định và gia cố)
+
+### Gia cố trong đợt kiểm định
+- Writer: nếu kho tài liệu hiện hữu không phân tích được (JSON hỏng hoặc truy cập kho gặp lỗi), ứng dụng không âm thầm ghi kho rỗng đè lên dữ liệu cũ. Ứng dụng cố giữ chuỗi dữ liệu thô tại khóa dự phòng `haidat-writer-recovery-raw-v1`, hiển thị trạng thái cảnh báo và yêu cầu người dùng xác nhận trước khi cho phép tạo kho mới/ghi đè. Nếu trình duyệt chặn lưu trữ, dữ liệu dự phòng không được bảo đảm.
+- Service Worker: khi kích hoạt cache V4.8, chỉ xóa cache cũ có tiền tố `haidat-writer-`; không xóa cache của ứng dụng khác cùng origin.
+- Không đổi ID tài liệu, khóa kho chính, hoặc `schemaVersion: 3`; không chỉnh sửa nhánh V3.
+
+### Ma trận kiểm định
+- Kiểm tra tĩnh: cấu trúc HTML/script, phiên bản cache-bust, danh sách precache, luồng lưu/khôi phục, giới hạn localStorage, xử lý xung đột và định dạng backup.
+- Kiểm tra logic mô phỏng: Writer merge thay đổi độc lập; chặn xung đột cùng trường; Canvas từ chối ghi đè khi chữ ký bố cục đổi; backup v5 giữ nguyên ID/schema và chứa design/history; ZIP/DOCX có các mục OOXML tối thiểu.
+- Kiểm tra cú pháp JavaScript bằng parser Node: Writer, Export Studio, Service Worker và script Canvas.
+- Không có môi trường browser automation/thiết bị thật được xác nhận trong đợt này. Vì vậy không tuyên bố đã kiểm thử end-to-end trên Chrome/Firefox/Safari, Android/Samsung A05, Word/LibreOffice hoặc PWA offline thực tế.
+
+### Các điểm còn phải kiểm thử thủ công trước phát hành
+- Android: mở/chỉnh sửa/lưu, xoay màn hình, chọn ảnh, thao tác kéo thả, bàn phím ảo và khôi phục sau đóng tab.
+- Desktop: chuột, bàn phím, nhiều cửa sổ, khôi phục sau crash và in PDF.
+- Dữ liệu lớn: tài liệu nhiều trang, nhiều đối tượng, ảnh lớn, localStorage gần quota; xác minh backup và restore trên hồ sơ bản sao.
+- DOCX: mở bằng Microsoft Word và LibreOffice; xác nhận định dạng, bảng, tiếng Việt và ảnh (ảnh Canvas hiện vẫn có thể là placeholder).
+- Offline: cài mới PWA, ngắt mạng, mở lại Writer/Canvas/Export, nâng cache và kiểm tra không xóa cache ứng dụng khác.
+
+### Kết luận
+V4.8 đã gia cố hai rủi ro có thể xử lý trực tiếp bằng mã và hoàn tất kiểm tra tĩnh/logic trong phạm vi hiện có. Chưa đủ bằng chứng để gắn nhãn phát hành ổn định. Giữ trạng thái `QA-PENDING-DEVICE`; không merge V3/main và không tuyên bố production-ready.
