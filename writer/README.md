@@ -31,3 +31,11 @@ V4 phát triển trên nhánh riêng `v4-development`, kết hợp chế độ V
 - Nếu mở trực tiếp không có ID, Canvas dùng vùng thử riêng.
 - Đặc tả: `../docs/WRITER-V4-CANVAS-STUDIO.md`; lộ trình: `../docs/WRITER-V4-ARCHITECTURE.md`.
 - V4.1 chưa hoàn tất QA; chưa xác nhận chạy thực tế trên Android/desktop, chưa kiểm thử xung đột hai tab, giới hạn bộ nhớ hoặc DOCX/PDF. Nhánh V3 vẫn độc lập.
+
+
+### Object Studio — V4.2 đang phát triển
+- Chọn nhiều bằng Ctrl/Shift + chạm/bấm; Ctrl+A chọn tất cả.
+- Kéo đồng thời lựa chọn; đối tượng cùng nhóm được chọn chung.
+- Nhóm/Tách nhóm, căn trái/căn giữa/căn trên, chỉnh góc xoay và xóa nhiều đối tượng.
+- Dữ liệu vẫn là từng đối tượng có ID riêng trong metadata Canvas của tài liệu Writer; không tạo bản sao tài liệu.
+- V4.2 mới ở mức triển khai ban đầu, chưa hoàn tất QA và chưa xác nhận undo/redo toàn diện hoặc thao tác trên Android/desktop.
