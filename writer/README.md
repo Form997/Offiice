@@ -104,3 +104,12 @@ V4 phát triển trên nhánh riêng `v4-development`, kết hợp chế độ V
 - Kiểm tra các hợp đồng dữ liệu, phục hồi kho lỗi, history/backup, Writer–Canvas, Export Studio và Service Worker.
 - Chạy: `node --test tests/writer-v4-9.test.js` từ thư mục gốc repository.
 - Đây là cổng kiểm tra mã nguồn, không chứng minh runtime hoặc QA thiết bị. V4 vẫn ở trạng thái `QA-PENDING-DEVICE`.
+
+
+### HAI ĐẤT OFFICE V5.0 — Backup & Restore Safety Studio
+- V5.0 phát triển trên nhánh riêng `v5-development`, kế thừa V4.9.
+- Trước khi nhập backup, Writer hiển thị thống kê tài liệu hợp lệ, bản ghi lỗi, ID trùng/sai, xung đột, lịch sử và dữ liệu Canvas; người dùng xác nhận mới tiếp tục.
+- Nếu nội dung đang sửa chưa lưu thành công, thao tác khôi phục bị hủy để tránh nhập trên trạng thái chưa được bảo toàn.
+- Mô-đun: `backup-studio.js`; hướng dẫn: `../docs/WRITER-V5-0.md`.
+- Chạy test: `node --test tests/*.test.js`. GitHub Actions tự chạy trên push/PR nhánh V5; cần xem kết quả CI trước khi kết luận đạt.
+- Không đổi ID, kho lưu trữ hoặc schemaVersion 3; V3 và V4 được giữ nguyên.
