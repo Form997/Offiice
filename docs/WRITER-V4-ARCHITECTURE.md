@@ -82,3 +82,5 @@ Một hồ sơ tài liệu có thể mở ở chế độ Văn bản hoặc Canv
 - Chưa có luồng văn bản tự động tràn từ trang này sang trang khác; đối tượng vẫn có tọa độ độc lập trong từng trang.
 - Chưa có thumbnail trang, kéo-thả sắp thứ tự hoặc kiểm tra nội dung tràn khỏi lề.
 - Chưa kiểm thử browser thực tế, Android/desktop, khôi phục sau crash, localStorage quota, nhiều tab hoặc khả năng in/xuất.
+
+- Mẫu trang dựng sẵn: trang trắng, bìa tài liệu, trang nội dung và trang bảng dữ liệu; mẫu tạo các đối tượng Canvas có thể sửa riêng, không phải ảnh nền.
