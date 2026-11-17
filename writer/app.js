@@ -201,7 +201,7 @@
         fields.forEach(key=>{
           const localChanged=!sameJSON(local[key],base[key]),remoteChanged=!sameJSON(remote[key],base[key]);
           if(localChanged&&remoteChanged&&!sameJSON(local[key],remote[key]))conflicts.push(id+' · '+key);
-          else if(localChanged){merged[key]=cloneJSON(local[key]);changed.push(key);}
+          else if(localChanged&&!sameJSON(local[key],remote[key])){merged[key]=cloneJSON(local[key]);changed.push(key);}
         });
         if(changed.length){merged.revision=Math.max(1,Number(remote.revision)||1,Number(base.revision)||1)+1;merged.updatedAt=Date.now();}
         mergedDocs.push(merged);
