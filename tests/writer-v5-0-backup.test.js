@@ -38,3 +38,24 @@ test('rejects an excessive document count',()=>{
  const docs=Array.from({length:10001},(_,i)=>good('HDW-20261117-'+String(i).padStart(8,'0'),'T'+i));
  assert.equal(backup.inspect(payload(docs),[],'merge').ok,false);
 });
+
+test('Writer, Export Studio, Service Worker and Canvas scripts parse',()=>{
+ const fs=require('node:fs'),path=require('node:path'),root=path.resolve(__dirname,'..');
+ const app=fs.readFileSync(path.join(root,'writer/app.js'),'utf8');
+ const exporter=fs.readFileSync(path.join(root,'writer/export-studio.js'),'utf8');
+ const sw=fs.readFileSync(path.join(root,'writer/sw.js'),'utf8');
+ const canvas=fs.readFileSync(path.join(root,'writer/canvas-studio.html'),'utf8');
+ assert.doesNotThrow(()=>new Function(app));
+ assert.doesNotThrow(()=>new Function(exporter));
+ assert.doesNotThrow(()=>new Function(sw));
+ const scripts=[...canvas.matchAll(/<script(?:\\s[^>]*)?>([\\s\\S]*?)<\\/script>/gi)].map(m=>m[1]).filter(x=>x.trim());
+ for(const script of scripts)assert.doesNotThrow(()=>new Function(script));
+});
+test('Writer loads backup preflight before the application and PWA precaches it',()=>{
+ const fs=require('node:fs'),path=require('node:path'),root=path.resolve(__dirname,'..');
+ const html=fs.readFileSync(path.join(root,'writer/index.html'),'utf8');
+ const sw=fs.readFileSync(path.join(root,'writer/sw.js'),'utf8');
+ assert.ok(html.indexOf('backup-studio.js?v=5.0')<html.indexOf('app.js?v=5.0'));
+ assert.match(sw,/haidat-writer-v5-0-r1/);
+ assert.match(sw,/backup-studio\\.js\\?v=5\\.0/);
+});
