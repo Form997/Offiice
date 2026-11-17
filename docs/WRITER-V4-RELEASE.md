@@ -53,7 +53,7 @@
 
 
 ### Đối chiếu nhánh sau cập nhật
-- GitHub compare `v3-development...v4-development`: 20 commit ahead, 0 behind.
+- GitHub compare `v3-development...v4-development`: 21 commit ahead, 0 behind.
 - 7 tệp thay đổi so với V3; tổng 171 dòng thêm, 1 dòng xóa (theo GitHub compare).
 - Thống kê này gồm cả tài liệu kiến trúc/lộ trình và mã prototype; không phải số dòng tính riêng cho V4.1.
 - Dung lượng byte chưa ghi vì chưa có phép đo blob/file size đáng tin cậy.
