@@ -12,5 +12,12 @@
     "productivity",
     "utilities"
   ],
-  "icons": []
+  "icons": [
+    {
+      "src": "./icons/work.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
 }
