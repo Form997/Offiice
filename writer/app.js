@@ -205,6 +205,13 @@
       if(dirty)persist(false);
       const safe=sanitizeHTML(remote.content_html||'<p><br></p>');
       let d=documents.find(x=>x.id===remote.id);
+      if(d&&d.html!==safe){
+        if(!confirm('Tài liệu cùng ID đã có trên thiết bị nhưng nội dung khác bản kho chung.\n\nNếu tiếp tục, nội dung trên máy sẽ được lưu thành một mốc lịch sử trước khi cập nhật. Tiếp tục?'))throw new Error('Đã hủy cập nhật để giữ nguyên bản trên thiết bị.');
+        const parsed=new DOMParser().parseFromString(d.html,'text/html'),txt=parsed.body.innerText||parsed.body.textContent||'';
+        const list=versionHistory[remote.id]||(versionHistory[remote.id]=[]);
+        list.push({versionId:'HDWV-'+Date.now()+'-CLOUD',createdAt:Date.now(),reason:'Trước khi cập nhật từ kho chung',html:d.html,title:d.title,wordCount:(txt.trim().match(/[\\p{L}\\p{N}]+/gu)||[]).length,charCount:txt.length});
+        if(!saveVersionHistory())throw new Error('Không lưu được mốc bảo vệ bản trên máy; chưa cập nhật nội dung.');
+      }
       if(d){d.title=String(remote.title||d.title).slice(0,120);d.html=safe;d.updatedAt=Date.parse(remote.updated_at)||Date.now();d.deletedAt=null;}
       else{d={id:remote.id,title:String(remote.title||'Tài liệu từ kho chung').slice(0,120),html:safe,createdAt:Date.parse(remote.created_at)||Date.now(),updatedAt:Date.parse(remote.updated_at)||Date.now(),folder:'Chưa phân loại',category:'Khác',pinned:false,appType:'writer',schemaVersion:3};documents.push(d);}
       loadDoc(d.id);persist(false);return d.id;
