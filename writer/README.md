@@ -54,3 +54,12 @@ V4 phát triển trên nhánh riêng `v4-development`, kết hợp chế độ V
 - Bảng: sửa nội dung từng ô, thêm/xóa hàng/cột và bật/tắt hàng tiêu đề.
 - Biểu đồ cột: chỉnh sửa nhãn, giá trị và màu; được lưu dưới dạng dữ liệu cấu trúc và dựng SVG khi hiển thị.
 - Giới hạn: chưa nhúng font, chưa nén ảnh, chưa có biểu đồ nhiều chuỗi; crop hiện không phá hủy; chưa kiểm thử trình duyệt/Android/desktop hoặc xuất PDF/DOCX.
+
+
+### Multi-page Studio — V4.4 đang phát triển
+- Một tài liệu Writer có thể chứa nhiều trang Canvas, mỗi trang giữ danh sách đối tượng riêng.
+- Có chuyển trang, thêm/xóa trang, đổi thứ tự và chọn trang bằng danh sách.
+- Có khổ A4/A3/A5/Letter/tùy chỉnh, chiều dọc/ngang, kích thước mm, bốn lề và đường hướng dẫn vùng in.
+- Dữ liệu mới lưu trong `design.pages[]` và `activePageId`; `design.items` vẫn phản chiếu trang đang mở để hỗ trợ dữ liệu V4 cũ.
+- Tài liệu cũ chỉ có `design.items` được nạp thành trang đầu tiên; không đổi ID và không nhân bản tài liệu.
+- Giới hạn: chưa có tự động tràn văn bản giữa các trang; vùng in chỉ là đường hướng dẫn; chưa có thumbnail trang hoặc kéo-thả thứ tự; chưa kiểm thử trình duyệt/Android/desktop và in/xuất thực tế.
