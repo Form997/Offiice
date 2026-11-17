@@ -91,3 +91,9 @@ V4 phát triển trên nhánh riêng `v4-development`, kết hợp chế độ V
 - Canvas: bố cục điện thoại, ngăn thuộc tính thích ứng, tự căn vừa trang khi xoay/đổi cỡ cửa sổ.
 - Ảnh lớn: cảnh báo từ 1 MB và yêu cầu xác nhận trên 3 MB trước khi nhúng. Chưa nén ảnh, chưa có kho media riêng.
 - Chưa có ảo hóa trang/đối tượng; chưa benchmark trên Samsung A05, Android hoặc máy tính cấu hình thấp. V4.7 chưa qua QA thiết bị.
+
+
+### V4.8 Final QA — trạng thái kiểm định
+- Nếu kho tài liệu bị lỗi đọc, Writer cố giữ chuỗi dữ liệu thô vào khóa dự phòng và không tự ý ghi đè kho chính. Chỉ khi người dùng xác nhận mới cho phép thay thế. Khả năng giữ bản dự phòng phụ thuộc quota/quyền lưu trữ của trình duyệt.
+- Service Worker chỉ xóa cache cũ mang tiền tố `haidat-writer-`, không xóa cache ứng dụng khác cùng origin.
+- Trạng thái: `QA-PENDING-DEVICE`. Cần kiểm thử thực tế Android/desktop, offline, dữ liệu lớn, in PDF và mở DOCX trong Word/LibreOffice trước khi phát hành.
