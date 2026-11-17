@@ -12,7 +12,10 @@ for (const id of new Set(ids)) {
   if (ids.filter(x => x === id).length > 1) errors.push(`Duplicate HTML id: ${id}`);
 }
 for (const [file, source] of [['app.js', app], ['collaboration.js', collaboration]]) {
-  const refs = [...source.matchAll(/(?:\$\(|getElementById\()\s*['"]([A-Za-z][\w:-]*)['"]\s*\)?/g)].map(m => m[1]);
+  const refs = [
+    ...[...source.matchAll(/\\$\\(\\s*['\"]#([A-Za-z][\\w:-]*)['\"]\\s*\\)/g)].map(m => m[1]),
+    ...[...source.matchAll(/getElementById\\(\\s*['\"]([A-Za-z][\\w:-]*)['\"]\\s*\\)/g)].map(m => m[1]),
+  ];
   for (const id of new Set(refs)) if (!idSet.has(id)) errors.push(`${file} references missing HTML id: ${id}`);
 }
 for (const required of ['editorZoom','toggleFocusMode','focusModeExit','focusEditor']) {
