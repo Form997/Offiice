@@ -8,10 +8,10 @@
   const HISTORY_PER_DOCUMENT=6, HISTORY_MAX_CHARS=160000, HISTORY_TOTAL_CHARS=1100000, AUTO_HISTORY_INTERVAL=5*60*1000;
   const DEFAULT_FOLDERS=['Chưa phân loại','Công việc','Học tập','Cá nhân'];
   let folders=(()=>{try{const v=JSON.parse(localStorage.getItem(FOLDERS_STORE)||'null');return Array.isArray(v)&&v.length?v.filter(x=>typeof x==='string'&&x.trim()).slice(0,100):DEFAULT_FOLDERS.slice();}catch{return DEFAULT_FOLDERS.slice();}})();if(!folders.includes('Chưa phân loại'))folders.unshift('Chưa phân loại');
-  let documents = [], activeId = null, saveTimer = null, deferredInstall = null, dirty = false, savedEditorRange = null, currentFileHandle = null, workDirectoryHandle = null, loadedBase = null;
+  let documents = [], activeId = null, saveTimer = null, deferredInstall = null, dirty = false, savedEditorRange = null, currentFileHandle = null, workDirectoryHandle = null;
+  let baseDocuments=new Map();
   const cloneJSON=value=>value===undefined?undefined:JSON.parse(JSON.stringify(value));
   const sameJSON=(a,b)=>JSON.stringify(a===undefined?null:a)===JSON.stringify(b===undefined?null:b);
-  function readStoredDocument(id){try{const list=JSON.parse(localStorage.getItem(STORE)||'[]');return Array.isArray(list)?list.find(x=>x&&x.id===id)||null:null;}catch{return null;}}
 
   const makeId = () => {
     const d=new Date(),date=[d.getFullYear(),String(d.getMonth()+1).padStart(2,'0'),String(d.getDate()).padStart(2,'0')].join('');
@@ -165,38 +165,60 @@
   function restoreSelectedVersion(){const doc=current(),id=$('#versionHistoryList').value,v=doc&&(versionHistory[doc.id]||[]).find(x=>x.versionId===id);if(!v){alert('Chọn một mốc lịch sử trước.');return;}if(!confirm('Khôi phục nội dung từ '+new Date(v.createdAt).toLocaleString('vi-VN')+'? Nội dung hiện tại sẽ được lưu thành một mốc riêng trước khi khôi phục.'))return;
     if(dirty)persist(false);recordVersionSnapshot(true,'Trước khi khôi phục');doc.html=sanitizeHTML(v.html);if(Object.prototype.hasOwnProperty.call(v,'design'))doc.design=cloneJSON(v.design);doc.updatedAt=Date.now();editor.innerHTML=doc.html;dirty=false;persist(false);recordVersionSnapshot(true,'Khôi phục phiên bản');loadDoc(doc.id);renderVersionHistory();setState(Object.prototype.hasOwnProperty.call(v,'design')?'Đã khôi phục cả Writer và Canvas':'Đã khôi phục nội dung Writer'+(v.designOmitted?' · bố cục Canvas không có trong mốc này':''),'saved');}
   function persist(show=true) {
-    const original=current();if(!original)return false;
-    const id=original.id,base=loadedBase&&loadedBase.id===id?loadedBase.snapshot:cloneJSON(original);
-    const local={...original,title:titleInput.value.trim()||'Tài liệu chưa đặt tên',html:editor.innerHTML};
-    local.appType='writer';local.schemaVersion=3;local.folder=folders.includes(local.folder)?local.folder:'Chưa phân loại';local.category=String(local.category||'Khác');local.pinned=!!local.pinned;local.createdAt=Number(local.createdAt)||local.updatedAt||Date.now();
+    const active=current();if(!active)return false;
     try{
+      const localDocs=documents.map(d=>cloneJSON(d)),activeLocal=localDocs.find(d=>d.id===active.id);
+      if(!activeLocal)throw new Error('Không tìm thấy tài liệu đang mở.');
+      activeLocal.title=titleInput.value.trim()||'Tài liệu chưa đặt tên';activeLocal.html=editor.innerHTML;
+      activeLocal.appType='writer';activeLocal.schemaVersion=3;activeLocal.folder=folders.includes(activeLocal.folder)?activeLocal.folder:'Chưa phân loại';activeLocal.category=String(activeLocal.category||'Khác');activeLocal.pinned=!!activeLocal.pinned;activeLocal.createdAt=Number(activeLocal.createdAt)||activeLocal.updatedAt||Date.now();
       const raw=JSON.parse(localStorage.getItem(STORE)||'[]');if(!Array.isArray(raw))throw new Error('Kho tài liệu không hợp lệ.');
-      const latestDocs=raw.map(x=>({...x})),at=latestDocs.findIndex(x=>x.id===id),latest=at>=0?latestDocs[at]:null;
-      if(!latest&&loadedBase&&loadedBase.id===id&&loadedBase.exists){setState('Xung đột: tài liệu đã bị xóa ở cửa sổ khác; chưa ghi đè.','error');return false;}
-      let merged;
-      if(!latest){merged={...local,revision:1,updatedAt:Date.now()};latestDocs.push(merged);}
-      else{
-        const fields=new Set([...Object.keys(base||{}),...Object.keys(local),...Object.keys(latest)]);
-        fields.delete('id');fields.delete('revision');fields.delete('updatedAt');
-        const conflicts=[];merged={...latest};
-        fields.forEach(key=>{
-          const localChanged=!sameJSON(local[key],base&&base[key]),remoteChanged=!sameJSON(latest[key],base&&base[key]);
-          if(localChanged&&remoteChanged&&!sameJSON(local[key],latest[key]))conflicts.push(key);
-          else if(localChanged)merged[key]=cloneJSON(local[key]);
-        });
-        if(conflicts.length){
-          setState('Xung đột dữ liệu ('+conflicts.join(', ')+'). Chưa ghi đè bản ở cửa sổ kia.','error');
-          if(show&&confirm('Tài liệu vừa được thay đổi ở một cửa sổ khác ('+conflicts.join(', ')+').\\n\\nOK: tải bản mới nhất và bỏ thay đổi chưa lưu tại cửa sổ này.\\nHủy: giữ nội dung đang sửa trong bộ nhớ để bạn sao lưu thủ công.')){documents=normalizeDocuments(latestDocs);loadDoc(id);setState('Đã tải bản mới nhất từ cửa sổ khác','saved');}
-          return false;
+      const remoteDocs=raw.map(d=>cloneJSON(d)),remoteMap=new Map(remoteDocs.map(d=>[d.id,d])),localMap=new Map(localDocs.map(d=>[d.id,d]));
+      const ids=[...new Set([...remoteDocs.map(d=>d.id),...localDocs.map(d=>d.id),...baseDocuments.keys()])],mergedDocs=[],conflicts=[];
+      ids.forEach(id=>{
+        const base=baseDocuments.get(id),local=localMap.get(id),remote=remoteMap.get(id);
+        if(!local){
+          if(!remote)return;
+          if(!base){mergedDocs.push(remote);return;}
+          const remoteChanged=Object.keys({...base,...remote}).some(key=>!['id','revision','updatedAt'].includes(key)&&!sameJSON(remote[key],base[key]));
+          if(remoteChanged)conflicts.push(id+' (xóa tài liệu nhưng bản khác đã sửa)'); 
+          return;
         }
-        merged.revision=Math.max(1,Number(latest.revision)||1,Number(base&&base.revision)||1)+1;merged.updatedAt=Date.now();latestDocs[at]=merged;
+        if(!remote){
+          if(base){
+            const localChanged=Object.keys({...base,...local}).some(key=>!['id','revision','updatedAt'].includes(key)&&!sameJSON(local[key],base[key]));
+            if(localChanged)conflicts.push(id+' (tài liệu bị xóa ở cửa sổ khác)');
+            return;
+          }
+          mergedDocs.push({...local,revision:1,updatedAt:Date.now()});return;
+        }
+        if(!base){
+          if(sameJSON(local,remote)){mergedDocs.push(remote);return;}
+          conflicts.push(id+' (ID mới trùng nhau)');return;
+        }
+        const fields=new Set([...Object.keys(base),...Object.keys(local),...Object.keys(remote)]);
+        fields.delete('id');fields.delete('revision');fields.delete('updatedAt');
+        const merged={...remote},changed=[];
+        fields.forEach(key=>{
+          const localChanged=!sameJSON(local[key],base[key]),remoteChanged=!sameJSON(remote[key],base[key]);
+          if(localChanged&&remoteChanged&&!sameJSON(local[key],remote[key]))conflicts.push(id+' · '+key);
+          else if(localChanged){merged[key]=cloneJSON(local[key]);changed.push(key);}
+        });
+        if(changed.length){merged.revision=Math.max(1,Number(remote.revision)||1,Number(base.revision)||1)+1;merged.updatedAt=Date.now();}
+        mergedDocs.push(merged);
+      });
+      if(conflicts.length){
+        setState('Xung đột dữ liệu · chưa ghi đè ('+conflicts.slice(0,3).join('; ')+')','error');
+        if(show&&confirm('Phát hiện thay đổi trùng nhau ở cửa sổ khác.\\n\\nOK: tải dữ liệu mới nhất và bỏ các thay đổi chưa lưu.\\nHủy: giữ bản đang mở để bạn sao lưu thủ công.')){documents=normalizeDocuments(remoteDocs);baseDocuments=new Map(documents.map(d=>[d.id,cloneJSON(d)]));const next=documents.find(d=>d.id===activeId&&!d.deletedAt)||documents.find(d=>!d.deletedAt);if(next)loadDoc(next.id);setState('Đã tải dữ liệu mới nhất','saved');}
+        return false;
       }
-      documents=normalizeDocuments(latestDocs);
-      const saved=documents.find(x=>x.id===id);if(!saved)throw new Error('Không tìm thấy bản ghi sau khi hợp nhất.');
-      recordVersionSnapshot(false,'Tự động');
+      documents=normalizeDocuments(mergedDocs);
+      const saved=documents.find(d=>d.id===active.id);
+      if(saved)recordVersionSnapshot(false,'Tự động');
       localStorage.setItem(STORE,JSON.stringify(documents));
-      loadedBase={id,exists:true,snapshot:cloneJSON(saved)};
-      dirty=false;if(show)setState('Đã lưu trên thiết bị · phiên bản '+saved.revision,'saved');
+      baseDocuments=new Map(documents.map(d=>[d.id,cloneJSON(d)]));
+      dirty=false;
+      if(show)setState('Đã lưu trên thiết bị'+(saved?' · phiên bản '+saved.revision:''),'saved');
+      if(!documents.some(d=>d.id===activeId&&!d.deletedAt)){const next=documents.find(d=>!d.deletedAt);if(next)loadDoc(next.id);}
       renderDocList();return true;
     }catch(err){dirty=true;setState('Lưu thất bại · '+err.message+' · hãy xuất bản sao lưu','error');return false;}
   }
@@ -222,7 +244,6 @@
   function loadDoc(id) {
     const doc=documents.find(d=>d.id===id); if(!doc) return;
     clearTimeout(saveTimer); activeId=id; titleInput.value=doc.title; editor.innerHTML=sanitizeHTML(doc.html || '<p><br></p>');
-    const stored=readStoredDocument(id);loadedBase={id,exists:!!stored,snapshot:cloneJSON(stored||doc)};
     dirty=false;renderDocList();renderVersionHistory();updateStats();const identity=$('#docIdDisplay');if(identity)identity.textContent='ID: '+doc.id;const cat=$('#docCategory');if(cat)cat.value=doc.category||'Khác';const pin=$('#togglePin');if(pin)pin.textContent=doc.pinned?'★ Đã ghim':'☆ Ghim tài liệu';setState('Đã mở tài liệu','saved');
   }
 
@@ -531,13 +552,14 @@
   documents=normalizeDocuments(documents);
   const firstActive=documents.find(d=>!d.deletedAt);if(firstActive){activeId=firstActive.id;loadDoc(activeId);}else{const fresh={id:makeId(),title:'Tài liệu mới',html:'<h1>Tài liệu mới</h1><p><br></p>',createdAt:Date.now(),updatedAt:Date.now(),folder:'Chưa phân loại',category:'Khác',pinned:false};documents.push(fresh);activeId=fresh.id;loadDoc(fresh.id);}
   try{localStorage.setItem(STORE,JSON.stringify(documents));localStorage.setItem(FOLDERS_STORE,JSON.stringify(folders));}catch{}
+  baseDocuments=new Map(documents.map(d=>[d.id,cloneJSON(d)]));
 
 
   const canvasLaunch=$('#canvasLaunch');
   if(canvasLaunch)canvasLaunch.addEventListener('click',()=>{if(dirty)persist(false);const d=current();if(d)canvasLaunch.href='canvas-studio.html?documentId='+encodeURIComponent(d.id);});
 
-  window.addEventListener('pageshow',event=>{if(!event.persisted)return;try{const latest=JSON.parse(localStorage.getItem(STORE)||'[]');if(!Array.isArray(latest))return;documents=normalizeDocuments(latest);const active=documents.find(d=>d.id===activeId&&!d.deletedAt);if(active){loadDoc(active.id);setState('Đã đồng bộ thay đổi Canvas','saved');}}catch{setState('Không thể tải lại dữ liệu sau khi quay về','error');}});
-  window.addEventListener('storage',event=>{if(event.key===STORE){try{const latest=JSON.parse(event.newValue||'[]');if(!Array.isArray(latest))return;if(dirty){setState('Có thay đổi từ cửa sổ khác · sẽ hợp nhất an toàn khi lưu','pending');return;}documents=normalizeDocuments(latest);const active=documents.find(d=>d.id===activeId&&!d.deletedAt);if(active){loadDoc(active.id);setState('Đã đồng bộ dữ liệu Writer/Canvas từ cửa sổ khác','saved');}}catch{setState('Không thể đồng bộ thay đổi từ cửa sổ khác','error');}}else if(event.key===HISTORY_STORE){versionHistory=readVersionHistory();renderVersionHistory();}});
+  window.addEventListener('pageshow',event=>{if(!event.persisted)return;try{const latest=JSON.parse(localStorage.getItem(STORE)||'[]');if(!Array.isArray(latest))return;documents=normalizeDocuments(latest);baseDocuments=new Map(documents.map(d=>[d.id,cloneJSON(d)]));const active=documents.find(d=>d.id===activeId&&!d.deletedAt);if(active){loadDoc(active.id);setState('Đã đồng bộ thay đổi Canvas','saved');}}catch{setState('Không thể tải lại dữ liệu sau khi quay về','error');}});
+  window.addEventListener('storage',event=>{if(event.key===STORE){try{const latest=JSON.parse(event.newValue||'[]');if(!Array.isArray(latest))return;if(dirty){setState('Có thay đổi từ cửa sổ khác · sẽ hợp nhất an toàn khi lưu','pending');return;}documents=normalizeDocuments(latest);baseDocuments=new Map(documents.map(d=>[d.id,cloneJSON(d)]));const active=documents.find(d=>d.id===activeId&&!d.deletedAt);if(active){loadDoc(active.id);setState('Đã đồng bộ dữ liệu Writer/Canvas từ cửa sổ khác','saved');}}catch{setState('Không thể đồng bộ thay đổi từ cửa sổ khác','error');}}else if(event.key===HISTORY_STORE){versionHistory=readVersionHistory();renderVersionHistory();}});
   editor.addEventListener('input',()=>{rememberEditorSelection();scheduleSave();scheduleTocUpdate();});
   document.addEventListener('selectionchange',rememberEditorSelection);
   document.addEventListener('pointerdown',e=>{if(e.target.closest('.ribbon,.editor-quickbar'))rememberEditorSelection();},true);
