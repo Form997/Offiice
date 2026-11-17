@@ -60,3 +60,25 @@ Một hồ sơ tài liệu có thể mở ở chế độ Văn bản hoặc Canv
 - Các trường mới là thuộc tính mở rộng tùy chọn trong design.items; không đổi ID tài liệu và không xóa nội dung HTML cũ.
 - Giới hạn hiện tại: cắt ảnh là crop hiển thị không phá hủy, chưa xuất thành tệp ảnh crop mới; phông chữ không được nhúng; biểu đồ hiện là biểu đồ cột cơ bản; chưa có kéo-thả nhập Excel, biểu đồ nhiều chuỗi hay công cụ thiết kế bảng nâng cao.
 - Chưa chạy browser QA/Android/desktop, chưa kiểm tra ảnh lớn, localStorage quota, khả năng in hoặc xuất PDF/DOCX. Không xem đây là bản phát hành.
+
+
+## V4.4 — Multi-page Studio (triển khai ban đầu)
+
+### Mô hình dữ liệu nhiều trang
+- Mở rộng metadata Canvas thành `design.pages[]`; mỗi trang có `id`, `name`, `items[]` và `settings` riêng.
+- `design.activePageId` xác định trang đang mở. `design.items` tiếp tục phản chiếu đối tượng của trang hiện hành để giữ đường tương thích với mã V4.1–V4.3; `design.page` tiếp tục lưu thông số trang hiện hành theo dạng tương thích.
+- Không tạo hồ sơ Writer mới và không đổi ID tài liệu. Nội dung HTML, thư mục và các trường khác của bản ghi tiếp tục được giữ nguyên.
+- Tài liệu cũ chỉ có `design.items` được nạp thành trang đầu tiên. Cấu trúc nhiều trang được ghi bền vững khi người dùng lưu hoặc có thay đổi phát sinh autosave; không tự động ghi đè dữ liệu chỉ vì mở tài liệu.
+
+### Chức năng
+- Chọn trang bằng danh sách, chuyển trang trước/sau, thêm trang, xóa trang (có xác nhận) và đổi thứ tự trang lên/xuống.
+- Mỗi trang có lớp đối tượng riêng; chuyển trang không trộn đối tượng giữa các trang.
+- Khổ giấy A4, A3, A5, Letter và tùy chỉnh; chiều dọc/ngang; chiều rộng/cao tùy chỉnh theo mm.
+- Thiết lập lề trên/phải/dưới/trái và bật/tắt đường gợi ý vùng in.
+- Undo/redo lưu trạng thái cả bộ trang, không chỉ danh sách đối tượng của một trang.
+
+### Giới hạn cần giữ rõ
+- Đường vùng in hiện là đường hướng dẫn trực quan; chưa phải engine in, dàn trang hoặc xuất PDF/DOCX.
+- Chưa có luồng văn bản tự động tràn từ trang này sang trang khác; đối tượng vẫn có tọa độ độc lập trong từng trang.
+- Chưa có thumbnail trang, kéo-thả sắp thứ tự hoặc kiểm tra nội dung tràn khỏi lề.
+- Chưa kiểm thử browser thực tế, Android/desktop, khôi phục sau crash, localStorage quota, nhiều tab hoặc khả năng in/xuất.
