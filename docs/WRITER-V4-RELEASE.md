@@ -190,8 +190,11 @@
 - Không thay ID, khóa lưu trữ hoặc `schemaVersion: 3`; không chạm V3.
 
 ### Kiểm tra đã thực hiện
-- Module `writer/export-studio.js` được phân tích cú pháp tĩnh bằng Function constructor: thành công.
-- Kiểm tra nhánh hiện có và so sánh V3/V4 trước khi sửa: V4 có 73 commit ahead, 0 behind tại thời điểm bắt đầu mốc này.
+- Phân tích cú pháp tĩnh bằng Function constructor: `writer/app.js`, `writer/export-studio.js`, JavaScript nội tuyến Canvas và `writer/sw.js` đều thành công.
+- Kiểm tra tĩnh xác nhận Writer/Canvas đều nạp module; service worker precache đúng module V4.6.
+- Harness giả lập: JSON backup version 5 đúng cấu trúc một tài liệu + lịch sử; HTML có nội dung Writer + Canvas; SVG/PNG nhiều trang tạo ZIP; DOCX có ZIP signature và các thành phần `[Content_Types].xml`, `_rels/.rels`, `word/document.xml`, `word/styles.xml`; PDF gọi luồng in và giữ cả nội dung Writer + Canvas.
+- Harness là kiểm tra logic với mock Blob/DOM/Image/Canvas; không phải browser runtime hoặc xác minh tệp mở được bằng phần mềm văn phòng.
+- So sánh sau cập nhật: V4 có 88 commit ahead, 0 behind so với V3; 12 tệp khác biệt tích lũy.
 
 ### Giới hạn và QA còn thiếu
 - Chưa chạy browser runtime hoặc thao tác tải tệp thật trên Android/desktop.
@@ -210,3 +213,11 @@
 ### Bảo toàn nhánh
 - Chỉ cập nhật `v4-development`; không merge/deploy vào `v3-development` hoặc `main`.
 - Supabase vẫn để sau; module xuất không cần tài khoản hoặc khóa bí mật.
+
+### Kích thước tệp UTF-8 hiện tại sau V4.6 (byte)
+- `writer/export-studio.js`: 20,866 byte.
+- `writer/index.html`: 22,370 byte.
+- `writer/canvas-studio.html`: 48,373 byte.
+- `writer/sw.js`: 1,156 byte.
+- `docs/WRITER-V4-EXPORT-STUDIO.md`: 4,065 byte.
+- Đây là dung lượng toàn tệp tại thời điểm ghi nhận, không phải phần tăng thêm của riêng V4.6.
