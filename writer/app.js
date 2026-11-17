@@ -506,6 +506,8 @@
 
   const canvasLaunch=$('#canvasLaunch');
   if(canvasLaunch)canvasLaunch.addEventListener('click',()=>{if(dirty)persist(false);const d=current();if(d)canvasLaunch.href='canvas-studio.html?documentId='+encodeURIComponent(d.id);});
+
+  window.addEventListener('pageshow',event=>{if(!event.persisted)return;try{const latest=JSON.parse(localStorage.getItem(STORE)||'[]');if(!Array.isArray(latest))return;documents=normalizeDocuments(latest);const active=documents.find(d=>d.id===activeId&&!d.deletedAt);if(active){loadDoc(active.id);setState('Đã đồng bộ thay đổi Canvas','saved');}}catch{setState('Không thể tải lại dữ liệu sau khi quay về','error');}});
   editor.addEventListener('input',()=>{rememberEditorSelection();scheduleSave();scheduleTocUpdate();});
   document.addEventListener('selectionchange',rememberEditorSelection);
   document.addEventListener('pointerdown',e=>{if(e.target.closest('.ribbon,.editor-quickbar'))rememberEditorSelection();},true);
