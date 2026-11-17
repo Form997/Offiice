@@ -15,6 +15,8 @@ test('WORK V6 manifest is a standalone PWA with a declared icon',()=>{
   assert.equal(manifest.start_url,'./');
   assert.equal(manifest.scope,'./');
   assert.ok(manifest.icons.some(icon=>icon.src==='./icons/work.svg'));
+  assert.ok(manifest.icons.some(icon=>icon.src==='./icons/work-192.png'&&icon.sizes==='192x192'));
+  assert.ok(manifest.icons.some(icon=>icon.src==='./icons/work-512.png'&&icon.sizes==='512x512'));
   for(const icon of manifest.icons) assert.ok(fs.existsSync(path.join(root,'writer',icon.src.replace(/^\.\//,''))));
 });
 
@@ -24,12 +26,14 @@ test('WORK V6 service worker precaches every declared local asset',()=>{
   assert.ok(match,'FILES array must exist');
   const files=[...match[1].matchAll(/'([^']+)'/g)].map(item=>item[1]);
   assert.ok(files.includes('./icons/work.svg'));
+  assert.ok(files.includes('./icons/work-192.png'));
+  assert.ok(files.includes('./icons/work-512.png'));
   for(const file of files){
     const local=file.split('?')[0].replace(/^\.\//,'');
     if(!local||local==='.')continue;
     assert.ok(fs.existsSync(path.join(root,'writer',local)),`Missing precache asset: ${file}`);
   }
-  assert.match(sw,/haidat-work-v6-0-r2/);
+  assert.match(sw,/haidat-work-v6-0-r3/);
   assert.match(sw,/key\.startsWith\('haidat-work-'\)/);
 });
 
