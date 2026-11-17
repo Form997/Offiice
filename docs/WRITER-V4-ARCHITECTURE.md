@@ -27,7 +27,7 @@ Một hồ sơ tài liệu có thể mở ở chế độ Văn bản hoặc Canv
 | Mốc | Phạm vi | Điều kiện hoàn thành |
 |---|---|---|
 | V4.1 Canvas Engine | Mở Canvas theo ID, khung trang, zoom/pan, thước, lưới, autosave | Hai chế độ đọc/ghi cùng hồ sơ, giữ ID |
-| V4.2 Object Studio | Chọn nhiều, xoay, nhóm, resize, căn chỉnh | Undo/redo bao phủ mọi thao tác |
+| V4.2 Object Studio | Chọn nhiều, xoay, nhóm/tách nhóm, kéo nhiều đối tượng, resize, căn trái/giữa/trên | Undo/redo nhất quán cho mọi thao tác và kiểm thử nhóm |
 | V4.3 Image & Typography | Cắt ảnh, độ trong suốt, phông chữ, bảng, biểu đồ | Nội dung chỉnh sửa được, lưu ổn định |
 | V4.4 Multi-page Studio | Nhiều trang, thứ tự trang, mẫu, lề và vùng in | Phân trang và xem trước nhất quán |
 | V4.5 Document Integration | Đồng bộ mô hình văn bản/Canvas, lịch sử và backup | Không mất dữ liệu khi chuyển chế độ |
@@ -41,3 +41,10 @@ Một hồ sơ tài liệu có thể mở ở chế độ Văn bản hoặc Canv
 - Canvas dùng DOM/SVG và dữ liệu có cấu trúc, không raster hóa toàn trang.
 - DOCX/PDF có thể giản lược một số đối tượng; chỉ tuyên bố tương thích sau khi kiểm thử tệp thực.
 - Không tuyên bố QA đã đạt nếu chưa chạy trên trình duyệt, Android và desktop thực tế.
+
+## V4.2 — trạng thái triển khai Object Studio
+- Đã bổ sung chọn nhiều bằng Ctrl/Shift + chạm/bấm; Ctrl+A chọn toàn bộ đối tượng.
+- Có thể kéo đồng thời các đối tượng đang chọn; thành viên cùng `groupId` được chọn chung khi chọn một phần tử trong nhóm.
+- Có lệnh Nhóm/Tách nhóm, căn trái/căn giữa/căn trên và thuộc tính góc xoay.
+- Xóa đối tượng áp dụng cho toàn bộ lựa chọn. Mô hình đối tượng vẫn là các bản ghi riêng, không gộp thành ảnh.
+- Đây là mức triển khai ban đầu; chưa xác nhận undo/redo bao phủ toàn bộ thao tác thuộc tính, chưa có resize đồng loạt, xoay bằng tay nắm trực quan, căn theo trang và kiểm thử trình duyệt.
