@@ -119,3 +119,11 @@ Một hồ sơ tài liệu có thể mở ở chế độ Văn bản hoặc Canv
 - Không dùng CDN/API cho module; service worker precache module để dùng ngoại tuyến sau lần tải đầu.
 - Chưa có browser QA, kiểm thử DOCX bằng Word/LibreOffice, PDF cross-browser, PNG/SVG Android, tài liệu lớn hoặc kiểm thử phục hồi. V4.6 chưa được xem là hoàn tất QA/phát hành.
 - Đặc tả: `docs/WRITER-V4-EXPORT-STUDIO.md`.
+
+
+## V4.7 — Mobile & Performance (triển khai ban đầu)
+- Tối ưu vùng thao tác màn hình nhỏ: nút cảm ứng tối thiểu 44 px ở Writer; thanh công cụ cuộn ngang; vùng trang hỗ trợ cuộn quán tính.
+- Canvas: thu gọn thanh công cụ và bảng thêm đối tượng; bảng thuộc tính thích ứng; tăng vùng chạm và hỗ trợ giảm chuyển động theo thiết lập hệ điều hành.
+- Tự tính lại mức thu phóng “Vừa trang” khi xoay màn hình hoặc đổi kích thước cửa sổ nhỏ; giữ nguyên kích thước/tọa độ thiết kế gốc.
+- Kiểm tra loại ảnh; cảnh báo từ 1 MB và yêu cầu xác nhận trên 3 MB. Không tự nén ảnh, không khẳng định đã giải quyết quota localStorage.
+- Chưa có virtualized rendering; mỗi lần render vẫn dựng lại các đối tượng của trang hiện hành. Chưa benchmark Android/desktop thực tế.
