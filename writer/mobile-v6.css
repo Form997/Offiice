@@ -1,0 +1,47 @@
+/* HAI ĐẤT OFFICE WORK V6.0 — mobile-first PWA layer */
+:root{--v6-safe-bottom:env(safe-area-inset-bottom,0px)}
+html{min-height:100%;-webkit-text-size-adjust:100%;text-size-adjust:100%}
+body{overscroll-behavior-y:contain}
+button,.file-button,select,input{touch-action:manipulation}
+button,.file-button{min-height:44px}
+input,select{min-height:44px;font-size:16px}
+.page{ -webkit-user-select:text; user-select:text; touch-action:pan-y}
+@media(max-width:700px){
+ body{padding-bottom:calc(12px + var(--v6-safe-bottom))}
+ .topbar{gap:8px;align-items:center}
+ .top-actions{margin-left:auto}
+ .brand{font-size:15px}
+ .sub{font-size:11px}
+ main{width:100%;padding-inline:8px}
+ .docbar{border-radius:12px}
+ .doc-actions{grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}
+ .doc-actions>*{min-width:0}
+ .doc-actions .canvas-launch{justify-content:center;min-height:44px}
+ .doc-actions select{grid-column:1/-1}
+ .ribbon{border-radius:12px}
+ .ribbon-tabs{position:sticky;top:0;z-index:3;display:flex;overflow-x:auto;overscroll-behavior-x:contain;scroll-snap-type:x proximity}
+ .ribbon-tab{flex:0 0 auto;scroll-snap-align:start;min-height:44px}
+ .ribbon-panel{max-height:34vh;min-height:0;overflow:auto;overscroll-behavior:contain}
+ .ribbon-group{min-width:max-content}
+ .editor-quickbar{position:sticky;top:0;z-index:7;display:flex;flex-wrap:nowrap;overflow-x:auto;overscroll-behavior-x:contain;scrollbar-width:thin}
+ .editor-quickbar button{flex:0 0 auto;min-width:42px;min-height:42px}
+ .page-wrap{overflow:visible}
+ .page{min-height:68vh!important;padding:22px 16px!important;font-size:16px;line-height:1.65}
+ .editor-statusbar{position:sticky;bottom:0;z-index:4;background:#f7faf8ed;border-top:1px solid var(--line);padding:8px;margin-inline:-2px;backdrop-filter:blur(10px)}
+ .account-manager,.collaboration-manager,.document-manager,.version-manager,.folder-manager{max-width:none}
+ .ribbon-tools{gap:7px}
+ .ribbon-panel button{min-height:44px;font-size:13px}
+ dialog{max-width:calc(100vw - 20px);max-height:85dvh}
+}
+@media(max-width:380px){
+ .doc-actions{grid-template-columns:1fr 1fr}
+ .doc-actions button{font-size:12px;padding-inline:6px}
+ .page{padding-inline:13px!important}
+}
+@media(hover:none){
+ button:hover,.file-button:hover{background:#fff;border-color:var(--line)}
+ button:active{transform:scale(.985);background:#e8f2ef}
+}
+@media(prefers-reduced-motion:reduce){
+ *,*::before,*::after{scroll-behavior:auto!important;animation-duration:.01ms!important;transition-duration:.01ms!important}
+}
