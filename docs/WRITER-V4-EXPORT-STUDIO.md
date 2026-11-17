@@ -32,8 +32,10 @@ Xuất dữ liệu từ cùng một hồ sơ Writer/Canvas, không tạo ID mớ
 
 ## Kiểm thử và giới hạn
 
-- JavaScript module được phân tích cú pháp tĩnh bằng Function constructor: đạt.
-- Đã kiểm tra sự hiện diện của module trong hai trang và danh sách precache service worker: cần xác minh sau cập nhật.
+- Phân tích cú pháp tĩnh bằng Function constructor: `writer/app.js`, module Export Studio, JavaScript nội tuyến Canvas và `writer/sw.js` đều đạt.
+- Kiểm tra tĩnh xác nhận module được nhúng trong Writer/Canvas và được precache bởi service worker.
+- Harness logic giả lập xác nhận: JSON backup version 5 có một tài liệu và lịch sử; HTML chứa cả Writer + Canvas; SVG/PNG nhiều trang tạo gói ZIP; DOCX có chữ ký ZIP và bốn thành phần OOXML chính; luồng PDF gọi hộp thoại in.
+- Các kiểm tra trên dùng môi trường giả lập, không chứng minh tải tệp và hiển thị thực tế trong trình duyệt.
 - Chưa chạy browser runtime, chưa tạo và mở tệp bằng Microsoft Word/LibreOffice, chưa kiểm tra PNG/SVG trên Android, chưa xác minh PDF với các engine in khác nhau.
 - Chưa kiểm tra tài liệu rất lớn, ảnh data URL lớn, lỗi bộ nhớ, popup bị chặn hoặc thiết bị không hỗ trợ Canvas 2D.
 - DOCX hiện giữ văn bản/bảng/dữ liệu biểu đồ nhưng không nhúng ảnh Canvas; định dạng font và vị trí tuyệt đối Canvas không được bảo toàn hoàn toàn trong DOCX.
