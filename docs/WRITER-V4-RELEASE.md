@@ -71,6 +71,9 @@
 
 ### Chưa hoàn tất / cần QA
 - Chưa xác minh thao tác trên trình duyệt thật, Android cảm ứng và desktop.
-- Undo/redo chưa được chứng minh bao phủ mọi chỉnh sửa thuộc tính; chưa có resize đồng loạt, tay nắm xoay, căn theo trang/đối tượng và giao diện báo trạng thái nhóm hoàn chỉnh.
+- Bổ sung tiếp: tay nắm xoay trực quan cho đối tượng đơn; tay nắm resize theo tỉ lệ cho vùng chọn nhiều đối tượng; căn lề trái/giữa/trên theo trang; Ctrl+Shift+Z để làm lại.
+- Bổ sung snapshot trước chỉnh sửa thuộc tính và trước khi sửa nội dung văn bản để hỗ trợ undo.
+- Các thao tác nhóm, căn chỉnh và căn theo trang có gọi lưu tự động; thao tác kéo/xoay/resize được lưu qua sự kiện pointerup.
 - Chưa chạy kiểm thử dữ liệu cũ, lưu offline, xung đột hai tab hoặc hiệu năng với nhiều đối tượng/ảnh lớn.
-- V4.2 chưa được xem là hoàn tất; không phát hành và không gộp vào V3/main.
+- Trạng thái mã: đã bổ sung các hạng mục tương tác còn thiếu trong phạm vi Object Studio ban đầu. Trạng thái QA: chưa xác minh bằng trình duyệt thật hoặc thiết bị Android/desktop; chưa đủ điều kiện tuyên bố V4.2 đạt phát hành.
+- Không phát hành và không gộp vào V3/main.
