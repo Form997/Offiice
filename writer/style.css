@@ -236,7 +236,8 @@ main{max-width:1560px;margin:14px auto;padding:0 clamp(8px,1.5vw,22px)}
 .zoom-control select{min-height:34px;padding:5px 8px}
 #toggleFocusMode{border-color:#b9d5ca;color:#145744;font-weight:650}
 #focusModeExit{background:#e8f2ef;color:#145744;border-color:#b9d5ca}
-body.focus-mode .topbar,body.focus-mode .docbar,body.focus-mode .ribbon{display:none!important}
+body.focus-mode .topbar,body.focus-mode .docbar,body.focus-mode .ribbon,body.focus-mode .sidepanel{display:none!important}
+body.focus-mode .workspace{grid-template-columns:minmax(0,1fr)!important;gap:0}
 body.focus-mode main{max-width:1200px;margin:12px auto}
 body.focus-mode .page-wrap{min-height:calc(100vh - 28px);padding:clamp(10px,3vw,34px)}
 body.focus-mode .editor-quickbar{top:8px}
