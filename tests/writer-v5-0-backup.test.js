@@ -55,7 +55,7 @@ test('Writer loads backup preflight before the application and PWA precaches it'
  const fs=require('node:fs'),path=require('node:path'),root=path.resolve(__dirname,'..');
  const html=fs.readFileSync(path.join(root,'writer/index.html'),'utf8');
  const sw=fs.readFileSync(path.join(root,'writer/sw.js'),'utf8');
- assert.ok(html.indexOf('backup-studio.js?v=5.0')<html.indexOf('app.js?v=5.0'));
- assert.match(sw,/haidat-writer-v5-0-r1/);
+ assert.ok(html.indexOf('backup-studio.js?v=5.0')<html.indexOf('app.js?v=6.0'));
+ assert.match(sw,/haidat-work-v6-0-/);
  assert.match(sw,/backup-studio\.js\?v=5\.0/);
 });
