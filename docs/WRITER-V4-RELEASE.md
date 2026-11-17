@@ -185,7 +185,7 @@
 - PDF: mở cửa sổ in, người dùng chọn “Lưu thành PDF”.
 - DOCX: tạo gói OOXML/ZIP tại thiết bị; giữ nội dung văn bản Writer/Canvas, bảng và dữ liệu biểu đồ.
 - PNG/SVG: dựng đối tượng Canvas theo từng trang; nhiều trang được đóng gói ZIP.
-- HTML: xuất nội dung Writer và trang Canvas dạng SVG; JSON: xuất bản ghi cùng lịch sử của tài liệu hiện hành.
+- HTML: xuất nội dung Writer và trang Canvas dạng SVG; JSON: tạo backup Writer version 5 tương thích chức năng Khôi phục bản sao, gồm một tài liệu và lịch sử tương ứng; không phải backup toàn kho.
 - Nâng service worker cache key lên `haidat-writer-v4-6-r1`, precache `export-studio.js?v=4.6` và đổi cache-bust app.js sang V4.6.
 - Không thay ID, khóa lưu trữ hoặc `schemaVersion: 3`; không chạm V3.
 
@@ -198,7 +198,7 @@
 - Chưa mở DOCX bằng Word/LibreOffice để xác nhận round-trip; ảnh Canvas hiện được thay bằng dòng mô tả trong DOCX.
 - PDF phụ thuộc hộp thoại in và engine của trình duyệt; chưa kiểm thử nhiều trình duyệt.
 - Chưa xác minh PNG/SVG với ảnh nhúng lớn, dữ liệu lớn, popup bị chặn hoặc thiết bị không hỗ trợ Canvas 2D.
-- PNG/SVG xuất phần đồ họa Canvas; nếu không có Canvas thì tạo SVG giản lược từ văn bản Writer. JSON là gói của một tài liệu và lịch sử tương ứng, không phải backup toàn kho.
+- PNG/SVG xuất phần đồ họa Canvas; nếu không có Canvas thì tạo SVG giản lược từ văn bản Writer. JSON là backup version 5 có thể nhập qua Khôi phục bản sao, nhưng chỉ chứa một tài liệu và lịch sử tương ứng, không phải toàn bộ kho.
 - V4.6 mới ở mức triển khai ban đầu; chưa đủ điều kiện tuyên bố phát hành.
 
 ### Tệp chính
