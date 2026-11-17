@@ -3,7 +3,7 @@ on:
   push:
     branches: [v5-development, v6-development]
   pull_request:
-    branches: [v5-development]
+    branches: [v5-development, v6-development]
   workflow_dispatch:
 jobs:
   work-regression-and-pwa-tests:
