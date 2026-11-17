@@ -1,0 +1,34 @@
+name: Writer V3.0 checks
+
+on:
+  push:
+    branches: [v3-development]
+    paths:
+      - 'writer/**'
+      - 'scripts/**'
+      - '.github/workflows/writer-check.yml'
+  pull_request:
+    branches: [v3-development]
+    paths:
+      - 'writer/**'
+      - 'scripts/**'
+      - '.github/workflows/writer-check.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  static-checks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Check JavaScript syntax
+        run: |
+          node --check writer/app.js
+          node --check writer/collaboration.js
+          node --check writer/supabase-auth.js
+      - name: Check Writer interface wiring
+        run: node scripts/check-writer.mjs
