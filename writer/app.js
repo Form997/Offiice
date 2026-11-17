@@ -828,7 +828,7 @@
         const mode=$('#backupMode')?.value||'merge';
         if(!window.HD_BACKUP_STUDIO||typeof window.HD_BACKUP_STUDIO.inspect!=='function')throw new Error('Thiếu mô-đun kiểm tra bản sao lưu. Hãy tải lại ứng dụng trước khi khôi phục.');
         const preview=window.HD_BACKUP_STUDIO.inspect(data,documents,mode);
-        if(!preview.ok)throw new Error(preview.errors.join('\\n'));
+        if(!preview.ok)throw new Error(preview.errors.join('\n'));
         if(!confirm(preview.message))return;
         if(mode==='replace'){
           const approved=confirm('CHẾ ĐỘ THAY THẾ TOÀN BỘ\\n\\nWriter sẽ tạo một tệp sao lưu dữ liệu hiện tại trước khi khôi phục. Hãy giữ tệp tải xuống ở nơi an toàn. Tiếp tục?');
