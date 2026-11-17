@@ -18,7 +18,7 @@ Xuất dữ liệu từ cùng một hồ sơ Writer/Canvas, không tạo ID mớ
 | PNG | Dựng SVG thành ảnh qua Image + Canvas 2D | Một trang tạo một PNG; nhiều trang đóng gói ZIP. Ảnh nhúng dạng data URL được dựng nếu trình duyệt hỗ trợ |
 | SVG | Dựng đối tượng Canvas thành SVG | Một trang tạo một SVG; nhiều trang đóng gói ZIP. Đây là đồ họa vector, ảnh bitmap nhúng vẫn là bitmap |
 | HTML | Tạo tệp HTML tự chứa | Gồm nội dung Writer và các trang Canvas dạng SVG; phù hợp xem ngoại tuyến |
-| JSON | Đóng gói bản ghi và lịch sử của tài liệu | Giữ ID, HTML, design/pages, revision và lịch sử liên quan; đây là gói dữ liệu xuất, không phải bản sao lưu toàn bộ kho |
+| JSON | Đóng gói bản ghi và lịch sử của tài liệu | Tạo JSON tương thích backup version 5 của Writer, gồm một tài liệu cùng lịch sử; có thể nhập bằng Khôi phục bản sao. Không chứa toàn bộ kho tài liệu/thùng rác/thư mục. |
 
 ## Kiến trúc
 
