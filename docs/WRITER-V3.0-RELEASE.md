@@ -27,4 +27,4 @@
 - Chưa xác nhận đồng bộ Supabase hoặc phân quyền trực tuyến vì chưa có cấu hình dự án.
 
 ## Dung lượng
-- Ghi nhận theo commit sau khi GitHub hoàn tất; không ước đoán dung lượng trước khi lưu.
+- Tổng 10 tệp đang khác `v1-development`: khoảng 248,5 KB theo ước tính UTF-16 từ nội dung văn bản GitHub (không phải kích thước ZIP hay dung lượng triển khai).
