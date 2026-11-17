@@ -39,3 +39,10 @@ V4 phát triển trên nhánh riêng `v4-development`, kết hợp chế độ V
 - Nhóm/Tách nhóm, căn trái/căn giữa/căn trên, chỉnh góc xoay và xóa nhiều đối tượng.
 - Dữ liệu vẫn là từng đối tượng có ID riêng trong metadata Canvas của tài liệu Writer; không tạo bản sao tài liệu.
 - V4.2 mới ở mức triển khai ban đầu, chưa hoàn tất QA và chưa xác nhận undo/redo toàn diện hoặc thao tác trên Android/desktop.
+
+
+#### Bổ sung hoàn thiện phạm vi tương tác V4.2
+- Tay nắm kéo để xoay đối tượng; tay nắm đổi kích thước theo tỉ lệ cho vùng chọn nhiều đối tượng.
+- Căn lề trái, căn giữa ngang, căn trên của lựa chọn theo trang A4; vẫn có căn tương đối giữa các đối tượng.
+- Ctrl+Shift+Z làm lại; snapshot undo được tạo trước các thao tác chỉnh sửa đối tượng, thuộc tính và nội dung.
+- Đây là hoàn thiện mã chức năng trên nhánh phát triển, không đồng nghĩa đã qua kiểm thử thiết bị hoặc sẵn sàng phát hành.
