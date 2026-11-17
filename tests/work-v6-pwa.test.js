@@ -25,6 +25,7 @@ test('WORK V6 service worker precaches every declared local asset',()=>{
   assert.ok(match,'FILES array must exist');
   const files=[...match[1].matchAll(/'([^']+)'/g)].map(item=>item[1]);
   assert.ok(files.includes('./icons/work.svg'));
+  assert.ok(files.includes('./app.js?v=6.0'));
   for(const file of files){
     const local=file.split('?')[0].replace(/^\.\//,'');
     if(!local||local==='.')continue;
