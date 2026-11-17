@@ -133,3 +133,9 @@ Một hồ sơ tài liệu có thể mở ở chế độ Văn bản hoặc Canv
 - Bảo vệ dữ liệu khi kho localStorage hiện hữu bị lỗi phân tích: giữ bản raw ở khóa phục hồi riêng khi có thể, cảnh báo và yêu cầu xác nhận rõ ràng trước khi thay thế kho chính.
 - Service Worker chỉ dọn các cache thuộc họ HAI ĐẤT WRITER, không xóa cache ứng dụng khác cùng origin.
 - Trạng thái phát hành: QA-PENDING-DEVICE; kiểm tra thiết bị thật, trình duyệt, DOCX, offline và dữ liệu lớn vẫn là điều kiện bắt buộc.
+
+
+## V4.9 — QA Automation & Data Integrity Gate
+- Thêm bộ test Node.js `tests/writer-v4-9.test.js` để rà các bất biến tĩnh: kho Writer/schema/ID, phục hồi dữ liệu lỗi, history/backup, đồng bộ Writer–Canvas, Export Studio và phạm vi cache.
+- Hướng dẫn tại `docs/WRITER-V4-9-QA.md`; chạy bằng `node --test tests/writer-v4-9.test.js`.
+- Test tĩnh không thay thế browser/device QA. Trạng thái vẫn là `QA-PENDING-DEVICE`; không tự động merge hoặc phát hành.
