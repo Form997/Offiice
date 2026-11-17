@@ -10,8 +10,6 @@ const FILES=[
   './export-studio.js?v=4.7',
   './manifest.webmanifest',
   './icons/work.svg',
-  './icons/work-192.png',
-  './icons/work-512.png',
   './supabase-config.js?v=2.7',
   './supabase-auth.js?v=2.7',
   './collaboration.js?v=3.0'
