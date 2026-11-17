@@ -79,7 +79,7 @@ V4 phát triển trên nhánh riêng `v4-development`, kết hợp chế độ V
 ### Export Studio — V4.6 đang phát triển
 - Nút **Xuất tệp** được tích hợp trong Writer và Canvas; dùng cùng ID tài liệu và dữ liệu cục bộ hiện hành.
 - Định dạng: PDF (mở hộp thoại in để lưu PDF), DOCX, PNG, SVG, HTML và JSON.
-- HTML chứa nội dung Writer và các trang Canvas; SVG/PNG xuất từng trang, nhiều trang đóng ZIP; JSON giữ bản ghi cùng lịch sử của tài liệu.
+- HTML chứa nội dung Writer và các trang Canvas; SVG/PNG xuất từng trang, nhiều trang đóng ZIP; JSON tạo backup version 5 có thể nhập bằng Khôi phục bản sao, gồm một tài liệu và lịch sử tương ứng; không phải backup toàn kho.
 - DOCX tạo tại máy, giữ văn bản/bảng/dữ liệu biểu đồ; ảnh Canvas hiện được ghi chú thay vì nhúng. Bố cục tuyệt đối Canvas và font có thể khác bản gốc.
 - Module không phụ thuộc CDN/API và được đưa vào precache PWA. Lần đầu vẫn cần tải ứng dụng/module để cache.
 - Chưa kiểm thử trên trình duyệt thật, Word/LibreOffice, Android/desktop; chưa xác nhận PDF/PNG/SVG trên mọi engine. Chưa xem V4.6 là bản phát hành.
