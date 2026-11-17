@@ -8,7 +8,10 @@
   const HISTORY_PER_DOCUMENT=6, HISTORY_MAX_CHARS=160000, HISTORY_TOTAL_CHARS=1100000, AUTO_HISTORY_INTERVAL=5*60*1000;
   const DEFAULT_FOLDERS=['Chưa phân loại','Công việc','Học tập','Cá nhân'];
   let folders=(()=>{try{const v=JSON.parse(localStorage.getItem(FOLDERS_STORE)||'null');return Array.isArray(v)&&v.length?v.filter(x=>typeof x==='string'&&x.trim()).slice(0,100):DEFAULT_FOLDERS.slice();}catch{return DEFAULT_FOLDERS.slice();}})();if(!folders.includes('Chưa phân loại'))folders.unshift('Chưa phân loại');
-  let documents = [], activeId = null, saveTimer = null, deferredInstall = null, dirty = false, savedEditorRange = null, currentFileHandle = null, workDirectoryHandle = null;
+  let documents = [], activeId = null, saveTimer = null, deferredInstall = null, dirty = false, savedEditorRange = null, currentFileHandle = null, workDirectoryHandle = null, loadedBase = null;
+  const cloneJSON=value=>value===undefined?undefined:JSON.parse(JSON.stringify(value));
+  const sameJSON=(a,b)=>JSON.stringify(a===undefined?null:a)===JSON.stringify(b===undefined?null:b);
+  function readStoredDocument(id){try{const list=JSON.parse(localStorage.getItem(STORE)||'[]');return Array.isArray(list)?list.find(x=>x&&x.id===id)||null:null;}catch{return null;}}
 
   const makeId = () => {
     const d=new Date(),date=[d.getFullYear(),String(d.getMonth()+1).padStart(2,'0'),String(d.getDate()).padStart(2,'0')].join('');
@@ -27,6 +30,7 @@
       x.html=typeof x.html==='string'?x.html:'<p><br></p>';
       x.createdAt=Number(x.createdAt)||Number(x.updatedAt)||now;
       x.updatedAt=Number(x.updatedAt)||x.createdAt;
+      x.revision=Math.max(1,Number(x.revision)||1);
       x.appType='writer';x.schemaVersion=3;x.deletedAt=Number(x.deletedAt)||null;x.folder=folders.includes(x.folder)?x.folder:'Chưa phân loại';x.category=String(x.category||'Khác').slice(0,40);x.pinned=!!x.pinned;
       return x;
     });
@@ -134,43 +138,67 @@
   function saveVersionHistory(){
     const ids=new Set(documents.map(d=>d.id)),candidate={};Object.entries(versionHistory).forEach(([id,list])=>{if(ids.has(id)&&Array.isArray(list))candidate[id]=list.slice();});
     let entries=Object.entries(candidate).flatMap(([id,list])=>list.map(v=>({id,v}))).sort((a,b)=>(a.v.createdAt||0)-(b.v.createdAt||0));
-    let total=entries.reduce((n,x)=>n+String(x.v.html||'').length,0);
-    while(total>HISTORY_TOTAL_CHARS&&entries.length){const old=entries.shift();total-=String(old.v.html||'').length;const list=candidate[old.id]||[];const index=list.findIndex(v=>v.versionId===old.v.versionId);if(index>=0)list.splice(index,1);if(!list.length)delete candidate[old.id];}
+    let total=entries.reduce((n,x)=>n+String(x.v.html||'').length+String(x.v.design?JSON.stringify(x.v.design):'').length,0);
+    while(total>HISTORY_TOTAL_CHARS&&entries.length){const old=entries.shift();total-=String(old.v.html||'').length+String(old.v.design?JSON.stringify(old.v.design):'').length;const list=candidate[old.id]||[];const index=list.findIndex(v=>v.versionId===old.v.versionId);if(index>=0)list.splice(index,1);if(!list.length)delete candidate[old.id];}
     try{localStorage.setItem(HISTORY_STORE,JSON.stringify(candidate));versionHistory=candidate;return true;}catch{return false;}
   }
   function renderVersionHistory(){
     const select=$('#versionHistoryList');if(!select)return;const doc=current(),list=doc?(versionHistory[doc.id]||[]):[];select.replaceChildren();
-    list.slice().sort((a,b)=>b.createdAt-a.createdAt).forEach(v=>{const o=document.createElement('option');o.value=v.versionId;o.textContent=new Date(v.createdAt).toLocaleString('vi-VN')+' · '+v.reason+' · '+(v.wordCount||0)+' từ';select.append(o);});
+    list.slice().sort((a,b)=>b.createdAt-a.createdAt).forEach(v=>{const o=document.createElement('option');o.value=v.versionId;o.textContent=new Date(v.createdAt).toLocaleString('vi-VN')+' · '+v.reason+' · '+(v.wordCount||0)+' từ'+(v.design?' · Văn bản + Canvas':v.designOmitted?' · Canvas quá lớn, không kèm bố cục':'');select.append(o);});
     const has=list.length>0;['previewVersion','restoreVersion'].forEach(id=>{const b=$('#'+id);if(b)b.disabled=!has;});const count=$('#versionHistoryCount');if(count)count.textContent=list.length+'/'+HISTORY_PER_DOCUMENT+' mốc';
   }
   function recordVersionSnapshot(force=false,reason='Tự động'){
     const doc=current();if(!doc)return false;const content=editor.innerHTML;if(content.length>HISTORY_MAX_CHARS){if(force)alert('Nội dung quá lớn để lưu lịch sử (giới hạn 160.000 ký tự mỗi mốc). Hãy xuất bản sao lưu trước.');return false;}
+    const design=doc.design===undefined?undefined:cloneJSON(doc.design),designSize=design===undefined?0:JSON.stringify(design).length,designOmitted=designSize>500000;
     const list=versionHistory[doc.id]||(versionHistory[doc.id]=[]),last=list[list.length-1];
-    if(last&&last.html===content)return true;
+    const designMatches=designOmitted?!!(last&&last.designOmitted):sameJSON(last&&last.design,design);
+    if(last&&last.html===content&&last.title===doc.title&&designMatches&&!!last.designOmitted===designOmitted)return true;
     if(!force&&last&&Date.now()-last.createdAt<AUTO_HISTORY_INTERVAL)return false;
     const textContent=editor.innerText||editor.textContent||'';
-    const snap={versionId:'HDWV-'+Date.now()+'-'+Math.random().toString(36).slice(2,7).toUpperCase(),createdAt:Date.now(),reason,html:content,title:doc.title,wordCount:(textContent.trim().match(/[\p{L}\p{N}]+/gu)||[]).length,charCount:textContent.length};
+    const snap={versionId:'HDWV-'+Date.now()+'-'+Math.random().toString(36).slice(2,7).toUpperCase(),createdAt:Date.now(),reason,html:content,title:doc.title,wordCount:(textContent.trim().match(/[\\p{L}\\p{N}]+/gu)||[]).length,charCount:textContent.length};
+    if(design!==undefined&&!designOmitted)snap.design=design;else if(designOmitted)snap.designOmitted=true;
     list.push(snap);while(list.length>HISTORY_PER_DOCUMENT)list.shift();
     if(!saveVersionHistory()){list.pop();if(!list.length)delete versionHistory[doc.id];if(force)alert('Không đủ bộ nhớ để lưu mốc phiên bản.');return false;}
     renderVersionHistory();return true;
   }
   function previewSelectedVersion(){const doc=current(),id=$('#versionHistoryList').value,v=doc&&(versionHistory[doc.id]||[]).find(x=>x.versionId===id);if(!v){alert('Chọn một mốc lịch sử trước.');return;}const parsed=new DOMParser().parseFromString(v.html,'text/html');$('#versionPreviewTitle').textContent=(v.reason||'Phiên bản')+' · '+new Date(v.createdAt).toLocaleString('vi-VN');$('#versionPreviewText').value=parsed.body.innerText||parsed.body.textContent||'';const dlg=$('#versionPreviewDialog');if(dlg&&typeof dlg.showModal==='function')dlg.showModal();else alert($('#versionPreviewText').value.slice(0,4000));}
   function restoreSelectedVersion(){const doc=current(),id=$('#versionHistoryList').value,v=doc&&(versionHistory[doc.id]||[]).find(x=>x.versionId===id);if(!v){alert('Chọn một mốc lịch sử trước.');return;}if(!confirm('Khôi phục nội dung từ '+new Date(v.createdAt).toLocaleString('vi-VN')+'? Nội dung hiện tại sẽ được lưu thành một mốc riêng trước khi khôi phục.'))return;
-    if(dirty)persist(false);recordVersionSnapshot(true,'Trước khi khôi phục');doc.html=sanitizeHTML(v.html);doc.updatedAt=Date.now();editor.innerHTML=doc.html;dirty=false;persist(false);recordVersionSnapshot(true,'Khôi phục phiên bản');loadDoc(doc.id);renderVersionHistory();setState('Đã khôi phục nội dung từ lịch sử','saved');}
+    if(dirty)persist(false);recordVersionSnapshot(true,'Trước khi khôi phục');doc.html=sanitizeHTML(v.html);if(Object.prototype.hasOwnProperty.call(v,'design'))doc.design=cloneJSON(v.design);doc.updatedAt=Date.now();editor.innerHTML=doc.html;dirty=false;persist(false);recordVersionSnapshot(true,'Khôi phục phiên bản');loadDoc(doc.id);renderVersionHistory();setState(Object.prototype.hasOwnProperty.call(v,'design')?'Đã khôi phục cả Writer và Canvas':'Đã khôi phục nội dung Writer'+(v.designOmitted?' · bố cục Canvas không có trong mốc này':''),'saved');}
   function persist(show=true) {
-    const doc=current(); if (!doc) return;
-    doc.title=titleInput.value.trim() || 'Tài liệu chưa đặt tên';
-    doc.html=editor.innerHTML;
-    recordVersionSnapshot(false,'Tự động');
-    doc.appType='writer';doc.schemaVersion=3;doc.folder=folders.includes(doc.folder)?doc.folder:'Chưa phân loại';doc.category=String(doc.category||'Khác');doc.pinned=!!doc.pinned;doc.createdAt=Number(doc.createdAt)||doc.updatedAt||Date.now();
-    doc.updatedAt=Date.now();
-    try {
-      localStorage.setItem(STORE, JSON.stringify(documents));
-      dirty=false; if(show) setState('Đã lưu trên thiết bị','saved');
-      renderDocList();
-    } catch (err) {
-      setState('Không đủ bộ nhớ · hãy xuất tệp','error');
-    }
+    const original=current();if(!original)return false;
+    const id=original.id,base=loadedBase&&loadedBase.id===id?loadedBase.snapshot:cloneJSON(original);
+    const local={...original,title:titleInput.value.trim()||'Tài liệu chưa đặt tên',html:editor.innerHTML};
+    local.appType='writer';local.schemaVersion=3;local.folder=folders.includes(local.folder)?local.folder:'Chưa phân loại';local.category=String(local.category||'Khác');local.pinned=!!local.pinned;local.createdAt=Number(local.createdAt)||local.updatedAt||Date.now();
+    try{
+      const raw=JSON.parse(localStorage.getItem(STORE)||'[]');if(!Array.isArray(raw))throw new Error('Kho tài liệu không hợp lệ.');
+      const latestDocs=raw.map(x=>({...x})),at=latestDocs.findIndex(x=>x.id===id),latest=at>=0?latestDocs[at]:null;
+      if(!latest&&loadedBase&&loadedBase.id===id&&loadedBase.exists){setState('Xung đột: tài liệu đã bị xóa ở cửa sổ khác; chưa ghi đè.','error');return false;}
+      let merged;
+      if(!latest){merged={...local,revision:1,updatedAt:Date.now()};latestDocs.push(merged);}
+      else{
+        const fields=new Set([...Object.keys(base||{}),...Object.keys(local),...Object.keys(latest)]);
+        fields.delete('id');fields.delete('revision');fields.delete('updatedAt');
+        const conflicts=[];merged={...latest};
+        fields.forEach(key=>{
+          const localChanged=!sameJSON(local[key],base&&base[key]),remoteChanged=!sameJSON(latest[key],base&&base[key]);
+          if(localChanged&&remoteChanged&&!sameJSON(local[key],latest[key]))conflicts.push(key);
+          else if(localChanged)merged[key]=cloneJSON(local[key]);
+        });
+        if(conflicts.length){
+          setState('Xung đột dữ liệu ('+conflicts.join(', ')+'). Chưa ghi đè bản ở cửa sổ kia.','error');
+          if(show&&confirm('Tài liệu vừa được thay đổi ở một cửa sổ khác ('+conflicts.join(', ')+').\\n\\nOK: tải bản mới nhất và bỏ thay đổi chưa lưu tại cửa sổ này.\\nHủy: giữ nội dung đang sửa trong bộ nhớ để bạn sao lưu thủ công.')){documents=normalizeDocuments(latestDocs);loadDoc(id);setState('Đã tải bản mới nhất từ cửa sổ khác','saved');}
+          return false;
+        }
+        merged.revision=Math.max(1,Number(latest.revision)||1,Number(base&&base.revision)||1)+1;merged.updatedAt=Date.now();latestDocs[at]=merged;
+      }
+      documents=normalizeDocuments(latestDocs);
+      const saved=documents.find(x=>x.id===id);if(!saved)throw new Error('Không tìm thấy bản ghi sau khi hợp nhất.');
+      recordVersionSnapshot(false,'Tự động');
+      localStorage.setItem(STORE,JSON.stringify(documents));
+      loadedBase={id,exists:true,snapshot:cloneJSON(saved)};
+      dirty=false;if(show)setState('Đã lưu trên thiết bị · phiên bản '+saved.revision,'saved');
+      renderDocList();return true;
+    }catch(err){dirty=true;setState('Lưu thất bại · '+err.message+' · hãy xuất bản sao lưu','error');return false;}
   }
   function scheduleSave() {
     dirty=true; setState('Đang chờ lưu…','pending');
@@ -194,6 +222,7 @@
   function loadDoc(id) {
     const doc=documents.find(d=>d.id===id); if(!doc) return;
     clearTimeout(saveTimer); activeId=id; titleInput.value=doc.title; editor.innerHTML=sanitizeHTML(doc.html || '<p><br></p>');
+    const stored=readStoredDocument(id);loadedBase={id,exists:!!stored,snapshot:cloneJSON(stored||doc)};
     dirty=false;renderDocList();renderVersionHistory();updateStats();const identity=$('#docIdDisplay');if(identity)identity.textContent='ID: '+doc.id;const cat=$('#docCategory');if(cat)cat.value=doc.category||'Khác';const pin=$('#togglePin');if(pin)pin.textContent=doc.pinned?'★ Đã ghim':'☆ Ghim tài liệu';setState('Đã mở tài liệu','saved');
   }
 
@@ -273,7 +302,7 @@
   }
   function createDoc() {
     if(dirty) persist(false);
-    const doc={id:makeId(),title:'Tài liệu mới',html:'<h1>Tài liệu mới</h1><p><br></p>',createdAt:Date.now(),updatedAt:Date.now(),folder:'Chưa phân loại',category:'Khác',pinned:false};
+    const doc={id:makeId(),title:'Tài liệu mới',html:'<h1>Tài liệu mới</h1><p><br></p>',createdAt:Date.now(),updatedAt:Date.now(),revision:1,folder:'Chưa phân loại',category:'Khác',pinned:false};
     documents.push(doc); loadDoc(doc.id); titleInput.focus(); titleInput.select(); scheduleSave();
   }
   function download(name,data,type) {
@@ -508,6 +537,7 @@
   if(canvasLaunch)canvasLaunch.addEventListener('click',()=>{if(dirty)persist(false);const d=current();if(d)canvasLaunch.href='canvas-studio.html?documentId='+encodeURIComponent(d.id);});
 
   window.addEventListener('pageshow',event=>{if(!event.persisted)return;try{const latest=JSON.parse(localStorage.getItem(STORE)||'[]');if(!Array.isArray(latest))return;documents=normalizeDocuments(latest);const active=documents.find(d=>d.id===activeId&&!d.deletedAt);if(active){loadDoc(active.id);setState('Đã đồng bộ thay đổi Canvas','saved');}}catch{setState('Không thể tải lại dữ liệu sau khi quay về','error');}});
+  window.addEventListener('storage',event=>{if(event.key===STORE){try{const latest=JSON.parse(event.newValue||'[]');if(!Array.isArray(latest))return;if(dirty){setState('Có thay đổi từ cửa sổ khác · sẽ hợp nhất an toàn khi lưu','pending');return;}documents=normalizeDocuments(latest);const active=documents.find(d=>d.id===activeId&&!d.deletedAt);if(active){loadDoc(active.id);setState('Đã đồng bộ dữ liệu Writer/Canvas từ cửa sổ khác','saved');}}catch{setState('Không thể đồng bộ thay đổi từ cửa sổ khác','error');}}else if(event.key===HISTORY_STORE){versionHistory=readVersionHistory();renderVersionHistory();}});
   editor.addEventListener('input',()=>{rememberEditorSelection();scheduleSave();scheduleTocUpdate();});
   document.addEventListener('selectionchange',rememberEditorSelection);
   document.addEventListener('pointerdown',e=>{if(e.target.closest('.ribbon,.editor-quickbar'))rememberEditorSelection();},true);
@@ -759,7 +789,7 @@
   }
   function exportBackup(){
     if(dirty)persist(false);
-    const payload={format:'HAI-DAT-WRITER-BACKUP',version:4,appType:'writer',createdAt:new Date().toISOString(),activeId,folders,documents,versionHistory,printSettings:readPrintSettings(),pageSettings:(()=>{try{return JSON.parse(localStorage.getItem('haidat-writer-page-settings')||'{}');}catch{return {};}})()};
+    const payload={format:'HAI-DAT-WRITER-BACKUP',version:5,appType:'writer',createdAt:new Date().toISOString(),activeId,folders,documents,versionHistory,printSettings:readPrintSettings(),pageSettings:(()=>{try{return JSON.parse(localStorage.getItem('haidat-writer-page-settings')||'{}');}catch{return {};}})()};
     download('hai-dat-writer-backup-'+new Date().toISOString().slice(0,10)+'.json',JSON.stringify(payload,null,2),'application/json;charset=utf-8');
     setState('Đã tạo bản sao lưu','saved');
   }
@@ -771,12 +801,12 @@
     reader.onload=()=>{
       try{
         const data=JSON.parse(String(reader.result||''));
-        if(data.format!=='HAI-DAT-WRITER-BACKUP'||![1,2,3,4].includes(data.version)||!Array.isArray(data.documents)||!data.documents.length)throw new Error('Sai định dạng hoặc phiên bản bản sao lưu.');
+        if(data.format!=='HAI-DAT-WRITER-BACKUP'||![1,2,3,4,5].includes(data.version)||!Array.isArray(data.documents)||!data.documents.length)throw new Error('Sai định dạng hoặc phiên bản bản sao lưu.');
         const mode=$('#backupMode')?.value||'merge';
         if(mode==='replace'){
           const approved=confirm('CHẾ ĐỘ THAY THẾ TOÀN BỘ\\n\\nWriter sẽ tạo một tệp sao lưu dữ liệu hiện tại trước khi khôi phục. Hãy giữ tệp tải xuống ở nơi an toàn. Tiếp tục?');
           if(!approved)return;
-          const safetyPayload={format:'HAI-DAT-WRITER-BACKUP',version:4,appType:'writer',createdAt:new Date().toISOString(),activeId,folders,documents,versionHistory,printSettings:readPrintSettings(),pageSettings:(()=>{try{return JSON.parse(localStorage.getItem('haidat-writer-page-settings')||'{}');}catch{return {};}})(),safetyCopy:true};
+          const safetyPayload={format:'HAI-DAT-WRITER-BACKUP',version:5,appType:'writer',createdAt:new Date().toISOString(),activeId,folders,documents,versionHistory,printSettings:readPrintSettings(),pageSettings:(()=>{try{return JSON.parse(localStorage.getItem('haidat-writer-page-settings')||'{}');}catch{return {};}})(),safetyCopy:true};
           download('hai-dat-writer-truoc-khi-thay-the-'+new Date().toISOString().replace(/[:.]/g,'-')+'.json',JSON.stringify(safetyPayload,null,2),'application/json;charset=utf-8');
           if(!confirm('Đã yêu cầu tải bản sao lưu hiện tại xuống thiết bị. Chỉ bấm OK nếu trình duyệt đã tải tệp hoặc bạn đã tự sao lưu dữ liệu. Nếu chưa, hãy bấm Hủy.')){
             throw new Error('Đã hủy thay thế để bảo toàn dữ liệu hiện tại.');
@@ -814,8 +844,8 @@
         const allowedHistoryIds=new Set(nextDocs.map(d=>d.id));
         Object.keys(nextHistory).forEach(id=>{if(!allowedHistoryIds.has(id)||!Array.isArray(nextHistory[id]))delete nextHistory[id];else nextHistory[id]=nextHistory[id].slice(-HISTORY_PER_DOCUMENT);});
         let historyEntries=Object.entries(nextHistory).flatMap(([id,list])=>list.map(v=>({id,v}))).sort((a,b)=>(Number(a.v.createdAt)||0)-(Number(b.v.createdAt)||0));
-        let historyChars=historyEntries.reduce((n,x)=>n+String(x.v.html||'').length,0);
-        while(historyChars>HISTORY_TOTAL_CHARS&&historyEntries.length){const oldest=historyEntries.shift();historyChars-=String(oldest.v.html||'').length;const list=nextHistory[oldest.id]||[];const at=list.findIndex(v=>v.versionId===oldest.v.versionId);if(at>=0)list.splice(at,1);if(!list.length)delete nextHistory[oldest.id];}
+        let historyChars=historyEntries.reduce((n,x)=>n+String(x.v.html||'').length+String(x.v.design?JSON.stringify(x.v.design):'').length,0);
+        while(historyChars>HISTORY_TOTAL_CHARS&&historyEntries.length){const oldest=historyEntries.shift();historyChars-=String(oldest.v.html||'').length+String(oldest.v.design?JSON.stringify(oldest.v.design):'').length;const list=nextHistory[oldest.id]||[];const at=list.findIndex(v=>v.versionId===oldest.v.versionId);if(at>=0)list.splice(at,1);if(!list.length)delete nextHistory[oldest.id];}
         const activeFromBackup=imported.find(d=>d.id===data.activeId&&!d.deletedAt);
         const currentActive=nextDocs.find(d=>d.id===activeId&&!d.deletedAt);
         let preferred=mode==='replace'?(activeFromBackup||nextDocs.find(d=>!d.deletedAt)):(activeFromBackup||currentActive||nextDocs.find(d=>!d.deletedAt));
