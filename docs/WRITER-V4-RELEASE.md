@@ -101,3 +101,31 @@
 - 7 tệp khác biệt so với V3: 355 dòng thêm, 1 dòng xóa theo GitHub compare; số liệu gồm cả lịch sử V4.0–V4.3, không phải riêng V4.3.
 - Tệp Canvas Studio có 32.755 ký tự theo nội dung fetch; đây không phải phép đo dung lượng byte.
 - Kiểm tra tĩnh: JavaScript trong trang Canvas phân tích cú pháp thành công; chưa thay thế kiểm thử giao diện trên trình duyệt/thiết bị.
+
+
+## 17/11/2026 — V4.4 Multi-page Studio (triển khai ban đầu)
+
+### Nội dung đã ghi lên nhánh `v4-development`
+- Nâng Canvas từ một trang mô phỏng thành mô hình nhiều trang trong cùng hồ sơ Writer.
+- Thêm chuyển trang, thêm trang, xóa trang có xác nhận, đổi thứ tự trang lên/xuống và chọn trang bằng danh sách.
+- Tách riêng `items[]` theo từng trang; chuyển trang không làm lẫn đối tượng.
+- Bổ sung khổ A4/A3/A5/Letter/tùy chỉnh, chiều dọc/ngang, kích thước tùy chỉnh theo mm, bốn lề và đường gợi ý vùng in.
+- Mở rộng undo/redo để chụp trạng thái cả bộ trang.
+- Lưu `design.pages[]` và `activePageId`; vẫn duy trì `design.items` và `design.page` cho khả năng tương thích với dữ liệu Canvas cũ.
+- Tài liệu cũ có `design.items` được đưa vào trang đầu tiên khi nạp; cấu trúc mới được lưu khi người dùng lưu hoặc phát sinh autosave.
+- Không tạo ID tài liệu mới; không thay đổi HTML Writer và các trường dữ liệu khác.
+
+### Kiểm tra tĩnh
+- JavaScript trong `writer/canvas-studio.html` đã được trích xuất và phân tích cú pháp bằng `new Function(...)`: thành công.
+- Kiểm tra này chỉ xác nhận cú pháp JavaScript; không chứng minh giao diện hoặc các thao tác hoạt động đúng trong trình duyệt.
+
+### Giới hạn / QA còn thiếu
+- Đường vùng in hiện chỉ là hướng dẫn trực quan, chưa có engine in hoặc xuất PDF/DOCX.
+- Chưa tự động tràn văn bản giữa các trang; chưa có thumbnail trang, kéo-thả sắp thứ tự hoặc cảnh báo đối tượng vượt lề.
+- Chưa chạy browser QA, Android/desktop QA, kiểm thử khôi phục crash, quota localStorage, xung đột nhiều tab hoặc in/xuất thực tế.
+- V4.4 là mã triển khai ban đầu trên nhánh phát triển, chưa được xem là bản phát hành.
+- V3 vẫn độc lập; không merge, không deploy và không phát hành chính thức.
+
+### Tệp và commit
+- `writer/canvas-studio.html` — commit tính năng: `c047220c82487e47850a729110118e9ded4d2ff2`.
+- Cập nhật kiến trúc, README và nhật ký trong các commit tài liệu kế tiếp.
