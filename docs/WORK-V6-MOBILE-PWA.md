@@ -15,6 +15,6 @@
 4. Kiểm tra quota localStorage, khôi phục backup, chuyển qua lại hai chế độ và cập nhật Service Worker.
 5. Kiểm tra Samsung A05 thực tế và ít nhất một trình duyệt desktop.
 6. Xác nhận lời mời cài đặt, trạng thái chấp nhận/từ chối và sự kiện appinstalled trên Chrome Android.
-7. Kiểm tra biểu tượng SVG trên trình duyệt mục tiêu; nếu Chrome yêu cầu PNG 192×192 và 512×512 thì bổ sung hai biểu tượng raster trước khi công bố cài đặt rộng rãi.
+7. Kiểm tra biểu tượng SVG trên trình duyệt mục tiêu; đã bổ sung biểu tượng PNG 192×192 và 512×512 cùng SVG maskable; vẫn cần kiểm tra cài đặt thực tế trên Chrome Android.
 
 Trạng thái: **Đang phát triển; đã hoàn thiện xử lý lời mời cài PWA và làm mới cache Service Worker; chưa xác nhận QA thiết bị, chưa phải bản phát hành production.**
