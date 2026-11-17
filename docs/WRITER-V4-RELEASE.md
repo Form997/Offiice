@@ -50,3 +50,11 @@
 - Khi quay lại Writer từ bộ nhớ trang (back-forward cache), nạp lại bản ghi cùng ID từ kho cục bộ để nhận metadata Canvas mới nhất.
 - Khi ID gốc không còn hoặc kho dữ liệu không hợp lệ, dừng lưu và báo lỗi thay vì tạo bản ghi khác.
 - Vẫn chưa có kiểm thử trình duyệt/Android/desktop; lưu tự động hiện là mã triển khai ban đầu, cần QA thực tế.
+
+
+### Đối chiếu nhánh sau cập nhật
+- GitHub compare `v3-development...v4-development`: 18 commit ahead, 0 behind.
+- 7 tệp thay đổi so với V3; tổng 171 dòng thêm, 1 dòng xóa (theo GitHub compare).
+- Thống kê này gồm cả tài liệu kiến trúc/lộ trình và mã prototype; không phải số dòng tính riêng cho V4.1.
+- Dung lượng byte chưa ghi vì chưa có phép đo blob/file size đáng tin cậy.
+- Trạng thái: mã tích hợp ban đầu đã nằm trên nhánh V4; chưa có CI/browser/Android QA xác nhận. V4.1 vẫn đang phát triển.
