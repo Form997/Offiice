@@ -8,6 +8,8 @@ const errors = [];
 
 const ids = [...html.matchAll(/\bid=["']([^"']+)["']/g)].map(m => m[1]);
 const idSet = new Set(ids);
+// These IDs are intentionally created at runtime rather than declared in index.html.
+const runtimeIds = new Set(['dynamicPrintStyle']);
 for (const id of new Set(ids)) {
   if (ids.filter(x => x === id).length > 1) errors.push(`Duplicate HTML id: ${id}`);
 }
@@ -17,7 +19,7 @@ for (const [file, source] of [['app.js', app], ['collaboration.js', collaboratio
     ...[...source.matchAll(/getElementById\(\s*['"]([A-Za-z][\w:-]*)['"]\s*\)/g)].map(m => m[1]),
   ];
   for (const id of refs) {
-    if (!idSet.has(id)) errors.push(`${file} references missing HTML id: ${id}`);
+    if (!idSet.has(id) && !runtimeIds.has(id)) errors.push(`${file} references missing HTML id: ${id}`);
   }
 }
 for (const required of ['editorZoom','toggleFocusMode','focusModeExit','focusEditor','backupExport','backupImport','backupMode','backupFile','checkDataHealth']) {
