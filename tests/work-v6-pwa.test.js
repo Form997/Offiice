@@ -48,6 +48,7 @@ test('WORK V6 exposes install prompt and installed-state handling',()=>{
 test('WORK V6 preserves the selected document when switching Writer and Canvas',()=>{
   const app=read('writer/app.js');
   const canvas=read('writer/canvas-studio.html');
+  assert.match(app,/dirty&&!persist\(false\)\)\{event\.preventDefault\(\)/);
   const html=read('writer/index.html');
   assert.match(app,/new URLSearchParams\(location\.search\)\.get\('documentId'\)/);
   assert.match(app,/canvas-studio\.html\?documentId=/);
