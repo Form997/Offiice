@@ -66,3 +66,14 @@ Chỉ cập nhật `v4-development`. Không sửa, merge hoặc deploy `v3-devel
 
 ## Mẫu trang
 Khi thêm trang, người dùng chọn một trong bốn mẫu: trang trắng, bìa tài liệu, trang nội dung hoặc trang bảng dữ liệu. Mẫu tạo ra các đối tượng Canvas độc lập có thể sửa, di chuyển, định dạng hoặc xóa. Bố cục mẫu được thiết kế theo khung A4; khi đổi khổ giấy, cần kiểm tra và sắp xếp lại nội dung.
+
+
+## V4.5 — Đồng bộ tài liệu Writer/Canvas
+- Một ID tài liệu và một bản ghi localStorage; trường `revision` tăng khi có lần lưu thay đổi.
+- Writer hợp nhất theo từng trường so với bản gốc đã nạp và bản mới nhất trong kho. Sửa độc lập được kết hợp; sửa trùng trường với giá trị khác nhau bị chặn để tránh ghi đè âm thầm.
+- Canvas chỉ cập nhật `design` lên bản mới nhất khi chữ ký bố cục vẫn khớp bản gốc. Nếu bố cục đã đổi ở nơi khác, thao tác lưu bị từ chối.
+- Sự kiện `storage` thông báo thay đổi giữa các tab cùng origin; Writer đang có chỉnh sửa giữ nội dung cục bộ và hợp nhất lúc lưu.
+- Lịch sử dùng cùng khóa `haidat-writer-history-v1`; snapshot có thể chứa `html` và `design`. Khôi phục trong Writer khôi phục cả hai nếu snapshot có thiết kế.
+- Backup version 5 xuất dữ liệu Canvas/revision/lịch sử; bộ nhập vẫn nhận version 1–5.
+- Ngưỡng: snapshot Writer bỏ dữ liệu thiết kế nếu JSON vượt 500.000 ký tự; Canvas từ chối lưu khi snapshot bảo vệ vượt 650.000 ký tự; lịch sử tổng tối đa khoảng 1.100.000 ký tự ước tính.
+- Đây là đồng bộ lạc quan trên localStorage, chưa phải khóa giao dịch phân tán; chưa đồng bộ nhiều thiết bị và chưa kiểm thử thực tế nhiều tab.
