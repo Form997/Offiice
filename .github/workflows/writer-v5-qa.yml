@@ -1,4 +1,4 @@
-name: HAI DAT Writer V5 QA
+name: HAI DAT OFFICE WORK V6 QA
 on:
   push:
     branches: [v5-development]
@@ -6,12 +6,12 @@ on:
     branches: [v5-development]
   workflow_dispatch:
 jobs:
-  backup-preflight-tests:
+  work-regression-and-pwa-tests:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: 20
-      - name: Run V4.9 and V5.0 QA tests
+      - name: Run WORK regression and PWA checks
         run: node --test tests/*.test.js
