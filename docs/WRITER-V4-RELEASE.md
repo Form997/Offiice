@@ -194,7 +194,7 @@
 - Kiểm tra tĩnh xác nhận Writer/Canvas đều nạp module; service worker precache đúng module V4.6.
 - Harness giả lập: JSON backup version 5 đúng cấu trúc một tài liệu + lịch sử; HTML có nội dung Writer + Canvas; SVG/PNG nhiều trang tạo ZIP; DOCX có ZIP signature và các thành phần `[Content_Types].xml`, `_rels/.rels`, `word/document.xml`, `word/styles.xml`; PDF gọi luồng in và giữ cả nội dung Writer + Canvas.
 - Harness là kiểm tra logic với mock Blob/DOM/Image/Canvas; không phải browser runtime hoặc xác minh tệp mở được bằng phần mềm văn phòng.
-- So sánh sau cập nhật: V4 có 88 commit ahead, 0 behind so với V3; 12 tệp khác biệt tích lũy.
+- So sánh sau cập nhật: V4 có 90 commit ahead, 0 behind so với V3; 12 tệp khác biệt tích lũy tại lần đối chiếu cuối.
 
 ### Giới hạn và QA còn thiếu
 - Chưa chạy browser runtime hoặc thao tác tải tệp thật trên Android/desktop.
@@ -219,5 +219,5 @@
 - `writer/index.html`: 22,370 byte.
 - `writer/canvas-studio.html`: 48,373 byte.
 - `writer/sw.js`: 1,156 byte.
-- `docs/WRITER-V4-EXPORT-STUDIO.md`: 4,065 byte.
+- `docs/WRITER-V4-EXPORT-STUDIO.md`: 4,525 byte.
 - Đây là dung lượng toàn tệp tại thời điểm ghi nhận, không phải phần tăng thêm của riêng V4.6.
