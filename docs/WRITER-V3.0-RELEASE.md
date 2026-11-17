@@ -10,6 +10,8 @@
 2. Chế độ tập trung ẩn phần đầu trang, thanh quản lý tài liệu và Ribbon để dành không gian viết.
 3. Có nút thoát chế độ tập trung ngay trên thanh định dạng nhanh; phím Escape chưa được gán để tránh xung đột với hộp thoại.
 4. Cập nhật phiên bản giao diện và cache PWA lên V3.0.
+5. Chế độ tập trung được chỉnh để ẩn cả bảng bên phải và mở vùng viết toàn chiều rộng.
+6. Thêm GitHub Actions kiểm tra cú pháp JavaScript và rà soát ID giao diện; thêm checklist QA trước phát hành.
 
 ## Giữ nguyên
 - ID riêng từng tài liệu, kho tài liệu cục bộ, thư mục, ghim, thùng rác và lịch sử phiên bản.
@@ -18,6 +20,7 @@
 
 ## Kiểm thử
 - Đã rà soát điểm gắn sự kiện theo ID của hai nút mới và các phần tử giao diện.
+- Workflow kiểm thử tự động đã được thêm; chưa có kết quả chạy CI được xác nhận trong phiên này.
 - Chưa chạy kiểm thử trình duyệt thực tế trên Android/desktop trong phiên này.
 - Chưa xác nhận đồng bộ Supabase hoặc phân quyền trực tuyến vì chưa có cấu hình dự án.
 
