@@ -24,7 +24,10 @@ V4 phát triển trên nhánh riêng `v4-development`, kết hợp chế độ V
 - Kiến trúc: `../docs/WRITER-V4-ARCHITECTURE.md`
 - Nhật ký: `../docs/WRITER-V4-RELEASE.md`
 
-### Canvas Studio — prototype V4
-- Mở thử: `canvas-studio.html` (từ Writer có nút **Canvas Studio V4**).
-- Đặc tả và ranh giới tích hợp: `../docs/WRITER-V4-CANVAS-STUDIO.md`.
-- Prototype lưu bản thử riêng; chưa đồng bộ vào hồ sơ tài liệu V3. Chưa xem là V4.1 hoàn chỉnh.
+### Canvas Studio — V4.1 đang phát triển
+- Mở Canvas từ tài liệu Writer bằng nút **Canvas Studio V4**; Writer truyền ID tài liệu hiện hành.
+- Khi mở bằng ID hợp lệ, Canvas đọc/ghi metadata `design` trong cùng bản ghi `haidat-writer-documents-v2`; không tạo ID mới và không thay nội dung HTML.
+- Có lưu tự động cục bộ, kéo thả, đổi kích thước, bảng thuộc tính, lớp, undo/redo, lưới, zoom và pan cơ bản.
+- Nếu mở trực tiếp không có ID, Canvas dùng vùng thử riêng.
+- Đặc tả: `../docs/WRITER-V4-CANVAS-STUDIO.md`; lộ trình: `../docs/WRITER-V4-ARCHITECTURE.md`.
+- V4.1 chưa hoàn tất QA; chưa xác nhận chạy thực tế trên Android/desktop, chưa kiểm thử xung đột hai tab, giới hạn bộ nhớ hoặc DOCX/PDF. Nhánh V3 vẫn độc lập.
