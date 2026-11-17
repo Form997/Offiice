@@ -129,3 +129,8 @@
 ### Tệp và commit
 - `writer/canvas-studio.html` — commit tính năng: `c047220c82487e47850a729110118e9ded4d2ff2`.
 - Cập nhật kiến trúc, README và nhật ký trong các commit tài liệu kế tiếp.
+
+### Bổ sung mẫu trang V4.4
+- Thêm bộ chọn mẫu khi tạo trang: trang trắng, bìa tài liệu, trang nội dung và trang bảng dữ liệu.
+- Mẫu sinh các đối tượng văn bản/đường kẻ/bảng có cấu trúc; người dùng tiếp tục chỉnh sửa từng đối tượng như bình thường.
+- Các bố cục mẫu được căn theo khung A4 mặc định; khi đổi sang khổ khác, người dùng cần tự rà soát vị trí và kích thước.
