@@ -84,3 +84,28 @@ Một hồ sơ tài liệu có thể mở ở chế độ Văn bản hoặc Canv
 - Chưa kiểm thử browser thực tế, Android/desktop, khôi phục sau crash, localStorage quota, nhiều tab hoặc khả năng in/xuất.
 
 - Mẫu trang dựng sẵn: trang trắng, bìa tài liệu, trang nội dung và trang bảng dữ liệu; mẫu tạo các đối tượng Canvas có thể sửa riêng, không phải ảnh nền.
+
+
+## V4.5 — Document Integration (triển khai ban đầu)
+
+### Một bản ghi, một revision
+- Writer và Canvas tiếp tục dùng cùng bản ghi trong `haidat-writer-documents-v2`; ID tài liệu không đổi, không tạo hồ sơ phụ.
+- Thêm trường `revision` ở cấp bản ghi để đánh dấu lần lưu. Trường này độc lập với `schemaVersion: 3`; không ép chuyển đổi schema V3.
+- Writer hợp nhất thay đổi theo từng trường giữa bản đang mở và bản mới nhất trong localStorage. Những thay đổi độc lập (ví dụ Writer sửa HTML, Canvas sửa `design`) được giữ chung; nếu cùng một trường bị sửa khác nhau ở hai cửa sổ, hệ thống chặn ghi đè và báo xung đột.
+- Canvas kiểm tra revision và chữ ký dữ liệu `design`; nếu bố cục đã đổi từ cửa sổ khác, Canvas từ chối lưu đè. Nếu chỉ nội dung Writer đổi, Canvas có thể ghi `design` lên bản ghi mới nhất mà vẫn giữ HTML mới.
+- Sự kiện `storage` giúp các cửa sổ cùng nguồn gốc nhận biết cập nhật. Khi Writer đang có chỉnh sửa cục bộ, nó giữ nội dung đó và thực hiện hợp nhất khi lưu.
+
+### Lịch sử phiên bản chung
+- Mốc lịch sử giữ `html` và có thể kèm `design`; danh sách lịch sử Writer hiện rõ mốc nào có cả Văn bản + Canvas.
+- Lệnh Khôi phục trong Writer khôi phục cả HTML lẫn `design` khi mốc có dữ liệu Canvas. Mốc cũ chỉ có HTML vẫn hoạt động và không tự xóa bố cục hiện tại.
+- Canvas tạo mốc bảo vệ trạng thái trước khi ghi bố cục mới. Lịch sử tiếp tục dùng khóa `haidat-writer-history-v1`, tối đa 6 mốc/tài liệu và giới hạn tổng hiện hành 1.100.000 ký tự ước tính.
+- Nếu bố cục Canvas quá lớn (trên ngưỡng 500.000 ký tự JSON trong snapshot Writer hoặc tổng snapshot Canvas vượt 650.000 ký tự), snapshot đầy đủ có thể bị bỏ qua hoặc thao tác lưu Canvas bị chặn để tránh ghi mà không có mốc bảo vệ.
+
+### Sao lưu
+- Bản sao lưu Writer tăng định dạng lên version 5; xuất kèm `design`, `revision` và lịch sử có dữ liệu Canvas.
+- Bộ nhập vẫn chấp nhận backup version 1–5; khi hợp nhất, bản ghi cùng ID vẫn được xử lý theo quy tắc cập nhật mới hơn hiện có.
+
+### Ranh giới kỹ thuật
+- Đồng bộ chỉ trong cùng trình duyệt/origin qua localStorage; chưa có đồng bộ liên thiết bị hoặc máy chủ.
+- Revision là cơ chế phát hiện và hợp nhất lạc quan, không phải khóa giao dịch phân tán tuyệt đối. Hai lần ghi đồng thời sát nhau vẫn cần kiểm thử thực tế.
+- Không có Supabase, tài khoản hoặc chia sẻ cộng tác trong V4.5.
