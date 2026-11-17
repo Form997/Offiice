@@ -12,6 +12,8 @@
 4. Cập nhật phiên bản giao diện và cache PWA lên V3.0.
 5. Chế độ tập trung được chỉnh để ẩn cả bảng bên phải và mở vùng viết toàn chiều rộng.
 6. Thêm GitHub Actions kiểm tra cú pháp JavaScript và rà soát ID giao diện; thêm checklist QA trước phát hành.
+7. Khi khôi phục theo chế độ thay thế toàn bộ, Writer yêu cầu tạo và tải bản sao dữ liệu hiện tại trước; người dùng có thể hủy ở bước xác nhận để giữ nguyên kho hiện có.
+8. Bộ kiểm tra tĩnh đối chiếu các ID DOM được gọi trong `app.js` và `collaboration.js` với ID thực tế trong HTML; bổ sung kiểm tra các điều khiển sao lưu.
 
 ## Giữ nguyên
 - ID riêng từng tài liệu, kho tài liệu cục bộ, thư mục, ghim, thùng rác và lịch sử phiên bản.
@@ -19,8 +21,8 @@
 - Cấu hình Supabase để trống mặc định; không chứa khóa bí mật.
 
 ## Kiểm thử
-- Đã rà soát điểm gắn sự kiện theo ID của hai nút mới và các phần tử giao diện.
-- Workflow kiểm thử tự động đã được thêm; chưa có kết quả chạy CI được xác nhận trong phiên này.
+- Đã bổ sung bộ kiểm tra đối chiếu ID DOM và các điều khiển sao lưu/khôi phục; chưa có kết quả chạy CI được xác nhận trong phiên này.
+- Đã thêm bước yêu cầu tải bản sao dữ liệu hiện tại trước thao tác thay thế toàn bộ; vẫn cần thử nghiệm trên trình duyệt thật để xác nhận hành vi tải xuống và khôi phục.
 - Chưa chạy kiểm thử trình duyệt thực tế trên Android/desktop trong phiên này.
 - Chưa xác nhận đồng bộ Supabase hoặc phân quyền trực tuyến vì chưa có cấu hình dự án.
 
