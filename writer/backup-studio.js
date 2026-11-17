@@ -4,7 +4,7 @@
   if(root)root.HD_BACKUP_STUDIO=api;
 })(typeof window!=='undefined'?window:globalThis,function(){
   'use strict';
-  const ID_RE=/^HDW-\\d{8}-[A-Z0-9]{8}$/;
+  const ID_RE=/^HDW-\d{8}-[A-Z0-9]{8}$/;
   function inspect(data,currentDocuments,mode){
     const errors=[],warnings=[],source=Array.isArray(data&&data.documents)?data.documents:[];
     if(!data||data.format!=='HAI-DAT-WRITER-BACKUP')errors.push('Không đúng định dạng HAI-DAT-WRITER-BACKUP.');
@@ -50,7 +50,7 @@
     ];
     if(warnings.length)lines.push('CẢNH BÁO:',...warnings.map(x=>'• '+x));
     lines.push('Chưa có dữ liệu nào bị thay đổi. Tiếp tục nhập bản sao lưu?');
-    return {ok:errors.length===0,errors,warnings,validCount:valid.length,sourceCount:source.length,skipped,duplicates:duplicates.length,invalidIds:invalidIds.length,collisions,added,incomingNewer,keptCurrent,historyCount,designCount,message:lines.join('\\n')};
+    return {ok:errors.length===0,errors,warnings,validCount:valid.length,sourceCount:source.length,skipped,duplicates:duplicates.length,invalidIds:invalidIds.length,collisions,added,incomingNewer,keptCurrent,historyCount,designCount,message:lines.join('\n')};
   }
   return Object.freeze({inspect});
 });
