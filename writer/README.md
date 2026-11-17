@@ -65,3 +65,12 @@ V4 phát triển trên nhánh riêng `v4-development`, kết hợp chế độ V
 - Giới hạn: chưa có tự động tràn văn bản giữa các trang; vùng in chỉ là đường hướng dẫn; chưa có thumbnail trang hoặc kéo-thả thứ tự; chưa kiểm thử trình duyệt/Android/desktop và in/xuất thực tế.
 
 - Khi thêm trang, có thể chọn mẫu trang trắng, bìa tài liệu, trang nội dung hoặc bảng dữ liệu. Các mẫu là đối tượng Canvas có thể chỉnh sửa, không phải ảnh nền.
+
+
+### Document Integration — V4.5 đang phát triển
+- Writer và Canvas lưu chung một bản ghi tài liệu, một ID; thêm revision ở cấp bản ghi, không đổi schemaVersion 3.
+- Writer hợp nhất các trường độc lập (ví dụ HTML và bố cục) và chặn lưu khi cùng trường bị sửa khác nhau ở hai cửa sổ.
+- Canvas kiểm tra revision và chữ ký bố cục trước khi lưu; không ghi đè bố cục mới hơn ở cửa sổ khác.
+- Lịch sử Writer có thể chứa cả HTML và Canvas; lệnh khôi phục phục hồi cả hai khi snapshot có dữ liệu thiết kế. Canvas tạo mốc trước khi lưu bố cục.
+- Backup version 5 chứa dữ liệu thiết kế, revision và lịch sử; vẫn nhập version 1–5.
+- Giới hạn: localStorage cùng trình duyệt/origin; chưa đồng bộ liên thiết bị; chưa kiểm thử browser/Android/desktop hoặc hai tab sửa đồng thời; revision là phát hiện xung đột lạc quan, không phải khóa giao dịch phân tán tuyệt đối.
