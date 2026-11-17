@@ -507,6 +507,17 @@
   document.addEventListener('selectionchange',rememberEditorSelection);
   document.addEventListener('pointerdown',e=>{if(e.target.closest('.ribbon,.editor-quickbar'))rememberEditorSelection();},true);
   $('#quickPageBreak').onclick=()=>command('insertHTML','<div class="page-break"></div><p><br></p>');
+  const zoomControl=$('#editorZoom');
+  const savedZoom=localStorage.getItem('haidat-writer-editor-zoom-v1');
+  if(savedZoom&&['75','90','100','110','125','150'].includes(savedZoom))zoomControl.value=savedZoom;
+  function applyEditorZoom(){const value=zoomControl.value;editor.style.zoom=(Number(value)/100);localStorage.setItem('haidat-writer-editor-zoom-v1',value);}
+  zoomControl.addEventListener('change',applyEditorZoom);applyEditorZoom();
+  const focusToggle=$('#toggleFocusMode'),focusExit=$('#focusModeExit');
+  function setFocusMode(enabled){document.body.classList.toggle('focus-mode',enabled);focusExit.hidden=!enabled;focusToggle.textContent=enabled?'Thoát chế độ tập trung':'Chế độ tập trung';if(enabled)editor.focus();}
+  focusToggle.addEventListener('click',()=>setFocusMode(!document.body.classList.contains('focus-mode')));
+  focusExit.addEventListener('click',()=>setFocusMode(false));
+  $('#focusEditor').addEventListener('click',()=>{setFocusMode(false);editor.focus();editor.scrollIntoView({behavior:'smooth',block:'center'});});
+
   titleInput.addEventListener('input',scheduleSave);
   document.querySelectorAll('[data-cmd]').forEach(btn=>btn.addEventListener('click',()=>command(btn.dataset.cmd)));
   document.querySelectorAll('[data-action]').forEach(btn=>btn.addEventListener('click',()=>command(btn.dataset.action)));
