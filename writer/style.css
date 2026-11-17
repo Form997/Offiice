@@ -248,3 +248,7 @@ body.focus-mode .page{min-height:calc(100vh - 150px)}
  body.focus-mode .page{min-height:calc(100vh - 100px)!important}
 }
 @media print{body.focus-mode .topbar,body.focus-mode .docbar,body.focus-mode .ribbon{display:none!important}}
+
+/* V4.7 mobile interaction and accessibility */
+@media(max-width:600px){button,.file-button{min-height:44px}.toolbar{overflow-x:auto;overflow-y:hidden;flex-wrap:nowrap;scrollbar-width:thin;-webkit-overflow-scrolling:touch;touch-action:pan-x}.tool-group{flex:0 0 auto}.tool-group button{min-width:44px}.doc-actions button,.doc-actions .file-button{min-height:44px}.page-wrap{-webkit-overflow-scrolling:touch;overscroll-behavior:contain}#docTitle{min-width:0;width:100%}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;transition-duration:.01ms!important;animation-duration:.01ms!important}}
