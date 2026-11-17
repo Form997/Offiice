@@ -16,3 +16,10 @@
 GitHub Pages: `https://form997.github.io/Offiice/writer/`
 
 Nhánh phát triển: `v3-development`. Bản này chưa được gộp vào nhánh chính.
+
+
+## V4 — định hướng phát triển
+V4 phát triển trên nhánh riêng `v4-development`, kết hợp chế độ Văn bản kiểu Docs với chế độ Thiết kế trực quan kiểu Canva trong cùng tài liệu. V4 chưa thay đổi dữ liệu hoặc mã chạy V3 ở mốc Foundation.
+
+- Kiến trúc: `../docs/WRITER-V4-ARCHITECTURE.md`
+- Nhật ký: `../docs/WRITER-V4-RELEASE.md`
