@@ -58,3 +58,19 @@
 - Thống kê này gồm cả tài liệu kiến trúc/lộ trình và mã prototype; không phải số dòng tính riêng cho V4.1.
 - Dung lượng byte chưa ghi vì chưa có phép đo blob/file size đáng tin cậy.
 - Trạng thái: mã tích hợp ban đầu đã nằm trên nhánh V4; chưa có CI/browser/Android QA xác nhận. V4.1 vẫn đang phát triển.
+
+
+## 17/11/2026 — V4.2 Object Studio (bản triển khai ban đầu)
+
+### Nội dung đã ghi lên nhánh `v4-development`
+- Bổ sung chọn nhiều đối tượng bằng Ctrl/Shift + chạm/bấm và chọn toàn bộ bằng Ctrl+A.
+- Kéo đồng thời các đối tượng đang chọn; khi chọn một đối tượng đã nhóm, các thành viên cùng nhóm được chọn chung.
+- Bổ sung Nhóm/Tách nhóm bằng metadata `groupId`, không hợp nhất nội dung thành ảnh.
+- Bổ sung căn trái, căn giữa theo trục ngang, căn trên; thêm trường góc xoay cho từng đối tượng.
+- Xóa áp dụng cho toàn bộ lựa chọn; tiếp tục giữ dữ liệu đối tượng riêng biệt và lưu trong `design.items` của cùng tài liệu.
+
+### Chưa hoàn tất / cần QA
+- Chưa xác minh thao tác trên trình duyệt thật, Android cảm ứng và desktop.
+- Undo/redo chưa được chứng minh bao phủ mọi chỉnh sửa thuộc tính; chưa có resize đồng loạt, tay nắm xoay, căn theo trang/đối tượng và giao diện báo trạng thái nhóm hoàn chỉnh.
+- Chưa chạy kiểm thử dữ liệu cũ, lưu offline, xung đột hai tab hoặc hiệu năng với nhiều đối tượng/ảnh lớn.
+- V4.2 chưa được xem là hoàn tất; không phát hành và không gộp vào V3/main.
