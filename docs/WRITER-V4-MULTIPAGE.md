@@ -63,3 +63,6 @@ JavaScript được trích xuất từ trang HTML và kiểm tra cú pháp thàn
 
 ## Bảo toàn nhánh
 Chỉ cập nhật `v4-development`. Không sửa, merge hoặc deploy `v3-development` hay `main`.
+
+## Mẫu trang
+Khi thêm trang, người dùng chọn một trong bốn mẫu: trang trắng, bìa tài liệu, trang nội dung hoặc trang bảng dữ liệu. Mẫu tạo ra các đối tượng Canvas độc lập có thể sửa, di chuyển, định dạng hoặc xóa. Bố cục mẫu được thiết kế theo khung A4; khi đổi khổ giấy, cần kiểm tra và sắp xếp lại nội dung.
