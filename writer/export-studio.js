@@ -130,7 +130,7 @@ async function svgToPng(svg){
  return await new Promise((resolve,reject)=>canvas.toBlob(b=>b?resolve(b):reject(new Error('Không tạo được PNG.')),'image/png'));
  }finally{URL.revokeObjectURL(url)}
 }
-async function run(format){
+async function run(format,printWindow){
  const rec=record();if(!rec||!rec.id)throw new Error('Không tìm thấy tài liệu để xuất.');
  const name=safe(rec.title||'Tai-lieu'),ps=pagesOf(rec.design),includeWriter=$('#hdExportWriter')?.checked!==false;
  if(format==='json'){
@@ -141,7 +141,7 @@ async function run(format){
  if(format==='html'){download(new Blob([fullHtml(rec,includeWriter)],{type:'text/html;charset=utf-8'}),name+'.html');return 'HTML'}
  if(format==='docx'){download(docxBlob(rec,includeWriter),name+'.docx');return 'DOCX'}
  if(format==='pdf'){
-  const win=window.open('','_blank');if(!win)throw new Error('Trình duyệt chặn cửa sổ in. Hãy cho phép cửa sổ bật lên rồi thử lại.');
+  const win=printWindow||window.open('','_blank');if(!win)throw new Error('Trình duyệt chặn cửa sổ in. Hãy cho phép cửa sổ bật lên rồi thử lại.');
   win.document.open();win.document.write(fullHtml(rec,includeWriter));win.document.close();
   setTimeout(()=>{try{win.focus();win.print()}catch{}},700);return 'PDF · mở hộp thoại In, chọn Lưu thành PDF';
  }
@@ -165,8 +165,11 @@ function init(){
  $('#hdExportOpen').addEventListener('click',()=>{const r=record();$('#hdExportStatus').textContent='Tài liệu: '+(r.title||r.id)+' · '+(r.id||'chưa có ID');if(dlg.showModal)dlg.showModal();else dlg.setAttribute('open','')});
  $('#hdExportCancel').addEventListener('click',()=>dlg.close?dlg.close():dlg.removeAttribute('open'));
  $('#hdExportGo').addEventListener('click',async()=>{const btn=$('#hdExportGo');btn.disabled=true;$('#hdExportStatus').textContent='Đang chuẩn bị dữ liệu…';
- try{if($('#save')){$('#save').click();await wait(800)}else await wait(350);const result=await run($('#hdExportFormat').value);$('#hdExportStatus').textContent='Đã tạo lệnh xuất: '+result+'. Kiểm tra tệp tải xuống hoặc hộp thoại in.'}
- catch(e){$('#hdExportStatus').textContent='Không xuất được: '+(e.message||e)}
+ let printWindow=null;const format=$('#hdExportFormat').value;
+ try{if(format==='pdf'){printWindow=window.open('','_blank');if(!printWindow)throw new Error('Trình duyệt chặn cửa sổ in. Hãy cho phép cửa sổ bật lên rồi thử lại.')}
+ const saver=$('#save')||$('#saveNow');if(saver){saver.click();await wait(800)}else await wait(650);
+ const result=await run(format,printWindow);$('#hdExportStatus').textContent='Đã tạo lệnh xuất: '+result+'. Kiểm tra tệp tải xuống hoặc hộp thoại in.'}
+ catch(e){if(printWindow&&!printWindow.closed)try{printWindow.close()}catch{}$('#hdExportStatus').textContent='Không xuất được: '+(e.message||e)}
  finally{btn.disabled=false}});
 }
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
