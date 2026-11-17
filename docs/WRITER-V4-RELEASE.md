@@ -134,3 +134,34 @@
 - Thêm bộ chọn mẫu khi tạo trang: trang trắng, bìa tài liệu, trang nội dung và trang bảng dữ liệu.
 - Mẫu sinh các đối tượng văn bản/đường kẻ/bảng có cấu trúc; người dùng tiếp tục chỉnh sửa từng đối tượng như bình thường.
 - Các bố cục mẫu được căn theo khung A4 mặc định; khi đổi sang khổ khác, người dùng cần tự rà soát vị trí và kích thước.
+
+
+## 17/11/2026 — V4.5 Document Integration (triển khai ban đầu)
+
+### Nội dung đã ghi lên nhánh `v4-development`
+- Thêm `revision` ở cấp bản ghi tài liệu; không đổi ID và không nâng `schemaVersion: 3`.
+- Writer hợp nhất thay đổi theo từng trường dựa trên bản gốc và dữ liệu mới nhất trong localStorage; bảo toàn thay đổi độc lập và chặn ghi đè khi cùng trường có xung đột.
+- Canvas kiểm tra revision/chữ ký `design`, bảo toàn nội dung Writer mới nhất khi chỉ có chỉnh sửa bố cục, và từ chối ghi nếu một cửa sổ khác đã thay đổi chính bố cục.
+- Thêm lắng nghe sự kiện `storage` ở cả Writer và Canvas để nhận biết cập nhật giữa các cửa sổ cùng origin.
+- Lịch sử phiên bản Writer có thể lưu cả `html` và `design`; khôi phục từ Writer phục hồi cả hai phần nếu snapshot có Canvas.
+- Canvas ghi mốc trạng thái trước khi thay đổi bố cục; giới hạn snapshot và dung lượng lịch sử được ghi rõ để tránh che giấu giới hạn localStorage.
+- Nâng định dạng backup lên version 5, vẫn nhập được version 1–5; backup chứa bản ghi, revision và lịch sử Canvas.
+- Bổ sung nhãn lịch sử cho mốc có cả Writer + Canvas và đổi lối vào thành Canvas Studio V4.5.
+
+### Kiểm tra tĩnh
+- `writer/app.js` đã được trích xuất và phân tích cú pháp bằng `new Function(...)`: thành công.
+- JavaScript nội tuyến trong `writer/canvas-studio.html` đã được trích xuất và phân tích cú pháp: thành công.
+- Chưa chạy trình duyệt thật; kiểm tra cú pháp không xác nhận hành vi UI, đồng bộ nhiều tab hoặc độ bền lưu trữ.
+
+### QA còn thiếu / giới hạn
+- Chưa kiểm thử hai tab sửa đồng thời, hai tab cùng sửa một trường, phục hồi sau crash, localStorage quota hoặc tình huống ghi sát nhau.
+- Đồng bộ chỉ hoạt động trong cùng trình duyệt/origin; chưa có đồng bộ nhiều thiết bị hoặc máy chủ.
+- Writer snapshot có thể bỏ phần Canvas nếu JSON thiết kế vượt 500.000 ký tự; Canvas chặn lưu nếu snapshot bảo vệ đầy đủ vượt 650.000 ký tự.
+- Lịch sử tối đa 6 mốc/tài liệu và tổng khoảng 1.100.000 ký tự ước tính; giới hạn thực tế của localStorage phụ thuộc trình duyệt.
+- V4.5 chưa phải bản phát hành; không merge/deploy vào V3/main. Supabase vẫn để sau.
+
+### Tệp chính
+- `writer/app.js` — revision, hợp nhất thay đổi, lịch sử đầy đủ và backup v5.
+- `writer/canvas-studio.html` — revision-aware save, snapshot Canvas và nhận biết xung đột.
+- `writer/index.html` — nhãn V4.5 và mô tả lịch sử chung.
+- `docs/WRITER-V4-DOCUMENT-INTEGRATION.md` — hợp đồng dữ liệu và quy tắc đồng bộ.
