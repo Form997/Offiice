@@ -641,9 +641,44 @@
     if(mod && e.key.toLowerCase()==='u' && document.activeElement===editor){e.preventDefault();command('underline');}
   });
   window.addEventListener('beforeunload',()=>{if(dirty)persist(false);});
-  if('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js').catch(()=>{});
-  window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferredInstall=e;$('#install').hidden=false;});
-  $('#install').onclick=async()=>{if(deferredInstall){deferredInstall.prompt();deferredInstall=null;}};
+  if('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('./sw.js').then(registration=>{
+      if(registration.waiting) setState('Có bản cập nhật WORK sẵn sàng · tải lại để dùng','saved');
+    }).catch(()=>setState('Chưa bật được chế độ ngoại tuyến · vẫn có thể dùng khi có mạng','warning'));
+  }
+  const installButton=$('#install');
+  window.addEventListener('beforeinstallprompt',e=>{
+    e.preventDefault();
+    deferredInstall=e;
+    installButton.hidden=false;
+    installButton.disabled=false;
+    installButton.textContent='Cài ứng dụng';
+    installButton.setAttribute('aria-label','Cài HAI ĐẤT OFFICE WORK lên thiết bị');
+  });
+  installButton.addEventListener('click',async()=>{
+    if(!deferredInstall)return;
+    const promptEvent=deferredInstall;
+    deferredInstall=null;
+    installButton.disabled=true;
+    try{
+      await promptEvent.prompt();
+      const choice=await promptEvent.userChoice;
+      if(choice&&choice.outcome==='accepted'){
+        setState('Đã chấp nhận cài WORK · chờ thiết bị hoàn tất','saved');
+      }else{
+        setState('Chưa cài WORK · có thể cài lại từ trình duyệt','');
+      }
+    }catch(error){
+      setState('Không mở được lời mời cài đặt · thử từ menu trình duyệt','warning');
+    }finally{
+      installButton.hidden=true;
+      installButton.disabled=false;
+    }
+  });
+  window.addEventListener('appinstalled',()=>{
+    installButton.hidden=true;
+    setState('WORK đã được cài trên thiết bị','saved');
+  });
 
   // DOCX: build a minimal Office Open XML package locally (no server/API).
   const encoder = new TextEncoder();
