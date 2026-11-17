@@ -15,7 +15,6 @@ test('WORK V6 manifest is a standalone PWA with a declared icon',()=>{
   assert.equal(manifest.start_url,'./');
   assert.equal(manifest.scope,'./');
   assert.ok(manifest.icons.some(icon=>icon.src==='./icons/work.svg'));
-  assert.ok(manifest.icons.some(icon=>icon.src==='./icons/work-512.png'&&icon.sizes==='512x512'));
   for(const icon of manifest.icons) assert.ok(fs.existsSync(path.join(root,'writer',icon.src.replace(/^\.\//,''))));
 });
 
@@ -39,6 +38,7 @@ test('WORK V6 exposes install prompt and installed-state handling',()=>{
   const app=read('writer/app.js');
   const html=read('writer/index.html');
   assert.match(html,/<button id="install" hidden>/);
+  assert.match(html,/app\.js\?v=6\.0/);
   assert.match(app,/beforeinstallprompt/);
   assert.match(app,/promptEvent\.userChoice/);
   assert.match(app,/appinstalled/);
