@@ -102,6 +102,18 @@
         <label>Số kỳ cần dự báo <input id="dsPeriods" type="number" min="1" max="100" value="3"></label>
         <button id="dsForecast" class="quiet" type="button">Dự báo xu thế</button>
       </div>
+      <div class="ds-advanced ds-chart-studio">
+        <h4>Giai đoạn 11 · Chart Studio — Bộ biểu đồ khoa học</h4>
+        <p class="macro-help">Dựng biểu đồ từ vùng dữ liệu bảng tính. X/Y phải cùng số dòng khi vẽ đường, phân tán hoặc phần dư. Box plot dùng cột nhóm và cột giá trị. Bản đồ nhiệt dùng kết quả mặt đáp ứng Giai đoạn 10.</p>
+        <label>Loại biểu đồ <select id="dsChartType">
+          <option value="line">Biểu đồ đường</option><option value="scatter">Biểu đồ phân tán</option><option value="bar">Biểu đồ cột</option><option value="histogram">Histogram · tần số</option><option value="boxplot">Box plot · hộp và râu</option><option value="residual">Phần dư theo giá trị dự báo</option><option value="heatmap">Bản đồ nhiệt mặt đáp ứng</option>
+        </select></label>
+        <label>Vùng X / nhãn nhóm <input id="dsChartX" value="A2:A20" placeholder="A2:A20"></label>
+        <label>Vùng Y / giá trị <input id="dsChartY" value="B2:B20" placeholder="B2:B20"></label>
+        <label>Vùng mã nhóm · Box plot <input id="dsChartGroups" value="A2:A20" placeholder="A2:A20"></label>
+        <label>Số khoảng Histogram <input id="dsChartBins" type="number" min="3" max="40" step="1" value="10"></label>
+        <button id="dsBuildChart" class="primary" type="button">Dựng biểu đồ</button>
+      </div>
       <button id="dsExportReport" class="quiet" type="button">Xuất báo cáo CSV</button><div id="dataScienceOutput" class="ds-output" aria-live="polite">Chưa chạy phân tích. Kết quả chỉ là hỗ trợ thống kê, không tự sửa bảng dữ liệu.</div>
     </section>
     <section id="aiPanel" class="ai-panel" hidden aria-label="SGHT AI Intelligence"><div class="macro-head"><div><b>SGHT AI Intelligence</b><small>Trợ lý phân tích ngoại tuyến · không tự sửa dữ liệu</small></div><button id="closeAI" class="quiet" type="button">Đóng</button></div><p class="macro-help">Phân tích thống kê bảng hiện tại, gợi ý công thức theo ô đang chọn hoặc soạn macro từ câu lệnh tiếng Việt. Dữ liệu không rời khỏi thiết bị. Đây là trợ lý quy tắc chạy cục bộ, chưa kết nối mô hình AI đám mây.</p><div class="ai-actions"><button id="aiAnalyze" class="primary" type="button">Phân tích bảng</button><button id="aiSuggestFormula" class="quiet" type="button">Gợi ý công thức cho ô đang chọn</button></div><label class="ai-prompt-label" for="aiPrompt">Mô tả thao tác bằng tiếng Việt</label><textarea id="aiPrompt" rows="2" placeholder="Ví dụ: tính tổng A1:A10 vào B1"></textarea><button id="aiDraftMacro" class="quiet" type="button">Tạo bản nháp macro</button><div id="aiOutput" class="ai-output" aria-live="polite">Chọn một tác vụ để bắt đầu. AI chỉ đề xuất; mọi thay đổi cần người dùng xác nhận.</div></section>
