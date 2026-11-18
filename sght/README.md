@@ -273,3 +273,16 @@ Bổ sung mô hình đáp ứng tăng dần, lợi ích biên giảm dần:
 - Phân rã lack-of-fit hiện báo thống kê F nhưng chưa tính p-value; chỉ có ý nghĩa khi có lặp tại cùng liều và đủ bậc tự do.
 - Chưa có mô hình kinh tế tối ưu (giá phân, giá nông sản, chi phí), đáp ứng đa dinh dưỡng, mô hình ngẫu nhiên theo địa điểm/mùa vụ, hoặc mô hình sai số không đồng nhất.
 - Không ngoại suy ngoài miền liều thí nghiệm. Mức tối ưu kinh tế cần hàm lợi nhuận biên và giá đầu vào/đầu ra, không thể suy ra từ R² hay AICc.
+
+
+## SGHT Data Science — Giai đoạn 10 · Mặt đáp ứng hai yếu tố — 2026-11-19
+
+- Thêm mô-đun độc lập ngoại tuyến `ai/response-surface.js` để khớp mô hình bậc hai hai yếu tố: \(Y=b_0+b_1X_1+b_2X_2+b_{11}X_1^2+b_{22}X_2^2+b_{12}X_1X_2\).
+- Tự mã hóa hai yếu tố quanh trung điểm và nửa khoảng biến thiên nhằm giảm vấn đề thang đo; báo hệ số theo biến mã hóa cùng thông tin quy đổi.
+- Báo R², R² hiệu chỉnh, RMSE, SSE, AICc, phần dư và bậc tự do.
+- Giải điểm dừng của mặt bậc hai, phân loại cực đại/cực tiểu/yên ngựa; kiểm tra điểm dừng có nằm trong miền khảo sát hay không.
+- Tìm cực đại dự báo có chặn trong hình chữ nhật miền quan sát bằng cách xét điểm dừng hợp lệ, các cạnh, đỉnh và nghiệm cực trị một chiều trên cạnh; không tự chọn nghiệm ngoại suy.
+- Sinh lưới dự báo 21×21 để làm nền cho bản đồ đường đồng mức ở bước giao diện kế tiếp.
+- Tích hợp vùng nhập X1, X2, Y trong Data Science; phân tích chỉ đọc bảng, không ghi đè dữ liệu gốc.
+- Giới hạn: mô hình hiện là mặt đáp ứng bậc hai hai yếu tố, không phải mô hình hỗn hợp; thiết kế suy biến/đa cộng tuyến hoàn hảo bị từ chối. Cần đủ điểm tâm/lặp, xem phần dư, kiểm tra điều kiện thí nghiệm và xác nhận độc lập. Cực đại dự báo không đồng nghĩa tối ưu kinh tế hay khuyến cáo phân bón.
+- Kiểm thử: phục hồi mặt bậc hai tổng hợp, cực đại nội miền, cực đại có chặn và từ chối dữ liệu thiếu/thiết kế suy biến.
