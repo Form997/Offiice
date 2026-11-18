@@ -50,7 +50,7 @@
   async function writeFile(h,b){const w=await h.createWritable();await w.write(b);await w.close();}
   async function saveAsFile(){
     clearTimeout(saveTimer);persist(false);
-    if(window.showSaveFilePicker){try{const h=await window.showSaveFilePicker({suggestedName:safeName(current().title)+'.docx',types:[{description:'Word',accept:{'application/vnd.openxmlformats-officedocument.wordprocessingml.document':['.docx']}},{description:'HTML',accept:{'text/html':['.html']}},{description:'Text',accept:{'text/plain':['.txt']}},{description:'RTF',accept:{'application/rtf':['.rtf']}},{description:'Markdown',accept:{'text/markdown':['.md']}}]});await writeFile(h,makeFileBlob(extOf(h.name)));currentFileHandle=h;await storeHandle('file',h);setState('Đã lưu: '+h.name,'saved');return;}catch(e){if(e.name!=='AbortError')alert('Lỗi lưu tệp: '+e.message);return;}}
+    if(window.showSaveFilePicker){try{const h=await window.showSaveFilePicker({suggestedName:safeName(current().title)+'.docx',types:[{description:'Word',accept:{'application/vnd.openxmlformats-officedocument.wordprocessingml.document':['.docx']}},{description:'HTML',accept:{'text/html':['.html']}},{description:'Text',accept:{'text/plain':['.txt']}},{description:'RTF',accept:{'application/rtf':['.rtf'],'application/msword':['.doc'],'application/pdf':['.pdf']}},{description:'Markdown',accept:{'text/markdown':['.md']}}]});await writeFile(h,makeFileBlob(extOf(h.name)));currentFileHandle=h;await storeHandle('file',h);setState('Đã lưu: '+h.name,'saved');return;}catch(e){if(e.name!=='AbortError')alert('Lỗi lưu tệp: '+e.message);return;}}
     const b=makeFileBlob('docx'),u=URL.createObjectURL(b),a=document.createElement('a');a.href=u;a.download=safeName(current().title)+'.docx';a.click();setTimeout(()=>URL.revokeObjectURL(u),1500);setState('Đã tải DOCX xuống thiết bị','saved');
   }
   async function saveCurrentFile(){
@@ -122,7 +122,7 @@
           else if (key === 'src' && child.tagName === 'IMG' && !/^(data:image\/(png|jpeg|gif|webp);base64,|https?:)/i.test(val)) child.removeAttribute(attr.name);
           else if (['face','color','size'].includes(key) && child.tagName === 'FONT') { /* safe legacy font attributes */ }
           else if (key === 'style') {
-            const safe = val.split(';').filter(rule => /^(color|background-color|font-weight|font-style|text-decoration|text-align|font-size|font-family|width|max-width|height|line-height|margin-top|margin-bottom|text-indent)\s*:/i.test(rule.trim()) && !/url\s*\(|expression|javascript/i.test(rule)).join(';');
+            const safe = val.split(';').filter(rule => /^(color|background-color|font-weight|font-style|text-decoration|text-align|font-size|font-family|width|max-width|height|line-height|margin-top|margin-bottom|text-indent|margin-left|margin-right|padding-left|padding-right)\s*:/i.test(rule.trim()) && !/url\s*\(|expression|javascript/i.test(rule)).join(';');
             if (safe) child.setAttribute('style', safe); else child.removeAttribute('style');
           } else if (!['href','src','alt','title','colspan','rowspan','style','width','height'].includes(key)) child.removeAttribute(attr.name);
         });
