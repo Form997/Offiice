@@ -286,3 +286,15 @@ Bổ sung mô hình đáp ứng tăng dần, lợi ích biên giảm dần:
 - Tích hợp vùng nhập X1, X2, Y trong Data Science; phân tích chỉ đọc bảng, không ghi đè dữ liệu gốc.
 - Giới hạn: mô hình hiện là mặt đáp ứng bậc hai hai yếu tố, không phải mô hình hỗn hợp; thiết kế suy biến/đa cộng tuyến hoàn hảo bị từ chối. Cần đủ điểm tâm/lặp, xem phần dư, kiểm tra điều kiện thí nghiệm và xác nhận độc lập. Cực đại dự báo không đồng nghĩa tối ưu kinh tế hay khuyến cáo phân bón.
 - Kiểm thử: phục hồi mặt bậc hai tổng hợp, cực đại nội miền, cực đại có chặn và từ chối dữ liệu thiếu/thiết kế suy biến.
+
+
+## SGHT Chart Studio — Giai đoạn 11 · Bộ biểu đồ khoa học — 2026-11-19
+
+- Thêm mô-đun `ai/chart-engine.js` chuẩn hóa dữ liệu cho 7 dạng: biểu đồ đường, phân tán, cột, histogram, box plot, phần dư theo giá trị dự báo và bản đồ nhiệt mặt đáp ứng.
+- Histogram hỗ trợ 3–40 khoảng; tổng tần số phải bằng số quan sát hợp lệ.
+- Box plot hiển thị Q1, trung vị, Q3, râu theo quy tắc 1,5×IQR và các điểm ngoại lệ Tukey.
+- Biểu đồ phần dư đánh dấu đường 0; biểu đồ đường sắp theo X; biểu đồ phân tán giữ nguyên cặp quan sát.
+- Bản đồ nhiệt dùng lưới dự báo từ mặt đáp ứng Giai đoạn 10, tô đậm theo mức dự báo; ghi rõ đây là heatmap lưới, chưa phải đường đồng mức nội suy.
+- SVG được dựng trực tiếp, không tải thư viện ngoài; co giãn theo chiều rộng màn hình, có nhãn trợ năng. Dữ liệu không gửi ra ngoài.
+- Hạn chế: chưa có xuất PNG/SVG riêng, nhiều chuỗi trên cùng biểu đồ, thanh sai số tùy chọn, CI/prediction bands, tương tác zoom/pan, bản đồ đường đồng mức nội suy và biểu đồ 3D.
+- Kiểm thử module: dữ liệu đường/phân tán, histogram, box plot/ngoại lệ, phần dư, heatmap và dữ liệu không hợp lệ.
