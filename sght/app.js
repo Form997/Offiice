@@ -2,6 +2,7 @@ import { evaluateFormula, FormulaError } from "./engine/core.js";
 import { planMacro, executeMacro } from "./automation/macro-engine.js";
 import { MacroRecorder } from "./automation/macro-recorder.js";
 import { MacroLibrary } from "./automation/macro-library.js";
+import { MacroDebugger } from "./automation/macro-debugger.js";
 
 const COLS = 16, ROWS = 40, STORAGE_KEY = "haidat-sght-workbook-v1";
 const letters = n => { let s=""; while(n>0){const r=(n-1)%26;s=String.fromCharCode(65+r)+s;n=Math.floor((n-1)/26);} return s; };
@@ -113,17 +114,20 @@ function downloadText(filename,content,type){
 document.querySelector("#openMacro").addEventListener("click",renderMacroLibrary);
 renderMacroLibrary();
 
-document.querySelector("#previewMacro").addEventListener("click",()=>{
-  try { const plan=planMacro(macroSource.value); macroPreview.textContent=plan.map((x,i)=>(i+1)+". "+(x.type==="SET"?"Ghi "+x.cell+" = "+String(x.value):x.type==="COPY"?"Chép "+x.source+" → "+x.target:x.type==="CLEAR"?"Xóa "+x.range:"Tính tổng "+x.range+" → "+x.target)).join("\\n"); macroResult.textContent="Đã kiểm tra "+plan.length+" lệnh. Chưa có dữ liệu nào bị thay đổi."; }
-  catch(e){macroPreview.textContent="";macroResult.textContent=(e.code||"LỖI")+" · "+e.message+(e.line?" (dòng "+e.line+")":"");}
-});
-document.querySelector("#runMacro").addEventListener("click",()=>{
-  try {
-    const plan=planMacro(macroSource.value);
-    if(!confirm("Cho phép SGHT chạy "+plan.length+" lệnh macro và ghi thay đổi vào bảng tính?"))return;
-    snapshot();macroExecution=true;
-    const result=executeMacro(plan,{get:a=>raw(a),set:(a,v)=>{cells[a]=v;},clear:a=>{delete cells[a];}},{approved:true});
-    macroExecution=false;render();save();macroResult.textContent="Hoàn tất: "+result.commandCount+" lệnh, "+result.changedCells+" lượt ô được xử lý. Có thể Hoàn tác.";
-  } catch(e){macroExecution=false;macroResult.textContent=(e.code||"LỖI")+" · "+e.message+(e.line?" (dòng "+e.line+")":"");}
-});
+let activeMacroDebugger=null,macroSnapshotOpen=false;
+const debugStatus=document.querySelector("#debugStatus"),debugTrace=document.querySelector("#debugTrace");
+const debugStepButton=document.querySelector("#debugStep"),debugContinueButton=document.querySelector("#debugContinue"),debugStopButton=document.querySelector("#debugStop"),debugRollbackButton=document.querySelector("#debugRollback");
+function paintDebug(state){debugStatus.textContent="Trạng thái: "+state.status+" · Bước "+state.currentStep+"/"+state.totalSteps+" · "+state.changedCells+" lượt ô";debugTrace.replaceChildren();const entries=state.trace.slice(-30);if(!entries.length){const p=document.createElement("p");p.textContent="Chưa có bước thực thi.";debugTrace.append(p);}for(const item of entries){const row=document.createElement("div");row.className="debug-trace-row";const head=document.createElement("b");head.textContent="Bước "+item.step+" · dòng "+item.line+" · "+item.type;row.append(head);for(const change of item.changes){const detail=document.createElement("small");detail.textContent=change.cell+": "+String(change.before)+" → "+String(change.after);row.append(detail);}debugTrace.append(row);}const active=state.status==="paused";debugStepButton.disabled=!active;debugContinueButton.disabled=!active;debugStopButton.disabled=!active;debugRollbackButton.disabled=!(state.trace.length&&["paused","completed","stopped","error"].includes(state.status));}
+function macroAdapter(){return {get:a=>raw(a),set:(a,v)=>{cells[a]=v;},clear:a=>{delete cells[a];}};}
+function finishMacroRun(state){if(["completed","stopped","error","rolled_back"].includes(state.status)){macroExecution=false;render();save();}paintDebug(state);if(state.status==="completed")macroResult.textContent="Hoàn tất "+state.totalSteps+" lệnh. Có thể dùng Hoàn tác để phục hồi toàn phiên.";else if(state.status==="stopped")macroResult.textContent="Đã dừng tại bước "+state.currentStep+". Có thể hoàn tác toàn phiên ngay.";else if(state.status==="rolled_back"){macroResult.textContent="Đã hoàn tác toàn bộ thay đổi của phiên gỡ lỗi.";if(macroSnapshotOpen){undoStack.pop();macroSnapshotOpen=false;}}else if(state.status==="error")macroResult.textContent="Lỗi khi thực thi. Có thể hoàn tác các bước trước đó.";}
+function startDebugSession(){const plan=planMacro(macroSource.value);if(!confirm("Phê duyệt phiên Macro Debugger gồm "+plan.length+" lệnh? Chưa có thay đổi nào được thực hiện."))return false;snapshot();macroSnapshotOpen=true;activeMacroDebugger=new MacroDebugger(macroSource.value,macroAdapter());activeMacroDebugger.start({approved:true});macroExecution=true;paintDebug(activeMacroDebugger.state());macroResult.textContent="Đã phê duyệt. Chạy từng bước hoặc tiếp tục toàn bộ.";return true;}
+document.querySelector("#previewMacro").addEventListener("click",()=>{try{const plan=planMacro(macroSource.value);macroPreview.textContent=plan.map((x,i)=>(i+1)+". Dòng "+x.line+" · "+(x.type==="SET"?"Ghi "+x.cell+" = "+String(x.value):x.type==="COPY"?"Chép "+x.source+" → "+x.target:x.type==="CLEAR"?"Xóa "+x.range:"Tính tổng "+x.range+" → "+x.target)).join("\n");macroResult.textContent="Đã kiểm tra "+plan.length+" lệnh. Chưa thay đổi dữ liệu.";}catch(e){macroPreview.textContent="";macroResult.textContent=(e.code||"LỖI")+" · "+e.message+(e.line?" (dòng "+e.line+")":"");}});
+document.querySelector("#runMacro").addEventListener("click",()=>{try{if(!activeMacroDebugger||activeMacroDebugger.state().status!=="paused"){if(!startDebugSession())return;}finishMacroRun(activeMacroDebugger.continue());}catch(e){macroExecution=false;const state=activeMacroDebugger?.state();if(state)finishMacroRun(state);macroResult.textContent=(e.code||"LỖI")+" · "+e.message+(e.line?" (dòng "+e.line+")":"");}});
+document.querySelector("#debugStart").addEventListener("click",()=>{try{activeMacroDebugger=null;if(startDebugSession())macroResult.textContent="Phiên đã sẵn sàng. Nhấn “Chạy 1 bước” để kiểm tra từng lệnh.";}catch(e){macroResult.textContent=(e.code||"LỖI")+" · "+e.message+(e.line?" (dòng "+e.line+")":"");}});
+debugStepButton.addEventListener("click",()=>{try{const state=activeMacroDebugger.step();if(state.status==="completed")finishMacroRun(state);else paintDebug(state);}catch(e){finishMacroRun(activeMacroDebugger.state());macroResult.textContent=(e.code||"LỖI")+" · "+e.message+(e.line?" (dòng "+e.line+")":"");}});
+debugContinueButton.addEventListener("click",()=>{try{finishMacroRun(activeMacroDebugger.continue());}catch(e){finishMacroRun(activeMacroDebugger.state());macroResult.textContent=(e.code||"LỖI")+" · "+e.message;}});
+debugStopButton.addEventListener("click",()=>finishMacroRun(activeMacroDebugger.stop()));
+debugRollbackButton.addEventListener("click",()=>{if(!activeMacroDebugger||!confirm("Hoàn tác toàn bộ thay đổi do phiên gỡ lỗi này tạo ra?"))return;finishMacroRun(activeMacroDebugger.rollback());activeMacroDebugger=null;});
+paintDebug({status:"ready",currentStep:0,totalSteps:0,changedCells:0,trace:[]});
+
 load();render();
