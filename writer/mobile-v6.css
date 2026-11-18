@@ -395,3 +395,67 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible{
  body.focus-mode .editor-statusbar{padding:7px 10px}
 }
 @media(max-width:380px){.ribbon-tab{font-size:9px;padding-inline:1px}.ribbon-tabs{gap:2px}.page{padding-inline:14px!important}}
+
+
+/* HAI DAT OFFICE WORK V6.3 — refined mobile ribbon */
+@media(max-width:700px){
+  .ribbon{border-color:#d7e3dc;box-shadow:0 5px 20px #183b2d0d}
+  .ribbon-tabs{
+    display:flex;
+    flex-wrap:nowrap;
+    justify-content:flex-start;
+    gap:6px;
+    padding:8px 9px;
+    overflow-x:auto;
+    overflow-y:hidden;
+    scroll-snap-type:x proximity;
+    scrollbar-width:none;
+    background:linear-gradient(180deg,#fbfdfc,#f3f7f5);
+  }
+  .ribbon-tabs::-webkit-scrollbar{display:none}
+  .ribbon-tab{
+    flex:0 0 auto;
+    min-width:72px;
+    min-height:42px;
+    padding:8px 12px;
+    border:1px solid transparent;
+    border-radius:11px;
+    font-size:12px;
+    font-weight:700;
+    white-space:nowrap;
+    scroll-snap-align:start;
+  }
+  .ribbon-tab.active{
+    color:#fff;
+    background:#176b57;
+    border-color:#176b57;
+    box-shadow:0 3px 9px #176b5730;
+  }
+  .ribbon-panel{
+    max-height:min(34dvh,300px);
+    padding:8px;
+    gap:7px;
+    border-top:1px solid #e5ece8;
+    background:#f8fbf9;
+  }
+  .ribbon-panel[hidden]{display:none!important}
+  .ribbon-group,.ribbon-panel .tool-group{
+    border-radius:12px;
+    box-shadow:0 1px 3px #183b2d08;
+  }
+  .ribbon-group>strong{font-size:12px;letter-spacing:.01em}
+  .ribbon-panel button,.ribbon-panel select,.ribbon-panel input{border-radius:10px}
+  .editor-quickbar{
+    max-width:620px;
+    justify-content:space-around;
+    border-color:#d4e1da;
+    box-shadow:0 8px 28px #102b2430;
+  }
+  .editor-quickbar button{min-width:42px}
+  .page-wrap{background:#edf2ef;border-color:#e0e8e3}
+  .page{box-shadow:0 2px 10px #203d320c}
+}
+@media(max-width:380px){
+  .ribbon-tab{min-width:68px;padding-inline:10px;font-size:11px}
+  .ribbon-panel{max-height:31dvh}
+}
