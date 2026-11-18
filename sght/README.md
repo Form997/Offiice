@@ -103,3 +103,14 @@ Mở `sght/index.html` qua GitHub Pages sau khi workflow triển khai hoàn tấ
 - Có thể xuất lịch sử của một macro dưới dạng JSON để sao lưu.
 - Dữ liệu chỉ lưu trên localStorage của thiết bị; chưa đồng bộ nhiều thiết bị, chưa có tài khoản/người dùng phân quyền và chưa có chữ ký số.
 \n\n## SGHT Macro Security & Permission Center — 2026-11-19\n\n- Thêm trung tâm quyền macro tại `automation/macro-security.js`.\n- Phân quyền theo nhóm lệnh `SET`, `COPY`, `CLEAR`, `SUM`; nhóm bị khóa sẽ bị chặn trước khi thực thi.\n- Xem trước số lệnh, nhóm lệnh, số ô duy nhất và phạm vi ô dự kiến tác động.\n- Thiết lập giới hạn theo phiên: tối đa 2.000 lệnh và 10.000 lượt ô; mặc định thận trọng 500 lệnh/5.000 lượt ô.\n- Kiểm tra quyền trước từng lệnh, hỗ trợ dừng khẩn cấp và khóa phiên mới cho tới khi người dùng chủ động mở khóa.\n- Nhật ký kiểm toán lưu tối đa 500 sự kiện trên localStorage; có phê duyệt, lệnh đã chạy, hoàn tất, dừng và đặt lại khóa.\n- Mọi phiên vẫn cần xác nhận trực tiếp; macro lưu/nhập không được tự chạy.\n- Giới hạn phạm vi: đây là lớp kiểm soát cho ngôn ngữ macro khai báo hiện có, không phải cơ chế cách ly hệ điều hành hay sandbox JavaScript tùy ý. Không có quyền mạng/tệp/hệ thống để cấp trong phiên bản này.\n- Bổ sung kiểm thử chính sách, phê duyệt, giới hạn, dừng khẩn cấp và nhật ký.\n
+
+## SGHT AI Intelligence — Giai đoạn 7 — 2026-11-19
+
+- Thêm mô-đun ngoại tuyến tại `ai/ai-intelligence.js`, độc lập với bộ máy công thức và Macro Studio.
+- Phân tích bảng hiện tại: số ô có dữ liệu, số/nội dung chữ, số công thức, lỗi tính toán; thống kê tổng, trung bình, trung vị, nhỏ nhất/lớn nhất, tứ phân vị và phát hiện ngoại lệ theo quy tắc IQR.
+- Gợi ý công thức dựa trên dữ liệu lân cận ô đang chọn; người dùng chọn gợi ý, kiểm tra trên thanh công thức rồi tự bấm Áp dụng.
+- Soạn bản nháp macro từ các câu tiếng Việt thuộc tập lệnh giới hạn: nhập giá trị vào ô, xóa vùng, tính tổng vùng vào ô, sao chép vùng sang ô.
+- Bản nháp được kiểm tra cú pháp và chuyển sang Macro Studio; không tự chạy, không bỏ qua phê duyệt và Trung tâm bảo mật Giai đoạn 6.
+- Không gọi API, không gửi dữ liệu ra ngoài, không thực thi JavaScript tùy ý. Đây là lớp trợ lý phân tích quy tắc chạy cục bộ, chưa phải mô hình ngôn ngữ sinh nội dung tự do.
+- Bổ sung kiểm thử cho thống kê, ngoại lệ, gợi ý công thức, sinh bản nháp và từ chối yêu cầu ngoài phạm vi.
+- Chưa có dự báo chuỗi thời gian, hồi quy đa biến, biểu đồ tự sinh, kết nối mô hình AI trực tuyến hoặc học theo dữ liệu người dùng.
