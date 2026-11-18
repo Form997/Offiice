@@ -163,3 +163,8 @@ Mở rộng bộ phân tích thống kê nghiên cứu chạy ngoại tuyến, d
 - Dự báo xu thế không có mùa vụ, khoảng dự báo, hay biến giải thích ngoại sinh.
 - Các phép kiểm định yêu cầu quan sát độc lập và thiết kế thí nghiệm phù hợp. Kết quả p-value không thay thế đánh giá chuyên môn, kiểm tra giả định, ngẫu nhiên hóa và bố trí thí nghiệm. Không suy ra quan hệ nhân quả chỉ từ tương quan/hồi quy.
 - Mọi phân tích chỉ đọc dữ liệu bảng tính, không tự ghi kết quả vào ô; không gửi dữ liệu ra ngoài thiết bị.
+
+- So sánh LSD có bổ sung p-value hiệu chỉnh Holm để người dùng tham khảo khi có nhiều cặp; p gốc và p Holm được hiển thị riêng.
+- Bổ sung kiểm tra Brown–Forsythe (độ lệch tuyệt đối quanh trung vị) bên cạnh Levene quanh trung bình.
+- Biểu đồ cột trung bình từng nghiệm thức kèm thanh ±1 SD; đây là mô tả, không phải khoảng tin cậy.
+- Xuất kết quả đang xem thành CSV UTF-8 có BOM để mở thuận tiện bằng bảng tính.
