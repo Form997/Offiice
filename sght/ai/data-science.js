@@ -5,7 +5,7 @@
 const finite = x => typeof x === "number" && Number.isFinite(x);
 function clean(values, label) {
   if (!Array.isArray(values)) throw new TypeError(label+" phải là mảng.");
-  const out=values.map(Number);
+  const out=values.map(v=>typeof v==="number"?v:(typeof v==="string"&&v.trim()!==""?Number(v):NaN));
   if(out.some(x=>!finite(x))) throw new TypeError(label+" có giá trị không phải số hoặc ô trống.");
   return out;
 }
