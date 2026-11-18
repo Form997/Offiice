@@ -778,6 +778,18 @@
     throw new Error('Không tìm thấy nội dung chính trong DOCX.');
   }
   function xmlAttr(el,ns,name){return el?.getAttributeNS(ns,name)||'';}
+  function docxRPrCSS(rPr,ns){
+    if(!rPr)return [];
+    const css=[],face=rPr.getElementsByTagNameNS(ns,'rFonts')[0];
+    const family=xmlAttr(face,ns,'eastAsia')||xmlAttr(face,ns,'ascii')||xmlAttr(face,ns,'hAnsi');
+    if(family)css.push('font-family:'+family.replace(/[\"<>;]/g,''));
+    const size=Number(xmlAttr(rPr.getElementsByTagNameNS(ns,'sz')[0],ns,'val'));if(size>0)css.push('font-size:'+(size/2)+'pt');
+    const color=xmlAttr(rPr.getElementsByTagNameNS(ns,'color')[0],ns,'val');if(/^[0-9a-f]{6}$/i.test(color))css.push('color:#'+color);
+    if(rPr.getElementsByTagNameNS(ns,'b').length)css.push('font-weight:bold');
+    if(rPr.getElementsByTagNameNS(ns,'i').length)css.push('font-style:italic');
+    if(rPr.getElementsByTagNameNS(ns,'u').length)css.push('text-decoration:underline');
+    return css;
+  }
   function docxRunHTML(run,ns){
     const rPr=[...run.children].find(x=>x.localName==='rPr');
     const css=[],face=rPr?.getElementsByTagNameNS(ns,'rFonts')[0];
@@ -810,11 +822,11 @@
     if(vert==='subscript')html='<sub>'+html+'</sub>';
     return css.length?'<span style="'+css.join(';')+'">'+html+'</span>':html;
   }
-  function docxParagraphHTML(node,ns){
+  function docxParagraphHTML(node,ns,styleMap,defaultCss){
     const pPr=[...node.children].find(x=>x.localName==='pPr');
     const pStyle=xmlAttr(pPr?.getElementsByTagNameNS(ns,'pStyle')[0],ns,'val');
     const tag=/Heading1/i.test(pStyle)?'h1':/Heading2/i.test(pStyle)?'h2':/Heading3/i.test(pStyle)?'h3':'p';
-    const css=[],jc=xmlAttr(pPr?.getElementsByTagNameNS(ns,'jc')[0],ns,'val');
+    const css=[...(styleMap?.[pStyle]||styleMap?.Normal||defaultCss||[])],jc=xmlAttr(pPr?.getElementsByTagNameNS(ns,'jc')[0],ns,'val');
     if(jc)css.push('text-align:'+({both:'justify',start:'left',end:'right',left:'left',right:'right',center:'center'}[jc]||'left'));
     const ind=pPr?.getElementsByTagNameNS(ns,'ind')[0];
     for(const [attr,prop] of [['left','margin-left'],['right','margin-right'],['firstLine','text-indent']]){
@@ -872,16 +884,30 @@
       const xml=await unzipText(file,'word/document.xml'),doc=new DOMParser().parseFromString(xml,'application/xml');
       if(doc.querySelector('parsererror'))throw new Error('Không đọc được XML trong tài liệu Word.');
       const ns='http://schemas.openxmlformats.org/wordprocessingml/2006/main';
+      const styleMap={};let defaultCss=[];
+      try{
+        const sx=await unzipText(file,'word/styles.xml'),sd=new DOMParser().parseFromString(sx,'application/xml');
+        const defaults=sd.getElementsByTagNameNS(ns,'docDefaults')[0]?.getElementsByTagNameNS(ns,'rPrDefault')[0]?.getElementsByTagNameNS(ns,'rPr')[0];
+        defaultCss=docxRPrCSS(defaults,ns);
+        const defs=new Map();
+        for(const st of [...sd.getElementsByTagNameNS(ns,'style')]){
+          const id=xmlAttr(st,ns,'styleId')||st.getAttribute('w:styleId');if(!id)continue;
+          const base=xmlAttr(st.getElementsByTagNameNS(ns,'basedOn')[0],ns,'val');
+          const rp=st.getElementsByTagNameNS(ns,'rPr')[0];defs.set(id,{base,css:docxRPrCSS(rp,ns)});
+        }
+        const resolve=(id,seen=new Set())=>{if(!id||seen.has(id)||!defs.has(id))return [];seen.add(id);const x=defs.get(id);return [...resolve(x.base,seen),...x.css];};
+        for(const id of defs.keys())styleMap[id]=resolve(id);
+      }catch{}
       const body=doc.getElementsByTagNameNS(ns,'body')[0];if(!body)throw new Error('Tài liệu Word không có phần nội dung.');
       let html='';
       for(const node of body.children){
-        if(node.localName==='p')html+=docxParagraphHTML(node,ns);
+        if(node.localName==='p')html+=docxParagraphHTML(node,ns,styleMap,defaultCss);
         else if(node.localName==='tbl'){
           html+='<table><tbody>';
           for(const tr of [...node.children].filter(x=>x.localName==='tr')){
             html+='<tr>';
             for(const tc of [...tr.children].filter(x=>x.localName==='tc')){
-              const blocks=[...tc.children].filter(x=>x.localName==='p').map(p=>docxParagraphHTML(p,ns)).join('');
+              const blocks=[...tc.children].filter(x=>x.localName==='p').map(p=>docxParagraphHTML(p,ns,styleMap,defaultCss)).join('');
               html+='<td>'+blocks+'</td>';
             }
             html+='</tr>';
