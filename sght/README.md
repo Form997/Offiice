@@ -58,3 +58,14 @@ Mở `sght/index.html` qua GitHub Pages sau khi workflow triển khai hoàn tấ
 - Thao tác do macro đang chạy không bị ghi lặp vào recorder.
 - Bổ sung kiểm thử cho trạng thái ghi, dừng, dán vùng và giới hạn.
 - Chưa có ghi định dạng, chọn vùng, thao tác hàng/cột hoặc ghi sự kiện nền.
+
+## Macro Library — 2026-11-19
+
+- Thêm thư viện macro cục bộ: lưu, đọc, cập nhật, nhân bản và xóa macro.
+- Mỗi macro có tên, mô tả, mã lệnh, thời điểm tạo/cập nhật và số phiên bản.
+- Kiểm tra cú pháp macro trước khi lưu; từ chối macro rỗng, lệnh sai và tên trùng.
+- Hỗ trợ xuất một macro hoặc toàn bộ thư viện dưới dạng JSON SGHT; hỗ trợ nhập lại.
+- Dữ liệu nằm trong localStorage của trình duyệt, không tự tải lên máy chủ.
+- Giới hạn: tối đa 100 macro, 50.000 ký tự/macro, 1 MB/thư viện.
+- Bổ sung kiểm thử CRUD, nhân bản, nhập/xuất, kiểm tra dữ liệu và giới hạn.
+- Chưa có đồng bộ đám mây, chia sẻ quyền, lịch sử phiên bản có thể khôi phục hoặc chữ ký số.
