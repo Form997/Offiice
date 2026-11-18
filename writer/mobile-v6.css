@@ -351,3 +351,47 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible{
   .editor-quickbar{left:7px;right:7px;bottom:calc(6px + var(--v6-safe-bottom));gap:3px;padding:6px}
   .editor-quickbar button{min-width:39px;min-height:40px;padding-inline:7px}
 }
+
+
+/* HAI DAT OFFICE WORK V6.2 — focused mobile workspace */
+@media(max-width:700px){
+ .topbar{min-height:58px;padding:calc(9px + var(--v6-safe-top)) 13px 10px}
+ .brand{font-size:13px;letter-spacing:.035em}.sub{font-size:10px}
+ .top-actions{gap:5px}.save-state{max-width:92px;font-size:10px}
+ main{margin:7px auto 12px;padding-inline:9px}
+ .docbar{grid-template-columns:minmax(0,1fr) auto;padding:8px;gap:6px;border-radius:13px}
+ #docTitle{grid-column:1/-1;min-height:42px;font-size:15px}
+ .doc-id{font-size:9px;padding:5px 7px}#copyDocId{width:auto;min-height:34px;font-size:10px}
+ .access-state{grid-column:1/-1;font-size:10px;padding:4px 8px}
+ .doc-actions{grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}
+ .doc-actions .canvas-launch{grid-column:1/-1;min-height:40px}
+ .doc-actions .quick-save{min-height:40px}
+ .doc-actions #newDoc,.doc-actions #renameDoc,.doc-actions #cloneDoc,.doc-actions #deleteDoc{display:none}
+ .doc-actions select{grid-column:1/-1;grid-row:auto;min-height:40px}
+ .ribbon{position:sticky;top:0;z-index:20;margin-bottom:8px;border-radius:13px}
+ .ribbon-tabs{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:3px;padding:5px;overflow:visible;background:#f5f8f6}
+ .ribbon-tab{min-width:0;min-height:39px;padding:6px 2px;border-radius:8px;font-size:10px;line-height:1.2;white-space:normal;overflow-wrap:anywhere}
+ .ribbon-tab.active{color:#145744;background:#e5f1eb;border:1px solid #cfe2d8;box-shadow:none}
+ .ribbon-panel{display:grid;grid-template-columns:minmax(0,1fr);gap:7px;max-height:min(42dvh,360px);min-height:0;padding:8px;overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
+ .ribbon-panel[hidden]{display:none!important}
+ .ribbon-group,.ribbon-panel .tool-group{width:100%;min-width:0;max-width:none;padding:9px;margin:0;border:1px solid #e4ece7;border-radius:10px;background:#fff}
+ .ribbon-group>strong{font-size:11px}.ribbon-group small{font-size:10px;line-height:1.4}
+ .ribbon-tools{display:flex;flex-wrap:wrap;gap:6px}.ribbon-tools>*{min-width:0;max-width:100%}
+ .ribbon-panel .tool-group{display:flex;flex-wrap:wrap;gap:6px}
+ .ribbon-panel .tool-group button{flex:1 1 auto;min-height:40px}
+ .ribbon-panel input,.ribbon-panel select{min-width:0;max-width:100%;font-size:14px}
+ .file-workflow-group,.account-manager,.collaboration-manager,.document-manager,.version-manager,.folder-manager{min-width:0;width:100%}
+ .document-manager .ribbon-tools,.version-manager .ribbon-tools,.folder-manager .ribbon-tools{flex-wrap:wrap}
+ .document-manager select,.version-manager select,.folder-manager select{width:100%;max-width:none}
+ .editor-quickbar{bottom:calc(7px + var(--v6-safe-bottom));border-radius:14px;justify-content:flex-start}
+ .page-wrap{padding:5px;border-radius:10px}
+ .page{min-height:calc(100dvh - 265px)!important;padding:22px 16px!important}
+ body.focus-mode{background:#fff}
+ body.focus-mode .topbar,body.focus-mode .docbar,body.focus-mode .ribbon{display:none!important}
+ body.focus-mode main{margin:0;padding:0}
+ body.focus-mode .page-wrap{min-height:100dvh;padding:8px 7px calc(74px + var(--v6-safe-bottom));border:0;border-radius:0;background:#fff}
+ body.focus-mode .editor-quickbar{left:7px;right:7px;bottom:calc(7px + var(--v6-safe-bottom));top:auto}
+ body.focus-mode .page{min-height:calc(100dvh - 110px)!important;padding:25px 18px!important;border:0;box-shadow:none}
+ body.focus-mode .editor-statusbar{padding:7px 10px}
+}
+@media(max-width:380px){.ribbon-tab{font-size:9px;padding-inline:1px}.ribbon-tabs{gap:2px}.page{padding-inline:14px!important}}
