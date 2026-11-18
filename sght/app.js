@@ -58,7 +58,8 @@ function setZoom(v){zoom=Math.max(60,Math.min(160,v));document.querySelector("#z
 document.querySelectorAll(".ribbon-tab").forEach(tab=>tab.addEventListener("click",()=>{document.querySelectorAll(".ribbon-tab").forEach(x=>x.classList.toggle("active",x===tab));calcStatus.textContent="Nhóm công cụ: "+tab.textContent;}));
 document.querySelector("#addSheet").addEventListener("click",()=>{calcStatus.textContent="Tính năng nhiều trang tính sẽ được bổ sung ở phiên bản kế tiếp.";});
 
-const dsPanel=document.querySelector("#dataSciencePanel"),dsOutput=document.querySelector("#dataScienceOutput");\nlet dsLastReport=[];
+const dsPanel=document.querySelector("#dataSciencePanel"),dsOutput=document.querySelector("#dataScienceOutput");
+let dsLastReport=[];
 document.querySelector("#openDataScience").addEventListener("click",()=>{dsPanel.hidden=false;document.querySelector("#dsXRange").focus();});
 document.querySelector("#closeDataScience").addEventListener("click",()=>{dsPanel.hidden=true;});
 function readRawRange(range){
