@@ -1,0 +1,470 @@
+{
+  "schemaVersion": 1,
+  "curriculumId": "haidat-office-core",
+  "version": "1.0.0",
+  "title": {
+    "vi": "Giáo trình HAI ĐẤT OFFICE",
+    "en": "HAI DAT OFFICE Learning Guide"
+  },
+  "description": {
+    "vi": "Một giáo trình chung cho Writer, Calc và Slides.",
+    "en": "One shared curriculum for Writer, Calc and Slides."
+  },
+  "applications": [
+    {
+      "id": "writer",
+      "name": {
+        "vi": "Writer",
+        "en": "Writer"
+      },
+      "summary": {
+        "vi": "Soạn thảo và trình bày văn bản.",
+        "en": "Create and format documents."
+      }
+    },
+    {
+      "id": "calc",
+      "name": {
+        "vi": "Calc",
+        "en": "Calc"
+      },
+      "summary": {
+        "vi": "Tính toán và xử lý bảng dữ liệu.",
+        "en": "Calculate and work with spreadsheets."
+      }
+    },
+    {
+      "id": "slides",
+      "name": {
+        "vi": "Slides",
+        "en": "Slides"
+      },
+      "summary": {
+        "vi": "Thiết kế và trình chiếu nội dung.",
+        "en": "Design and present information."
+      }
+    }
+  ],
+  "lessons": [
+    {
+      "id": "CORE-001",
+      "chapter": "FOUNDATION",
+      "apps": [
+        "writer",
+        "calc",
+        "slides"
+      ],
+      "level": "beginner",
+      "minutes": 8,
+      "title": {
+        "vi": "Làm quen với HAI ĐẤT OFFICE",
+        "en": "Getting started with HAI DAT OFFICE"
+      },
+      "objective": {
+        "vi": "Nhận biết vai trò của ba ứng dụng và chọn đúng công cụ cho công việc.",
+        "en": "Understand the three apps and choose the right tool for each task."
+      },
+      "sections": [
+        {
+          "heading": {
+            "vi": "Ba công cụ, một quy trình",
+            "en": "Three tools, one workflow"
+          },
+          "paragraphs": {
+            "vi": [
+              "Writer dùng để tạo văn bản có cấu trúc như thư, báo cáo và giáo trình.",
+              "Calc dùng để tổ chức dữ liệu dạng hàng-cột, tính toán và kiểm tra số liệu.",
+              "Slides dùng để chắt lọc thông tin thành các trang trình bày trực quan."
+            ],
+            "en": [
+              "Writer creates structured documents such as letters, reports and guides.",
+              "Calc organizes rows and columns, performs calculations and checks data.",
+              "Slides turns key information into visual presentation pages."
+            ]
+          }
+        },
+        {
+          "heading": {
+            "vi": "Quy trình phối hợp",
+            "en": "A connected workflow"
+          },
+          "steps": {
+            "vi": [
+              "Soạn nội dung và thuyết minh trong Writer.",
+              "Lập bảng, tính toán và kiểm tra dữ liệu trong Calc.",
+              "Chuyển kết quả quan trọng thành câu chuyện trình bày trong Slides."
+            ],
+            "en": [
+              "Draft the narrative and explanation in Writer.",
+              "Organize, calculate and validate data in Calc.",
+              "Turn the key findings into a presentation in Slides."
+            ]
+          }
+        }
+      ],
+      "exercise": {
+        "vi": "Hãy chọn một chủ đề quen thuộc. Viết một đoạn giới thiệu trong Writer, lập bảng ba cột trong Calc và phác thảo ba trang trình bày trong Slides.",
+        "en": "Choose a familiar topic. Write an introduction in Writer, create a three-column table in Calc and outline three slides."
+      },
+      "check": {
+        "vi": [
+          "Tôi phân biệt được mục đích của Writer, Calc và Slides.",
+          "Tôi biết khi nào cần phối hợp cả ba ứng dụng."
+        ],
+        "en": [
+          "I can explain the purpose of Writer, Calc and Slides.",
+          "I know when to combine all three apps."
+        ]
+      }
+    },
+    {
+      "id": "CORE-002",
+      "chapter": "FOUNDATION",
+      "apps": [
+        "writer",
+        "calc",
+        "slides"
+      ],
+      "level": "beginner",
+      "minutes": 10,
+      "title": {
+        "vi": "Tệp, thư mục và bản sao an toàn",
+        "en": "Files, folders and safe copies"
+      },
+      "objective": {
+        "vi": "Biết đặt tên, phân loại và sao lưu tài liệu trước khi chỉnh sửa lớn.",
+        "en": "Name, organize and back up files before major edits."
+      },
+      "sections": [
+        {
+          "heading": {
+            "vi": "Đặt tên có quy tắc",
+            "en": "Use consistent file names"
+          },
+          "paragraphs": {
+            "vi": [
+              "Đặt tên ngắn, có chủ đề và ngày hoặc phiên bản khi cần. Tránh các tên mơ hồ như final-final-mới.",
+              "Lưu tài liệu vào thư mục theo dự án hoặc năm; không gom mọi tệp vào một chỗ."
+            ],
+            "en": [
+              "Use short names that identify the topic and, when useful, a date or version. Avoid vague names such as final-final-new.",
+              "Store files by project or year instead of putting everything in one folder."
+            ]
+          }
+        },
+        {
+          "heading": {
+            "vi": "Bảo vệ dữ liệu",
+            "en": "Protect your work"
+          },
+          "steps": {
+            "vi": [
+              "Tạo bản sao trước khi chuyển đổi định dạng hoặc chỉnh sửa hàng loạt.",
+              "Sau khi xuất tệp, mở lại bản xuất để kiểm tra nội dung và bố cục.",
+              "Giữ bản gốc cho tới khi xác nhận bản mới dùng được."
+            ],
+            "en": [
+              "Make a copy before format conversion or bulk editing.",
+              "After exporting, reopen the exported file and check its content and layout.",
+              "Keep the original until the new copy has been verified."
+            ]
+          }
+        }
+      ],
+      "exercise": {
+        "vi": "Tạo một thư mục dự án, lưu một tệp mẫu của mỗi ứng dụng và đặt tên theo cùng một quy tắc.",
+        "en": "Create a project folder, save one sample file from each app and apply one consistent naming rule."
+      },
+      "check": {
+        "vi": [
+          "Tôi biết phân biệt bản gốc và bản sao.",
+          "Tôi kiểm tra tệp sau khi xuất."
+        ],
+        "en": [
+          "I can distinguish the original from a copy.",
+          "I verify a file after exporting it."
+        ]
+      }
+    },
+    {
+      "id": "WRITER-001",
+      "chapter": "DOCUMENTS",
+      "apps": [
+        "writer"
+      ],
+      "level": "beginner",
+      "minutes": 12,
+      "title": {
+        "vi": "Tạo văn bản rõ ràng trong Writer",
+        "en": "Create a clear document in Writer"
+      },
+      "objective": {
+        "vi": "Tạo văn bản có tiêu đề, đoạn văn và định dạng nhất quán.",
+        "en": "Create a document with headings, paragraphs and consistent formatting."
+      },
+      "sections": [
+        {
+          "heading": {
+            "vi": "Bố cục dễ đọc",
+            "en": "Readable structure"
+          },
+          "steps": {
+            "vi": [
+              "Đặt tiêu đề chính mô tả đúng nội dung.",
+              "Chia nội dung thành các đoạn ngắn; mỗi đoạn tập trung một ý.",
+              "Dùng kiểu tiêu đề theo cấp bậc thay vì chỉ phóng to chữ thủ công."
+            ],
+            "en": [
+              "Choose a main title that describes the content.",
+              "Break content into short paragraphs, each focused on one idea.",
+              "Use heading levels instead of manually enlarging text."
+            ]
+          }
+        },
+        {
+          "heading": {
+            "vi": "Định dạng có chủ đích",
+            "en": "Format with purpose"
+          },
+          "paragraphs": {
+            "vi": [
+              "Chọn phông chữ dễ đọc và giữ số lượng kiểu chữ ở mức vừa phải.",
+              "Dùng đậm để nhấn ý quan trọng; tránh tô đậm cả đoạn dài.",
+              "Kiểm tra dấu tiếng Việt, cỡ chữ, khoảng cách và ngắt trang trước khi chia sẻ."
+            ],
+            "en": [
+              "Choose a readable font and keep the number of typefaces modest.",
+              "Use bold for emphasis; avoid bolding entire long paragraphs.",
+              "Check accents, font size, spacing and page breaks before sharing."
+            ]
+          }
+        }
+      ],
+      "exercise": {
+        "vi": "Soạn một báo cáo một trang có tiêu đề, hai đề mục, một danh sách và phần kết luận.",
+        "en": "Write a one-page report with a title, two headings, a list and a conclusion."
+      },
+      "check": {
+        "vi": [
+          "Tài liệu có thứ bậc tiêu đề rõ ràng.",
+          "Phông chữ và khoảng cách nhất quán."
+        ],
+        "en": [
+          "The document has a clear heading hierarchy.",
+          "Fonts and spacing are consistent."
+        ]
+      }
+    },
+    {
+      "id": "CALC-001",
+      "chapter": "DATA",
+      "apps": [
+        "calc"
+      ],
+      "level": "beginner",
+      "minutes": 14,
+      "title": {
+        "vi": "Bảng dữ liệu và công thức đầu tiên trong Calc",
+        "en": "Your first data table and formula in Calc"
+      },
+      "objective": {
+        "vi": "Nhập dữ liệu có cấu trúc và tính tổng bằng công thức.",
+        "en": "Enter structured data and calculate a total with a formula."
+      },
+      "sections": [
+        {
+          "heading": {
+            "vi": "Tổ chức bảng",
+            "en": "Organize the table"
+          },
+          "steps": {
+            "vi": [
+              "Mỗi cột chỉ nên chứa một loại thông tin.",
+              "Dòng đầu tiên dùng tên cột rõ nghĩa, ví dụ Ngày, Vật tư, Số lượng, Đơn giá.",
+              "Không gộp ô trong vùng dữ liệu cần lọc hoặc tính toán."
+            ],
+            "en": [
+              "Keep one kind of information in each column.",
+              "Use clear column names such as Date, Item, Quantity and Unit price.",
+              "Avoid merged cells inside data ranges that need filtering or calculations."
+            ]
+          }
+        },
+        {
+          "heading": {
+            "vi": "Công thức",
+            "en": "Formulas"
+          },
+          "paragraphs": {
+            "vi": [
+              "Công thức thường bắt đầu bằng dấu bằng (=).",
+              "Ví dụ: nếu số lượng ở B2 và đơn giá ở C2, thành tiền có thể tính bằng =B2*C2.",
+              "Kiểm tra tham chiếu ô và định dạng số trước khi sao chép công thức xuống các dòng khác."
+            ],
+            "en": [
+              "A formula usually begins with an equals sign (=).",
+              "For example, if quantity is in B2 and unit price is in C2, the amount can be calculated with =B2*C2.",
+              "Check cell references and number formats before filling the formula down."
+            ]
+          }
+        }
+      ],
+      "exercise": {
+        "vi": "Lập bảng năm mặt hàng gồm số lượng, đơn giá và thành tiền; tính tổng cộng ở cuối bảng.",
+        "en": "Create a five-item table with quantity, unit price and amount; calculate the grand total."
+      },
+      "check": {
+        "vi": [
+          "Tên cột rõ ràng và mỗi cột có một kiểu dữ liệu.",
+          "Công thức tính đúng và tham chiếu đúng ô."
+        ],
+        "en": [
+          "Column labels are clear and each column has one data type.",
+          "The formula calculates correctly and references the right cells."
+        ]
+      }
+    },
+    {
+      "id": "SLIDES-001",
+      "chapter": "PRESENTATION",
+      "apps": [
+        "slides"
+      ],
+      "level": "beginner",
+      "minutes": 12,
+      "title": {
+        "vi": "Xây dựng bài trình chiếu có mạch lạc",
+        "en": "Build a coherent presentation"
+      },
+      "objective": {
+        "vi": "Sắp xếp ý tưởng thành phần mở đầu, nội dung chính và kết luận.",
+        "en": "Arrange ideas into an opening, main points and a conclusion."
+      },
+      "sections": [
+        {
+          "heading": {
+            "vi": "Một trang, một thông điệp",
+            "en": "One message per slide"
+          },
+          "paragraphs": {
+            "vi": [
+              "Mỗi slide nên phục vụ một ý chính.",
+              "Tiêu đề cần nói rõ thông điệp, không chỉ ghi tên mục chung chung.",
+              "Ưu tiên từ khóa và hình ảnh có liên quan; tránh đưa nguyên đoạn báo cáo lên slide."
+            ],
+            "en": [
+              "Each slide should serve one main idea.",
+              "A title should state the message, not merely name a generic section.",
+              "Prefer keywords and relevant visuals; do not paste whole report paragraphs onto slides."
+            ]
+          }
+        },
+        {
+          "heading": {
+            "vi": "Mạch trình bày",
+            "en": "Presentation flow"
+          },
+          "steps": {
+            "vi": [
+              "Mở đầu: nêu vấn đề và mục tiêu.",
+              "Nội dung: trình bày các luận điểm theo thứ tự dễ theo dõi.",
+              "Kết luận: nhắc lại phát hiện hoặc đề xuất quan trọng."
+            ],
+            "en": [
+              "Opening: introduce the problem and objective.",
+              "Main section: present points in an easy-to-follow order.",
+              "Conclusion: restate the key finding or recommendation."
+            ]
+          }
+        }
+      ],
+      "exercise": {
+        "vi": "Tạo ba slide: vấn đề, ba phát hiện chính và kết luận/đề xuất.",
+        "en": "Create three slides: the problem, three key findings and a conclusion or recommendation."
+      },
+      "check": {
+        "vi": [
+          "Mỗi slide có một thông điệp chính.",
+          "Bài trình chiếu có mở đầu, nội dung và kết luận."
+        ],
+        "en": [
+          "Each slide has one main message.",
+          "The presentation has an opening, main section and conclusion."
+        ]
+      }
+    },
+    {
+      "id": "INTEGRATION-001",
+      "chapter": "WORKFLOW",
+      "apps": [
+        "writer",
+        "calc",
+        "slides"
+      ],
+      "level": "intermediate",
+      "minutes": 20,
+      "title": {
+        "vi": "Bài thực hành liên thông ba ứng dụng",
+        "en": "Integrated exercise across all three apps"
+      },
+      "objective": {
+        "vi": "Hoàn thành một quy trình nhỏ từ báo cáo đến dữ liệu và trình bày.",
+        "en": "Complete a small workflow from report to data analysis and presentation."
+      },
+      "sections": [
+        {
+          "heading": {
+            "vi": "Tình huống thực hành",
+            "en": "Practice scenario"
+          },
+          "paragraphs": {
+            "vi": [
+              "Chọn một chủ đề có số liệu đơn giản, chẳng hạn theo dõi chi phí, kế hoạch học tập hoặc kết quả khảo sát.",
+              "Dùng cùng một tên dự án và quy ước phiên bản cho cả ba tệp."
+            ],
+            "en": [
+              "Choose a topic with simple data, such as cost tracking, a study plan or survey results.",
+              "Use the same project name and version convention for all three files."
+            ]
+          }
+        },
+        {
+          "heading": {
+            "vi": "Các bước",
+            "en": "Steps"
+          },
+          "steps": {
+            "vi": [
+              "Writer: viết mục tiêu, phạm vi và phần giải thích.",
+              "Calc: nhập bảng dữ liệu, tạo ít nhất một công thức và kiểm tra tổng.",
+              "Slides: trình bày mục tiêu, một kết quả từ Calc và kết luận.",
+              "Mở lại cả ba tệp để xác nhận chúng được lưu đúng."
+            ],
+            "en": [
+              "Writer: write the objective, scope and explanation.",
+              "Calc: enter a data table, create at least one formula and verify the total.",
+              "Slides: present the objective, one result from Calc and a conclusion.",
+              "Reopen all three files to confirm they were saved correctly."
+            ]
+          }
+        }
+      ],
+      "exercise": {
+        "vi": "Nộp ba tệp cùng tên dự án: một báo cáo, một bảng tính và một bài trình chiếu tối thiểu ba slide.",
+        "en": "Submit three files under one project name: a report, a spreadsheet and a presentation of at least three slides."
+      },
+      "check": {
+        "vi": [
+          "Ba tệp thống nhất về chủ đề và số liệu.",
+          "Số liệu trong Slides khớp với Calc.",
+          "Báo cáo giải thích được kết quả."
+        ],
+        "en": [
+          "All three files share the same topic and figures.",
+          "Numbers in Slides match Calc.",
+          "The report explains the results."
+        ]
+      }
+    }
+  ]
+}
