@@ -2,5 +2,7 @@
   "name": "hai-dat-sght",
   "private": true,
   "type": "module",
-  "scripts": { "test": "node --test sght/tests/*.test.mjs" }
+  "scripts": {
+    "test": "node --check sght/app.js && node --check sght/engine/core.js && node --test sght/tests/*.test.mjs"
+  }
 }
