@@ -85,7 +85,7 @@
       if(ext==='docx')return await importDocx(file);
       if(ext==='doc')throw new Error('DOC cũ (Word 97–2003) chưa đọc trực tiếp được. Hãy chuyển sang DOCX bằng Word hoặc LibreOffice.');
       if(ext==='pdf')throw new Error('PDF chưa chuyển thành văn bản chỉnh sửa được; dùng In / Lưu PDF để xuất PDF.');
-      if(ext==='odt'){const x=await unzipText(file,'content.xml'),d=new DOMParser().parseFromString(x,'application/xml');if(d.querySelector('parsererror'))throw new Error('Tệp ODT lỗi XML.');const ns='urn:oasis:names:tc:opendocument:xmlns:text:1.0';return addLoadedFile(file.name,[...d.getElementsByTagNameNS(ns,'p'),...d.getElementsByTagNameNS(ns,'h')].map(p=>'<p>'+escapeHTML(p.textContent)+'</p>').join(''));}
+      if(ext==='odt')return await importODT(file);
       const raw=await file.text();let body='';
       if(['html','htm'].includes(ext))body=raw;
       else if(ext==='rtf')body='<p>'+escapeHTML(raw.replace(/\\par[d]?/g,'\n').replace(/\\[a-z]+-?\d* ?/gi,'').replace(/[{}]/g,'')).replace(/\n/g,'</p><p>')+'</p>';
@@ -777,6 +777,96 @@
     }
     throw new Error('Không tìm thấy nội dung chính trong DOCX.');
   }
+  function xmlAttr(el,ns,name){return el?.getAttributeNS(ns,name)||'';}
+  function docxRunHTML(run,ns){
+    const rPr=[...run.children].find(x=>x.localName==='rPr');
+    const css=[],face=rPr?.getElementsByTagNameNS(ns,'rFonts')[0];
+    const family=xmlAttr(face,ns,'eastAsia')||xmlAttr(face,ns,'ascii')||xmlAttr(face,ns,'hAnsi');
+    if(family)css.push('font-family:'+family.replace(/["<>;]/g,'') );
+    const size=Number(xmlAttr(rPr?.getElementsByTagNameNS(ns,'sz')[0],ns,'val'));
+    if(size>0)css.push('font-size:'+(size/2)+'pt');
+    const color=xmlAttr(rPr?.getElementsByTagNameNS(ns,'color')[0],ns,'val');
+    if(/^[0-9a-f]{6}$/i.test(color))css.push('color:#'+color);
+    const highlight=xmlAttr(rPr?.getElementsByTagNameNS(ns,'highlight')[0],ns,'val');
+    const shade=xmlAttr(rPr?.getElementsByTagNameNS(ns,'shd')[0],ns,'fill');
+    const bg=/^[0-9a-f]{6}$/i.test(shade)?shade:({yellow:'FFFF00',green:'00FF00',cyan:'00FFFF',magenta:'FF00FF',blue:'0000FF',red:'FF0000',darkBlue:'00008B',darkCyan:'008B8B',darkGreen:'006400',darkMagenta:'8B008B',darkRed:'8B0000',darkYellow:'808000',lightGray:'D3D3D3',darkGray:'A9A9A9',black:'000000'}[highlight]||'');
+    if(bg)css.push('background-color:#'+bg);
+    const has=x=>!!rPr?.getElementsByTagNameNS(ns,x).length;
+    let html='';
+    for(const child of run.children){
+      if(child.localName==='t'||child.localName==='delText')html+=escapeHTML(child.textContent);
+      else if(child.localName==='tab')html+='&emsp;';
+      else if(child.localName==='br'||child.localName==='cr')html+='<br>';
+      else if(child.localName==='noBreakHyphen')html+='‑';
+      else if(child.localName==='softHyphen')html+='­';
+    }
+    if(!html)return '';
+    if(has('b'))html='<strong>'+html+'</strong>';
+    if(has('i'))html='<em>'+html+'</em>';
+    if(has('u'))html='<u>'+html+'</u>';
+    if(has('strike')||has('dstrike'))html='<s>'+html+'</s>';
+    const vert=xmlAttr(rPr?.getElementsByTagNameNS(ns,'vertAlign')[0],ns,'val');
+    if(vert==='superscript')html='<sup>'+html+'</sup>';
+    if(vert==='subscript')html='<sub>'+html+'</sub>';
+    return css.length?'<span style="'+css.join(';')+'">'+html+'</span>':html;
+  }
+  function docxParagraphHTML(node,ns){
+    const pPr=[...node.children].find(x=>x.localName==='pPr');
+    const pStyle=xmlAttr(pPr?.getElementsByTagNameNS(ns,'pStyle')[0],ns,'val');
+    const tag=/Heading1/i.test(pStyle)?'h1':/Heading2/i.test(pStyle)?'h2':/Heading3/i.test(pStyle)?'h3':'p';
+    const css=[],jc=xmlAttr(pPr?.getElementsByTagNameNS(ns,'jc')[0],ns,'val');
+    if(jc)css.push('text-align:'+({both:'justify',start:'left',end:'right',left:'left',right:'right',center:'center'}[jc]||'left'));
+    const ind=pPr?.getElementsByTagNameNS(ns,'ind')[0];
+    for(const [attr,prop] of [['left','margin-left'],['right','margin-right'],['firstLine','text-indent']]){
+      const n=Number(xmlAttr(ind,ns,attr));if(n>0)css.push(prop+':'+(n/20)+'pt');
+    }
+    const spacing=pPr?.getElementsByTagNameNS(ns,'spacing')[0];
+    for(const [attr,prop] of [['before','margin-top'],['after','margin-bottom']]){
+      const n=Number(xmlAttr(spacing,ns,attr));if(n>0)css.push(prop+':'+(n/20)+'pt');
+    }
+    const runs=[...node.children].filter(x=>x.localName==='r').map(r=>docxRunHTML(r,ns)).join('');
+    const content=runs||'<br>';
+    return '<'+tag+(css.length?' style="'+css.join(';')+'"':'')+'>'+content+'</'+tag+'>';
+  }
+  async function importODT(file){
+    try{
+      const xml=await unzipText(file,'content.xml'),doc=new DOMParser().parseFromString(xml,'application/xml');
+      if(doc.querySelector('parsererror'))throw new Error('Tệp ODT lỗi XML.');
+      const T='urn:oasis:names:tc:opendocument:xmlns:text:1.0',S='urn:oasis:names:tc:opendocument:xmlns:style:1.0',F='urn:oasis:names:tc:opendocument:xmlns:xsl-fo-compatible:1.0';
+      const styles=new Map();
+      for(const st of [...doc.getElementsByTagNameNS(S,'style')]){
+        const name=xmlAttr(st,S,'name'),tp=st.getElementsByTagNameNS(S,'text-properties')[0],pp=st.getElementsByTagNameNS(S,'paragraph-properties')[0],css=[];
+        const pairs=[[xmlAttr(tp,S,'font-name'),'font-family'],[xmlAttr(tp,F,'font-size'),'font-size'],[xmlAttr(tp,F,'color'),'color'],[xmlAttr(pp,F,'text-align'),'text-align'],[xmlAttr(pp,F,'margin-left'),'margin-left'],[xmlAttr(pp,F,'text-indent'),'text-indent']];
+        for(const [v,k] of pairs)if(v)css.push(k+':'+v);
+        if(xmlAttr(tp,F,'font-weight')==='bold')css.push('font-weight:bold');
+        if(xmlAttr(tp,F,'font-style')==='italic')css.push('font-style:italic');
+        if(xmlAttr(tp, S,'text-underline-style')&&xmlAttr(tp,S,'text-underline-style')!=='none')css.push('text-decoration:underline');
+        styles.set(name,css);
+      }
+      const inline=(node)=>[...node.childNodes].map(ch=>{
+        if(ch.nodeType===Node.TEXT_NODE)return escapeHTML(ch.nodeValue);
+        if(ch.nodeType!==Node.ELEMENT_NODE)return '';
+        if(ch.namespaceURI===T&&ch.localName==='s')return ' '.repeat(Math.min(100,Number(xmlAttr(ch,T,'c'))||1));
+        if(ch.namespaceURI===T&&ch.localName==='tab')return '&emsp;';
+        if(ch.namespaceURI===T&&ch.localName==='line-break')return '<br>';
+        if(ch.namespaceURI===T&&ch.localName==='span'){
+          const css=styles.get(xmlAttr(ch,T,'style-name'))||[],inner=inline(ch);
+          return css.length?'<span style="'+css.join(';')+'">'+inner+'</span>':inner;
+        }
+        return inline(ch);
+      }).join('');
+      let html='';
+      const root=doc.getElementsByTagNameNS(T,'body')[0]?.getElementsByTagNameNS(T,'text')[0];
+      if(!root)throw new Error('Không tìm thấy nội dung văn bản ODT.');
+      for(const node of root.children){
+        if(node.namespaceURI!==T||!['p','h'].includes(node.localName))continue;
+        const style=styles.get(xmlAttr(node,T,'style-name'))||[];
+        const tag=node.localName==='h'?'h2':'p',content=inline(node)||'<br>';
+        html+='<'+tag+(style.length?' style="'+style.join(';')+'"':'')+'>'+content+'</'+tag+'>';
+      }
+      return addLoadedFile(file.name,html||'<p><br></p>');
+    }catch(err){alert('Không mở được ODT: '+err.message);return false;}
+  }
   async function importDocx(file){
     try{
       const xml=await unzipText(file,'word/document.xml'),doc=new DOMParser().parseFromString(xml,'application/xml');
@@ -784,27 +874,16 @@
       const ns='http://schemas.openxmlformats.org/wordprocessingml/2006/main';
       const body=doc.getElementsByTagNameNS(ns,'body')[0];if(!body)throw new Error('Tài liệu Word không có phần nội dung.');
       let html='';
-      const textOf=el=>[...el.getElementsByTagNameNS(ns,'t')].map(t=>t.textContent).join('');
       for(const node of body.children){
-        if(node.localName==='p'){
-          const pPr=node.getElementsByTagNameNS(ns,'pPr')[0],style=pPr?.getElementsByTagNameNS(ns,'pStyle')[0]?.getAttributeNS(ns,'val')||'';
-          const tag=/Heading1/i.test(style)?'h1':/Heading2/i.test(style)?'h2':/Heading3/i.test(style)?'h3':'p';
-          let inner='';
-          for(const run of [...node.children].filter(x=>x.localName==='r')){
-            let t=[...run.getElementsByTagNameNS(ns,'t')].map(x=>xmlEscape(x.textContent)).join('');
-            if([...run.getElementsByTagNameNS(ns,'br')].length)t+='<br>';
-            const rp=run.getElementsByTagNameNS(ns,'rPr')[0];
-            if(rp?.getElementsByTagNameNS(ns,'b').length)t='<strong>'+t+'</strong>';
-            if(rp?.getElementsByTagNameNS(ns,'i').length)t='<em>'+t+'</em>';
-            if(rp?.getElementsByTagNameNS(ns,'u').length)t='<u>'+t+'</u>';
-            inner+=t;
-          }
-          html+='<'+tag+'>'+inner+'</'+tag+'>';
-        } else if(node.localName==='tbl'){
+        if(node.localName==='p')html+=docxParagraphHTML(node,ns);
+        else if(node.localName==='tbl'){
           html+='<table><tbody>';
           for(const tr of [...node.children].filter(x=>x.localName==='tr')){
             html+='<tr>';
-            for(const tc of [...tr.children].filter(x=>x.localName==='tc'))html+='<td>'+[...tc.getElementsByTagNameNS(ns,'p')].map(p=>xmlEscape(textOf(p))).join('<br>')+'</td>';
+            for(const tc of [...tr.children].filter(x=>x.localName==='tc')){
+              const blocks=[...tc.children].filter(x=>x.localName==='p').map(p=>docxParagraphHTML(p,ns)).join('');
+              html+='<td>'+blocks+'</td>';
+            }
             html+='</tr>';
           }
           html+='</tbody></table>';
