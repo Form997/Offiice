@@ -7,7 +7,8 @@ const letters = n => { let s=""; while(n>0){const r=(n-1)%26;s=String.fromCharCo
 const address = (r,c) => letters(c)+r;
 const parseAddress = a => { const m=/^([A-Z]+)([1-9][0-9]*)$/i.exec(a); if(!m)return null; let c=0; for(const ch of m[1].toUpperCase())c=c*26+ch.charCodeAt(0)-64; return {r:Number(m[2]),c}; };
 let cells = Object.create(null), selected = "A1", sheetTitle = "Bảng tính chưa đặt tên", zoom=100, undoStack=[], redoStack=[];
-const macroRecorder=new MacroRecorder();\nlet macroExecution=false;
+const macroRecorder=new MacroRecorder();
+let macroExecution=false;
 const grid=document.querySelector("#sheetGrid"),formulaInput=document.querySelector("#formulaInput"),cellAddress=document.querySelector("#cellAddress"),selectionInfo=document.querySelector("#selectionInfo"),saveStatus=document.querySelector("#saveStatus"),calcStatus=document.querySelector("#calcStatus");
 function load(){try{const saved=JSON.parse(localStorage.getItem(STORAGE_KEY)||"null");if(saved&&saved.cells&&typeof saved.cells==="object"){cells=saved.cells;sheetTitle=String(saved.title||sheetTitle);}}catch{}document.querySelector("#sheetName").value=sheetTitle;}
 function save(){try{localStorage.setItem(STORAGE_KEY,JSON.stringify({cells,title:sheetTitle,updatedAt:new Date().toISOString()}));saveStatus.textContent="Đã lưu trên thiết bị";}catch{saveStatus.textContent="Không đủ dung lượng lưu";}}
