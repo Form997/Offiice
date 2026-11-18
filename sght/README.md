@@ -37,3 +37,14 @@ Mở `sght/index.html` qua GitHub Pages sau khi workflow triển khai hoàn tấ
 ## Nhật ký phát triển
 - 2026-11-18 — Bản lưới tương tác đầu tiên, nối với bộ máy công thức.
 - 2026-11-18 — Hiện đại hóa bố cục: thanh tiêu đề, trình đơn, ribbon công cụ, thanh công thức, thanh trang tính và trạng thái; bổ sung hoàn tác/làm lại, clipboard, hàm nhanh và thu phóng. Ghi rõ lưới mở rộng vô hạn vẫn là hạng mục tiếp theo.
+
+## SGHT Macro Studio — nền móng đầu tiên — 2026-11-19
+
+- Thêm ngôn ngữ macro khai báo độc lập tại `automation/macro-engine.js`; không dùng `eval()`, `new Function()`, JavaScript tùy ý, truy cập mạng hay hệ thống tệp.
+- Lệnh hiện hỗ trợ: `SET`, `COPY`, `CLEAR`, `SUM`; có dòng ghi chú bắt đầu bằng `#`.
+- Có bước phân tích cú pháp và xem trước trước khi chạy; thực thi yêu cầu xác nhận rõ ràng.
+- Giới hạn an toàn: tối đa 2.000 lệnh/macro và 10.000 ô/lệnh.
+- Có thể hoàn tác bằng lịch sử chỉnh sửa hiện tại.
+- Chưa phải VBA: chưa chạy trực tiếp mã VBA, chưa có trình gỡ lỗi, sự kiện, lịch chạy hay AI sinh macro. Các phần đó là các chặng kế tiếp.
+- Bổ sung kiểm thử tự động cho phân tích, quyền thực thi, thao tác dữ liệu và giới hạn an toàn.
+
