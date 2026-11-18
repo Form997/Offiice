@@ -1,10 +1,10 @@
 name: HAI DAT OFFICE Academy Browser QA
 on:
   push:
-    branches: [v7-development]
+    branches: [v7-development, main]
     paths: ['academy/**','tests/academy.browser.test.cjs','.github/workflows/academy-browser-qa.yml']
   pull_request:
-    branches: [v7-development]
+    branches: [main, v7-development]
     paths: ['academy/**','tests/academy.browser.test.cjs','.github/workflows/academy-browser-qa.yml']
 permissions:
   contents: read
@@ -23,7 +23,6 @@ jobs:
       - name: Start static preview server
         run: |
           python3 -m http.server 4173 --bind 127.0.0.1 >/tmp/academy-server.log 2>&1 &
-          echo $! >/tmp/academy-server.pid
           for i in $(seq 1 20); do
             if curl -fsS http://127.0.0.1:4173/academy/ >/dev/null; then exit 0; fi
             sleep 1
