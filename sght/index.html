@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#173b32">
+  <title>HAI ĐẤT SGHT — Bảng tính</title>
+  <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="./index.html" aria-label="HAI ĐẤT SGHT"><span class="brand-mark">S</span><span><b>HAI ĐẤT</b><small>SGHT · BẢNG TÍNH</small></span></a>
+    <div class="top-actions"><span id="saveStatus" role="status">Đã lưu trên thiết bị</span><button id="newSheet" class="quiet">Tạo bảng mới</button><button id="downloadCsv" class="primary">Xuất CSV</button></div>
+  </header>
+  <main>
+    <section class="document-head">
+      <div><p class="eyebrow">KHÔNG GIAN LÀM VIỆC</p><input id="sheetName" class="sheet-name" value="Bảng tính chưa đặt tên" aria-label="Tên bảng tính"></div>
+      <div class="sheet-meta">Tự động lưu cục bộ · 16 cột × 40 hàng hiển thị</div>
+    </section>
+    <section class="formula-panel" aria-label="Thanh công thức">
+      <div class="name-box" id="cellAddress">A1</div>
+      <div class="fx-mark">fx</div>
+      <input id="formulaInput" autocomplete="off" spellcheck="false" placeholder="Nhập giá trị hoặc công thức, ví dụ =SUM(A1:A5)" aria-label="Nội dung ô đang chọn">
+      <button id="applyFormula" class="apply">Áp dụng</button>
+    </section>
+    <section class="sheet-shell" aria-label="Lưới bảng tính">
+      <div class="sheet-scroll" id="sheetScroll">
+        <table id="sheetGrid" class="sheet-grid"><thead></thead><tbody></tbody></table>
+      </div>
+    </section>
+    <footer class="sheet-footer"><span id="selectionInfo">Ô A1 đang được chọn</span><span id="calcStatus">Bộ máy công thức SGHT</span></footer>
+    <section class="help">
+      <b>Cách dùng nhanh</b>
+      <span>Chọn ô rồi gõ dữ liệu. Công thức bắt đầu bằng <code>=</code>, thí dụ <code>=A1+B1</code>, <code>=SUM(A1:A5)</code>, <code>=AVERAGE(B1:B8)</code>.</span>
+      <span>Dán một vùng dữ liệu từ bảng tính khác bằng cách sao chép rồi dán vào ô đầu tiên. Dữ liệu được tự lưu trên thiết bị này.</span>
+    </section>
+  </main>
+  <script type="module" src="./app.js"></script>
+</body>
+</html>
