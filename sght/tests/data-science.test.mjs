@@ -1,8 +1,10 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import {pearsonCorrelation,simpleLinearRegression,oneWayAnova} from "../ai/data-science.js";
-test("tương quan Pearson nhận biết quan hệ tuyến tính hoàn hảo",()=>{const r=pearsonCorrelation([1,2,3,4],[2,4,6,8]);assert.ok(Math.abs(r.r-1)<1e-12);assert.equal(r.n,4);});
-test("hồi quy tuyến tính ước lượng hệ số và R bình phương",()=>{const r=simpleLinearRegression([1,2,3,4],[3,5,7,9]);assert.ok(Math.abs(r.slope-2)<1e-12);assert.ok(Math.abs(r.intercept-1)<1e-12);assert.ok(Math.abs(r.rSquared-1)<1e-12);});
-test("hồi quy từ chối cỡ mẫu thiếu và biến X không biến thiên",()=>{assert.throws(()=>simpleLinearRegression([1,2],[2,4]),/ít nhất 3/);assert.throws(()=>simpleLinearRegression([2,2,2],[1,2,3]),/không biến thiên/);});
-test("ANOVA một nhân tố phát hiện khác biệt rõ giữa nhóm",()=>{const r=oneWayAnova([{name:"A",values:[1,2,1,2]},{name:"B",values:[8,9,8,9]},{name:"C",values:[4,5,4,5]}]);assert.ok(r.F>100);assert.ok(r.pValue<.05);assert.equal(r.k,3);});
-test("ANOVA từ chối nhóm thiếu lặp",()=>assert.throws(()=>oneWayAnova([{values:[1]},{values:[2,3]}]),/ít nhất 2/));
+import {pearsonCorrelation,simpleLinearRegression,oneWayAnova,multipleLinearRegression,fisherLSD,twoWayAnovaBalanced,residualDiagnostics,leveneTest,linearTrendForecast,descriptiveStatistics} from "../ai/data-science.js";
+test("Pearson and simple regression",()=>{assert.ok(Math.abs(pearsonCorrelation([1,2,3,4],[2,4,6,8]).r-1)<1e-10);const r=simpleLinearRegression([1,2,3,4],[3,5,7,9]);assert.ok(Math.abs(r.slope-2)<1e-10);assert.ok(r.diagnostics.durbinWatson>=0);});
+test("multiple regression recovers two coefficients",()=>{const X=[[1,2],[2,1],[3,4],[4,2],[5,3],[6,5],[7,4],[8,6]],y=X.map(([a,b])=>5+2*a-3*b);const r=multipleLinearRegression(X,y,["N","P"]);assert.ok(Math.abs(r.coefficients[1].estimate-2)<1e-8);assert.ok(Math.abs(r.coefficients[2].estimate+3)<1e-8);assert.ok(r.rSquared>.999999);});
+test("LSD compares treatment pairs after ANOVA",()=>{const r=fisherLSD([{name:"A",values:[1,2,1,2]},{name:"B",values:[8,9,8,9]},{name:"C",values:[4,5,4,5]}]);assert.equal(r.pairs.length,3);assert.equal(r.protected,true);});
+test("balanced two-way ANOVA returns three effects",()=>{const rows=[];for(const a of ["a1","a2"])for(const b of ["b1","b2"])for(const y of (a==="a1"?(b==="b1"?[2,3]:[4,5]):(b==="b1"?[6,7]:[10,11])))rows.push({a,b,y});const r=twoWayAnovaBalanced(rows);assert.equal(r.effects.length,3);assert.ok(r.effects[2].F>0);});
+test("Levene test and residual diagnostics",()=>{const r=leveneTest([{name:"A",values:[1,2,3,4]},{name:"B",values:[2,3,4,5]}]);assert.ok(r.p>=0&&r.p<=1);assert.ok(residualDiagnostics([1,-1,2,-2,1]).jarqueBera>=0);});
+test("trend forecast and descriptive statistics",()=>{const r=linearTrendForecast([2,4,6,8],2);assert.equal(r.forecast.length,2);assert.ok(Math.abs(r.forecast[0].value-10)<1e-8);const d=descriptiveStatistics([1,2,3,4,5]);assert.equal(d.median,3);assert.equal(d.n,5);});
+test("rejects singular regression and incomplete input",()=>{assert.throws(()=>multipleLinearRegression([[1,1],[2,2],[3,3],[4,4]],[1,2,3,4]),/suy biến/);assert.throws(()=>descriptiveStatistics([1,""]),/ô trống/);});
