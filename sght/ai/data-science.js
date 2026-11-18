@@ -1,68 +1,28 @@
 /**
- * SGHT Data Science — Giai đoạn 8
- * Thống kê suy luận ngoại tuyến, không phụ thuộc thư viện ngoài.
+ * SGHT Data Science — Giai đoạn 9
+ * Bộ thống kê suy luận ngoại tuyến, không phụ thuộc thư viện ngoài.
  */
-const finite = x => typeof x === "number" && Number.isFinite(x);
-function clean(values, label) {
-  if (!Array.isArray(values)) throw new TypeError(label+" phải là mảng.");
-  const out=values.map(v=>typeof v==="number"?v:(typeof v==="string"&&v.trim()!==""?Number(v):NaN));
-  if(out.some(x=>!finite(x))) throw new TypeError(label+" có giá trị không phải số hoặc ô trống.");
-  return out;
-}
-function mean(a){return a.reduce((s,x)=>s+x,0)/a.length;}
-function variance(a,m=mean(a)){return a.reduce((s,x)=>s+(x-m)**2,0)/(a.length-1);}
-function paired(x,y){
-  const X=clean(x,"X"),Y=clean(y,"Y");
-  if(X.length!==Y.length)throw new RangeError("Hai dãy X và Y phải có cùng số quan sát.");
-  if(X.length<3)throw new RangeError("Hồi quy cần ít nhất 3 cặp quan sát.");
-  return [X,Y];
-}
-export function pearsonCorrelation(x,y){
-  const [X,Y]=paired(x,y),mx=mean(X),my=mean(Y);
-  const sx=Math.sqrt(X.reduce((s,v)=>s+(v-mx)**2,0)),sy=Math.sqrt(Y.reduce((s,v)=>s+(v-my)**2,0));
-  if(!sx||!sy)throw new RangeError("Không thể tính tương quan khi một dãy không biến thiên.");
-  const r=X.reduce((s,v,i)=>s+(v-mx)*(Y[i]-my),0)/(sx*sy);
-  return {r,rSquared:r*r,n:X.length,interpretation:Math.abs(r)<.3?"yếu":Math.abs(r)<.7?"vừa":"mạnh"};
-}
-export function simpleLinearRegression(x,y){
-  const [X,Y]=paired(x,y),mx=mean(X),my=mean(Y);
-  const ssx=X.reduce((s,v)=>s+(v-mx)**2,0);
-  if(!ssx)throw new RangeError("Dãy X không biến thiên; không thể ước lượng hệ số góc.");
-  const slope=X.reduce((s,v,i)=>s+(v-mx)*(Y[i]-my),0)/ssx;
-  const intercept=my-slope*mx;
-  const predicted=X.map(v=>intercept+slope*v);
-  const sse=Y.reduce((s,v,i)=>s+(v-predicted[i])**2,0),sst=Y.reduce((s,v)=>s+(v-my)**2,0);
-  const rSquared=sst===0?0:1-sse/sst;
-  const residualDf=X.length-2;
-  const standardError=residualDf>0?Math.sqrt((sse/residualDf)/ssx):null;
-  return {n:X.length,intercept,slope,rSquared,adjustedRSquared:1-(1-rSquared)*(X.length-1)/residualDf,standardError,predicted,residuals:Y.map((v,i)=>v-predicted[i]),equation:"Y = "+intercept+" + "+slope+" × X"};
-}
-function logGamma(z){
-  const p=[676.5203681218851,-1259.1392167224028,771.3234287776531,-176.6150291621406,12.507343278686905,-.13857109526572012,9.984369578019572e-6,1.5056327351493116e-7];
-  if(z<.5)return Math.log(Math.PI)-Math.log(Math.sin(Math.PI*z))-logGamma(1-z);
-  z-=1;let x=.99999999999980993;for(let i=0;i<p.length;i++)x+=p[i]/(z+i+1);
-  const t=z+p.length-.5;return .5*Math.log(2*Math.PI)+(z+.5)*Math.log(t)-t+Math.log(x);
-}
-function betaFraction(a,b,x){
-  const max=200,eps=3e-14,fp=1e-300;let qab=a+b,qap=a+1,qam=a-1,c=1,d=1-qab*x/qap;
-  if(Math.abs(d)<fp)d=fp;d=1/d;let h=d;
-  for(let m=1;m<=max;m++){let m2=2*m,aa=m*(b-m)*x/((qam+m2)*(a+m2));d=1+aa*d;if(Math.abs(d)<fp)d=fp;c=1+aa/c;if(Math.abs(c)<fp)c=fp;d=1/d;h*=d*c;aa=-(a+m)*(qab+m)*x/((a+m2)*(qap+m2));d=1+aa*d;if(Math.abs(d)<fp)d=fp;c=1+aa/c;if(Math.abs(c)<fp)c=fp;d=1/d;const del=d*c;h*=del;if(Math.abs(del-1)<eps)break;}
-  return h;
-}
-function regularizedBeta(x,a,b){
-  if(x<=0)return 0;if(x>=1)return 1;
-  const bt=Math.exp(logGamma(a+b)-logGamma(a)-logGamma(b)+a*Math.log(x)+b*Math.log1p(-x));
-  return x<(a+1)/(a+b+2)?bt*betaFraction(a,b,x)/a:1-bt*betaFraction(b,a,1-x)/b;
-}
-export function oneWayAnova(groups){
-  if(!Array.isArray(groups)||groups.length<2)throw new RangeError("ANOVA cần ít nhất 2 nghiệm thức.");
-  const G=groups.map((g,i)=>({name:String(g.name??("Nhóm "+(i+1))),values:clean(g.values,"Nhóm "+(i+1))}));
-  if(G.some(g=>g.values.length<2))throw new RangeError("Mỗi nhóm cần ít nhất 2 quan sát.");
-  const all=G.flatMap(g=>g.values),N=all.length,k=G.length,grand=mean(all);
-  const ssBetween=G.reduce((s,g)=>s+g.values.length*(mean(g.values)-grand)**2,0);
-  const ssWithin=G.reduce((s,g)=>s+g.values.reduce((q,v)=>q+(v-mean(g.values))**2,0),0);
-  const dfBetween=k-1,dfWithin=N-k,msBetween=ssBetween/dfBetween,msWithin=ssWithin/dfWithin;
-  if(msWithin===0)throw new RangeError("Phương sai trong nhóm bằng 0; không thể tính thống kê F.");
-  const F=msBetween/msWithin,pValue=1-regularizedBeta((dfBetween*F)/(dfBetween*F+dfWithin),dfBetween/2,dfWithin/2);
-  return {groups:G.map(g=>({name:g.name,n:g.values.length,mean:mean(g.values),sd:Math.sqrt(variance(g.values))})),N,k,grandMean:grand,ssBetween,ssWithin,dfBetween,dfWithin,msBetween,msWithin,F,pValue,significantAt05:pValue<.05};
-}
+const finite=x=>typeof x==="number"&&Number.isFinite(x);
+function nums(a,label="Dữ liệu"){if(!Array.isArray(a)||a.some(v=>v===null||v===undefined||v===""||!finite(Number(v))))throw new TypeError(label+" phải là dãy số đầy đủ, không có ô trống.");return a.map(Number);}
+const avg=a=>a.reduce((s,v)=>s+v,0)/a.length;
+const ss=a=>{const m=avg(a);return a.reduce((s,v)=>s+(v-m)**2,0);};
+function logGamma(z){const p=[676.5203681218851,-1259.1392167224028,771.3234287776531,-176.6150291621406,12.507343278686905,-.13857109526572012,9.984369578019572e-6,1.5056327351493116e-7];if(z<.5)return Math.log(Math.PI)-Math.log(Math.sin(Math.PI*z))-logGamma(1-z);z-=1;let x=.99999999999980993;for(let i=0;i<p.length;i++)x+=p[i]/(z+i+1);const t=z+p.length-.5;return .5*Math.log(2*Math.PI)+(z+.5)*Math.log(t)-t+Math.log(x);}
+function betaCF(a,b,x){let qab=a+b,qap=a+1,qam=a-1,c=1,d=1-qab*x/qap,fp=1e-300;if(Math.abs(d)<fp)d=fp;d=1/d;let h=d;for(let m=1;m<=250;m++){let m2=2*m,aa=m*(b-m)*x/((qam+m2)*(a+m2));d=1+aa*d;if(Math.abs(d)<fp)d=fp;c=1+aa/c;if(Math.abs(c)<fp)c=fp;d=1/d;h*=d*c;aa=-(a+m)*(qab+m)*x/((a+m2)*(qap+m2));d=1+aa*d;if(Math.abs(d)<fp)d=fp;c=1+aa/c;if(Math.abs(c)<fp)c=fp;d=1/d;const del=d*c;h*=del;if(Math.abs(del-1)<3e-14)break;}return h;}
+function ibeta(x,a,b){if(x<=0)return 0;if(x>=1)return 1;const bt=Math.exp(logGamma(a+b)-logGamma(a)-logGamma(b)+a*Math.log(x)+b*Math.log1p(-x));return x<(a+1)/(a+b+2)?bt*betaCF(a,b,x)/a:1-bt*betaCF(b,a,1-x)/b;}
+function tCDF(t,df){const x=df/(df+t*t),tail=.5*ibeta(x,df/2,.5);return t>=0?1-tail:tail;}
+function tQuantile(p,df){if(!(p>0&&p<1)||df<1)throw new RangeError("Xác suất hoặc bậc tự do không hợp lệ.");let lo=-100,hi=100;for(let i=0;i<100;i++){const mid=(lo+hi)/2;if(tCDF(mid,df)<p)lo=mid;else hi=mid;}return (lo+hi)/2;}
+function fCDF(f,d1,d2){if(f<=0)return 0;return ibeta(d1*f/(d1*f+d2),d1/2,d2/2);}
+function fP(f,d1,d2){return Math.max(0,Math.min(1,1-fCDF(f,d1,d2)));}
+function validatePairs(x,y,min=3){const X=nums(x,"X"),Y=nums(y,"Y");if(X.length!==Y.length||X.length<min)throw new RangeError("Các vùng phải cùng số quan sát và có ít nhất "+min+" dòng.");return [X,Y];}
+export function pearsonCorrelation(x,y){const [X,Y]=validatePairs(x,y),mx=avg(X),my=avg(Y),sx=Math.sqrt(ss(X)),sy=Math.sqrt(ss(Y));if(!sx||!sy)throw new RangeError("Không tính được tương quan khi một biến không biến thiên.");const r=X.reduce((s,v,i)=>s+(v-mx)*(Y[i]-my),0)/(sx*sy);return {r,rSquared:r*r,n:X.length,interpretation:Math.abs(r)<.3?"yếu":Math.abs(r)<.7?"vừa":"mạnh"};}
+export function simpleLinearRegression(x,y){const [X,Y]=validatePairs(x,y),mx=avg(X),my=avg(Y),ssx=ss(X);if(!ssx)throw new RangeError("Biến X không biến thiên.");const slope=X.reduce((s,v,i)=>s+(v-mx)*(Y[i]-my),0)/ssx,intercept=my-slope*mx,predicted=X.map(v=>intercept+slope*v),residuals=Y.map((v,i)=>v-predicted[i]),sse=ss(residuals),sst=ss(Y),df=X.length-2,mse=sse/df,seSlope=Math.sqrt(mse/ssx),rSquared=sst?1-sse/sst:0;return {n:X.length,intercept,slope,rSquared,adjustedRSquared:1-(1-rSquared)*(X.length-1)/df,standardError:seSlope,predicted,residuals,equation:"Y = "+intercept+" + "+slope+" × X",diagnostics:residualDiagnostics(residuals)};}
+function solve(A,b){const n=b.length,M=A.map((r,i)=>[...r,b[i]]);for(let c=0;c<n;c++){let pivot=c;for(let r=c+1;r<n;r++)if(Math.abs(M[r][c])>Math.abs(M[pivot][c]))pivot=r;if(Math.abs(M[pivot][c])<1e-12)throw new RangeError("Ma trận suy biến: biến độc lập trùng lặp hoặc đa cộng tuyến hoàn hảo.");[M[c],M[pivot]]=[M[pivot],M[c]];const d=M[c][c];for(let j=c;j<=n;j++)M[c][j]/=d;for(let r=0;r<n;r++)if(r!==c){const f=M[r][c];for(let j=c;j<=n;j++)M[r][j]-=f*M[c][j];}}return M.map(r=>r[n]);}
+function inverse(A){const n=A.length,cols=[];for(let j=0;j<n;j++){const e=Array(n).fill(0);e[j]=1;cols.push(solve(A,e));}return A.map((_,i)=>cols.map(c=>c[i]));}
+export function multipleLinearRegression(X,y,names=[]){if(!Array.isArray(X)||X.length<4||!X[0]?.length)throw new RangeError("Hồi quy đa biến cần ít nhất 4 dòng và 1 biến X.");const Y=nums(y,"Y"),p=X[0].length;if(X.length!==Y.length||X.some(r=>!Array.isArray(r)||r.length!==p||r.some(v=>!finite(Number(v)))))throw new RangeError("Ma trận X phải đủ số, không có ô trống và cùng số dòng với Y.");if(X.length<=p+1)throw new RangeError("Cần số quan sát lớn hơn số hệ số cần ước lượng.");const D=X.map(r=>[1,...r.map(Number)]),k=p+1,xtx=Array.from({length:k},(_,i)=>Array.from({length:k},(_,j)=>D.reduce((s,r)=>s+r[i]*r[j],0))),xty=Array.from({length:k},(_,i)=>D.reduce((s,r,q)=>s+r[i]*Y[q],0)),inv=inverse(xtx),beta=solve(xtx,xty),pred=D.map(r=>r.reduce((s,v,j)=>s+v*beta[j],0)),res=Y.map((v,i)=>v-pred[i]),df=Y.length-k,sse=ss(res),mse=sse/df,ym=avg(Y),sst=ss(Y),r2=sst?1-sse/sst:0,se=inv.map((r,i)=>Math.sqrt(Math.max(0,mse*r[i]))),t=beta.map((v,i)=>v/se[i]),pValues=t.map(v=>2*Math.min(tCDF(v,df),1-tCDF(v,df))),crit=tQuantile(.975,df);return {n:Y.length,p,df,coefficients:beta.map((v,i)=>({name:i===0?"Hệ số chặn":String(names[i-1]??("X"+i)),estimate:v,se:se[i],t:t[i],p:pValues[i],ciLow:v-crit*se[i],ciHigh:v+crit*se[i]})),predicted,residuals:res,rSquared:r2,adjustedRSquared:1-(1-r2)*(Y.length-1)/df,sse,mse,overallF:(r2/p)/((1-r2)/df),overallP:fP((r2/p)/((1-r2)/df),p,df),diagnostics:residualDiagnostics(res)};}
+export function oneWayAnova(groups){if(!Array.isArray(groups)||groups.length<2)throw new RangeError("ANOVA cần ít nhất 2 nghiệm thức.");const G=groups.map((g,i)=>({name:String(g.name??("Nhóm "+(i+1))),values:nums(g.values,"Nhóm "+(i+1))}));if(G.some(g=>g.values.length<2))throw new RangeError("Mỗi nhóm cần ít nhất 2 lần lặp.");const all=G.flatMap(g=>g.values),N=all.length,k=G.length,grand=avg(all),ssBetween=G.reduce((s,g)=>s+g.values.length*(avg(g.values)-grand)**2,0),ssWithin=G.reduce((s,g)=>s+ss(g.values),0),dfBetween=k-1,dfWithin=N-k,msBetween=ssBetween/dfBetween,msWithin=ssWithin/dfWithin;if(msWithin===0)throw new RangeError("Phương sai trong nhóm bằng 0.");const F=msBetween/msWithin,pValue=fP(F,dfBetween,dfWithin);return {groups:G.map(g=>({name:g.name,n:g.values.length,mean:avg(g.values),sd:Math.sqrt(ss(g.values)/(g.values.length-1))})),N,k,grandMean:grand,ssBetween,ssWithin,dfBetween,dfWithin,msBetween,msWithin,F,pValue,significantAt05:pValue<.05};}
+export function fisherLSD(groups,alpha=.05){const a=oneWayAnova(groups);if(!(alpha>0&&alpha<1))throw new RangeError("Alpha phải nằm trong (0,1).");const crit=tQuantile(1-alpha/2,a.dfWithin),pairs=[];for(let i=0;i<a.groups.length;i++)for(let j=i+1;j<a.groups.length;j++){const A=a.groups[i],B=a.groups[j],diff=A.mean-B.mean,se=Math.sqrt(a.msWithin*(1/A.n+1/B.n)),t=Math.abs(diff)/se,p=2*Math.min(tCDF(t,a.dfWithin),1-tCDF(t,a.dfWithin));pairs.push({a:A.name,b:B.name,difference:diff,se,criticalDifference:crit*se,p,significant:p<alpha});}return {alpha,df:a.dfWithin,mse:a.msWithin,omnibusP:a.pValue,protected:a.pValue<alpha,pairs,warning:"Fisher LSD không hiệu chỉnh mạnh sai số khi so sánh nhiều cặp; chỉ nên diễn giải sau ANOVA tổng thể có ý nghĩa và theo kế hoạch so sánh định trước."};}
+export function twoWayAnovaBalanced(rows){if(!Array.isArray(rows)||rows.length<4)throw new RangeError("ANOVA hai nhân tố cần ít nhất 4 quan sát.");const A=[...new Set(rows.map(r=>String(r.a)))],B=[...new Set(rows.map(r=>String(r.b)))];if(A.length<2||B.length<2)throw new RangeError("Mỗi nhân tố phải có ít nhất 2 mức.");const map=new Map();for(const r of rows){const key=String(r.a)+"\u0000"+String(r.b);if(!map.has(key))map.set(key,[]);map.get(key).push(Number(r.y));}const reps=[...map.values()].map(v=>v.length);if(map.size!==A.length*B.length||new Set(reps).size!==1||reps.some(n=>!finite(n)||n<2))throw new RangeError("Bản này yêu cầu thiết kế cân bằng: đủ mọi tổ hợp và cùng số lần lặp (ít nhất 2).");const n=reps[0],all=rows.map(r=>Number(r.y));if(all.some(v=>!finite(v)))throw new TypeError("Y phải là số hợp lệ.");const grand=avg(all),meansA=A.map(a=>avg(rows.filter(r=>String(r.a)===a).map(r=>Number(r.y)))),meansB=B.map(b=>avg(rows.filter(r=>String(r.b)===b).map(r=>Number(r.y)))),meansAB=A.map(a=>B.map(b=>avg(map.get(a+"\u0000"+b)))),a=A.length,b=B.length,ssa=b*n*meansA.reduce((s,m)=>s+(m-grand)**2,0),ssb=a*n*meansB.reduce((s,m)=>s+(m-grand)**2,0);let ssab=0,sse=0;for(let i=0;i<a;i++)for(let j=0;j<b;j++){ssab+=n*(meansAB[i][j]-meansA[i]-meansB[j]+grand)**2;for(const v of map.get(A[i]+"\u0000"+B[j]))sse+=(v-meansAB[i][j])**2;}const dfa=a-1,dfb=b-1,dfab=dfa*dfb,dfe=a*b*(n-1),mse=sse/dfe;if(mse===0)throw new RangeError("Sai số trong ô bằng 0.");const make=(name,SS,df)=>({name,SS,df,MS:SS/df,F:(SS/df)/mse,p:fP((SS/df)/mse,df,dfe)});return {nPerCell:n,levelsA:A,levelsB:B,error:{SS:sse,df:dfe,MS:mse},effects:[make("Nhân tố A",ssa,dfa),make("Nhân tố B",ssb,dfb),make("Tương tác A×B",ssab,dfab)],warning:"ANOVA hai nhân tố hiện chỉ nhận thiết kế cân bằng có lặp; kiểm tra giả định độc lập, chuẩn tính phần dư và đồng nhất phương sai."};}
+export function residualDiagnostics(residuals){const r=nums(residuals,"Phần dư"),n=r.length,m=avg(r),s2=ss(r)/n;if(n<3)return {n,normality:null,durbinWatson:null,note:"Cần ít nhất 3 phần dư để chẩn đoán."};const centered=r.map(v=>v-m),m2=centered.reduce((s,v)=>s+v*v,0)/n,m3=centered.reduce((s,v)=>s+v**3,0)/n,m4=centered.reduce((s,v)=>s+v**4,0)/n,skew=m3/Math.pow(m2,1.5),kurtosis=m4/(m2*m2)-3,jb=n/6*(skew*skew+kurtosis*kurtosis/4),normalityP=Math.exp(-jb/2),dw=r.slice(1).reduce((s,v,i)=>s+(v-r[i])**2,0)/r.reduce((s,v)=>s+v*v,0);return {n,mean:m,sd:Math.sqrt(s2),skewness:skew,excessKurtosis:kurtosis,jarqueBera:jb,jarqueBeraP:normalityP,durbinWatson:dw,note:"Jarque–Bera là kiểm tra xấp xỉ; Durbin–Watson chỉ là chỉ báo tự tương quan, không thay thế kiểm định chuyên biệt."};}
+export function leveneTest(groups){const transformed=groups.map(g=>{const m=avg(nums(g.values));return {name:g.name,values:g.values.map(v=>Math.abs(Number(v)-m))};});const r=oneWayAnova(transformed);return {F:r.F,p:r.pValue,df1:r.dfBetween,df2:r.dfWithin,method:"Levene dựa trên độ lệch tuyệt đối quanh trung bình",equalVarianceAt05:r.pValue>=.05};}
+export function linearTrendForecast(values,periods=3){const Y=nums(values,"Chuỗi thời gian");if(Y.length<3||!Number.isInteger(periods)||periods<1||periods>100)throw new RangeError("Cần ít nhất 3 kỳ; số kỳ dự báo từ 1 đến 100.");const X=Y.map((_,i)=>i+1),r=simpleLinearRegression(X,Y),forecast=Array.from({length:periods},(_,i)=>({period:Y.length+i+1,value:r.intercept+r.slope*(Y.length+i+1)}));return {n:Y.length,intercept:r.intercept,slope:r.slope,rSquared:r.rSquared,forecast,warning:"Dự báo xu thế tuyến tính cơ bản, không mô hình hóa mùa vụ, chu kỳ hay biến ngoại sinh; ngoại suy xa có rủi ro cao."};}
+export function descriptiveStatistics(values){const a=nums(values),s=[...a].sort((x,y)=>x-y),q=p=>{const i=(s.length-1)*p,l=Math.floor(i),f=i-l;return s[l]+(s[Math.min(l+1,s.length-1)]-s[l])*f;};const m=avg(a);return {n:a.length,mean:m,median:q(.5),min:s[0],max:s[s.length-1],range:s[s.length-1]-s[0],q1:q(.25),q3:q(.75),iqr:q(.75)-q(.25),variance:a.length>1?ss(a)/(a.length-1):null,sd:a.length>1?Math.sqrt(ss(a)/(a.length-1)):null,cv:m!==0&&a.length>1?Math.sqrt(ss(a)/(a.length-1))/Math.abs(m)*100:null};}
