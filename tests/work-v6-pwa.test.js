@@ -30,7 +30,7 @@ test('WORK V6 service worker precaches every declared local asset',()=>{
     if(!local||local==='.')continue;
     assert.ok(fs.existsSync(path.join(root,'writer',local)),`Missing precache asset: ${file}`);
   }
-  assert.match(sw,/haidat-work-v6-\d+-r\d+/);
+  assert.match(sw,/haidat-work-v7-0-r1/);
   assert.match(sw,/key\.startsWith\('haidat-work-'\)/);
 });
 
