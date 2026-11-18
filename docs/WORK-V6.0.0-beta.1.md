@@ -50,3 +50,14 @@ Không dùng bản beta làm nơi lưu trữ duy nhất cho tài liệu quan tr�
 - Cập nhật phiên bản CSS trong trang Writer và Service Worker; đổi cache key để thiết bị nhận bộ giao diện mới.
 - Sắp xếp ribbon theo các nhóm chức năng dạng thẻ trên màn hình nhỏ, giảm cuộn ngang trong từng nhóm.
 - Trạng thái: đã ghi mã nguồn trên nhánh `v6-development`; cần chạy CI và kiểm thử trực tiếp trên điện thoại trước khi xác nhận phát hành.
+
+
+## Giao diện di động V6.2 — Focus Workspace (18/11/2026)
+
+- Mặc định mở thẻ **Trang chủ** trên điện thoại để ưu tiên công cụ viết thay vì bảng quản lý tệp.
+- Thu gọn khu vực tên tài liệu; thao tác ít dùng (tài liệu mới, đổi tên, nhân bản, xóa) không chiếm chỗ trên màn hình nhỏ. Các chức năng quản lý vẫn có trong thẻ **Tệp**.
+- Sắp xếp sáu thẻ Tệp / Trang chủ / Chèn / Bố trí / Tham chiếu / Xem thành lưới điều hướng dễ chạm.
+- Giới hạn chiều cao bảng công cụ và cho cuộn bên trong, giữ vùng giấy làm việc dễ tiếp cận.
+- Tối ưu chế độ tập trung trên điện thoại, ẩn phần đầu trang và điều hướng để dành diện tích cho nội dung.
+- Làm mới cache Service Worker và phiên bản tài nguyên để thiết bị nhận CSS/JS V6.2.
+- Trạng thái: cập nhật mã nguồn trên nhánh `v6-development`; chờ CI, kiểm thử trình duyệt di động và GitHub Pages.
