@@ -38,7 +38,7 @@ test('WORK V6 exposes install prompt and installed-state handling',()=>{
   const app=read('writer/app.js');
   const html=read('writer/index.html');
   assert.match(html,/<button id="install" hidden>/);
-  assert.match(html,/app\.js\?v=6\.\d+/);
+  assert.match(html,/app\.js\?v=7\.0/);
   assert.match(app,/beforeinstallprompt/);
   assert.match(app,/promptEvent\.userChoice/);
   assert.match(app,/appinstalled/);
@@ -62,7 +62,7 @@ test('WORK V6.3 mobile workspace keeps its responsive stylesheet and touch navig
   const css=read('writer/mobile-v6.css');
   assert.match(html,/<meta name="viewport" content="width=device-width,initial-scale=1">/);
   assert.match(html,/mobile-v6\.css\?v=6\.4/);
-  assert.match(html,/app\\.js\\?v=7\\.0/);
+  assert.match(html,/app\.js\?v=7\.0/);
   assert.match(html,/<nav class="ribbon" aria-label="Thanh công cụ Writer">/);
   assert.match(css,/env\(safe-area-inset-top,0px\)/);
   assert.match(css,/env\(safe-area-inset-bottom,0px\)/);
