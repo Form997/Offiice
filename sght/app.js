@@ -1,11 +1,12 @@
 import { evaluateFormula, FormulaError } from "./engine/core.js";
 import { planMacro, executeMacro } from "./automation/macro-engine.js";
+import { MacroRecorder } from "./automation/macro-recorder.js";
 
 const COLS = 16, ROWS = 40, STORAGE_KEY = "haidat-sght-workbook-v1";
 const letters = n => { let s=""; while(n>0){const r=(n-1)%26;s=String.fromCharCode(65+r)+s;n=Math.floor((n-1)/26);} return s; };
 const address = (r,c) => letters(c)+r;
 const parseAddress = a => { const m=/^([A-Z]+)([1-9][0-9]*)$/i.exec(a); if(!m)return null; let c=0; for(const ch of m[1].toUpperCase())c=c*26+ch.charCodeAt(0)-64; return {r:Number(m[2]),c}; };
-let cells = Object.create(null), selected = "A1", sheetTitle = "Bảng tính chưa đặt tên", zoom=100, undoStack=[], redoStack=[];
+let cells = Object.create(null), selected = "A1", sheetTitle = "Bảng tính chưa đặt tên", zoom=100, undoStack=[], redoStack=[];\nconst macroRecorder=new MacroRecorder();\nlet macroExecution=false;
 const grid=document.querySelector("#sheetGrid"),formulaInput=document.querySelector("#formulaInput"),cellAddress=document.querySelector("#cellAddress"),selectionInfo=document.querySelector("#selectionInfo"),saveStatus=document.querySelector("#saveStatus"),calcStatus=document.querySelector("#calcStatus");
 function load(){try{const saved=JSON.parse(localStorage.getItem(STORAGE_KEY)||"null");if(saved&&saved.cells&&typeof saved.cells==="object"){cells=saved.cells;sheetTitle=String(saved.title||sheetTitle);}}catch{}document.querySelector("#sheetName").value=sheetTitle;}
 function save(){try{localStorage.setItem(STORAGE_KEY,JSON.stringify({cells,title:sheetTitle,updatedAt:new Date().toISOString()}));saveStatus.textContent="Đã lưu trên thiết bị";}catch{saveStatus.textContent="Không đủ dung lượng lưu";}}
@@ -19,7 +20,7 @@ function render(){const thead=grid.querySelector("thead"),tbody=grid.querySelect
 function escapeHtml(v){return String(v).replace(/[&<>"']/g,ch=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[ch]));}
 function updateSelection(){cellAddress.textContent=selected;formulaInput.value=raw(selected);selectionInfo.textContent="Ô "+selected+" đang được chọn";grid.querySelectorAll(".cell.selected").forEach(x=>x.classList.remove("selected"));const cur=grid.querySelector("[data-cell='"+selected+"']");if(cur)cur.classList.add("selected");}
 function choose(a){selected=a;updateSelection();formulaInput.focus();formulaInput.select();}
-function setValue(a,v){snapshot();if(v==="")delete cells[a];else cells[a]=v;render();save();calcStatus.textContent="Đã tính lại các ô phụ thuộc";}
+function setValue(a,v){snapshot();if(v===""){delete cells[a];if(!macroExecution)macroRecorder.recordClear(a);}else{cells[a]=v;if(!macroExecution)macroRecorder.recordSet(a,v);}render();save();calcStatus.textContent="Đã tính lại các ô phụ thuộc";}
 function apply(){setValue(selected,formulaInput.value.trim()===""?"":formulaInput.value);updateSelection();}
 function exportCsv(){const used=Object.keys(cells).map(parseAddress).filter(Boolean);const maxR=Math.max(1,...used.map(x=>x.r)),maxC=Math.max(1,...used.map(x=>x.c));const lines=[];for(let r=1;r<=maxR;r++){const row=[];for(let c=1;c<=maxC;c++){const v=raw(address(r,c));row.push('"'+v.replace(/"/g,'""')+'"');}lines.push(row.join(","));}const blob=new Blob(["\ufeff"+lines.join("\r\n")],{type:"text/csv;charset=utf-8"}),url=URL.createObjectURL(blob),link=document.createElement("a");link.href=url;link.download=(sheetTitle||"sght").replace(/[\\/:*?"<>|]/g,"_")+".csv";link.click();URL.revokeObjectURL(url);}
 function pasteRange(text){const start=parseAddress(selected);if(!start)return;snapshot();text.replace(/\r/g,"").split("\n").filter((line,i,arr)=>line!==""||i<arr.length-1).forEach((line,ri)=>line.split("\t").forEach((v,ci)=>{const a=address(start.r+ri,start.c+ci);if(start.r+ri<=1000&&start.c+ci<=100){if(v==="")delete cells[a];else cells[a]=v;}}));render();save();calcStatus.textContent="Đã dán vùng dữ liệu";}
@@ -46,6 +47,9 @@ document.querySelectorAll(".ribbon-tab").forEach(tab=>tab.addEventListener("clic
 document.querySelector("#addSheet").addEventListener("click",()=>{calcStatus.textContent="Tính năng nhiều trang tính sẽ được bổ sung ở phiên bản kế tiếp.";});
 const macroSource=document.querySelector("#macroSource"),macroPreview=document.querySelector("#macroPreview"),macroResult=document.querySelector("#macroResult"),macroPanel=document.querySelector("#macroPanel");
 document.querySelector("#openMacro").addEventListener("click",()=>{macroPanel.hidden=false;macroSource.focus();});
+const recordButton=document.querySelector("#recordMacro"),stopRecordButton=document.querySelector("#stopMacro"),recordStatus=document.querySelector("#recordStatus");
+recordButton.addEventListener("click",()=>{macroRecorder.start();recordButton.disabled=true;stopRecordButton.disabled=false;recordStatus.textContent="Đang ghi thao tác…";macroResult.textContent="Bắt đầu ghi. Chọn ô, nhập dữ liệu hoặc dán vùng; thao tác sẽ được ghi thành lệnh.";});
+stopRecordButton.addEventListener("click",()=>{macroRecorder.stop();recordButton.disabled=false;stopRecordButton.disabled=true;macroSource.value=macroRecorder.source();macroPreview.textContent=macroRecorder.count?macroRecorder.source():"Chưa ghi nhận thao tác nào.";recordStatus.textContent="Đã dừng · "+macroRecorder.count+" thao tác";macroResult.textContent="Đã chuyển thao tác thành mã macro. Hãy kiểm tra trước khi chạy.";});
 document.querySelector("#closeMacro").addEventListener("click",()=>{macroPanel.hidden=true;});
 document.querySelector("#previewMacro").addEventListener("click",()=>{
   try { const plan=planMacro(macroSource.value); macroPreview.textContent=plan.map((x,i)=>(i+1)+". "+(x.type==="SET"?"Ghi "+x.cell+" = "+String(x.value):x.type==="COPY"?"Chép "+x.source+" → "+x.target:x.type==="CLEAR"?"Xóa "+x.range:"Tính tổng "+x.range+" → "+x.target)).join("\\n"); macroResult.textContent="Đã kiểm tra "+plan.length+" lệnh. Chưa có dữ liệu nào bị thay đổi."; }
