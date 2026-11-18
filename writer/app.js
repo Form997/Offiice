@@ -988,6 +988,8 @@
     document.querySelectorAll('.ribbon-tab').forEach(t=>{const active=t===tab;t.classList.toggle('active',active);t.setAttribute('aria-selected',String(active));});
     document.querySelectorAll('.ribbon-panel').forEach(panel=>{const active=panel.id==='panel-'+tab.dataset.tab;panel.hidden=!active;panel.classList.toggle('active',active);});
   }));
+  // Phones open the writing tools first, not the large file-management panel.
+  if(window.matchMedia('(max-width:700px)').matches){const homeTab=document.querySelector('.ribbon-tab[data-tab="home"]');if(homeTab)homeTab.click();}
   // Keep the existing page controls and statistics in their corresponding ribbon tabs.
   const pagePanel=$('#pageSetupRibbon'), side=$('.sidepanel');
   if(pagePanel&&side){const labels=[...side.querySelectorAll('.setting')];labels.forEach(label=>pagePanel.append(label));const pageBreak=$('#insertPageBreak');if(pageBreak)pagePanel.append(pageBreak);}
