@@ -47,6 +47,13 @@
         <label>Ma trận biến độc lập X <input id="dsMultiX" value="A2:C20" placeholder="A2:C20"></label>
         <label>Biến phụ thuộc Y <input id="dsMultiY" value="D2:D20" placeholder="D2:D20"></label>
         <button id="dsMultiple" class="quiet" type="button">Chạy hồi quy đa biến</button>
+        <h4>Hậu nghiệm nâng cao · Tukey và Games–Howell</h4>
+        <label>Mức ý nghĩa alpha <input id="dsPostAlpha" type="number" min="0.001" max="0.25" step="0.001" value="0.05"></label>
+        <button id="dsTukey" class="quiet" type="button">Chạy Tukey–Kramer HSD</button>
+        <button id="dsGamesHowell" class="quiet" type="button">Chạy Games–Howell</button>
+        <h4>Đa cộng tuyến trong hồi quy</h4>
+        <label>Ma trận biến độc lập X <input id="dsVifRange" value="A2:C20" placeholder="A2:C20"></label>
+        <button id="dsVif" class="quiet" type="button">Tính VIF và chỉ số điều kiện</button>
         <h4>So sánh nghiệm thức & giả định</h4>
         <button id="dsLsd" class="quiet" type="button">So sánh Fisher LSD 0,05</button>
         <button id="dsLevene" class="quiet" type="button">Kiểm tra Levene</button><button id="dsBrownForsythe" class="quiet" type="button">Kiểm tra Brown–Forsythe</button>
