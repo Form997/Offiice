@@ -1,11 +1,11 @@
-const CACHE='haidat-work-v6-2-r1';
+const CACHE='haidat-work-v6-3-r1';
 const FILES=[
   './',
   './index.html',
   './style.css',
-  './mobile-v6.css?v=6.2',
+  './mobile-v6.css?v=6.3',
   './backup-studio.js?v=5.0',
-  './app.js?v=6.2',
+  './app.js?v=6.3',
   './canvas-studio.html',
   './export-studio.js?v=4.7',
   './manifest.webmanifest',
