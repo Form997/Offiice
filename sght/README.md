@@ -79,3 +79,15 @@ Mở `sght/index.html` qua GitHub Pages sau khi workflow triển khai hoàn tấ
 - Hoàn tác phiên dựa trên ảnh chụp giá trị trước khi từng ô bị thay đổi.
 - Nhật ký giao diện giới hạn hiển thị 30 bước gần nhất để giảm tải thiết bị.
 - Chưa có breakpoint tùy ý, watch expressions, step-into/over hoặc debugger cho mã VBA.
+
+
+## Macro Breakpoints & Watch — 2026-11-19
+
+- Bổ sung breakpoint theo số dòng lệnh thực tế trong macro; khi chạy tiếp, debugger tự dừng trước khi thực thi lệnh tại dòng đã đánh dấu.
+- Có thể đặt nhiều breakpoint, bỏ qua điểm dừng bằng cách bấm Tiếp tục lần nữa hoặc thực thi thủ công bằng Chạy 1 bước.
+- Bổ sung Watch cho tối đa 50 ô, chấp nhận nhiều địa chỉ phân cách bằng dấu phẩy, chấm phẩy hoặc khoảng trắng.
+- Giá trị Watch được đọc khi cấu hình và cập nhật sau mỗi lệnh, hiển thị cạnh nhật ký bước.
+- Địa chỉ Watch không hợp lệ và breakpoint không trỏ tới dòng lệnh sẽ bị từ chối, không âm thầm bỏ qua.
+- Breakpoint chỉ áp dụng cho các dòng có lệnh đã phân tích; dòng ghi chú/trống không tạo điểm dừng.
+- Vẫn yêu cầu phê duyệt trước khi thực thi; tiếp tục giữ cơ chế hoàn tác phiên và giới hạn nhật ký 30 bước trên giao diện.
+- Chưa có conditional breakpoint, biểu thức Watch, step-into/over hoặc debugger VBA.
