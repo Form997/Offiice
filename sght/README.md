@@ -217,3 +217,27 @@ Mở rộng bộ phân tích thống kê nghiên cứu chạy ngoại tuyến, d
 - Công suất chỉ cho ANOVA một nhân tố cân bằng; không dùng cho ANCOVA, thiết kế khối, hai nhân tố hoặc cỡ mẫu không cân bằng. Cohen f phải được xác định trước từ nghiên cứu thí điểm/tài liệu chuyên môn.
 - Không dùng công suất hậu nghiệm để “chứng minh” kết quả; ưu tiên lập kế hoạch cỡ mẫu trước thí nghiệm.
 - Mọi mô-đun chạy ngoại tuyến, chỉ đọc vùng dữ liệu, không tự sửa ô và không gửi dữ liệu ra ngoài thiết bị.
+
+
+## SGHT Data Science — Giai đoạn 9.3 · Đáp ứng liều lượng phân bón — 2026-11-19
+
+### Mô hình được bổ sung
+- **Bậc hai:** Y = a + bD + cD²; ước lượng cực đại nội tại khi hệ số bậc hai âm, giới hạn điểm ước lượng trong miền liều lượng đã khảo sát.
+- **Tuyến tính–bão hòa:** Y = a + b·min(D,k); tìm điểm bắt đầu bão hòa k bằng cách thử các mức liều lượng quan sát ở bên trong miền dữ liệu.
+- **Bậc hai–bão hòa:** Y = a + b·min(D,k) + c·min(D,k)²; mô hình liên tục tại điểm gãy và giữ mức dự báo ổn định sau điểm bão hòa.
+- **So sánh mô hình:** xếp hạng theo AICc; kèm R², R² hiệu chỉnh, SSE, RMSE, hệ số và liều lượng tối ưu/điểm gãy.
+- Giao diện đọc trực tiếp hai vùng ô: liều lượng D và năng suất Y; không tự ghi đè dữ liệu bảng tính.
+- Mô-đun độc lập `ai/dose-response.js`, không dùng thư viện thống kê bên ngoài, chạy ngoại tuyến.
+
+### Cách dùng
+1. Mở **Data Science**.
+2. Nhập vùng liều lượng phân bón (ví dụ `A2:A13`) và vùng năng suất (ví dụ `B2:B13`).
+3. Chọn một mô hình để khớp riêng hoặc bấm **So sánh cả 3 mô hình & chọn theo AICc**.
+4. Đọc điểm tối ưu/điểm bão hòa cùng R², RMSE và cảnh báo phương pháp.
+
+### Giới hạn cần nhớ
+- Cần ít nhất 5 quan sát, 3 mức liều lượng khác nhau và dữ liệu số đầy đủ.
+- Điểm gãy của mô hình bão hòa được tìm trên các mức liều lượng đã quan sát, chưa có khoảng tin cậy cho điểm gãy.
+- Chưa có Mitscherlich, mô hình phi tuyến tổng quát, bootstrap, khoảng tin cậy cho liều tối ưu, kiểm định lack-of-fit hoặc khoảng dự báo.
+- AICc chỉ hỗ trợ so sánh mô hình trên cùng dữ liệu; không chứng minh mô hình đúng. Cần xem đồ thị, phần dư, thiết kế thí nghiệm và cơ chế sinh học.
+- Không ngoại suy mức bón vượt miền thí nghiệm; liều tối ưu thống kê không tự động là khuyến cáo nông học hay kinh tế.
