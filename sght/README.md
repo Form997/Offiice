@@ -1,28 +1,39 @@
 # HAI ĐẤT SGHT — Bảng tính
 
-## Bản giao diện đầu tiên
+## Giao diện làm việc chuyên nghiệp — 2026-11-18
 
-SGHT có lưới ô làm việc trực tiếp, không còn chỉ là thư mục chứa bộ máy công thức.
+### Thanh công cụ và bố cục
+- Thanh tiêu đề: tên ứng dụng, trạng thái lưu, hoàn tác/làm lại, lưu, tạo bảng mới, xuất CSV.
+- Thanh trình đơn: Trang chủ, Chèn, Công thức, Dữ liệu, Xem, Tệp.
+- Thanh công cụ: bảng tạm, định dạng ô cơ bản, hàm nhanh, thu phóng.
+- Thanh địa chỉ và công thức: hiển thị ô đang chọn, nhập và áp dụng biểu thức.
+- Vùng lưới: tiêu đề cột/hàng cố định khi cuộn.
+- Thanh trang tính và thanh trạng thái ở cuối vùng làm việc.
+- Bố cục co giãn, thanh công cụ cuộn ngang trên điện thoại.
 
-### Đã có
-- Lưới 16 cột × 40 hàng hiển thị; địa chỉ ô dạng A1, B1...
+### Lệnh đang hoạt động
+- Hoàn tác/làm lại lịch sử chỉnh sửa trong phiên hiện tại.
+- Lưu thủ công và tự lưu vào localStorage.
+- Sao chép/cắt/dán khi trình duyệt cấp quyền clipboard; vẫn hỗ trợ dán bằng thao tác hệ thống.
+- Xóa nội dung ô đang chọn.
+- Tạo công thức nhanh SUM, AVERAGE, COUNT.
+- Thu phóng lưới từ 60% đến 160%.
+- Xuất CSV UTF-8.
+
+### Nền tảng bảng tính
+- Lưới hiện tại vẫn dựng 16 cột × 40 hàng; chưa triển khai lưới mở rộng không giới hạn.
 - Chọn ô, nhập/sửa nội dung qua thanh công thức.
 - Công thức tham chiếu ô, ví dụ `=A1+B1`, `=SUM(A1:A5)`.
-- Tính lại các ô khi dữ liệu nguồn thay đổi.
 - Phát hiện tham chiếu vòng ở mức cơ bản.
 - Dán vùng dữ liệu dạng tab/newline từ clipboard.
-- Tự lưu dữ liệu và tên bảng tính trong localStorage của trình duyệt.
-- Xuất dữ liệu thô thành CSV UTF-8.
-- Giao diện co giãn, ưu tiên điện thoại.
+- Bộ máy công thức độc lập tại `engine/core.js`, không dùng `eval()`, `new Function()` hay thư viện spreadsheet bên ngoài.
+
+### Giới hạn còn lại
+Đây là bản phát triển giao diện, chưa phải sản phẩm thay thế Excel/Google Sheets. Chưa có nhiều trang tính thực sự, định dạng ô được lưu, biểu đồ, lọc/sắp xếp, nhập XLSX, cộng tác trực tuyến, đồng bộ đám mây hoặc kiểm soát quyền. Một số mục trình đơn là khung điều hướng cho các mô-đun sẽ phát triển tiếp. Dữ liệu localStorage chỉ nằm trên trình duyệt/thiết bị hiện tại; xóa dữ liệu trình duyệt có thể làm mất bản lưu.
 
 ### Chạy thử
-Mở `sght/index.html` qua GitHub Pages sau khi workflow triển khai hoàn tất. Khi chạy cục bộ, cần phục vụ thư mục qua HTTP (ví dụ máy chủ tĩnh) vì ứng dụng dùng JavaScript module.
+Mở `sght/index.html` qua GitHub Pages sau khi workflow triển khai hoàn tất. Khi chạy cục bộ, cần phục vụ thư mục qua HTTP vì ứng dụng dùng JavaScript module.
 
-### Phạm vi chưa có
-Đây là bản nền giao diện, chưa phải sản phẩm thay thế Excel/Google Sheets. Chưa có nhiều trang tính, định dạng ô, biểu đồ, lọc/sắp xếp, nhập XLSX, cộng tác trực tuyến, đồng bộ đám mây, hay kiểm soát quyền. Dữ liệu localStorage chỉ nằm trên trình duyệt/thiết bị hiện tại; xóa dữ liệu trình duyệt có thể làm mất bản lưu.
-
-### Bộ máy công thức
-Ứng dụng dùng bộ máy độc lập tại `engine/core.js`; không dùng `eval()`, `new Function()` hay thư viện spreadsheet bên ngoài. Các giới hạn tương thích hàm được ghi trong `FORMULA_ENGINE_0_1.md`.
-
-## Nhật ký
-- 2026-11-18: Tạo lưới bảng tính tương tác đầu tiên và nối với bộ máy công thức SGHT.
+## Nhật ký phát triển
+- 2026-11-18 — Bản lưới tương tác đầu tiên, nối với bộ máy công thức.
+- 2026-11-18 — Hiện đại hóa bố cục: thanh tiêu đề, trình đơn, ribbon công cụ, thanh công thức, thanh trang tính và trạng thái; bổ sung hoàn tác/làm lại, clipboard, hàm nhanh và thu phóng. Ghi rõ lưới mở rộng vô hạn vẫn là hạng mục tiếp theo.
