@@ -1,0 +1,22 @@
+name: HAI DAT OFFICE Academy QA
+on:
+  push:
+    branches: [v7-development]
+    paths: ['academy/**','tests/academy.test.js','README.md','.github/workflows/academy-qa.yml','index.html','writer/index.html','calc/index.html','slides/index.html']
+  pull_request:
+    branches: [v7-development]
+    paths: ['academy/**','tests/academy.test.js','README.md','.github/workflows/academy-qa.yml','index.html','writer/index.html','calc/index.html','slides/index.html']
+permissions:
+  contents: read
+jobs:
+  academy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Check academy JavaScript syntax
+        run: node --check academy/app.js
+      - name: Validate shared curriculum and app integration
+        run: node --test tests/academy.test.js
