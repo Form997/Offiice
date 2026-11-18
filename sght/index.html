@@ -10,30 +10,38 @@
 <body>
   <header class="topbar">
     <a class="brand" href="./index.html" aria-label="HAI ĐẤT SGHT"><span class="brand-mark">S</span><span><b>HAI ĐẤT</b><small>SGHT · BẢNG TÍNH</small></span></a>
-    <div class="top-actions"><span id="saveStatus" role="status">Đã lưu trên thiết bị</span><button id="newSheet" class="quiet">Tạo bảng mới</button><button id="downloadCsv" class="primary">Xuất CSV</button></div>
+    <div class="top-actions"><span id="saveStatus" role="status">Đã lưu trên thiết bị</span><button id="undoAction" class="icon-action" title="Hoàn tác" aria-label="Hoàn tác">↶</button><button id="redoAction" class="icon-action" title="Làm lại" aria-label="Làm lại">↷</button><button id="saveAction" class="quiet">Lưu</button><button id="newSheet" class="quiet">Bảng mới</button><button id="downloadCsv" class="primary">Xuất CSV</button></div>
   </header>
   <main>
     <section class="document-head">
       <div><p class="eyebrow">KHÔNG GIAN LÀM VIỆC</p><input id="sheetName" class="sheet-name" value="Bảng tính chưa đặt tên" aria-label="Tên bảng tính"></div>
-      <div class="sheet-meta">Tự động lưu cục bộ · 16 cột × 40 hàng hiển thị</div>
+      <div class="sheet-meta">Tự động lưu cục bộ · Lưới mở rộng theo dữ liệu</div>
     </section>
-    <section class="formula-panel" aria-label="Thanh công thức">
-      <div class="name-box" id="cellAddress">A1</div>
-      <div class="fx-mark">fx</div>
+    <nav class="ribbon-tabs" aria-label="Trình đơn bảng tính">
+      <button class="ribbon-tab active" data-tab="home">Trang chủ</button>
+      <button class="ribbon-tab" data-tab="insert">Chèn</button>
+      <button class="ribbon-tab" data-tab="formulas">Công thức</button>
+      <button class="ribbon-tab" data-tab="data">Dữ liệu</button>
+      <button class="ribbon-tab" data-tab="view">Xem</button>
+      <button class="ribbon-tab" data-tab="file">Tệp</button>
+    </nav>
+    <section class="ribbon-panel" aria-label="Thanh công cụ">
+      <div class="tool-group"><div class="tool-row"><button id="cutAction" class="tool-btn" title="Cắt">✂ Cắt</button><button id="copyAction" class="tool-btn" title="Sao chép">▢ Sao chép</button><button id="pasteAction" class="tool-btn" title="Dán">▣ Dán</button></div><small>Bảng tạm</small></div>
+      <div class="tool-group"><div class="tool-row"><button id="boldAction" class="tool-btn" title="In đậm">B</button><button id="italicAction" class="tool-btn" title="In nghiêng"><i>I</i></button><button id="clearAction" class="tool-btn">Xóa nội dung</button></div><small>Định dạng ô</small></div>
+      <div class="tool-group"><div class="tool-row"><button id="sumAction" class="tool-btn">∑ Tổng</button><button id="averageAction" class="tool-btn">Trung bình</button><button id="countAction" class="tool-btn">Đếm</button></div><small>Hàm nhanh</small></div>
+      <div class="tool-group"><div class="tool-row"><button id="zoomOut" class="tool-btn">−</button><output id="zoomValue">100%</output><button id="zoomIn" class="tool-btn">+</button><button id="zoomReset" class="tool-btn">Vừa màn hình</button></div><small>Thu phóng</small></div>
+    </section>
+    <section class="formula-panel" aria-label="Thanh địa chỉ và công thức">
+      <div class="name-box" id="cellAddress">A1</div><div class="fx-mark">fx</div>
       <input id="formulaInput" autocomplete="off" spellcheck="false" placeholder="Nhập giá trị hoặc công thức, ví dụ =SUM(A1:A5)" aria-label="Nội dung ô đang chọn">
       <button id="applyFormula" class="apply">Áp dụng</button>
     </section>
     <section class="sheet-shell" aria-label="Lưới bảng tính">
-      <div class="sheet-scroll" id="sheetScroll">
-        <table id="sheetGrid" class="sheet-grid"><thead></thead><tbody></tbody></table>
-      </div>
+      <div class="sheet-scroll" id="sheetScroll"><table id="sheetGrid" class="sheet-grid"><thead></thead><tbody></tbody></table></div>
     </section>
-    <footer class="sheet-footer"><span id="selectionInfo">Ô A1 đang được chọn</span><span id="calcStatus">Bộ máy công thức SGHT</span></footer>
-    <section class="help">
-      <b>Cách dùng nhanh</b>
-      <span>Chọn ô rồi gõ dữ liệu. Công thức bắt đầu bằng <code>=</code>, thí dụ <code>=A1+B1</code>, <code>=SUM(A1:A5)</code>, <code>=AVERAGE(B1:B8)</code>.</span>
-      <span>Dán một vùng dữ liệu từ bảng tính khác bằng cách sao chép rồi dán vào ô đầu tiên. Dữ liệu được tự lưu trên thiết bị này.</span>
-    </section>
+    <div class="sheet-tabs"><button class="sheet-tab active">Trang tính 1</button><button id="addSheet" class="add-sheet" title="Thêm trang tính">＋</button><span class="sheet-tab-note">Bảng tính cá nhân · Lưu trên thiết bị</span></div>
+    <footer class="sheet-footer"><span id="selectionInfo">Ô A1 đang được chọn</span><span id="calcStatus">Bộ máy công thức SGHT</span><span id="statusCount">Sẵn sàng</span></footer>
+    <section class="help"><b>Cách dùng nhanh</b><span>Chọn ô rồi nhập dữ liệu. Công thức bắt đầu bằng <code>=</code>, thí dụ <code>=A1+B1</code>, <code>=SUM(A1:A5)</code>.</span><span>Dán vùng dữ liệu dạng tab/newline từ clipboard. Dữ liệu tự lưu trên thiết bị này.</span></section>
   </main>
   <script type="module" src="./app.js"></script>
 </body>
