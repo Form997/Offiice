@@ -125,7 +125,7 @@ export function dunnPostHoc(groups,alpha=.05){
 }
 export function oneWayEffectSizes(groups,alpha=.05){
  validateAlpha(alpha);const a=oneWayAnova(groups),eta=a.ssBetween/(a.ssBetween+a.ssWithin),omega=Math.max(0,(a.ssBetween-a.dfBetween*a.msWithin)/(a.ssBetween+a.ssWithin+a.msWithin)),f=Math.sqrt(eta/Math.max(1e-15,1-eta)),crit=tQuantile(1-alpha/2,a.dfWithin);
- const means=a.groups.map(g=>{const source=groups.find(x=>String(x.name??"")===g.name);const values=nums(source.values);const se=g.sd/Math.sqrt(g.n);return {name:g.name,n:g.n,mean:g.mean,se,ciLow:g.mean-crit*se,ciHigh:g.mean+crit*se};});
+ const means=a.groups.map((g,i)=>{const se=g.sd/Math.sqrt(g.n);return {name:g.name,n:g.n,mean:g.mean,se,ciLow:g.mean-crit*se,ciHigh:g.mean+crit*se};});
  const pairs=[];for(let i=0;i<a.groups.length;i++)for(let j=i+1;j<a.groups.length;j++){const A=a.groups[i],B=a.groups[j],diff=A.mean-B.mean,se=Math.sqrt(a.msWithin*(1/A.n+1/B.n)),margin=crit*se;pairs.push({a:A.name,b:B.name,difference:diff,se,ciLow:diff-margin,ciHigh:diff+margin});}
  return {n:a.N,k:a.k,etaSquared:eta,omegaSquared:omega,cohensF:f,means,pairs,alpha,warning:"Khoảng tin cậy trung bình dùng t riêng từng nhóm; khoảng tin cậy chênh lệch dùng phương sai gộp ANOVA và giả định phương sai đồng nhất. η², ω² và f là kích thước hiệu ứng, không phải p-value."};
 }
