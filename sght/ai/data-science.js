@@ -92,7 +92,7 @@ export function ancova(groups,alpha=.05){
  validateAlpha(alpha);if(!Array.isArray(groups)||groups.length<2)throw new RangeError("ANCOVA cần ít nhất 2 nhóm.");
  const rows=groups.flatMap((g,i)=>{const y=nums(g.values,"Y nhóm "+(i+1)),x=nums(g.covariate,"Hiệp biến nhóm "+(i+1));if(y.length!==x.length)throw new RangeError("Mỗi nhóm phải có số Y và hiệp biến bằng nhau.");return y.map((v,j)=>({group:String(g.name??("Nhóm "+(i+1))),y:v,x:x[j]}));});
  const levels=[...new Set(rows.map(r=>r.group))],k=levels.length,n=rows.length;if(k<2||rows.some(r=>!Number.isFinite(r.x)))throw new RangeError("Dữ liệu ANCOVA không hợp lệ.");
- const xMean=avg(rows.map(r=>r.x)),base=rows.map(r)=>[1,...levels.slice(1).map(g=>r.group===g?1:0),r.x]);
+ const xMean=avg(rows.map(r=>r.x)),base=rows.map(r=>[1,...levels.slice(1).map(g=>r.group===g?1:0),r.x]);
  const reduced=fitOLSDesign(rows.map(r=>[1,r.x]),rows.map(r=>r.y)),main=fitOLSDesign(base,rows.map(r=>r.y));
  const groupTest=partialF(reduced,main,k-1);
  const interactionDesign=rows.map(r=>[1,...levels.slice(1).map(g=>r.group===g?1:0),r.x,...levels.slice(1).map(g=>(r.group===g?1:0)*r.x)]);
