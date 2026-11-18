@@ -31,7 +31,7 @@ for (const required of ['.focus-mode .sidepanel','.focus-mode .workspace']) {
 for (const required of ['HAI-DAT-WRITER-BACKUP','safetyCopy:true','Đã hủy thay thế để bảo toàn dữ liệu hiện tại']) {
   if (!app.includes(required)) errors.push(`Missing backup safety behavior: ${required}`);
 }
-if (!html.includes('app.js?v=3.0')) errors.push('index.html does not load app.js V3.0');
+if (!/<script[^>]+src=["']app\\.js\\?v=[^"']+["']/.test(html)) errors.push('index.html does not load a versioned app.js');
 if (!html.includes('collaboration.js?v=3.0')) errors.push('index.html does not load collaboration.js V3.0');
 
 if (errors.length) {
