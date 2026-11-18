@@ -131,7 +131,7 @@ export function oneWayEffectSizes(groups,alpha=.05){
 }
 function noncentralFCDF(x,df1,df2,lambda){
  if(x<=0)return 0;const mu=lambda/2;if(mu>500)throw new RangeError("Lambda quá lớn cho bộ tính công suất hiện tại.");
- let weight=Math.exp(-mu),sum=0,total=0;for(let j=0;j<1000;j++){if(j>0)weight*=mu/j;const term=weight*fCDF(x,df1+2*j,df2);sum+=term;total+=weight;if(j>mu+12*Math.sqrt(mu+1)&&weight<1e-14)break;}return Math.max(0,Math.min(1,sum+(1-total)*0.5));
+ let weight=Math.exp(-mu),sum=0,total=0;for(let j=0;j<1000;j++){if(j>0)weight*=mu/j;const term=weight*fCDF(x*df1/(df1+2*j),df1+2*j,df2);sum+=term;total+=weight;if(j>mu+12*Math.sqrt(mu+1)&&weight<1e-14)break;}return Math.max(0,Math.min(1,sum+(1-total)*0.5));
 }
 export function anovaPower(effectSizeF,groups,nPerGroup,alpha=.05){
  validateAlpha(alpha);if(!(Number.isFinite(effectSizeF)&&effectSizeF>0)||!Number.isInteger(groups)||groups<2||!Number.isInteger(nPerGroup)||nPerGroup<2)throw new RangeError("Cần Cohen f > 0, ít nhất 2 nhóm và mỗi nhóm ít nhất 2 quan sát.");
