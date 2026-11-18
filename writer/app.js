@@ -65,7 +65,7 @@
   }
   async function openFromComputer(){
     if(!window.showOpenFilePicker){$('#openFile').click();return;}
-    try{const o={multiple:false,types:[{description:'Tài liệu',accept:{'application/vnd.openxmlformats-officedocument.wordprocessingml.document':['.docx'],'application/vnd.oasis.opendocument.text':['.odt'],'text/html':['.html','.htm'],'text/plain':['.txt','.md','.csv'],'application/rtf':['.rtf']}}]};if(workDirectoryHandle)o.startIn=workDirectoryHandle;const [h]=await window.showOpenFilePicker(o);const opened=await openAnyFile(await h.getFile());if(opened){currentFileHandle=h;await storeHandle('file',h);}}catch(e){if(e.name!=='AbortError')alert('Không mở được: '+e.message);}
+    try{const o={multiple:false,types:[{description:'Tài liệu',accept:{'application/vnd.openxmlformats-officedocument.wordprocessingml.document':['.docx'],'application/vnd.oasis.opendocument.text':['.odt'],'text/html':['.html','.htm'],'text/plain':['.txt','.md','.csv'],'application/rtf':['.rtf'],'application/msword':['.doc'],'application/pdf':['.pdf']}}]};if(workDirectoryHandle)o.startIn=workDirectoryHandle;const [h]=await window.showOpenFilePicker(o);const opened=await openAnyFile(await h.getFile());if(opened){currentFileHandle=h;await storeHandle('file',h);}}catch(e){if(e.name!=='AbortError')alert('Không mở được: '+e.message);}
   }
   function addLoadedFile(name,content){
     const title=name.replace(/\.[^.]+$/,'').slice(0,120)||'Tài liệu nhập';
