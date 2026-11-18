@@ -52,12 +52,18 @@ grid.addEventListener("click",e=>{const b=e.target.closest("[data-cell]");if(b)c
 formulaInput.addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();apply();const p=parseAddress(selected);if(p)choose(address(p.r+1,p.c));}if(e.key==="Escape")updateSelection();});
 document.querySelector("#applyFormula").addEventListener("click",apply);
 grid.addEventListener("keydown",e=>{const b=e.target.closest("[data-cell]");if(!b)return;const p=parseAddress(b.dataset.cell);let r=p.r,c=p.c;if(e.key==="Enter"){e.preventDefault();choose(address(Math.min(ROWS,r+1),c));}else if(e.key==="Tab"){e.preventDefault();choose(address(r,Math.min(COLS,c+1)));}else if(e.key==="ArrowDown"){e.preventDefault();choose(address(Math.min(ROWS,r+1),c));}else if(e.key==="ArrowUp"){e.preventDefault();choose(address(Math.max(1,r-1),c));}else if(e.key==="ArrowRight"){e.preventDefault();choose(address(r,Math.min(COLS,c+1)));}else if(e.key==="ArrowLeft"){e.preventDefault();choose(address(r,Math.max(1,c-1)));}else if(e.key==="F2"){e.preventDefault();formulaInput.focus();}});
-grid.addEventListener("paste",e=>{
-  const text=e.clipboardData?.getData("text/plain");if(!text)return;e.preventDefault();
+function pasteRange(text) {
   const start=parseAddress(selected);if(!start)return;
   text.replace(/\r/g,"").split("\n").filter((line,i,arr)=>line!==""||i<arr.length-1).forEach((line,ri)=>line.split("\t").forEach((v,ci)=>{const a=address(start.r+ri,start.c+ci);if(start.r+ri<=1000&&start.c+ci<=100) {if(v==="")delete cells[a];else cells[a]=v;}}));
   render();save();calcStatus.textContent="Đã dán vùng dữ liệu";
-});
+}
+function handlePaste(e) {
+  const text=e.clipboardData?.getData("text/plain");if(!text)return;
+  if(!/[\t\n\r]/.test(text))return;
+  e.preventDefault();pasteRange(text);
+}
+grid.addEventListener("paste",handlePaste);
+formulaInput.addEventListener("paste",handlePaste);
 document.querySelector("#sheetName").addEventListener("change",e=>{sheetTitle=e.target.value.trim()||"Bảng tính chưa đặt tên";save();});
 document.querySelector("#newSheet").addEventListener("click",()=>{if(!confirm("Tạo bảng tính mới? Dữ liệu hiện tại sẽ được thay thế trên thiết bị này."))return;cells=Object.create(null);sheetTitle="Bảng tính mới";document.querySelector("#sheetName").value=sheetTitle;selected="A1";render();save();});
 document.querySelector("#downloadCsv").addEventListener("click",()=>{
