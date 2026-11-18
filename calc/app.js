@@ -18,7 +18,7 @@ keyRows.flat().forEach(k=>{
  b.addEventListener('click',()=>{
   if(k==='='){run();return;} if(k==='AC'){expr.value='';result.textContent='0';expr.focus();return;}
   if(k==='⌫'){const a=expr.selectionStart??expr.value.length,bx=expr.selectionEnd??a;if(a===bx&&a>0)expr.setRangeText('',a-1,a,'end');else expr.setRangeText('',a,bx,'end');expr.focus();return;}
-  if(k==='x²'){insert('^2');return;} if(k==='1/x'){insert('^-1');return;}
+  if(k==='x²'){insert('^2');return;} if(k==='1/x'){insert(expr.value.trim()?'^-1':'1/(Ans)');return;}
   insert(({ '÷':'/','×':'*','−':'-','π':'pi','Ans':'Ans'}[k]||k));
  }); $('#keys').append(b);
 });
