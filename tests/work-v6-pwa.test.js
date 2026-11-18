@@ -118,3 +118,12 @@ test('WORK V7 clearly identifies unsupported and lossy file formats',()=>{
   assert.match(html,/DOC\/PDF: chưa nhập trực tiếp/);
   assert.match(html,/app\.js\?v=7\.0/);
 });
+
+test('WORK V7 resolves DOCX document defaults and based-on paragraph styles',()=>{
+  const app=read('writer/app.js');
+  assert.match(app,/word\/styles\.xml/);
+  assert.match(app,/docDefaults/);
+  assert.match(app,/basedOn/);
+  assert.match(app,/const resolve=\(id,seen=new Set\(\)\)/);
+  assert.match(app,/docxParagraphHTML\(node,ns,styleMap,defaultCss\)/);
+});
