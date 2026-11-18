@@ -85,6 +85,10 @@
         <button id="dsDoseLinearPlateau" class="quiet" type="button">Khớp tuyến tính–bão hòa</button>
         <button id="dsDoseQuadraticPlateau" class="quiet" type="button">Khớp bậc hai–bão hòa</button>
         <button id="dsDoseCompare" class="primary" type="button">So sánh cả 3 mô hình & chọn theo AICc</button>
+        <button id="dsDoseMitscherlich" class="quiet" type="button">Khớp Mitscherlich phi tuyến</button>
+        <h4>Chẩn đoán độ phù hợp và phần dư</h4>
+        <label>Mô hình cần chẩn đoán <select id="dsDoseDiagnosticModel"><option value="quadratic">Bậc hai</option><option value="linear-plateau">Tuyến tính–bão hòa</option><option value="quadratic-plateau">Bậc hai–bão hòa</option><option value="mitscherlich">Mitscherlich</option></select></label>
+        <button id="dsDoseDiagnostics" class="quiet" type="button">Phân rã sai số thuần & kiểm tra phần dư</button>
         <h4>Thống kê mô tả & chuỗi thời gian</h4>
         <label>Vùng thống kê mô tả <input id="dsDescRange" value="D2:D20" placeholder="D2:D20"></label>
         <button id="dsDescriptive" class="quiet" type="button">Tính thống kê mô tả đầy đủ</button>
