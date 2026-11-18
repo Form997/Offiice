@@ -241,3 +241,35 @@ Mở rộng bộ phân tích thống kê nghiên cứu chạy ngoại tuyến, d
 - Chưa có Mitscherlich, mô hình phi tuyến tổng quát, bootstrap, khoảng tin cậy cho liều tối ưu, kiểm định lack-of-fit hoặc khoảng dự báo.
 - AICc chỉ hỗ trợ so sánh mô hình trên cùng dữ liệu; không chứng minh mô hình đúng. Cần xem đồ thị, phần dư, thiết kế thí nghiệm và cơ chế sinh học.
 - Không ngoại suy mức bón vượt miền thí nghiệm; liều tối ưu thống kê không tự động là khuyến cáo nông học hay kinh tế.
+
+
+## SGHT Data Science — Giai đoạn 9.4 · Mitscherlich và chẩn đoán mô hình — 2026-11-19
+
+### 1. Mô hình Mitscherlich phi tuyến
+Bổ sung mô hình đáp ứng tăng dần, lợi ích biên giảm dần:
+`Y = A − B·exp(−kD)`
+- `A`: tiệm cận năng suất theo mô hình.
+- `B`: biên độ chênh lệch giữa tiệm cận và mức dự báo tại liều 0.
+- `k`: hệ số hiệu lực/độ cong của đáp ứng.
+- Ước lượng tham số bằng tìm kiếm một chiều trên log(k), kết hợp nghiệm bình phương tối thiểu tuyến tính có điều kiện và tinh chỉnh golden-section.
+- Báo năng suất nền mô hình, tiệm cận, liều đạt 50% biên độ đáp ứng và đáp ứng biên tại liều 0.
+- Báo sai số chuẩn tham số từ xấp xỉ tuyến tính hóa Jacobian và ma trận hiệp phương sai; không coi đó là khoảng tin cậy chính xác trong mẫu nhỏ.
+- Mitscherlich không có cực đại hữu hạn: mô hình tiến dần tới tiệm cận. Không được gọi A là liều tối ưu.
+
+### 2. Chẩn đoán sai số và độ phù hợp
+- Phân rã tổng SSE thành sai số thuần (pure error) và thiếu phù hợp (lack of fit) khi có các lần lặp tại cùng mức liều.
+- Báo số mức liều lặp, SSE và bậc tự do tương ứng.
+- Báo trung bình, độ lệch chuẩn, độ lệch (skewness), độ nhọn dư thừa (excess kurtosis) và Durbin–Watson của phần dư.
+- Các chỉ báo phần dư không tự động chứng minh giả định đúng; thứ tự quan sát, độc lập, phương sai không đổi và thiết kế thí nghiệm vẫn phải được xem xét.
+
+### 3. So sánh mô hình
+- Bảng so sánh 9.3 mở rộng để thử cả Mitscherlich khi nghiệm thỏa điều kiện.
+- Sửa số tham số hiệu dụng trong AICc của mô hình điểm gãy: tính thêm tham số điểm gãy đã được ước lượng.
+- Không xếp hạng một mô hình không hội tụ như thể đó là mô hình hợp lệ.
+
+### 4. Giới hạn khoa học
+- Mitscherlich hiện yêu cầu liều lượng không âm, ít nhất 6 quan sát và ít nhất 4 mức liều khác nhau.
+- Sai số chuẩn phi tuyến dùng xấp xỉ Jacobian; chưa có bootstrap tham số, profile likelihood hoặc khoảng tin cậy tin cậy cho tiệm cận và liều.
+- Phân rã lack-of-fit hiện báo thống kê F nhưng chưa tính p-value; chỉ có ý nghĩa khi có lặp tại cùng liều và đủ bậc tự do.
+- Chưa có mô hình kinh tế tối ưu (giá phân, giá nông sản, chi phí), đáp ứng đa dinh dưỡng, mô hình ngẫu nhiên theo địa điểm/mùa vụ, hoặc mô hình sai số không đồng nhất.
+- Không ngoại suy ngoài miền liều thí nghiệm. Mức tối ưu kinh tế cần hàm lợi nhuận biên và giá đầu vào/đầu ra, không thể suy ra từ R² hay AICc.
