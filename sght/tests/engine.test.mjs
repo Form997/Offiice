@@ -38,3 +38,14 @@ test("lỗi có mã rõ ràng",()=>{
   assert.throws(()=>evaluateFormula("=ABS()"),e=>e instanceof FormulaError && e.code==="#ARGS!");
 });
 test("danh mục hàm được công bố",()=>assert.ok(listFormulaFunctions().length>=20));
+
+test("LOG10 được nhận diện là tên hàm, không nhầm thành địa chỉ ô",()=>{
+  assert.equal(evaluateFormula("=LOG10(100)"),2);
+  assert.equal(evaluateFormula("=LOG10(1000)+1"),4);
+});
+test("tham chiếu ô và vùng tính được kết quả theo dữ liệu",()=>{
+  const values={A1:12,A2:18,B1:2,B2:3};
+  const ctx={getCell:r=>values[r]??"",getRange:r=>r==="A1:A2"?[values.A1,values.A2]:[]};
+  assert.equal(evaluateFormula("=A1*B1",ctx),24);
+  assert.equal(evaluateFormula("=SUM(A1:A2)",ctx),30);
+});
