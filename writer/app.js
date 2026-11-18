@@ -987,7 +987,7 @@
   document.querySelectorAll('.ribbon-tab').forEach(tab=>tab.addEventListener('click',()=>{
     const wasActive=tab.classList.contains('active');
     const mobile=window.matchMedia('(max-width:700px)').matches;
-    const collapse=mobile&&wasActive&&!document.querySelector('.ribbon-panel[hidden]');
+    const collapse=mobile&&wasActive&&!!document.querySelector('.ribbon-panel:not([hidden])');
     document.querySelectorAll('.ribbon-tab').forEach(t=>{
       const active=t===tab&&!collapse;
       t.classList.toggle('active',active);
