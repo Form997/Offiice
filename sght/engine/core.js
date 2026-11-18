@@ -7,8 +7,6 @@ export class FormulaError extends Error {
   constructor(code, message) { super(message); this.name = "FormulaError"; this.code = code; }
 }
 const fail = (code, message) => { throw new FormulaError(code, message); };
-const isCell = s => /^[A-Z]{1,3}[1-9][0-9]*$/i.test(s);
-const cellKey = s => s.toUpperCase();
 
 function tokenize(source) {
   const out = []; let i = 0;
@@ -17,12 +15,14 @@ function tokenize(source) {
     if (/^\s+/.test(rest)) { i += rest.match(/^\s+/)[0].length; continue; }
     const number = rest.match(/^(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][+-]?\d+)?/);
     if (number) { out.push({type:"number", value:Number(number[0])}); i += number[0].length; continue; }
-    const string = rest.match(/^"(?:""|[^"])*"/);
+    const string = rest.match(/^"(?: ""|[^"])*"/);
     if (string) { out.push({type:"string", value:string[0].slice(1,-1).replace(/""/g,'"')}); i += string[0].length; continue; }
     const range = rest.match(/^[A-Z]{1,3}[1-9][0-9]*:[A-Z]{1,3}[1-9][0-9]*/i);
     if (range) { out.push({type:"range", value:range[0].toUpperCase()}); i += range[0].length; continue; }
     const cell = rest.match(/^[A-Z]{1,3}[1-9][0-9]*/i);
-    if (cell) { out.push({type:"cell", value:cell[0].toUpperCase()}); i += cell[0].length; continue; }
+    if (cell && !/[A-Z0-9_.]/i.test(rest[cell[0].length] || "")) {
+      out.push({type:"cell", value:cell[0].toUpperCase()}); i += cell[0].length; continue;
+    }
     const ident = rest.match(/^[A-Z_][A-Z0-9_.]*/i);
     if (ident) { out.push({type:"ident", value:ident[0].toUpperCase()}); i += ident[0].length; continue; }
     const op = rest.match(/^(<=|>=|<>|[+\-*/^%(),=<>])/);
@@ -31,7 +31,6 @@ function tokenize(source) {
   }
   out.push({type:"eof"}); return out;
 }
-
 const PRECEDENCE = {"=":1,"<>":1,"<":1,">":1,"<=":1,">=":1,"+":2,"-":2,"*":3,"/":3,"%":4,"^":5};
 class Parser {
   constructor(tokens) { this.t=tokens; this.i=0; }
@@ -101,37 +100,24 @@ function registerBuiltins() {
   add("DEGREES",1,1,a=>numberArg(a[0],"DEGREES")*180/Math.PI,"Đổi radian sang độ.");
 }
 registerBuiltins();
-
 function evaluate(node, context) {
   switch(node.kind) {
     case "literal": return node.value;
     case "cell": if(typeof context.getCell!=="function") fail("#REF!","Chưa có bảng dữ liệu để đọc ô "+node.ref+"."); return context.getCell(node.ref);
-    case "range": {
-      if(typeof context.getRange!=="function") fail("#REF!","Chưa có bảng dữ liệu để đọc vùng "+node.ref+".");
-      return {__range:true,values:context.getRange(node.ref)};
-    }
+    case "range": { if(typeof context.getRange!=="function") fail("#REF!","Chưa có bảng dữ liệu để đọc vùng "+node.ref+"."); return {__range:true,values:context.getRange(node.ref)}; }
     case "unary": { const n=numberArg(evaluate(node.arg,context),"Toán tử"); return node.op==="-"?-n:n; }
     case "binary": {
       const a=evaluate(node.left,context), b=evaluate(node.right,context);
-      if(["=","<>","<",">","<=",">="].includes(node.op)) {
-        switch(node.op) { case "=":return a===b; case "<>":return a!==b; case "<":return a<b; case ">":return a>b; case "<=":return a<=b; default:return a>=b; }
-      }
+      if(["=","<>","<",">","<=",">="].includes(node.op)) { switch(node.op) { case "=":return a===b; case "<>":return a!==b; case "<":return a<b; case ">":return a>b; case "<=":return a<=b; default:return a>=b; } }
       const x=numberArg(a,"Phép toán"), y=numberArg(b,"Phép toán");
-      switch(node.op) {
-        case "+":return x+y; case "-":return x-y; case "*":return x*y;
-        case "/":if(y===0) fail("#DIV/0!","Không thể chia cho 0."); return x/y;
-        case "%":if(y===0) fail("#DIV/0!","Không thể chia cho 0."); return x%y;
-        case "^":return x**y;
-      }
+      switch(node.op) { case "+":return x+y; case "-":return x-y; case "*":return x*y; case "/":if(y===0) fail("#DIV/0!","Không thể chia cho 0."); return x/y; case "%":if(y===0) fail("#DIV/0!","Không thể chia cho 0."); return x%y; case "^":return x**y; }
       fail("#OP!","Toán tử chưa được hỗ trợ.");
     }
     case "call": {
       const spec=registry.get(node.name); if(!spec) fail("#NAME?",`Hàm ${node.name} chưa được đăng ký.`);
       if(node.args.length<spec.min || node.args.length>spec.max) fail("#ARGS!",`${node.name} nhận ${spec.min===spec.max?spec.min:`từ ${spec.min} đến ${spec.max===Infinity?"nhiều":spec.max}`} tham số.`);
-      const args=node.args.map(arg=>evaluate(arg,context));
-      const result=spec.run(args,context);
-      if(typeof result==="number" && !Number.isFinite(result)) fail("#NUM!","Kết quả vượt miền số hợp lệ.");
-      return result;
+      const args=node.args.map(arg=>evaluate(arg,context)); const result=spec.run(args,context);
+      if(typeof result==="number" && !Number.isFinite(result)) fail("#NUM!","Kết quả vượt miền số hợp lệ."); return result;
     }
   }
   fail("#PARSE!","Cấu trúc công thức không hợp lệ.");
@@ -141,6 +127,4 @@ export function evaluateFormula(formula, context={}) {
   try { return evaluate(new Parser(tokenize(formula.trim().slice(1))).parse(),context); }
   catch(error) { if(error instanceof FormulaError) throw error; throw new FormulaError("#CALC!",error?.message||"Lỗi tính toán."); }
 }
-export function listFormulaFunctions() {
-  return [...registry.values()].map(({name,min,max,description})=>({name,min,max,description}));
-}
+export function listFormulaFunctions() { return [...registry.values()].map(({name,min,max,description})=>({name,min,max,description})); }
