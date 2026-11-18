@@ -1,0 +1,6 @@
+{
+  "name": "hai-dat-sght",
+  "private": true,
+  "type": "module",
+  "scripts": { "test": "node --test sght/tests/*.test.mjs" }
+}
