@@ -15,7 +15,7 @@ function tokenize(source) {
     if (/^\s+/.test(rest)) { i += rest.match(/^\s+/)[0].length; continue; }
     const number = rest.match(/^(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][+-]?\d+)?/);
     if (number) { out.push({type:"number", value:Number(number[0])}); i += number[0].length; continue; }
-    const string = rest.match(/^"(?: ""|[^"])*"/);
+    const string = rest.match(/^"(?:""|[^"])*"/);
     if (string) { out.push({type:"string", value:string[0].slice(1,-1).replace(/""/g,'"')}); i += string[0].length; continue; }
     const range = rest.match(/^[A-Z]{1,3}[1-9][0-9]*:[A-Z]{1,3}[1-9][0-9]*/i);
     if (range) { out.push({type:"range", value:range[0].toUpperCase()}); i += range[0].length; continue; }
