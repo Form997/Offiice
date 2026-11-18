@@ -1,0 +1,33 @@
+name: HAI DAT OFFICE WORK V7 Font Integrity QA
+
+on:
+  push:
+    branches: [v7-development, main]
+    paths:
+      - 'writer/**'
+      - 'tests/**'
+      - 'docs/WORK-V7-FONT-INTEGRITY.md'
+      - '.github/workflows/writer-v7-qa.yml'
+  pull_request:
+    branches: [main, v7-development]
+    paths:
+      - 'writer/**'
+      - 'tests/**'
+      - 'docs/WORK-V7-FONT-INTEGRITY.md'
+      - '.github/workflows/writer-v7-qa.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  font-integrity:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Check JavaScript syntax
+        run: node --check writer/app.js
+      - name: Run regression and font integrity tests
+        run: node --test tests/work-v6-pwa.test.js tests/academy.test.js

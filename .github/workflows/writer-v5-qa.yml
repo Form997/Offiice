@@ -1,0 +1,17 @@
+name: HAI DAT OFFICE WORK V6 QA
+on:
+  push:
+    branches: [v5-development, v6-development, main]
+  pull_request:
+    branches: [main, v5-development, v6-development]
+  workflow_dispatch:
+jobs:
+  work-regression-and-pwa-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Run WORK regression, PWA and Academy checks
+        run: node --test tests/*.test.js

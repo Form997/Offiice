@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#123f36">
+<meta name="description" content="Một giáo trình chung cho HAI ĐẤT OFFICE Writer, Calc và Slides, hỗ trợ nhiều ngôn ngữ.">
+<link rel="stylesheet" href="style.css">\n<link rel="manifest" href="manifest.webmanifest">
+<title>HAI ĐẤT OFFICE ACADEMY</title>
+</head>
+<body>
+<header class="site-head">
+ <a class="brand" href="../">HAI ĐẤT OFFICE <span>ACADEMY</span></a>
+ <div class="head-tools"><label for="language">Ngôn ngữ / Language</label><select id="language" aria-label="Chọn ngôn ngữ"></select></div>
+</header>
+<main>
+ <section class="hero">
+  <p class="eyebrow">ONE CURRICULUM · THREE APPS · MULTILINGUAL</p>
+  <h1 id="pageTitle">Giáo trình HAI ĐẤT OFFICE</h1>
+  <p id="pageDescription">Một giáo trình chung cho Writer, Calc và Slides.</p>
+  <div class="hero-links"><a href="../writer/">Writer</a><a href="../calc/">Calc</a><a href="../slides/">Slides</a></div>
+ </section>
+ <section class="controls" aria-label="Lọc bài học">
+  <label class="search-label">Tìm bài học<input id="search" type="search" placeholder="Tìm theo tên, mã bài hoặc nội dung…"></label>
+  <label>Ứng dụng<select id="appFilter"><option value="all">Tất cả ứng dụng</option><option value="writer">Writer</option><option value="calc">Calc</option><option value="slides">Slides</option><option value="shared">Bài liên thông</option></select></label>
+  <label>Trình độ<select id="levelFilter"><option value="all">Mọi trình độ</option><option value="beginner">Cơ bản</option><option value="intermediate">Trung cấp</option></select></label>
+ </section>
+ <div class="layout">
+  <aside class="lesson-nav">
+   <div class="nav-heading"><strong>Danh mục bài học</strong><span id="lessonCount"></span></div>
+   <div id="lessonList" class="lesson-list"></div>
+   <div class="progress-box"><strong>Tiến độ trên thiết bị</strong><div class="progress-track"><span id="progressBar"></span></div><small id="progressText">0 bài hoàn thành</small><button id="resetProgress" type="button">Đặt lại tiến độ</button></div>
+  </aside>
+  <article id="lesson" class="lesson-view" aria-live="polite">
+   <div class="empty-state"><h2>Chọn một bài học</h2><p>Giáo trình được dùng chung cho cả ba ứng dụng.</p></div>
+  </article>
+ </div>
+ <p id="notice" class="notice" role="status"></p>
+</main>
+<footer>HAI ĐẤT OFFICE ACADEMY · Giáo trình dùng chung · Tiến độ lưu cục bộ</footer>
+<script src="app.js" defer></script>
+</body>
+</html>

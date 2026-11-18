@@ -1,0 +1,509 @@
+/* HAI ĐẤT OFFICE WORK V6 — Mobile UI refinement
+   Mobile-first layout: calm visual hierarchy, clear document controls,
+   readable editing surface, and ribbon groups that no longer force sideways scrolling. */
+:root{
+  --v6-safe-top:env(safe-area-inset-top,0px);
+  --v6-safe-bottom:env(safe-area-inset-bottom,0px);
+  --v6-mobile-bg:#f3f6f5;
+  --v6-card:#fff;
+  --v6-border:#dce6e1;
+  --v6-ink:#18352d;
+  --v6-muted:#687b73;
+  --v6-accent:#176b57;
+  --v6-accent-soft:#eaf4ef;
+}
+html{min-height:100%;-webkit-text-size-adjust:100%;text-size-adjust:100%;scroll-behavior:smooth}
+body{overscroll-behavior-y:contain}
+button,.file-button,select,input{touch-action:manipulation}
+button,.file-button{min-height:44px}
+input,select{min-height:44px;font-size:16px}
+.page{-webkit-user-select:text;user-select:text;touch-action:pan-y}
+button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible{
+  outline:3px solid #4b9b80;
+  outline-offset:2px;
+}
+@media(max-width:700px){
+  body{
+    padding-bottom:calc(16px + var(--v6-safe-bottom));
+    background:var(--v6-mobile-bg);
+    color:var(--v6-ink);
+  }
+  .topbar{
+    position:relative;
+    padding:calc(12px + var(--v6-safe-top)) 16px 13px;
+    min-height:68px;
+    gap:10px;
+    align-items:center;
+    background:linear-gradient(135deg,#103c34 0%,#176b57 100%);
+  }
+  .brand{font-size:14px;letter-spacing:.045em;line-height:1.3}
+  .sub{font-size:11px;line-height:1.35;margin-top:3px}
+  .top-actions{margin-left:auto;gap:7px;flex-wrap:wrap;justify-content:flex-end}
+  .save-state{font-size:11px;max-width:112px;text-align:right}
+  .top-actions button{min-height:38px;padding:7px 10px;font-size:12px}
+  main{width:100%;max-width:none;margin:10px auto 18px;padding:0 10px}
+
+  /* Document identity and primary actions */
+  .docbar{
+    display:grid;
+    grid-template-columns:minmax(0,1fr) auto;
+    align-items:center;
+    gap:8px;
+    padding:12px;
+    margin:0 0 10px;
+    border:1px solid var(--v6-border);
+    border-radius:16px;
+    background:var(--v6-card);
+    box-shadow:0 4px 16px #183b2d0a;
+  }
+  #docTitle{
+    grid-column:1/-1;
+    width:100%;
+    min-width:0;
+    min-height:46px;
+    padding:10px 12px;
+    border:1px solid #e2ebe6;
+    border-radius:11px;
+    background:#f7faf8;
+    color:var(--v6-ink);
+    font-size:16px;
+    font-weight:700;
+  }
+  .doc-id{min-width:0;max-width:100%;font-size:10px;overflow-wrap:anywhere;white-space:normal}
+  #copyDocId{width:auto;min-height:38px;font-size:11px;padding:7px 10px}
+  .access-state{grid-column:1/-1;font-size:11px;color:var(--v6-muted)}
+  .doc-actions{
+    grid-column:1/-1;
+    display:grid;
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    gap:7px;
+    width:100%;
+  }
+  .doc-actions>*{width:100%;min-width:0;min-height:44px}
+  .doc-actions select{grid-column:1/-1;grid-row:1}
+  .doc-actions .canvas-launch{
+    display:flex!important;
+    align-items:center;
+    justify-content:center;
+    min-height:44px;
+    border-radius:10px!important;
+    font-size:13px;
+  }
+  .doc-actions button{font-size:12px;padding:8px 7px;border-radius:10px}
+  .doc-actions .quick-save{font-weight:750}
+
+  /* Ribbon: compact tab bar, full-width stacked tool groups */
+  .ribbon{
+    position:relative;
+    top:auto;
+    z-index:8;
+    margin:0 0 12px;
+    border:1px solid var(--v6-border);
+    border-radius:15px;
+    background:var(--v6-card);
+    box-shadow:0 4px 18px #183b2d0b;
+    overflow:hidden;
+  }
+  .ribbon-tabs{
+    position:sticky;
+    top:0;
+    z-index:9;
+    display:flex;
+    gap:4px;
+    padding:7px;
+    border:0;
+    border-bottom:1px solid var(--v6-border);
+    background:#f8fbf9;
+    overflow-x:auto;
+    overscroll-behavior-x:contain;
+    scrollbar-width:none;
+    -webkit-overflow-scrolling:touch;
+  }
+  .ribbon-tabs::-webkit-scrollbar{display:none}
+  .ribbon-tab{
+    flex:0 0 auto;
+    min-height:40px;
+    padding:8px 13px;
+    border:1px solid transparent;
+    border-radius:9px;
+    color:#50645b;
+    font-size:12px;
+    font-weight:650;
+    scroll-snap-align:start;
+  }
+  .ribbon-tab.active{
+    color:#145744;
+    background:var(--v6-accent-soft);
+    border-color:#d4e8dd;
+    box-shadow:none;
+  }
+  .ribbon-panel{
+    display:grid;
+    grid-template-columns:minmax(0,1fr);
+    align-items:stretch;
+    gap:9px;
+    min-height:0;
+    max-height:none;
+    padding:10px;
+    overflow:visible;
+  }
+  .ribbon-panel[hidden]{display:none}
+  .ribbon-group{
+    display:flex;
+    flex-direction:column;
+    align-items:stretch;
+    justify-content:flex-start;
+    gap:9px;
+    width:100%;
+    min-width:0;
+    max-width:none;
+    padding:11px;
+    border:1px solid #e5ece8;
+    border-radius:12px;
+    background:#fff;
+  }
+  .ribbon-group>strong{font-size:12px;line-height:1.4;color:#25483c}
+  .ribbon-group>small{font-size:11px;line-height:1.45;color:var(--v6-muted);white-space:normal;max-width:100%}
+  .ribbon-tools{
+    display:flex;
+    align-items:center;
+    flex-wrap:wrap;
+    gap:7px;
+    min-width:0;
+    max-width:100%;
+  }
+  .ribbon-tools>*{min-width:0;max-width:100%}
+  .ribbon-panel button{
+    min-height:42px;
+    padding:8px 10px;
+    border-radius:9px;
+    font-size:12px;
+    white-space:normal;
+  }
+  .ribbon-panel input,.ribbon-panel select{min-height:42px;max-width:100%;font-size:14px}
+  .ribbon-panel .tool-group{
+    display:flex;
+    flex:1 1 100%;
+    flex-wrap:wrap;
+    min-width:0;
+    max-width:100%;
+    gap:6px;
+    padding:0;
+    margin:0;
+    border:0;
+  }
+  .ribbon-panel .tool-group button{flex:1 1 auto}
+  .file-workflow-group,.document-manager,.folder-manager,.version-manager,
+  .account-manager,.collaboration-manager,.print-fields{
+    min-width:0;
+    width:100%;
+    max-width:none;
+  }
+  .file-workflow-tools{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}
+  .file-workflow-tools button{width:100%;min-height:44px;font-size:12px}
+  .document-manager .ribbon-tools,.folder-manager .ribbon-tools,
+  .version-manager .ribbon-tools{display:flex;flex-wrap:wrap}
+  .document-manager #documentSearch,.document-manager select,
+  .folder-manager select,.version-manager select,
+  #backupMode{width:100%;min-width:0;max-width:none}
+  .account-manager .ribbon-tools input,
+  .collaboration-manager .ribbon-tools input{flex:1 1 100%;width:100%}
+  .account-manager .ribbon-tools button,
+  .collaboration-manager .ribbon-tools button{flex:1 1 auto}
+  .collaboration-manager label{display:flex;align-items:center;gap:6px;min-height:38px;font-size:12px}
+  .collaboration-manager input[type=checkbox]{min-height:0;width:18px;height:18px}
+  #pageSetupRibbon{display:flex;flex-direction:column;align-items:stretch}
+  #pageSetupRibbon .setting{width:100%;margin:0}
+  .find-tools{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;min-width:0;width:100%}
+  .find-tools input{width:100%;min-width:0;max-width:none;font-size:14px}
+  .find-tools button{width:100%;min-width:0;font-size:12px}
+  .paragraph-tools{display:flex;flex-wrap:wrap;gap:7px}
+  .paragraph-tools label{white-space:normal}
+
+  /* Editing area: keep the paper calm and readable */
+  .editor-quickbar{
+    position:sticky;
+    top:0;
+    z-index:7;
+    display:flex;
+    flex-wrap:nowrap;
+    gap:5px;
+    width:100%;
+    margin:0 0 9px;
+    padding:7px;
+    border:1px solid var(--v6-border);
+    border-radius:12px;
+    background:#fffffff2;
+    box-shadow:0 4px 15px #183b2d0d;
+    overflow-x:auto;
+    overscroll-behavior-x:contain;
+    scrollbar-width:none;
+    -webkit-overflow-scrolling:touch;
+    backdrop-filter:blur(12px);
+  }
+  .editor-quickbar::-webkit-scrollbar{display:none}
+  .editor-quickbar button{
+    flex:0 0 auto;
+    min-width:42px;
+    min-height:40px;
+    padding:7px 10px;
+    border-radius:9px;
+    font-size:12px;
+  }
+  .quick-divider{height:22px;flex:0 0 1px}
+  .page-wrap{
+    overflow:visible;
+    padding:7px;
+    border:1px solid #dce6e1;
+    border-radius:13px;
+    background:#e9efec;
+  }
+  .page{
+    width:100%!important;
+    min-height:72vh!important;
+    padding:26px 19px!important;
+    border:1px solid #e5eae7;
+    border-radius:5px;
+    background:#fff;
+    box-shadow:0 3px 14px #203d3210;
+    font-size:11pt;
+    line-height:1.7;
+    overflow-wrap:anywhere;
+  }
+  .page h1{font-size:21pt}
+  .page h2{font-size:16pt}
+  .page h3{font-size:13pt}
+  .page img,.page table{max-width:100%}
+  .editor-statusbar{
+    position:relative;
+    bottom:auto;
+    display:flex;
+    justify-content:space-between;
+    gap:6px 12px;
+    margin:8px 2px 0;
+    padding:9px 3px;
+    border:0;
+    background:transparent;
+    color:var(--v6-muted);
+    font-size:10px;
+  }
+  .page-break,.section-break{max-width:100%}
+  dialog,.version-preview{
+    width:calc(100vw - 24px);
+    max-width:calc(100vw - 24px);
+    max-height:86dvh;
+    border-radius:15px;
+    padding:14px;
+  }
+  dialog button{min-height:44px}
+  footer{padding:18px 10px calc(18px + var(--v6-safe-bottom))}
+}
+@media(max-width:380px){
+  main{padding-inline:8px}
+  .docbar{padding:10px}
+  .doc-actions{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .doc-actions button{font-size:11px;padding-inline:5px}
+  .ribbon-panel{padding:8px}
+  .ribbon-group{padding:10px}
+  .ribbon-tab{padding-inline:11px}
+  .page{padding:22px 15px!important}
+  .editor-quickbar button{min-width:39px;padding-inline:8px}
+}
+@media(hover:none){
+  button:hover,.file-button:hover{background:#fff;border-color:var(--v6-border)}
+  button:active{transform:scale(.985);background:#e8f2ef}
+}
+@media(prefers-reduced-motion:reduce){
+  *,*::before,*::after{scroll-behavior:auto!important;animation-duration:.01ms!important;transition-duration:.01ms!important}
+}
+
+
+/* V6.1 mobile phase 2 — one-hand quick actions */
+@media(max-width:700px){
+  body{padding-bottom:calc(82px + var(--v6-safe-bottom))}
+  .editor-quickbar{
+    position:fixed;
+    left:10px;
+    right:10px;
+    bottom:calc(8px + var(--v6-safe-bottom));
+    top:auto;
+    z-index:30;
+    width:auto;
+    max-width:680px;
+    margin:0 auto;
+    justify-content:flex-start;
+    border:1px solid #d4e1da;
+    border-radius:15px;
+    background:#fffffff5;
+    box-shadow:0 8px 30px #102b2440;
+    padding:7px;
+    backdrop-filter:blur(16px);
+  }
+  .page-wrap{padding-bottom:12px}
+  .editor-quickbar button{
+    min-width:42px;
+    min-height:42px;
+    font-weight:650;
+  }
+  .editor-quickbar button:focus-visible{outline-offset:-2px}
+}
+@media(max-width:380px){
+  .editor-quickbar{left:7px;right:7px;bottom:calc(6px + var(--v6-safe-bottom));gap:3px;padding:6px}
+  .editor-quickbar button{min-width:39px;min-height:40px;padding-inline:7px}
+}
+
+
+/* HAI DAT OFFICE WORK V6.2 — focused mobile workspace */
+@media(max-width:700px){
+ .topbar{min-height:58px;padding:calc(9px + var(--v6-safe-top)) 13px 10px}
+ .brand{font-size:13px;letter-spacing:.035em}.sub{font-size:10px}
+ .top-actions{gap:5px}.save-state{max-width:92px;font-size:10px}
+ main{margin:7px auto 12px;padding-inline:9px}
+ .docbar{grid-template-columns:minmax(0,1fr) auto;padding:8px;gap:6px;border-radius:13px}
+ #docTitle{grid-column:1/-1;min-height:42px;font-size:15px}
+ .doc-id{font-size:9px;padding:5px 7px}#copyDocId{width:auto;min-height:34px;font-size:10px}
+ .access-state{grid-column:1/-1;font-size:10px;padding:4px 8px}
+ .doc-actions{grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}
+ .doc-actions .canvas-launch{grid-column:1/-1;min-height:40px}
+ .doc-actions .quick-save{min-height:40px}
+ .doc-actions #newDoc,.doc-actions #renameDoc,.doc-actions #cloneDoc,.doc-actions #deleteDoc{display:none}
+ .doc-actions select{grid-column:1/-1;grid-row:auto;min-height:40px}
+ .ribbon{position:sticky;top:0;z-index:20;margin-bottom:8px;border-radius:13px}
+ .ribbon-tabs{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:3px;padding:5px;overflow:visible;background:#f5f8f6}
+ .ribbon-tab{min-width:0;min-height:39px;padding:6px 2px;border-radius:8px;font-size:10px;line-height:1.2;white-space:normal;overflow-wrap:anywhere}
+ .ribbon-tab.active{color:#145744;background:#e5f1eb;border:1px solid #cfe2d8;box-shadow:none}
+ .ribbon-panel{display:grid;grid-template-columns:minmax(0,1fr);gap:7px;max-height:min(42dvh,360px);min-height:0;padding:8px;overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
+ .ribbon-panel[hidden]{display:none!important}
+ .ribbon-group,.ribbon-panel .tool-group{width:100%;min-width:0;max-width:none;padding:9px;margin:0;border:1px solid #e4ece7;border-radius:10px;background:#fff}
+ .ribbon-group>strong{font-size:11px}.ribbon-group small{font-size:10px;line-height:1.4}
+ .ribbon-tools{display:flex;flex-wrap:wrap;gap:6px}.ribbon-tools>*{min-width:0;max-width:100%}
+ .ribbon-panel .tool-group{display:flex;flex-wrap:wrap;gap:6px}
+ .ribbon-panel .tool-group button{flex:1 1 auto;min-height:40px}
+ .ribbon-panel input,.ribbon-panel select{min-width:0;max-width:100%;font-size:14px}
+ .file-workflow-group,.account-manager,.collaboration-manager,.document-manager,.version-manager,.folder-manager{min-width:0;width:100%}
+ .document-manager .ribbon-tools,.version-manager .ribbon-tools,.folder-manager .ribbon-tools{flex-wrap:wrap}
+ .document-manager select,.version-manager select,.folder-manager select{width:100%;max-width:none}
+ .editor-quickbar{bottom:calc(7px + var(--v6-safe-bottom));border-radius:14px;justify-content:flex-start}
+ .page-wrap{padding:5px;border-radius:10px}
+ .page{min-height:calc(100dvh - 265px)!important;padding:22px 16px!important}
+ body.focus-mode{background:#fff}
+ body.focus-mode .topbar,body.focus-mode .docbar,body.focus-mode .ribbon{display:none!important}
+ body.focus-mode main{margin:0;padding:0}
+ body.focus-mode .page-wrap{min-height:100dvh;padding:8px 7px calc(74px + var(--v6-safe-bottom));border:0;border-radius:0;background:#fff}
+ body.focus-mode .editor-quickbar{left:7px;right:7px;bottom:calc(7px + var(--v6-safe-bottom));top:auto}
+ body.focus-mode .page{min-height:calc(100dvh - 110px)!important;padding:25px 18px!important;border:0;box-shadow:none}
+ body.focus-mode .editor-statusbar{padding:7px 10px}
+}
+@media(max-width:380px){.ribbon-tab{font-size:9px;padding-inline:1px}.ribbon-tabs{gap:2px}.page{padding-inline:14px!important}}
+
+
+/* HAI DAT OFFICE WORK V6.3 — refined mobile ribbon */
+@media(max-width:700px){
+  .ribbon{border-color:#d7e3dc;box-shadow:0 5px 20px #183b2d0d}
+  .ribbon-tabs{
+    display:flex;
+    flex-wrap:nowrap;
+    justify-content:flex-start;
+    gap:6px;
+    padding:8px 9px;
+    overflow-x:auto;
+    overflow-y:hidden;
+    scroll-snap-type:x proximity;
+    scrollbar-width:none;
+    background:linear-gradient(180deg,#fbfdfc,#f3f7f5);
+  }
+  .ribbon-tabs::-webkit-scrollbar{display:none}
+  .ribbon-tab{
+    flex:0 0 auto;
+    min-width:72px;
+    min-height:42px;
+    padding:8px 12px;
+    border:1px solid transparent;
+    border-radius:11px;
+    font-size:12px;
+    font-weight:700;
+    white-space:nowrap;
+    scroll-snap-align:start;
+  }
+  .ribbon-tab.active{
+    color:#fff;
+    background:#176b57;
+    border-color:#176b57;
+    box-shadow:0 3px 9px #176b5730;
+  }
+  .ribbon-panel{
+    max-height:min(34dvh,300px);
+    padding:8px;
+    gap:7px;
+    border-top:1px solid #e5ece8;
+    background:#f8fbf9;
+  }
+  .ribbon-panel[hidden]{display:none!important}
+  .ribbon-group,.ribbon-panel .tool-group{
+    border-radius:12px;
+    box-shadow:0 1px 3px #183b2d08;
+  }
+  .ribbon-group>strong{font-size:12px;letter-spacing:.01em}
+  .ribbon-panel button,.ribbon-panel select,.ribbon-panel input{border-radius:10px}
+  .editor-quickbar{
+    max-width:620px;
+    justify-content:space-around;
+    border-color:#d4e1da;
+    box-shadow:0 8px 28px #102b2430;
+  }
+  .editor-quickbar button{min-width:42px}
+  .page-wrap{background:#edf2ef;border-color:#e0e8e3}
+  .page{box-shadow:0 2px 10px #203d320c}
+}
+@media(max-width:380px){
+  .ribbon-tab{min-width:68px;padding-inline:10px;font-size:11px}
+  .ribbon-panel{max-height:31dvh}
+}
+
+/* V6.4 — user-selectable appearance and reading size */
+:root{--writer-reading-size:16px}
+:root[data-writer-theme="green"]{
+  --v6-mobile-bg:#f3f6f5;--v6-card:#fff;--v6-border:#dce6e1;
+  --v6-ink:#18352d;--v6-muted:#687b73;--v6-accent:#176b57;--v6-accent-soft:#eaf4ef;
+}
+:root[data-writer-theme="light"]{
+  --v6-mobile-bg:#f7f8fc;--v6-card:#fff;--v6-border:#dce1ec;
+  --v6-ink:#202b42;--v6-muted:#69758a;--v6-accent:#3659a8;--v6-accent-soft:#edf1fb;
+}
+:root[data-writer-theme="dark"]{
+  color-scheme:dark;
+  --v6-mobile-bg:#151a20;--v6-card:#202832;--v6-border:#35414e;
+  --v6-ink:#e7edf4;--v6-muted:#aab7c5;--v6-accent:#72b6a4;--v6-accent-soft:#293f3a;
+}
+:root[data-writer-theme="dark"] body,
+:root[data-writer-theme="dark"] main{background:var(--v6-mobile-bg);color:var(--v6-ink)}
+:root[data-writer-theme="dark"] .topbar,
+:root[data-writer-theme="dark"] .docbar,
+:root[data-writer-theme="dark"] .ribbon,
+:root[data-writer-theme="dark"] .ribbon-group,
+:root[data-writer-theme="dark"] .ribbon-panel,
+:root[data-writer-theme="dark"] .sidepanel,
+:root[data-writer-theme="dark"] .editor-quickbar{background:var(--v6-card);color:var(--v6-ink);border-color:var(--v6-border)}
+:root[data-writer-theme="dark"] .ribbon-tabs{background:#1b232c;border-color:var(--v6-border)}
+:root[data-writer-theme="dark"] .ribbon-tab{color:#c5d0dc}
+:root[data-writer-theme="dark"] .ribbon-tab.active{background:#31584e;color:#fff;border-color:#477b6d}
+:root[data-writer-theme="dark"] .ribbon-group>strong,
+:root[data-writer-theme="dark"] label,
+:root[data-writer-theme="dark"] h2{color:var(--v6-ink)}
+:root[data-writer-theme="dark"] input,
+:root[data-writer-theme="dark"] select,
+:root[data-writer-theme="dark"] textarea{background:#18212a;color:var(--v6-ink);border-color:var(--v6-border)}
+:root[data-writer-theme="dark"] .page-wrap{background:#111820;border-color:var(--v6-border)}
+:root[data-writer-theme="dark"] .page,
+:root[data-writer-theme="dark"] body.focus-mode .page,
+:root[data-writer-theme="dark"] body.focus-mode .page-wrap{background:#202832;color:#e7edf4;border-color:#35414e}
+:root[data-writer-theme="dark"] .editor-statusbar,
+:root[data-writer-theme="dark"] .sub,
+:root[data-writer-theme="dark"] .muted{color:var(--v6-muted)}
+:root[data-writer-theme="light"] .ribbon-tab.active{color:#fff;background:#3659a8;border-color:#3659a8}
+:root[data-writer-theme="light"] .ribbon-tabs{background:#f1f4fa}
+.page{font-size:var(--writer-reading-size)!important}
+.appearance-settings .setting{display:flex;flex-direction:column;align-items:stretch;gap:6px;width:100%;max-width:420px;color:var(--v6-ink);font-size:13px;font-weight:650}
+.appearance-settings select{width:100%;min-height:44px}
+.appearance-settings #resetAppearance{align-self:flex-start}
+:root[data-writer-theme="dark"] .appearance-settings .setting{color:var(--v6-ink)}

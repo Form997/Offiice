@@ -1,0 +1,21 @@
+{
+  "schemaVersion": 1,
+  "defaultLocale": "vi",
+  "languages": [
+    {
+      "code": "vi",
+      "name": "Tiếng Việt",
+      "nativeName": "Tiếng Việt",
+      "direction": "ltr",
+      "status": "complete"
+    },
+    {
+      "code": "en",
+      "name": "English",
+      "nativeName": "English",
+      "direction": "ltr",
+      "status": "starter"
+    }
+  ],
+  "policy": "Add a locale only with a reviewed translation pack. UTF-8 content and locale-aware layout support additional writing systems; do not label fallback text as translated."
+}

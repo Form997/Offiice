@@ -1,0 +1,254 @@
+:root{--ink:#17212b;--muted:#64748b;--brand:#176b57;--line:#dbe3e8;--paper:#fff;--bg:#f2f5f6;--soft:#e8f2ef;--danger:#a33b35}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif}
+.topbar{background:#123f36;color:#fff;padding:13px 20px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.brand{font-weight:800;letter-spacing:.04em}.sub{opacity:.82;font-size:13px}.top-actions{display:flex;align-items:center;gap:12px}.save-state{font-size:13px;color:#d8eee6}.save-state[data-state=error]{color:#ffd0ca}.save-state[data-state=pending]{color:#ffe8ad}
+main{max-width:1440px;margin:18px auto;padding:0 16px}
+button,select,input{font:inherit}
+button,.file-button{border:1px solid var(--line);background:#fff;border-radius:8px;padding:8px 11px;cursor:pointer;color:var(--ink);min-height:38px}
+button:hover,.file-button:hover{border-color:#91b7aa;background:#f8fbfa}
+button.primary{background:var(--brand);color:#fff;border-color:var(--brand)}
+button.danger{color:var(--danger)}
+input,select{border:1px solid var(--line);border-radius:8px;padding:8px;background:#fff;max-width:100%;min-height:38px}
+.docbar{display:flex;align-items:center;gap:12px;margin-bottom:12px;background:#fff;border:1px solid var(--line);border-radius:12px;padding:10px}
+#docTitle{font-size:19px;font-weight:700;flex:1;min-width:160px}
+.doc-actions{display:flex;gap:7px;align-items:center;flex-wrap:wrap}
+.toolbar{display:flex;gap:7px;flex-wrap:wrap;background:#fff;border:1px solid var(--line);padding:9px;border-radius:12px;margin-bottom:14px;position:sticky;top:0;z-index:5;box-shadow:0 2px 8px #132b3608}
+.tool-group{display:flex;gap:5px;align-items:center;padding-right:7px;margin-right:2px;border-right:1px solid var(--line);flex-wrap:wrap}
+.tool-group:last-child{border:0}
+.tool-group button{min-width:38px}
+.color-tool{height:38px;display:flex;align-items:center;gap:4px;border:1px solid var(--line);border-radius:8px;padding:4px 7px;font-weight:700;cursor:pointer}
+.color-tool input{width:25px;height:25px;padding:0;border:0;min-height:0}
+.workspace{display:grid;grid-template-columns:minmax(0,1fr) 220px;gap:14px;align-items:start}
+.page-wrap{min-width:0;overflow:auto;padding:18px;background:#e8edef;border:1px solid var(--line);border-radius:12px}
+.page{background:var(--paper);width:min(100%,820px);min-height:1056px;margin:0 auto;padding:72px 76px;box-shadow:0 2px 12px #17212b12;outline:none;overflow-wrap:anywhere;line-height:1.65}
+.page:focus{box-shadow:0 2px 12px #17212b12,0 0 0 2px #176b5730}
+.page h1,.page h2,.page h3{line-height:1.25}.page table{border-collapse:collapse;width:100%;margin:12px 0}.page td,.page th{border:1px solid #8b969e;padding:7px;min-width:45px}.page img{max-width:100%;height:auto}.page blockquote{border-left:4px solid #8ab4a6;padding:8px 16px;margin:12px 0;color:#43534e;background:#f5f9f7}
+.sidepanel{background:#fff;border:1px solid var(--line);border-radius:12px;padding:14px;position:sticky;top:80px}
+.sidepanel h2{font-size:15px;margin:0 0 10px}.sidepanel button,.sidepanel .file-button{display:block;width:100%;text-align:center;margin:7px 0}
+.file-button{position:relative;overflow:hidden}.file-button input{position:absolute;inset:0;opacity:0;width:100%;cursor:pointer}
+.sidepanel hr{border:0;border-top:1px solid var(--line);margin:16px 0}
+.stats{display:grid;grid-template-columns:1fr auto;gap:5px;margin:0}.stats dt{color:var(--muted)}.stats dd{margin:0;font-weight:700;font-variant-numeric:tabular-nums}
+.hint,.muted{font-size:12px;color:var(--muted)}.hint{line-height:1.5;margin-top:14px}
+footer{text-align:center;color:var(--muted);padding:22px;font-size:12px}
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+@media(max-width:900px){.workspace{grid-template-columns:1fr}.sidepanel{position:static;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}.sidepanel h2,.sidepanel hr,.stats,.hint{grid-column:1/-1}.sidepanel button,.sidepanel .file-button{margin:0}.page{min-height:850px;padding:48px 42px}}
+@media(max-width:600px){main{margin:10px auto;padding:0 9px}.topbar{padding:11px 13px}.docbar{align-items:stretch;flex-direction:column}.doc-actions{display:grid;grid-template-columns:1fr 1fr}.doc-actions select{grid-column:1/-1;grid-row:1}.toolbar{position:static;padding:7px;gap:5px}.tool-group{border:0;padding:0;margin:0}.tool-group button{flex:1;padding:7px 8px}.tool-group select{max-width:140px}.page-wrap{padding:7px}.page{min-height:70vh;padding:26px 20px;font-size:15px}.sidepanel{grid-template-columns:1fr 1fr}}
+@media print{body{background:#fff}.topbar,.docbar,.toolbar,.sidepanel,.muted,footer{display:none!important}main{max-width:none;margin:0;padding:0}.workspace{display:block}.page-wrap{padding:0;border:0;background:#fff;overflow:visible}.page{width:auto;min-height:0;margin:0;padding:0;box-shadow:none;overflow:visible}@page{size:A4;margin:20mm}}
+
+.page{max-width:none;box-sizing:border-box}
+.page-break{break-before:page;page-break-before:always;height:0;border-top:1px dashed #9aa8ae;margin:18px 0}
+.setting{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:8px 0;font-size:13px}
+.setting input{width:78px}
+.setting select{width:100px}
+@media(max-width:600px){.page{max-width:none;width:auto!important;min-height:70vh!important;padding:26px 20px!important}}
+@media print{.page{width:auto!important;min-height:0!important;padding:0!important}.page-break{border:0;margin:0}}
+
+/* Ribbon interface V1.3 */
+.ribbon{position:sticky;top:0;z-index:8;background:#fff;border:1px solid var(--line);border-radius:12px;margin:0 0 14px;box-shadow:0 3px 12px #132b360d;overflow:hidden}
+.ribbon-tabs{display:flex;gap:3px;align-items:center;padding:6px 8px 0;border-bottom:1px solid var(--line);background:#f8faf9;overflow-x:auto;scrollbar-width:thin}
+.ribbon-tab{border:0;border-radius:7px 7px 0 0;background:transparent;white-space:nowrap;min-height:36px;padding:7px 14px;color:#40534d}
+.ribbon-tab.active{background:#fff;color:var(--brand);font-weight:750;box-shadow:inset 0 3px 0 var(--brand)}
+.ribbon-panel{display:flex;align-items:stretch;gap:10px;min-height:86px;padding:10px;overflow-x:auto}
+.ribbon-panel[hidden]{display:none}
+.ribbon-group{display:flex;flex-direction:column;justify-content:center;gap:8px;padding:2px 12px;border-right:1px solid var(--line);min-width:max-content}
+.ribbon-group:last-child{border:0}
+.ribbon-group small{font-size:11px;color:var(--muted)}
+.ribbon-tools{display:flex;align-items:center;gap:5px;flex-wrap:wrap}
+.ribbon-panel .tool-group{border-right:1px solid var(--line);padding:0 9px 0 0;margin:0;flex-wrap:wrap;max-width:100%}
+.ribbon-panel .tool-group:last-child{border:0}
+.ribbon-panel button{min-height:36px}
+#pageSetupRibbon{flex-direction:row;align-items:center;flex-wrap:wrap}
+#pageSetupRibbon .setting{margin:0 8px 0 0}
+#pageSetupRibbon .setting input{width:76px}
+#pageSetupRibbon .setting select{width:92px}
+@media(max-width:600px){.ribbon{position:sticky;top:0}.ribbon-tabs{padding-left:5px}.ribbon-tab{padding:7px 11px;font-size:13px}.ribbon-panel{min-height:74px;padding:7px;gap:6px}.ribbon-panel .tool-group{min-width:max-content}.ribbon-tools{flex-wrap:nowrap}.ribbon-panel button{font-size:12px;padding:7px 9px}}
+
+/* V1.3.1: prevent duplicate legacy action panel controls */
+.sidepanel>button,.sidepanel>.file-button{display:none!important}
+.sidepanel>h2:first-child,.sidepanel>hr{display:none}
+.sidepanel{display:block}
+@media(max-width:900px){.sidepanel{display:none!important}}
+
+.ribbon-file-input{display:none!important}
+
+
+/* HAI DAT WRITER reference tools */
+.hd-toc,#hd-footnotes,#hd-bibliography{margin:1.2em 0;padding:1em 1.25em;border:1px solid #d6e2dc;border-radius:10px;background:#f7faf8}
+.hd-toc h2,#hd-footnotes h2,#hd-bibliography h2{margin:.1em 0 .7em;font-size:1.05em}
+.hd-toc ol,#hd-footnotes ol,#hd-bibliography ol{padding-left:1.6em;margin:.4em 0}
+.hd-toc li{margin:.25em 0}
+.hd-toc .toc-level-h2{margin-left:1.1em}
+.hd-toc .toc-level-h3{margin-left:2.2em}
+.hd-citation{font-size:.9em;vertical-align:baseline}
+#hd-footnotes li,#hd-bibliography li{margin:.45em 0}
+@media print{.hd-toc,#hd-footnotes,#hd-bibliography{break-inside:avoid;background:#fff}}
+
+/* V1.5 search and replace controls */
+.find-tools{align-items:center;flex-wrap:wrap;max-width:100%}
+.find-tools input{min-width:125px;width:155px;min-height:36px;font-size:13px}
+.find-tools button{font-size:12px;padding:7px 9px}
+@media(max-width:600px){.find-tools{min-width:100%;display:grid;grid-template-columns:1fr 1fr}.find-tools input{width:100%;min-width:0}.find-tools button{width:100%}}
+
+/* V1.6 print metadata and backup tools */
+.print-fields{min-width:240px}
+.print-fields .setting{display:flex;gap:8px;align-items:center;justify-content:space-between}
+.print-fields .setting input[type=text]{width:170px;min-width:0}
+.check-setting{display:flex;align-items:center;gap:7px;font-size:13px}
+.check-setting input{min-height:auto}
+@media(max-width:600px){.print-fields{min-width:230px}.print-fields .setting input[type=text]{width:135px}}
+@media print{
+ @page{margin:20mm}
+ .page{margin-top:0}
+}
+
+/* V1.7 automatic table of contents */
+.toc-auto-setting{display:flex;align-items:center;gap:7px;font-size:13px;white-space:nowrap}
+.toc-auto-setting input{min-height:0}
+.hd-toc .toc-updated{margin:.6em 0 0;color:#64748b;font-size:11px;font-style:italic}
+.hd-toc a{color:#176b57;text-decoration:none}
+.hd-toc a:hover{text-decoration:underline}
+@media print{.hd-toc .toc-updated{display:none}}
+
+/* V1.8 paragraph controls, templates and section breaks */
+.paragraph-tools{gap:8px;align-items:center}.paragraph-tools label{display:flex;align-items:center;gap:5px;font-size:12px;white-space:nowrap}.paragraph-tools select{min-height:34px;padding:5px}.section-break{break-before:page;page-break-before:always;border-top:2px dashed #6f988b;margin:24px 0;height:0;position:relative}.section-break:after{content:'NGẮT PHẦN';position:relative;top:-13px;display:inline-block;padding:0 7px;background:#fff;color:#64748b;font-size:10px;letter-spacing:.08em}@media print{.section-break{border:0;margin:0}.section-break:after{display:none}}
+
+
+/* V1.9 — refined workspace, compact mobile controls and live editor status */
+:root{--brand:#176b57;--bg:#edf2f1;--line:#d7e2de}
+.topbar{background:linear-gradient(115deg,#103c34,#176b57);padding:14px clamp(12px,2vw,28px)}
+.brand{font-size:17px;letter-spacing:.055em}
+main{max-width:1560px;margin:14px auto;padding:0 clamp(8px,1.5vw,22px)}
+.docbar{position:sticky;top:0;z-index:12;box-shadow:0 3px 14px #102b2410;padding:9px 12px}
+#docTitle{border-color:transparent;background:#f7faf8;min-width:120px}
+#docTitle:focus{border-color:#82b5a5;background:#fff;outline:2px solid #176b5720}
+.doc-actions{gap:6px}
+.doc-actions button,.doc-actions select{min-height:36px}
+.quick-save{background:#e7f3ee!important;color:#145744!important;border-color:#c9e2d7!important;font-weight:700}
+.ribbon{top:59px;border-radius:12px}
+.ribbon-tabs{background:#f1f6f3}
+.ribbon-tab{padding:8px 16px}
+.ribbon-tab.active{box-shadow:inset 0 -3px 0 var(--brand);color:#145744}
+.ribbon-panel{min-height:78px}
+.workspace{grid-template-columns:minmax(0,1fr)}
+.page-wrap{padding:clamp(8px,2vw,22px);background:#e5ece9;border-color:#d4dfda;border-radius:14px}
+.editor-quickbar{position:sticky;top:138px;z-index:6;display:flex;align-items:center;gap:5px;flex-wrap:wrap;width:min(100%,920px);margin:0 auto 12px;padding:7px;background:#ffffffed;border:1px solid #d8e3de;border-radius:11px;box-shadow:0 4px 14px #183b2d0d;backdrop-filter:blur(8px)}
+.editor-quickbar button{min-width:36px;min-height:35px;padding:6px 10px;font-size:13px}
+.editor-quickbar button:active{background:#e4f1eb}
+.quick-divider{height:23px;border-left:1px solid #dce5e0;margin:0 3px}
+.page{width:min(100%,920px);min-height:1120px;padding:clamp(28px,5vw,76px) clamp(20px,6vw,82px);border:1px solid #e2e7e4;border-radius:3px;box-shadow:0 7px 28px #203d3214;font-family:Arial,"Segoe UI",sans-serif;font-size:12pt;line-height:1.65}
+.page p{margin:0 0 6pt}
+.page h1{font-size:24pt}.page h2{font-size:18pt}.page h3{font-size:14pt}
+.page:empty:before{content:"Bắt đầu nhập nội dung…";color:#a0aaa5}
+.editor-statusbar{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;width:min(100%,920px);margin:9px auto 0;padding:7px 3px;color:#64756d;font-size:11px;font-variant-numeric:tabular-nums}
+.sidepanel{display:none!important}
+@media(max-width:700px){
+  main{margin:8px auto}
+  .docbar{position:relative;top:auto;padding:8px;gap:7px}
+  #docTitle{font-size:16px;width:100%}
+  .doc-actions{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));width:100%}
+  .doc-actions select{grid-column:1/-1;grid-row:1}
+  .doc-actions button{font-size:12px;padding:6px 5px}
+  .ribbon{top:0;position:sticky}
+  .ribbon-panel{overflow-x:auto;align-items:flex-start}
+  .ribbon-panel .tool-group{min-width:0;flex:0 0 auto}
+  .editor-quickbar{top:0;position:sticky;gap:4px;padding:5px;margin-bottom:8px}
+  .editor-quickbar button{min-width:34px;min-height:34px;padding:5px 8px}
+  .page-wrap{padding:6px;border-radius:10px}
+  .page{width:100%!important;min-height:72vh!important;padding:24px 18px!important;font-size:11pt;box-shadow:0 3px 12px #203d3210}
+  .editor-statusbar{font-size:10px;gap:4px}
+}
+@media(min-width:701px){.page-wrap{padding:20px}.editor-quickbar{top:138px}}
+@media print{.editor-quickbar,.editor-statusbar{display:none!important}.page{border:0;border-radius:0}}
+
+
+/* V1.10 — professional text-formatting controls */
+.ribbon-panel .tool-group{align-items:center}
+.ribbon-panel .tool-group select{min-width:104px}
+.ribbon-panel .tool-group button{white-space:nowrap}
+.paragraph-align-tools button,.paragraph-indent-tools button{min-width:42px}
+.color-tool{background:#fbfdfc;color:#29483e}
+.color-tool:focus-within{outline:2px solid #176b5740;outline-offset:1px}
+.page font{font-family:inherit}
+.page sup,.page sub{line-height:0}
+.page sup{vertical-align:super}
+.page sub{vertical-align:sub}
+@media(max-width:700px){
+  .ribbon-panel .tool-group{gap:4px}
+  .ribbon-panel .tool-group select{min-width:92px;max-width:118px}
+  .paragraph-align-tools button,.paragraph-indent-tools button{min-width:38px}
+}
+@media print{
+  .page{overflow-wrap:break-word}
+}
+
+.file-workflow-group{min-width:280px;max-width:100%}.file-workflow-tools{display:flex;flex-wrap:wrap;gap:6px}.file-workflow-tools button{font-size:12px;min-height:36px}#workFolderStatus{max-width:330px;white-space:normal;line-height:1.4}
+@media(min-width:901px){.file-workflow-group{min-width:350px}}@media(max-width:700px){.file-workflow-group{min-width:270px}.file-workflow-tools{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}.file-workflow-tools button{white-space:normal}}
+
+/* V1.13 — immutable document identity */
+.doc-id{display:inline-flex;align-items:center;padding:6px 9px;border:1px solid var(--line);border-radius:8px;background:#f7faf8;color:#52665d;font:11px/1.3 ui-monospace,SFMono-Regular,Consolas,monospace;white-space:nowrap}
+#copyDocId{min-height:34px;font-size:12px;padding:6px 9px}
+@media(max-width:700px){.doc-id{max-width:100%;overflow-wrap:anywhere;white-space:normal}#copyDocId{width:100%}}
+
+/* HAI DAT WRITER V2.0 — ribbon-first document workspace */
+.document-manager{min-width:260px;max-width:390px}
+.document-manager #documentSearch{width:min(100%,240px);min-width:170px}
+.document-manager #trashList{max-width:160px;min-width:120px}
+.document-manager #documentCount{font-size:12px;color:var(--muted);align-self:center}
+.document-manager .ribbon-tools{gap:5px}
+@media(max-width:700px){.document-manager{min-width:250px}.document-manager .ribbon-tools{flex-wrap:nowrap}.document-manager #documentSearch{min-width:190px}}
+
+/* HAI DAT WRITER V2.1 */
+.document-manager{min-width:310px;max-width:440px}.document-manager .ribbon-tools{flex-wrap:wrap}.document-manager select{min-width:120px;max-width:190px;font-size:12px}.document-manager #documentSearch{min-width:170px;max-width:230px}.folder-manager{min-width:300px;max-width:430px}.folder-manager .ribbon-tools{display:flex;gap:6px;flex-wrap:wrap}.folder-manager select{min-width:130px;max-width:180px;font-size:12px}.folder-manager button{font-size:12px;padding:7px 9px}.folder-manager small{max-width:360px;white-space:normal}@media(max-width:700px){.document-manager,.folder-manager{min-width:270px}.document-manager .ribbon-tools,.folder-manager .ribbon-tools{flex-wrap:nowrap}.document-manager select,.folder-manager select{min-width:130px;max-width:155px}.folder-manager button{white-space:nowrap}}
+
+/* HAI DAT WRITER V2.2 — version history */
+.version-manager{min-width:290px;max-width:390px}.version-manager .ribbon-tools{display:flex;align-items:center;gap:6px;flex-wrap:wrap}.version-manager select{min-width:205px;max-width:260px;font-size:12px}.version-manager button{font-size:12px;padding:7px 9px}.version-manager #versionHistoryCount{font-size:11px;color:var(--muted)}.version-preview{width:min(760px,calc(100vw - 28px));max-width:760px;border:1px solid var(--line);border-radius:14px;padding:14px;box-shadow:0 18px 60px #102b2440}.version-preview::backdrop{background:#10231dcc}.version-preview-head{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:10px}.version-preview textarea{width:100%;height:min(65vh,560px);resize:vertical;font:13px/1.55 ui-monospace,monospace;white-space:pre-wrap}.version-preview button{min-height:36px}@media(max-width:700px){.version-manager{min-width:270px}.version-manager .ribbon-tools{flex-wrap:nowrap}.version-manager select{min-width:175px;max-width:190px}.version-manager button{white-space:nowrap}}
+
+
+/* HAI DAT WRITER V2.3 — safe backup merge */
+#backupMode{min-width:205px;max-width:270px;font-size:12px}
+@media(max-width:700px){#backupMode{min-width:190px;max-width:230px}}
+
+
+/* HAI DAT WRITER V2.4 — data health diagnostics */
+#dataHealthStatus{display:block;max-width:360px;white-space:normal;line-height:1.45;font-size:11px;color:var(--muted)}
+#dataHealthStatus[data-state=error]{color:var(--danger);font-weight:700}
+#checkDataHealth{white-space:normal}
+
+
+/* HAI DAT WRITER V2.5 — independent document clone */
+#cloneDoc{border-color:#b8d8cb;background:#f0f8f4;color:#145744;font-weight:650}
+#cloneDoc:hover{background:#e2f1e9;border-color:#7eb39e}
+@media(max-width:700px){#cloneDoc{min-height:38px}}
+
+/* V2.6 — privacy status until authenticated sharing is available */
+.access-state{display:inline-flex;align-items:center;gap:5px;padding:5px 9px;border:1px solid #d8e8df;border-radius:999px;background:#f1f8f4;color:#28634c;font-size:12px;font-weight:650;white-space:nowrap}
+@media(max-width:700px){.access-state{white-space:normal}}
+
+/* HAI DAT WRITER V2.7 — Supabase account bootstrap */
+.account-manager{min-width:280px;max-width:410px}.account-manager .ribbon-tools{display:flex;flex-wrap:wrap;gap:6px}.account-manager input{min-width:130px;max-width:185px;width:100%;font-size:12px}.account-manager button{font-size:12px;white-space:nowrap}.account-manager #accountStatus{display:block;max-width:390px;white-space:normal;line-height:1.45;font-size:11px;color:var(--muted)}.account-manager #accountStatus[data-state=error]{color:var(--danger);font-weight:650}.account-manager #accountStatus[data-state=warning]{color:#93631d}@media(max-width:700px){.account-manager{min-width:270px}.account-manager .ribbon-tools{flex-wrap:nowrap}.account-manager input{min-width:125px;max-width:155px}.account-manager button{padding:7px 8px}}
+
+/* HAI DAT WRITER V2.8 — cloud sync and sharing controls */
+.collaboration-manager{min-width:320px;max-width:560px}.collaboration-manager .ribbon-tools{display:flex;align-items:center;gap:7px;flex-wrap:wrap}.collaboration-manager input[type=text]{min-width:145px;max-width:210px;width:100%;font-size:12px}.collaboration-manager input[type=checkbox]{min-height:auto}.collaboration-manager label{display:inline-flex;align-items:center;gap:4px;font-size:12px;white-space:nowrap}.collaboration-manager button{font-size:12px;white-space:nowrap}.collaboration-manager #collaborationStatus{display:block;max-width:530px;white-space:normal;line-height:1.45;font-size:11px;color:var(--muted)}.collaboration-manager #collaborationStatus[data-state=error]{color:var(--danger);font-weight:650}.collaboration-manager #collaborationStatus[data-state=warning]{color:#93631d}@media(max-width:700px){.collaboration-manager{min-width:290px}.collaboration-manager .ribbon-tools{flex-wrap:wrap}.collaboration-manager input[type=text]{min-width:135px;max-width:100%;flex:1 1 145px}}
+
+/* V3.0 — focused writing workspace and accessible zoom */
+.zoom-control{display:inline-flex;align-items:center;gap:7px;font-size:12px;color:var(--muted);white-space:nowrap}
+.zoom-control select{min-height:34px;padding:5px 8px}
+#toggleFocusMode{border-color:#b9d5ca;color:#145744;font-weight:650}
+#focusModeExit{background:#e8f2ef;color:#145744;border-color:#b9d5ca}
+body.focus-mode .topbar,body.focus-mode .docbar,body.focus-mode .ribbon,body.focus-mode .sidepanel{display:none!important}
+body.focus-mode .workspace{grid-template-columns:minmax(0,1fr)!important;gap:0}
+body.focus-mode main{max-width:1200px;margin:12px auto}
+body.focus-mode .page-wrap{min-height:calc(100vh - 28px);padding:clamp(10px,3vw,34px)}
+body.focus-mode .editor-quickbar{top:8px}
+body.focus-mode .page{min-height:calc(100vh - 150px)}
+@media(max-width:700px){
+ body.focus-mode main{margin:0;padding:0}
+ body.focus-mode .page-wrap{min-height:100vh;border:0;border-radius:0;padding:7px}
+ body.focus-mode .page{min-height:calc(100vh - 100px)!important}
+}
+@media print{body.focus-mode .topbar,body.focus-mode .docbar,body.focus-mode .ribbon{display:none!important}}
+
+/* V4.7 mobile interaction and accessibility */
+@media(max-width:600px){button,.file-button{min-height:44px}.toolbar{overflow-x:auto;overflow-y:hidden;flex-wrap:nowrap;scrollbar-width:thin;-webkit-overflow-scrolling:touch;touch-action:pan-x}.tool-group{flex:0 0 auto}.tool-group button{min-width:44px}.doc-actions button,.doc-actions .file-button{min-height:44px}.page-wrap{-webkit-overflow-scrolling:touch;overscroll-behavior:contain}#docTitle{min-width:0;width:100%}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;transition-duration:.01ms!important;animation-duration:.01ms!important}}

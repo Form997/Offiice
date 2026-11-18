@@ -1,0 +1,23 @@
+{
+  "name": "HAI ĐẤT OFFICE · WORK",
+  "short_name": "WORK",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#edf2f1",
+  "theme_color": "#123f36",
+  "description": "Không gian làm việc văn bản và thiết kế; ưu tiên di động, hỗ trợ ngoại tuyến.",
+  "categories": [
+    "productivity",
+    "utilities"
+  ],
+  "icons": [
+    {
+      "src": "./icons/work.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
