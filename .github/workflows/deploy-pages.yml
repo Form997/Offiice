@@ -2,9 +2,7 @@ name: Deploy HAI DAT OFFICE to GitHub Pages
 
 on:
   push:
-    branches:
-      - v1-development
-      - v6-development
+    branches: [main]
   workflow_dispatch:
 
 permissions:
@@ -25,15 +23,12 @@ jobs:
     steps:
       - name: Checkout source
         uses: actions/checkout@v4
-
       - name: Configure GitHub Pages
         uses: actions/configure-pages@v5
-
       - name: Upload website
         uses: actions/upload-pages-artifact@v4
         with:
           path: .
-
       - name: Deploy website
         id: deployment
         uses: actions/deploy-pages@v4
