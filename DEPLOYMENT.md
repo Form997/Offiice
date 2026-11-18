@@ -13,12 +13,12 @@ Các địa chỉ trên là URL dự kiến theo tên tài khoản/kho GitHub; c
 1. Mở Settings của kho: https://github.com/Form997/Offiice/settings/pages
 2. Tại **Build and deployment**, chọn **Source: GitHub Actions**.
 3. Mở tab Actions: https://github.com/Form997/Offiice/actions
-4. Chọn workflow **Deploy HAI DAT OFFICE to GitHub Pages** và chạy **Run workflow** trên nhánh `v1-development` nếu workflow chưa tự chạy.
+4. Chọn workflow **Deploy HAI DAT OFFICE to GitHub Pages** và chạy **Run workflow** trên nhánh `main` nếu workflow chưa tự chạy.
 5. Chờ job Deploy hoàn tất; kiểm tra URL Pages được GitHub cấp trong phần Deployments.
 
 ## Tự động cập nhật
 
-Sau khi cấu hình lần đầu, mỗi lần có commit mới vào `v1-development`, workflow sẽ xuất bản lại cả ba ứng dụng. Nhánh `main` không bị thay đổi.
+Sau khi cấu hình lần đầu, mỗi lần có commit mới vào `main`, workflow sẽ xuất bản lại cả ba ứng dụng. Các nhánh phát triển V1–V7 không tự động ghi đè bản đang phát hành.
 
 ## Lưu ý
 
