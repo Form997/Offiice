@@ -985,8 +985,21 @@
   updateStats();
   // Ribbon tabs: switch panels without changing editor content or save state.
   document.querySelectorAll('.ribbon-tab').forEach(tab=>tab.addEventListener('click',()=>{
-    document.querySelectorAll('.ribbon-tab').forEach(t=>{const active=t===tab;t.classList.toggle('active',active);t.setAttribute('aria-selected',String(active));});
-    document.querySelectorAll('.ribbon-panel').forEach(panel=>{const active=panel.id==='panel-'+tab.dataset.tab;panel.hidden=!active;panel.classList.toggle('active',active);});
+    const wasActive=tab.classList.contains('active');
+    const mobile=window.matchMedia('(max-width:700px)').matches;
+    const collapse=mobile&&wasActive&&!document.querySelector('.ribbon-panel[hidden]');
+    document.querySelectorAll('.ribbon-tab').forEach(t=>{
+      const active=t===tab&&!collapse;
+      t.classList.toggle('active',active);
+      t.setAttribute('aria-selected',String(active));
+      t.setAttribute('aria-expanded',String(active));
+    });
+    document.querySelectorAll('.ribbon-panel').forEach(panel=>{
+      const active=!collapse&&panel.id==='panel-'+tab.dataset.tab;
+      panel.hidden=!active;
+      panel.classList.toggle('active',active);
+    });
+    if(mobile&&!collapse)tab.scrollIntoView({behavior:'smooth',block:'nearest',inline:'nearest'});
   }));
   // Phones open the writing tools first, not the large file-management panel.
   if(window.matchMedia('(max-width:700px)').matches){const homeTab=document.querySelector('.ribbon-tab[data-tab="home"]');if(homeTab)homeTab.click();}
