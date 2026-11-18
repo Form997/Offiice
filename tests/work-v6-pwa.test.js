@@ -56,3 +56,18 @@ test('WORK V6 preserves the selected document when switching Writer and Canvas',
   assert.match(canvas,/index\.html\?documentId=/);
   assert.match(html,/id="canvasLaunch"/);
 });
+
+test('WORK V6.3 mobile workspace keeps its responsive stylesheet and touch navigation',()=>{
+  const html=read('writer/index.html');
+  const css=read('writer/mobile-v6.css');
+  assert.match(html,/<meta name="viewport" content="width=device-width,initial-scale=1">/);
+  assert.match(html,/mobile-v6\.css\?v=6\.3/);
+  assert.match(html,/app\.js\?v=6\.3/);
+  assert.match(html,/<nav class="ribbon" aria-label="Thanh công cụ Writer">/);
+  assert.match(css,/env\(safe-area-inset-top,0px\)/);
+  assert.match(css,/env\(safe-area-inset-bottom,0px\)/);
+  assert.match(css,/button,\.file-button\{min-height:44px\}/);
+  assert.match(css,/\.ribbon-tabs\{[\s\S]*?overflow-x:auto/);
+  assert.match(css,/\.ribbon-panel\[hidden\]\{display:none!important\}/);
+  assert.match(css,/@media\(prefers-reduced-motion:reduce\)/);
+});
