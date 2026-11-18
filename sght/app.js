@@ -1,4 +1,5 @@
 import { evaluateFormula, FormulaError } from "./engine/core.js";
+import { planMacro, executeMacro } from "./automation/macro-engine.js";
 
 const COLS = 16, ROWS = 40, STORAGE_KEY = "haidat-sght-workbook-v1";
 const letters = n => { let s=""; while(n>0){const r=(n-1)%26;s=String.fromCharCode(65+r)+s;n=Math.floor((n-1)/26);} return s; };
@@ -43,4 +44,20 @@ document.querySelector("#zoomIn").addEventListener("click",()=>setZoom(zoom+10))
 function setZoom(v){zoom=Math.max(60,Math.min(160,v));document.querySelector("#zoomValue").textContent=zoom+"%";grid.style.zoom=String(zoom/100);}
 document.querySelectorAll(".ribbon-tab").forEach(tab=>tab.addEventListener("click",()=>{document.querySelectorAll(".ribbon-tab").forEach(x=>x.classList.toggle("active",x===tab));calcStatus.textContent="Nhóm công cụ: "+tab.textContent;}));
 document.querySelector("#addSheet").addEventListener("click",()=>{calcStatus.textContent="Tính năng nhiều trang tính sẽ được bổ sung ở phiên bản kế tiếp.";});
+const macroSource=document.querySelector("#macroSource"),macroPreview=document.querySelector("#macroPreview"),macroResult=document.querySelector("#macroResult"),macroPanel=document.querySelector("#macroPanel");
+document.querySelector("#openMacro").addEventListener("click",()=>{macroPanel.hidden=false;macroSource.focus();});
+document.querySelector("#closeMacro").addEventListener("click",()=>{macroPanel.hidden=true;});
+document.querySelector("#previewMacro").addEventListener("click",()=>{
+  try { const plan=planMacro(macroSource.value); macroPreview.textContent=plan.map((x,i)=>(i+1)+". "+(x.type==="SET"?"Ghi "+x.cell+" = "+String(x.value):x.type==="COPY"?"Chép "+x.source+" → "+x.target:x.type==="CLEAR"?"Xóa "+x.range:"Tính tổng "+x.range+" → "+x.target)).join("\\n"); macroResult.textContent="Đã kiểm tra "+plan.length+" lệnh. Chưa có dữ liệu nào bị thay đổi."; }
+  catch(e){macroPreview.textContent="";macroResult.textContent=(e.code||"LỖI")+" · "+e.message+(e.line?" (dòng "+e.line+")":"");}
+});
+document.querySelector("#runMacro").addEventListener("click",()=>{
+  try {
+    const plan=planMacro(macroSource.value);
+    if(!confirm("Cho phép SGHT chạy "+plan.length+" lệnh macro và ghi thay đổi vào bảng tính?"))return;
+    snapshot();
+    const result=executeMacro(plan,{get:a=>raw(a),set:(a,v)=>{cells[a]=v;},clear:a=>{delete cells[a];}},{approved:true});
+    render();save();macroResult.textContent="Hoàn tất: "+result.commandCount+" lệnh, "+result.changedCells+" lượt ô được xử lý. Có thể Hoàn tác.";
+  } catch(e){macroResult.textContent=(e.code||"LỖI")+" · "+e.message+(e.line?" (dòng "+e.line+")":"");}
+});
 load();render();
