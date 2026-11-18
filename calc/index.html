@@ -1,1 +1,25 @@
-<!doctype html><html lang="vi"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#123f36"><link rel="manifest" href="manifest.webmanifest"><link rel="stylesheet" href="style.css"><title>HAI ĐẤT CALC</title></head><body><header><div><div class="brand">HAI ĐẤT CALC</div><div class="sub">Máy tính cơ bản & khoa học · V1</div></div><button id="install" hidden>Cài ứng dụng</button></header><main><section class="panel" style="max-width:620px;margin:auto"><label for="expr"><b>Biểu thức</b></label><input id="expr" placeholder="Ví dụ: (12+8)*3 hoặc sqrt(81)" style="width:100%;font-size:22px;margin:8px 0"><div class="toolbar" id="keys"></div><div style="font-size:13px;color:#64748b">Kết quả</div><div id="result" aria-live="polite" style="font-size:32px;font-weight:750;min-height:52px">0</div><button class="primary" id="equal" style="width:100%">Tính kết quả</button><h3>Lịch sử</h3><ol id="history"></ol><button id="clear">Xóa lịch sử</button></section><p class="muted">Hàm hỗ trợ: sin, cos, tan (độ), sqrt, log, ln, abs, pi, e. Phép toán: + − × ÷ ^ và ngoặc.</p></main><footer>HAI ĐẤT OFFICE · Hoạt động ngoại tuyến sau lần mở đầu tiên</footer><script src="app.js"></script></body></html>
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#123f36"><link rel="manifest" href="manifest.webmanifest">
+<link rel="stylesheet" href="style.css"><title>HAI ĐẤT CALC</title>
+</head>
+<body>
+<header><div><div class="brand">HAI ĐẤT CALC</div><div class="sub">Máy tính cơ bản & khoa học · V1.1</div></div><button id="install" hidden>Cài ứng dụng</button></header>
+<main>
+<section class="panel calculator">
+ <div class="topline"><label for="expr"><b>Biểu thức</b></label><button id="angle-mode" class="mode-button" type="button">DEG</button></div>
+ <input id="expr" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Ví dụ: sin(30)+sqrt(81)" aria-label="Nhập biểu thức">
+ <div class="result-head"><span>KẾT QUẢ</span><span id="result-note" aria-live="polite">Sẵn sàng</span></div>
+ <div id="result" aria-live="polite" aria-atomic="true">0</div>
+ <div class="memory-row"><span id="memory-value">M = 0</span><div><button id="mplus" type="button">M+</button><button id="mminus" type="button">M−</button><button id="mr" type="button">MR</button><button id="mc" type="button">MC</button></div></div>
+ <div class="toolbar" id="keys" aria-label="Bàn phím máy tính"></div>
+ <div class="action-row"><button id="clear" type="button">Xóa lịch sử</button><button id="copy" type="button">Chép kết quả</button><button id="use-answer" type="button">Gọi Ans</button></div>
+ <h3>Lịch sử tính toán</h3><ol id="history"></ol>
+</section>
+<p class="muted">Hỗ trợ: sin, cos, tan và hàm lượng giác ngược; sqrt, log, ln, abs, giai thừa (!), phần trăm (%), pi, e, Ans. Chế độ DEG/RAD, bộ nhớ và lịch sử được lưu trên thiết bị.</p>
+</main>
+<footer>HAI ĐẤT OFFICE · Ưu tiên ngoại tuyến · Dữ liệu lưu trên thiết bị</footer>
+<script src="app.js"></script>
+</body></html>
