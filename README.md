@@ -10,7 +10,7 @@ HAI ĐẤT OFFICE là bộ ứng dụng văn phòng gồm ba công cụ độc l
 
 ## Giáo trình dùng chung
 
-- **HAI ĐẤT OFFICE ACADEMY:** [Mã nguồn giáo trình trên nhánh v7-development](https://github.com/Form997/Offiice/tree/v7-development/academy) — một kho bài học liên thông cho cả Writer, Calc và Slides. Đường dẫn xem trực tiếp chỉ được công bố sau khi có triển khai được xác minh.
+- **HAI ĐẤT OFFICE ACADEMY:** [Mã nguồn giáo trình trên nhánh v7-development](https://github.com/Form997/Offiice/tree/main/academy) — một kho bài học liên thông cho cả Writer, Calc và Slides. Đường dẫn xem trực tiếp chỉ được công bố sau khi có triển khai được xác minh.
 - Mỗi bài có mã ổn định; có thể đọc theo ứng dụng, trình độ và ngôn ngữ. Tiến độ học lưu trên thiết bị.
 - Giáo trình hiện có 14 bài. Tiếng Việt là nội dung gốc; tiếng Anh là gói khởi đầu, cần hiệu đính chuyên môn. Các ngôn ngữ khác chỉ được công bố khi có gói dịch và kiểm thử tương ứng. Không tự nhận nội dung dự phòng là bản dịch hoàn chỉnh.
 
@@ -64,9 +64,10 @@ Giáo trình được định hướng để đọc bằng nhiều ngôn ngữ, 
 
 ## Phiên bản và phát triển
 
-- **Nhánh đang cập nhật:** `v7-development`.
+- **Dòng V1–V7 đã được hợp nhất vào `main`** qua PR #2.
+- **Nhánh phát triển tiếp tục:** `v7-development`; giữ nguyên các nhánh phiên bản để tra cứu lịch sử.
 - **V7:** tập trung nâng độ toàn vẹn phông chữ và định dạng khi mở/nhập tài liệu trong Writer.
-- V7 đang là nhánh phát triển; chưa được gộp vào `main` và chưa được công bố là bản phát hành ổn định.
+- Việc hợp nhất mã nguồn không đồng nghĩa V7 đã được nghiệm thu trên mọi thiết bị hoặc trở thành bản stable; các giới hạn định dạng và kết quả kiểm định phải được công bố rõ.
 - Các giới hạn định dạng và tiến độ kiểm định phải được ghi rõ trong tài liệu kỹ thuật; kiểm thử mã nguồn không thay thế kiểm thử trên thiết bị và phần mềm văn phòng thực tế.
 
 ## Đóng góp và cập nhật giáo trình
