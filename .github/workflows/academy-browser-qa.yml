@@ -1,0 +1,34 @@
+name: HAI DAT OFFICE Academy Browser QA
+on:
+  push:
+    branches: [v7-development]
+    paths: ['academy/**','tests/academy.browser.test.cjs','.github/workflows/academy-browser-qa.yml']
+  pull_request:
+    branches: [v7-development]
+    paths: ['academy/**','tests/academy.browser.test.cjs','.github/workflows/academy-browser-qa.yml']
+permissions:
+  contents: read
+jobs:
+  chromium-mobile:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install browser test dependency
+        run: npm install --no-save playwright
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Start static preview server
+        run: |
+          python3 -m http.server 4173 --bind 127.0.0.1 >/tmp/academy-server.log 2>&1 &
+          echo $! >/tmp/academy-server.pid
+          for i in $(seq 1 20); do
+            if curl -fsS http://127.0.0.1:4173/academy/ >/dev/null; then exit 0; fi
+            sleep 1
+          done
+          cat /tmp/academy-server.log
+          exit 1
+      - name: Test Academy at mobile viewport
+        run: node --test tests/academy.browser.test.cjs
