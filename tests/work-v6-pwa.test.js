@@ -61,7 +61,7 @@ test('WORK V6.3 mobile workspace keeps its responsive stylesheet and touch navig
   const html=read('writer/index.html');
   const css=read('writer/mobile-v6.css');
   assert.match(html,/<meta name="viewport" content="width=device-width,initial-scale=1">/);
-  assert.match(html,/mobile-v6\.css\?v=6\.3/);
+  assert.match(html,/mobile-v6\.css\?v=6\.4/);
   assert.match(html,/app\.js\?v=6\.3/);
   assert.match(html,/<nav class="ribbon" aria-label="Thanh công cụ Writer">/);
   assert.match(css,/env\(safe-area-inset-top,0px\)/);
