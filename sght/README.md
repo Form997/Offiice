@@ -69,3 +69,13 @@ Mở `sght/index.html` qua GitHub Pages sau khi workflow triển khai hoàn tấ
 - Giới hạn: tối đa 100 macro, 50.000 ký tự/macro, 1 MB/thư viện.
 - Bổ sung kiểm thử CRUD, nhân bản, nhập/xuất, kiểm tra dữ liệu và giới hạn.
 - Chưa có đồng bộ đám mây, chia sẻ quyền, lịch sử phiên bản có thể khôi phục hoặc chữ ký số.
+
+## Macro Debugger — 2026-11-19
+
+- Thêm phiên gỡ lỗi có phê duyệt rõ ràng trước khi thực thi.
+- Hỗ trợ chạy từng lệnh, tiếp tục chạy đến hết, dừng phiên và hoàn tác toàn bộ thay đổi của phiên.
+- Nhật ký từng bước ghi số bước, dòng lệnh, loại lệnh và giá trị ô trước/sau.
+- Mỗi lệnh được thực thi theo giao dịch nhỏ; nếu lệnh gặp lỗi trong lúc ghi dữ liệu, các thay đổi của chính lệnh đó được phục hồi.
+- Hoàn tác phiên dựa trên ảnh chụp giá trị trước khi từng ô bị thay đổi.
+- Nhật ký giao diện giới hạn hiển thị 30 bước gần nhất để giảm tải thiết bị.
+- Chưa có breakpoint tùy ý, watch expressions, step-into/over hoặc debugger cho mã VBA.
