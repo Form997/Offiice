@@ -48,3 +48,13 @@ Mở `sght/index.html` qua GitHub Pages sau khi workflow triển khai hoàn tấ
 - Chưa phải VBA: chưa chạy trực tiếp mã VBA, chưa có trình gỡ lỗi, sự kiện, lịch chạy hay AI sinh macro. Các phần đó là các chặng kế tiếp.
 - Bổ sung kiểm thử tự động cho phân tích, quyền thực thi, thao tác dữ liệu và giới hạn an toàn.
 
+
+## Macro Recorder — 2026-11-19
+
+- Thêm máy ghi thao tác vào SGHT Macro Studio.
+- Ghi thao tác nhập/sửa ô, xóa ô và dán vùng dữ liệu thành lệnh macro độc lập.
+- Có nút bắt đầu/dừng ghi; khi dừng, mã được đưa vào trình soạn thảo để người dùng kiểm tra.
+- Giới hạn 2.000 thao tác mỗi lượt ghi; tự dừng khi chạm giới hạn.
+- Thao tác do macro đang chạy không bị ghi lặp vào recorder.
+- Bổ sung kiểm thử cho trạng thái ghi, dừng, dán vùng và giới hạn.
+- Chưa có ghi định dạng, chọn vùng, thao tác hàng/cột hoặc ghi sự kiện nền.
