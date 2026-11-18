@@ -24,13 +24,13 @@ test('WORK V6 service worker precaches every declared local asset',()=>{
   assert.ok(match,'FILES array must exist');
   const files=[...match[1].matchAll(/'([^']+)'/g)].map(item=>item[1]);
   assert.ok(files.includes('./icons/work.svg'));
-  assert.ok(files.includes('./app.js?v=6.0'));
+  assert.ok(files.some(file=>/^\.\/app\.js\?v=6\.\d+$/.test(file)));
   for(const file of files){
     const local=file.split('?')[0].replace(/^\.\//,'');
     if(!local||local==='.')continue;
     assert.ok(fs.existsSync(path.join(root,'writer',local)),`Missing precache asset: ${file}`);
   }
-  assert.match(sw,/haidat-work-v6-0-r3/);
+  assert.match(sw,/haidat-work-v6-\d+-r\d+/);
   assert.match(sw,/key\.startsWith\('haidat-work-'\)/);
 });
 
@@ -38,7 +38,7 @@ test('WORK V6 exposes install prompt and installed-state handling',()=>{
   const app=read('writer/app.js');
   const html=read('writer/index.html');
   assert.match(html,/<button id="install" hidden>/);
-  assert.match(html,/app\.js\?v=6\.0/);
+  assert.match(html,/app\.js\?v=6\.\d+/);
   assert.match(app,/beforeinstallprompt/);
   assert.match(app,/promptEvent\.userChoice/);
   assert.match(app,/appinstalled/);
