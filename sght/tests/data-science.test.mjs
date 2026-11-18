@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import {pearsonCorrelation,simpleLinearRegression,oneWayAnova,multipleLinearRegression,fisherLSD,twoWayAnovaBalanced,residualDiagnostics,leveneTest,linearTrendForecast,descriptiveStatistics} from "../ai/data-science.js";
+import {pearsonCorrelation,simpleLinearRegression,oneWayAnova,multipleLinearRegression,fisherLSD,twoWayAnovaBalanced,residualDiagnostics,leveneTest,linearTrendForecast,descriptiveStatistics,tukeyHSD,gamesHowell,varianceInflationFactors} from "../ai/data-science.js";
 test("Pearson and simple regression",()=>{assert.ok(Math.abs(pearsonCorrelation([1,2,3,4],[2,4,6,8]).r-1)<1e-10);const r=simpleLinearRegression([1,2,3,4],[3,5,7,9]);assert.ok(Math.abs(r.slope-2)<1e-10);assert.ok(r.diagnostics.durbinWatson>=0);});
 test("multiple regression recovers two coefficients",()=>{const X=[[1,2],[2,1],[3,4],[4,2],[5,3],[6,5],[7,4],[8,6]],y=X.map(([a,b])=>5+2*a-3*b);const r=multipleLinearRegression(X,y,["N","P"]);assert.ok(Math.abs(r.coefficients[1].estimate-2)<1e-8);assert.ok(Math.abs(r.coefficients[2].estimate+3)<1e-8);assert.ok(r.rSquared>.999999);});
 test("LSD compares treatment pairs after ANOVA",()=>{const r=fisherLSD([{name:"A",values:[1,2,1,2]},{name:"B",values:[8,9,8,9]},{name:"C",values:[4,5,4,5]}]);assert.equal(r.pairs.length,3);assert.equal(r.protected,true);});
@@ -8,3 +8,9 @@ test("balanced two-way ANOVA returns three effects",()=>{const rows=[];for(const
 test("Levene test and residual diagnostics",()=>{const r=leveneTest([{name:"A",values:[1,2,3,4]},{name:"B",values:[2,3,4,5]}]);assert.ok(r.p>=0&&r.p<=1);assert.ok(residualDiagnostics([1,-1,2,-2,1]).jarqueBera>=0);});
 test("trend forecast and descriptive statistics",()=>{const r=linearTrendForecast([2,4,6,8],2);assert.equal(r.forecast.length,2);assert.ok(Math.abs(r.forecast[0].value-10)<1e-8);const d=descriptiveStatistics([1,2,3,4,5]);assert.equal(d.median,3);assert.equal(d.n,5);});
 test("rejects singular regression and incomplete input",()=>{assert.throws(()=>multipleLinearRegression([[1,1],[2,2],[3,3],[4,4]],[1,2,3,4]),/suy biến/);assert.throws(()=>descriptiveStatistics([1,""]),/ô trống/);});
+
+test("Tukey-Kramer HSD reports adjusted pairwise inference and intervals",()=>{const r=tukeyHSD([{name:"A",values:[1,2,1,2]},{name:"B",values:[8,9,8,9]},{name:"C",values:[4,5,4,5]}]);assert.equal(r.pairs.length,3);assert.ok(r.criticalQ>3&&r.criticalQ<5);assert.ok(r.pairs.some(p=>p.significant));assert.ok(r.pairs.every(p=>p.ciLow<=p.difference&&p.ciHigh>=p.difference));});
+test("Games-Howell supports unequal variances and sample sizes",()=>{const r=gamesHowell([{name:"A",values:[1,2,1,2,1]},{name:"B",values:[8,10,7,12]},{name:"C",values:[4,5,4]}]);assert.equal(r.pairs.length,3);assert.ok(r.pairs.every(p=>p.df>0&&p.p>=0&&p.p<=1));});
+test("VIF identifies independent and collinear predictors",()=>{const X=Array.from({length:30},(_,i)=>[i+1,2*(i+1)+(i%2)*.1,((i*7)%11)+i*.03]);const r=varianceInflationFactors(X,["N","N-correlated","P"]);assert.equal(r.variables.length,3);assert.ok(r.variables[1].vif>5);assert.ok(r.variables[0].vif>5);assert.ok(r.conditionIndex>1);});
+test("VIF rejects constant and malformed predictors",()=>{assert.throws(()=>varianceInflationFactors([[1,2],[1,3],[1,4]]),/không biến thiên/);assert.throws(()=>varianceInflationFactors([[1,2],[2],[3,4]]));});
+test("Tukey and Games-Howell validate alpha and group sizes",()=>{assert.throws(()=>tukeyHSD([{values:[1,2]},{values:[3,4]}],1));assert.throws(()=>gamesHowell([{values:[1]},{values:[2,3]}]));});
