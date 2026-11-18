@@ -32,7 +32,7 @@
       <div class="tool-group"><div class="tool-row"><button id="zoomOut" class="tool-btn">−</button><output id="zoomValue">100%</output><button id="zoomIn" class="tool-btn">+</button><button id="zoomReset" class="tool-btn">Vừa màn hình</button></div><small>Thu phóng</small></div>
     </section>
     <section id="dataSciencePanel" class="data-science-panel" hidden aria-label="SGHT Data Science">
-      <div class="macro-head"><div><b>SGHT Data Science · Giai đoạn 8</b><small>Hồi quy, tương quan và ANOVA ngoại tuyến</small></div><button id="closeDataScience" class="quiet" type="button">Đóng</button></div>
+      <div class="macro-head"><div><b>SGHT Data Science · Giai đoạn 9</b><small>Hồi quy đa biến, ANOVA, LSD và chẩn đoán ngoại tuyến</small></div><button id="closeDataScience" class="quiet" type="button">Đóng</button></div>
       <p class="macro-help">Nhập vùng dữ liệu đã có trong bảng tính. Hồi quy dùng hai vùng số X/Y cùng độ dài. ANOVA dùng một cột mã nghiệm thức và một cột kết quả, mỗi nhóm cần ít nhất hai lần lặp.</p>
       <div class="ds-form">
         <label>Vùng X · hồi quy <input id="dsXRange" value="A2:A10" placeholder="A2:A10"></label>
@@ -41,6 +41,26 @@
         <label>Mã nghiệm thức <input id="dsGroupRange" value="C2:C13" placeholder="C2:C13"></label>
         <label>Giá trị kết quả <input id="dsValueRange" value="D2:D13" placeholder="D2:D13"></label>
         <button id="dsAnova" class="quiet" type="button">Phân tích ANOVA</button>
+      </div>
+      <div class="ds-advanced">
+        <h4>Hồi quy đa biến</h4>
+        <label>Ma trận biến độc lập X <input id="dsMultiX" value="A2:C20" placeholder="A2:C20"></label>
+        <label>Biến phụ thuộc Y <input id="dsMultiY" value="D2:D20" placeholder="D2:D20"></label>
+        <button id="dsMultiple" class="quiet" type="button">Chạy hồi quy đa biến</button>
+        <h4>So sánh nghiệm thức & giả định</h4>
+        <button id="dsLsd" class="quiet" type="button">So sánh Fisher LSD 0,05</button>
+        <button id="dsLevene" class="quiet" type="button">Kiểm tra Levene</button>
+        <h4>ANOVA hai nhân tố có lặp</h4>
+        <label>Nhân tố A <input id="dsFactorA" value="A2:A25" placeholder="A2:A25"></label>
+        <label>Nhân tố B <input id="dsFactorB" value="B2:B25" placeholder="B2:B25"></label>
+        <label>Kết quả Y <input id="dsFactorY" value="C2:C25" placeholder="C2:C25"></label>
+        <button id="dsTwoWay" class="quiet" type="button">Chạy ANOVA hai nhân tố</button>
+        <h4>Thống kê mô tả & chuỗi thời gian</h4>
+        <label>Vùng thống kê mô tả <input id="dsDescRange" value="D2:D20" placeholder="D2:D20"></label>
+        <button id="dsDescriptive" class="quiet" type="button">Tính thống kê mô tả đầy đủ</button>
+        <label>Chuỗi theo thời gian <input id="dsTrendRange" value="D2:D20" placeholder="D2:D20"></label>
+        <label>Số kỳ cần dự báo <input id="dsPeriods" type="number" min="1" max="100" value="3"></label>
+        <button id="dsForecast" class="quiet" type="button">Dự báo xu thế</button>
       </div>
       <div id="dataScienceOutput" class="ds-output" aria-live="polite">Chưa chạy phân tích. Kết quả chỉ là hỗ trợ thống kê, không tự sửa bảng dữ liệu.</div>
     </section>
