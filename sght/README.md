@@ -114,3 +114,17 @@ Mở `sght/index.html` qua GitHub Pages sau khi workflow triển khai hoàn tấ
 - Không gọi API, không gửi dữ liệu ra ngoài, không thực thi JavaScript tùy ý. Đây là lớp trợ lý phân tích quy tắc chạy cục bộ, chưa phải mô hình ngôn ngữ sinh nội dung tự do.
 - Bổ sung kiểm thử cho thống kê, ngoại lệ, gợi ý công thức, sinh bản nháp và từ chối yêu cầu ngoài phạm vi.
 - Chưa có dự báo chuỗi thời gian, hồi quy đa biến, biểu đồ tự sinh, kết nối mô hình AI trực tuyến hoặc học theo dữ liệu người dùng.
+
+
+## SGHT Data Science — Giai đoạn 8 — 2026-11-19
+
+- Thêm mô-đun thống kê độc lập `ai/data-science.js`, không dùng thư viện thống kê bên ngoài.
+- Tương quan Pearson: hệ số r, R², số quan sát và phân loại độ lớn tương quan mang tính mô tả.
+- Hồi quy tuyến tính đơn: hệ số chặn, hệ số góc, R², R² hiệu chỉnh, sai số chuẩn hệ số góc, giá trị dự báo và phần dư trong mô-đun.
+- ANOVA một nhân tố: trung bình và độ lệch chuẩn từng nghiệm thức, SS, df, MS, F và p-value từ phân phối F.
+- Giao diện nhận vùng dữ liệu trực tiếp từ bảng tính; vùng X/Y phải cùng số quan sát; ANOVA nhận cột mã nghiệm thức và cột kết quả.
+- Kiểm tra cỡ mẫu, dữ liệu thiếu/không phải số, biến X không biến thiên và nhóm không đủ lặp.
+- Kết quả không tự ghi vào ô, không sửa dữ liệu gốc.
+- Giới hạn có chủ ý: chưa có hồi quy đa biến, LSD/Tukey hậu nghiệm, kiểm tra giả định bằng đồ thị, chuỗi thời gian hay biểu đồ tự sinh. ANOVA chỉ cho biết khác biệt tổng thể, không xác định cặp nghiệm thức khác nhau.
+- Cảnh báo: kết luận thống kê còn tùy thiết kế thí nghiệm, tính độc lập, phân phối phần dư và đồng nhất phương sai; không suy ra quan hệ nhân quả chỉ từ tương quan/hồi quy.
+- Bổ sung kiểm thử cho tương quan, hồi quy, ANOVA và trường hợp dữ liệu không hợp lệ.
