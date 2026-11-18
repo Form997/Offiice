@@ -1,14 +1,14 @@
 {
   "schemaVersion": 1,
   "curriculumId": "haidat-office-core",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "title": {
     "vi": "Giáo trình HAI ĐẤT OFFICE",
     "en": "HAI DAT OFFICE Learning Guide"
   },
   "description": {
-    "vi": "Một giáo trình chung cho Writer, Calc và Slides.",
-    "en": "One shared curriculum for Writer, Calc and Slides."
+    "vi": "Giáo trình dùng chung cho Writer, Calc và Slides; nội dung có mã bài ổn định và gói ngôn ngữ được kiểm duyệt.",
+    "en": "A shared curriculum for Writer, Calc and Slides, with stable lesson IDs and reviewed language packs."
   },
   "applications": [
     {
@@ -463,6 +463,578 @@
           "All three files share the same topic and figures.",
           "Numbers in Slides match Calc.",
           "The report explains the results."
+        ]
+      }
+    },
+    {
+      "id": "WRITER-002",
+      "chapter": "DOCUMENTS",
+      "apps": [
+        "writer"
+      ],
+      "level": "intermediate",
+      "minutes": 16,
+      "title": {
+        "vi": "Thiết lập trang và hệ thống kiểu văn bản",
+        "en": "Set up pages and document styles"
+      },
+      "objective": {
+        "vi": "Tổ chức trang, lề, đầu chân trang và kiểu đoạn để tài liệu nhất quán.",
+        "en": "Set page layout, margins, headers, footers and paragraph styles for consistency."
+      },
+      "sections": [
+        {
+          "heading": {
+            "vi": "Thiết lập trang",
+            "en": "Page setup"
+          },
+          "steps": {
+            "vi": [
+              "Chọn khổ giấy phù hợp với mục đích tài liệu; xác định hướng dọc hoặc ngang.",
+              "Thiết lập lề trước khi căn chỉnh nội dung để tránh sửa đi sửa lại.",
+              "Dùng ngắt trang có chủ đích thay vì nhấn Enter nhiều lần để đẩy nội dung."
+            ],
+            "en": [
+              "Choose a page size that fits the document and set portrait or landscape orientation.",
+              "Set margins before arranging content to avoid repeated rework.",
+              "Use deliberate page breaks instead of pressing Enter repeatedly to push content."
+            ]
+          }
+        },
+        {
+          "heading": {
+            "vi": "Dùng kiểu văn bản",
+            "en": "Use styles"
+          },
+          "paragraphs": {
+            "vi": [
+              "Áp dụng kiểu Tiêu đề 1, Tiêu đề 2 và Văn bản thường theo đúng cấp bậc.",
+              "Sửa kiểu một lần để cập nhật đồng bộ toàn bộ phần văn bản cùng loại.",
+              "Đầu trang, chân trang và số trang cần nhất quán, không che nội dung chính."
+            ],
+            "en": [
+              "Apply Heading 1, Heading 2 and Normal Text according to their hierarchy.",
+              "Edit a style once to update every paragraph that uses it.",
+              "Keep headers, footers and page numbers consistent and clear of the main content."
+            ]
+          }
+        }
+      ],
+      "exercise": {
+        "vi": "Tạo báo cáo ba trang có trang tiêu đề, hai cấp đề mục, số trang và lề thống nhất.",
+        "en": "Create a three-page report with a title page, two heading levels, page numbers and consistent margins."
+      },
+      "check": {
+        "vi": [
+          "Khổ giấy và lề phù hợp.",
+          "Kiểu tiêu đề được dùng nhất quán.",
+          "Số trang và ngắt trang đúng vị trí."
+        ],
+        "en": [
+          "Page size and margins are appropriate.",
+          "Heading styles are consistent.",
+          "Page numbers and page breaks are correctly placed."
+        ]
+      }
+    },
+    {
+      "id": "WRITER-003",
+      "chapter": "DOCUMENTS",
+      "apps": [
+        "writer"
+      ],
+      "level": "intermediate",
+      "minutes": 18,
+      "title": {
+        "vi": "Bảng, hình ảnh và xuất bản tài liệu",
+        "en": "Tables, images and document export"
+      },
+      "objective": {
+        "vi": "Chèn bảng/hình đúng cách và kiểm tra tài liệu sau khi xuất.",
+        "en": "Insert tables and images appropriately and verify the exported document."
+      },
+      "sections": [
+        {
+          "heading": {
+            "vi": "Bảng và hình ảnh",
+            "en": "Tables and images"
+          },
+          "steps": {
+            "vi": [
+              "Dùng bảng khi cần so sánh dữ liệu theo hàng và cột; đặt tiêu đề cột rõ nghĩa.",
+              "Chọn ảnh có liên quan, giữ tỷ lệ khung hình và đặt chú thích khi cần.",
+              "Tránh dùng khoảng trắng hoặc ảnh chụp màn hình thay cho dữ liệu văn bản có thể chỉnh sửa."
+            ],
+            "en": [
+              "Use tables for row-and-column comparisons and give columns meaningful headings.",
+              "Choose relevant images, preserve aspect ratio and add captions when useful.",
+              "Avoid using blank spaces or screenshots in place of editable text data."
+            ]
+          }
+        },
+        {
+          "heading": {
+            "vi": "Kiểm tra trước khi chia sẻ",
+            "en": "Review before sharing"
+          },
+          "steps": {
+            "vi": [
+              "Xem trước toàn bộ trang để phát hiện dòng mồ côi, bảng tràn và ảnh lệch.",
+              "Xuất sang định dạng cần dùng, sau đó mở lại chính tệp đã xuất.",
+              "Giữ bản nguồn có thể chỉnh sửa và ghi rõ phiên bản gửi đi."
+            ],
+            "en": [
+              "Preview every page for orphaned lines, overflowing tables and misplaced images.",
+              "Export to the required format, then reopen the exported file itself.",
+              "Keep an editable source copy and identify the version being shared."
+            ]
+          }
+        }
+      ],
+      "exercise": {
+        "vi": "Tạo tài liệu có một bảng, một hình minh họa có chú thích và xuất một bản PDF để tự kiểm tra.",
+        "en": "Create a document with one table, one captioned illustration and export a PDF for verification."
+      },
+      "check": {
+        "vi": [
+          "Bảng không tràn khỏi vùng trang.",
+          "Ảnh giữ đúng tỷ lệ và có chú thích phù hợp.",
+          "Tệp xuất mở lại được và không mất nội dung."
+        ],
+        "en": [
+          "The table fits within the page.",
+          "The image keeps its aspect ratio and has a useful caption.",
+          "The exported file reopens without missing content."
+        ]
+      }
+    },
+    {
+      "id": "CALC-002",
+      "chapter": "DATA",
+      "apps": [
+        "calc"
+      ],
+      "level": "intermediate",
+      "minutes": 18,
+      "title": {
+        "vi": "Tham chiếu ô và công thức có thể sao chép",
+        "en": "Cell references and fillable formulas"
+      },
+      "objective": {
+        "vi": "Phân biệt tham chiếu tương đối, tuyệt đối và hỗn hợp khi sao chép công thức.",
+        "en": "Distinguish relative, absolute and mixed references when copying formulas."
+      },
+      "sections": [
+        {
+          "heading": {
+            "vi": "Tham chiếu tương đối và tuyệt đối",
+            "en": "Relative and absolute references"
+          },
+          "paragraphs": {
+            "vi": [
+              "Tham chiếu tương đối thay đổi theo vị trí khi sao chép công thức.",
+              "Tham chiếu tuyệt đối khóa hàng và cột bằng ký hiệu $; ví dụ $B$2.",
+              "Tham chiếu hỗn hợp khóa riêng hàng hoặc cột khi bài toán yêu cầu."
+            ],
+            "en": [
+              "Relative references adjust their positions when a formula is copied.",
+              "Absolute references lock both row and column with $; for example, $B$2.",
+              "Mixed references lock only a row or a column when the calculation requires it."
+            ]
+          }
+        },
+        {
+          "heading": {
+            "vi": "Kiểm tra công thức",
+            "en": "Validate formulas"
+          },
+          "steps": {
+            "vi": [
+              "Tính thử một dòng bằng tay để đối chiếu kết quả.",
+              "Sao chép công thức xuống vài dòng và quan sát địa chỉ tham chiếu.",
+              "Dùng dấu ngoặc để thể hiện đúng thứ tự phép tính."
+            ],
+            "en": [
+              "Calculate one row manually to cross-check the result.",
+              "Fill the formula down several rows and inspect the cell references.",
+              "Use parentheses to make the intended order of operations explicit."
+            ]
+          }
+        }
+      ],
+      "exercise": {
+        "vi": "Lập bảng tính chi phí có đơn giá lấy từ một ô cố định và sao chép công thức cho ít nhất năm dòng.",
+        "en": "Build a cost sheet whose unit price comes from a fixed cell and copy the formula across at least five rows."
+      },
+      "check": {
+        "vi": [
+          "Tham chiếu tuyệt đối được khóa đúng.",
+          "Công thức sao chép không lệch vùng dữ liệu.",
+          "Kết quả được đối chiếu bằng phép tính mẫu."
+        ],
+        "en": [
+          "The absolute reference is locked correctly.",
+          "Copied formulas point to the intended cells.",
+          "A sample result has been independently checked."
+        ]
+      }
+    },
+    {
+      "id": "CALC-003",
+      "chapter": "DATA",
+      "apps": [
+        "calc"
+      ],
+      "level": "intermediate",
+      "minutes": 20,
+      "title": {
+        "vi": "Sắp xếp, lọc và biểu đồ dữ liệu",
+        "en": "Sort, filter and chart data"
+      },
+      "objective": {
+        "vi": "Làm sạch vùng dữ liệu, lọc bản ghi và chọn biểu đồ phù hợp với thông điệp.",
+        "en": "Prepare data, filter records and choose a chart that fits the message."
+      },
+      "sections": [
+        {
+          "heading": {
+            "vi": "Sắp xếp và lọc",
+            "en": "Sort and filter"
+          },
+          "steps": {
+            "vi": [
+              "Chọn toàn bộ vùng dữ liệu để tránh chỉ sắp xếp một cột làm sai quan hệ giữa các dòng.",
+              "Bật bộ lọc trên hàng tiêu đề và lọc theo điều kiện cụ thể.",
+              "Kiểm tra dòng trống, kiểu ngày tháng và số lưu dưới dạng văn bản trước khi phân tích."
+            ],
+            "en": [
+              "Select the entire data range so sorting one column does not break row relationships.",
+              "Enable filters on the header row and filter by a clear condition.",
+              "Check blank rows, date formats and numbers stored as text before analysis."
+            ]
+          }
+        },
+        {
+          "heading": {
+            "vi": "Chọn biểu đồ",
+            "en": "Choose a chart"
+          },
+          "paragraphs": {
+            "vi": [
+              "Biểu đồ cột phù hợp để so sánh nhóm; đường phù hợp để theo dõi xu hướng theo thời gian.",
+              "Đặt tiêu đề nêu thông điệp, ghi đơn vị và không cắt trục gây hiểu lầm.",
+              "Biểu đồ phải dựa trên vùng dữ liệu đã kiểm tra."
+            ],
+            "en": [
+              "Column charts compare categories; line charts show trends over time.",
+              "Use a message-led title, label units and avoid misleading axis truncation.",
+              "Build charts from a verified data range."
+            ]
+          }
+        }
+      ],
+      "exercise": {
+        "vi": "Dùng bộ dữ liệu tối thiểu mười dòng, lọc một điều kiện và tạo biểu đồ có tiêu đề, đơn vị.",
+        "en": "Use a dataset with at least ten rows, apply one filter and create a chart with a title and units."
+      },
+      "check": {
+        "vi": [
+          "Sắp xếp không làm lệch dữ liệu giữa các cột.",
+          "Điều kiện lọc cho kết quả đúng.",
+          "Loại biểu đồ và đơn vị phù hợp."
+        ],
+        "en": [
+          "Sorting preserves row relationships.",
+          "The filter returns the intended records.",
+          "The chart type and units are appropriate."
+        ]
+      }
+    },
+    {
+      "id": "SLIDES-002",
+      "chapter": "PRESENTATION",
+      "apps": [
+        "slides"
+      ],
+      "level": "intermediate",
+      "minutes": 16,
+      "title": {
+        "vi": "Phân cấp thị giác và bố cục slide",
+        "en": "Visual hierarchy and slide layout"
+      },
+      "objective": {
+        "vi": "Tạo bố cục dễ quét mắt, phân cấp tiêu đề và kiểm soát mật độ chữ.",
+        "en": "Create scannable layouts, clear heading hierarchy and readable text density."
+      },
+      "sections": [
+        {
+          "heading": {
+            "vi": "Phân cấp thị giác",
+            "en": "Visual hierarchy"
+          },
+          "steps": {
+            "vi": [
+              "Mỗi slide có một thông điệp chính thể hiện ngay ở tiêu đề.",
+              "Dùng kích thước, độ đậm và khoảng trắng để phân biệt tiêu đề, nội dung và chú thích.",
+              "Giữ bảng màu và kiểu chữ nhất quán trong toàn bộ bài."
+            ],
+            "en": [
+              "Give each slide one main message stated in its title.",
+              "Use size, weight and whitespace to distinguish titles, body text and captions.",
+              "Keep colors and typography consistent throughout the deck."
+            ]
+          }
+        },
+        {
+          "heading": {
+            "vi": "Bố cục và khả năng đọc",
+            "en": "Layout and readability"
+          },
+          "paragraphs": {
+            "vi": [
+              "Canh lề theo lưới tưởng tượng để các thành phần thẳng hàng.",
+              "Không nhồi quá nhiều ý; tách nội dung phức tạp thành nhiều slide.",
+              "Kiểm tra tương phản và khả năng đọc trên màn hình điện thoại."
+            ],
+            "en": [
+              "Align elements to an underlying grid for a clean composition.",
+              "Avoid overcrowding; split complex content across slides.",
+              "Check contrast and readability on a phone-sized screen."
+            ]
+          }
+        }
+      ],
+      "exercise": {
+        "vi": "Thiết kế bốn slide cùng một chủ đề, có trang mở đầu, hai trang nội dung và trang kết luận.",
+        "en": "Design four slides on one topic: an opening, two content slides and a conclusion."
+      },
+      "check": {
+        "vi": [
+          "Tiêu đề nêu thông điệp chính.",
+          "Bố cục và kiểu chữ thống nhất.",
+          "Nội dung đọc được trên màn hình nhỏ."
+        ],
+        "en": [
+          "Titles state the main message.",
+          "Layouts and typography are consistent.",
+          "Content remains readable on a small screen."
+        ]
+      }
+    },
+    {
+      "id": "SLIDES-003",
+      "chapter": "PRESENTATION",
+      "apps": [
+        "slides"
+      ],
+      "level": "intermediate",
+      "minutes": 18,
+      "title": {
+        "vi": "Trình bày số liệu và thuyết trình có căn cứ",
+        "en": "Present data and deliver evidence-based talks"
+      },
+      "objective": {
+        "vi": "Chuyển số liệu thành thông điệp trực quan và trình bày có nguồn gốc rõ ràng.",
+        "en": "Turn figures into visual messages and present them with clear provenance."
+      },
+      "sections": [
+        {
+          "heading": {
+            "vi": "Đưa dữ liệu lên slide",
+            "en": "Bring data into slides"
+          },
+          "steps": {
+            "vi": [
+              "Chỉ chọn số liệu phục vụ luận điểm; không sao chép toàn bộ bảng tính.",
+              "Ghi đơn vị, mốc thời gian và nguồn dữ liệu ngay cạnh biểu đồ hoặc ở phần chú thích.",
+              "Đối chiếu số liệu trên slide với bảng Calc trước khi trình bày."
+            ],
+            "en": [
+              "Select only figures that support the argument; do not paste the whole spreadsheet.",
+              "Show units, time period and data source beside the chart or in a note.",
+              "Cross-check slide figures against the Calc sheet before presenting."
+            ]
+          }
+        },
+        {
+          "heading": {
+            "vi": "Kịch bản thuyết trình",
+            "en": "Presentation script"
+          },
+          "paragraphs": {
+            "vi": [
+              "Mở đầu bằng vấn đề và mục tiêu; thân bài đi theo trình tự lập luận.",
+              "Giải thích ý nghĩa của biểu đồ thay vì đọc lại từng con số.",
+              "Kết thúc bằng kết luận, giới hạn dữ liệu và đề xuất bước tiếp theo."
+            ],
+            "en": [
+              "Open with the problem and objective; structure the body as a clear argument.",
+              "Explain what the chart means instead of reading every number aloud.",
+              "Close with a conclusion, data limitations and a next-step recommendation."
+            ]
+          }
+        }
+      ],
+      "exercise": {
+        "vi": "Tạo bài trình chiếu năm slide có ít nhất một biểu đồ, ghi nguồn và phần kết luận.",
+        "en": "Create a five-slide presentation with at least one chart, a cited source and a conclusion."
+      },
+      "check": {
+        "vi": [
+          "Số liệu khớp bảng nguồn.",
+          "Biểu đồ có đơn vị và nguồn.",
+          "Kết luận không vượt quá điều dữ liệu chứng minh."
+        ],
+        "en": [
+          "Figures match the source spreadsheet.",
+          "The chart includes units and a source.",
+          "The conclusion does not overstate what the data proves."
+        ]
+      }
+    },
+    {
+      "id": "CORE-003",
+      "chapter": "FOUNDATION",
+      "apps": [
+        "writer",
+        "calc",
+        "slides"
+      ],
+      "level": "intermediate",
+      "minutes": 12,
+      "title": {
+        "vi": "Khả năng tiếp cận và tính dễ đọc",
+        "en": "Accessibility and readability"
+      },
+      "objective": {
+        "vi": "Tạo tài liệu có cấu trúc, tương phản và nhãn rõ ràng để nhiều người dễ sử dụng.",
+        "en": "Create structured, high-contrast and clearly labelled materials for broader usability."
+      },
+      "sections": [
+        {
+          "heading": {
+            "vi": "Cấu trúc có ý nghĩa",
+            "en": "Meaningful structure"
+          },
+          "steps": {
+            "vi": [
+              "Dùng tiêu đề theo cấp bậc thay vì chỉ thay đổi cỡ chữ.",
+              "Đặt tên cột, nhãn biểu đồ và mô tả hình ảnh có ý nghĩa.",
+              "Không dùng màu sắc làm dấu hiệu duy nhất để phân biệt trạng thái."
+            ],
+            "en": [
+              "Use hierarchical headings rather than changing font size alone.",
+              "Give columns, chart labels and image descriptions meaningful names.",
+              "Do not rely on color as the only way to communicate status."
+            ]
+          }
+        },
+        {
+          "heading": {
+            "vi": "Kiểm tra khả năng đọc",
+            "en": "Readability checks"
+          },
+          "paragraphs": {
+            "vi": [
+              "Dùng cỡ chữ đủ lớn, tương phản rõ và câu ngắn gọn.",
+              "Giữ thứ tự đọc hợp lý; kiểm tra tài liệu ở màn hình nhỏ.",
+              "Nếu chia sẻ tệp, ưu tiên định dạng giữ được cấu trúc và cho phép chọn văn bản."
+            ],
+            "en": [
+              "Use sufficiently large text, clear contrast and concise sentences.",
+              "Keep a logical reading order and inspect the material on a small screen.",
+              "When sharing files, prefer formats that preserve structure and selectable text."
+            ]
+          }
+        }
+      ],
+      "exercise": {
+        "vi": "Rà soát một tài liệu, một bảng tính và một slide theo checklist khả năng tiếp cận.",
+        "en": "Review one document, one spreadsheet and one slide using an accessibility checklist."
+      },
+      "check": {
+        "vi": [
+          "Có cấu trúc tiêu đề/nhãn rõ.",
+          "Không phụ thuộc riêng vào màu sắc.",
+          "Đọc được trên màn hình nhỏ."
+        ],
+        "en": [
+          "Headings and labels have clear structure.",
+          "Meaning is not conveyed by color alone.",
+          "Content is readable on a small screen."
+        ]
+      }
+    },
+    {
+      "id": "INTEGRATION-002",
+      "chapter": "WORKFLOW",
+      "apps": [
+        "writer",
+        "calc",
+        "slides"
+      ],
+      "level": "intermediate",
+      "minutes": 25,
+      "title": {
+        "vi": "Quy trình báo cáo dữ liệu từ đầu đến cuối",
+        "en": "End-to-end data reporting workflow"
+      },
+      "objective": {
+        "vi": "Tạo bộ hồ sơ thống nhất từ dữ liệu gốc, phân tích đến báo cáo và thuyết trình.",
+        "en": "Create a consistent deliverable set from raw data through analysis, reporting and presentation."
+      },
+      "sections": [
+        {
+          "heading": {
+            "vi": "Chuẩn hóa dữ liệu nguồn",
+            "en": "Prepare source data"
+          },
+          "steps": {
+            "vi": [
+              "Ghi nguồn, thời điểm thu thập, đơn vị đo và người chịu trách nhiệm.",
+              "Calc: kiểm tra dữ liệu thiếu, trùng lặp, đơn vị và công thức.",
+              "Lưu một bản dữ liệu gốc chỉ đọc trước khi làm sạch."
+            ],
+            "en": [
+              "Record the source, collection date, units and responsible person.",
+              "Calc: check missing values, duplicates, units and formulas.",
+              "Keep a read-only copy of the raw data before cleaning."
+            ]
+          }
+        },
+        {
+          "heading": {
+            "vi": "Tạo sản phẩm đầu ra",
+            "en": "Create deliverables"
+          },
+          "steps": {
+            "vi": [
+              "Writer: mô tả phương pháp, kết quả, giới hạn và khuyến nghị.",
+              "Slides: chọn một số phát hiện quan trọng, ghi nguồn và đơn vị.",
+              "Đối chiếu tên dự án, kỳ báo cáo và số liệu trên cả ba tệp."
+            ],
+            "en": [
+              "Writer: describe the method, findings, limitations and recommendations.",
+              "Slides: select key findings and include sources and units.",
+              "Reconcile project name, reporting period and figures across all three files."
+            ]
+          }
+        }
+      ],
+      "exercise": {
+        "vi": "Hoàn thành ba tệp cùng kỳ báo cáo, kèm bảng dữ liệu gốc và ghi chú nguồn.",
+        "en": "Complete three files for one reporting period, including the source data table and source notes."
+      },
+      "check": {
+        "vi": [
+          "Có bản dữ liệu gốc được bảo toàn.",
+          "Số liệu giữa Calc, Writer và Slides khớp nhau.",
+          "Nguồn, đơn vị và giới hạn được ghi rõ."
+        ],
+        "en": [
+          "The original data is preserved.",
+          "Figures agree across Calc, Writer and Slides.",
+          "Sources, units and limitations are documented."
         ]
       }
     }
