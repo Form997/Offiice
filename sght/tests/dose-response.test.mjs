@@ -23,7 +23,7 @@ test("quadratic plateau fits continuous plateau response",()=>{
 });
 test("model comparison returns ranked candidates",()=>{
  const r=compareDoseResponse([0,1,2,3,4,5,6],[10,17,22,25,26,26,26]);
- assert.equal(r.models.length,3);
+ assert.equal(r.models.length,4);
  assert.ok(r.models[0].aicc<=r.models[1].aicc);
 });
 test("dose response rejects malformed ranges and unsupported model",()=>{
