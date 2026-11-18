@@ -1,13 +1,14 @@
 import { evaluateFormula, FormulaError } from "./engine/core.js";
 import { planMacro, executeMacro } from "./automation/macro-engine.js";
 import { MacroRecorder } from "./automation/macro-recorder.js";
+import { MacroLibrary } from "./automation/macro-library.js";
 
 const COLS = 16, ROWS = 40, STORAGE_KEY = "haidat-sght-workbook-v1";
 const letters = n => { let s=""; while(n>0){const r=(n-1)%26;s=String.fromCharCode(65+r)+s;n=Math.floor((n-1)/26);} return s; };
 const address = (r,c) => letters(c)+r;
 const parseAddress = a => { const m=/^([A-Z]+)([1-9][0-9]*)$/i.exec(a); if(!m)return null; let c=0; for(const ch of m[1].toUpperCase())c=c*26+ch.charCodeAt(0)-64; return {r:Number(m[2]),c}; };
 let cells = Object.create(null), selected = "A1", sheetTitle = "Bảng tính chưa đặt tên", zoom=100, undoStack=[], redoStack=[];
-const macroRecorder=new MacroRecorder();
+const macroRecorder=new MacroRecorder();\nconst macroLibrary=new MacroLibrary();\nlet editingMacroId=null;
 let macroExecution=false;
 const grid=document.querySelector("#sheetGrid"),formulaInput=document.querySelector("#formulaInput"),cellAddress=document.querySelector("#cellAddress"),selectionInfo=document.querySelector("#selectionInfo"),saveStatus=document.querySelector("#saveStatus"),calcStatus=document.querySelector("#calcStatus");
 function load(){try{const saved=JSON.parse(localStorage.getItem(STORAGE_KEY)||"null");if(saved&&saved.cells&&typeof saved.cells==="object"){cells=saved.cells;sheetTitle=String(saved.title||sheetTitle);}}catch{}document.querySelector("#sheetName").value=sheetTitle;}
@@ -53,6 +54,63 @@ const recordButton=document.querySelector("#recordMacro"),stopRecordButton=docum
 recordButton.addEventListener("click",()=>{macroRecorder.start();recordButton.disabled=true;stopRecordButton.disabled=false;recordStatus.textContent="Đang ghi thao tác…";macroResult.textContent="Bắt đầu ghi. Chọn ô, nhập dữ liệu hoặc dán vùng; thao tác sẽ được ghi thành lệnh.";});
 stopRecordButton.addEventListener("click",()=>{macroRecorder.stop();recordButton.disabled=false;stopRecordButton.disabled=true;macroSource.value=macroRecorder.source();macroPreview.textContent=macroRecorder.count?macroRecorder.source():"Chưa ghi nhận thao tác nào.";recordStatus.textContent="Đã dừng · "+macroRecorder.count+" thao tác";macroResult.textContent="Đã chuyển thao tác thành mã macro. Hãy kiểm tra trước khi chạy.";});
 document.querySelector("#closeMacro").addEventListener("click",()=>{macroPanel.hidden=true;});
+const macroName=document.querySelector("#macroName"),macroDescription=document.querySelector("#macroDescription"),macroList=document.querySelector("#macroList"),macroLibraryStatus=document.querySelector("#macroLibraryStatus"),macroFile=document.querySelector("#macroFile");
+function renderMacroLibrary(){
+  const items=macroLibrary.list();macroList.replaceChildren();
+  if(!items.length){const empty=document.createElement("p");empty.className="macro-empty";empty.textContent="Thư viện chưa có macro. Hãy lưu macro đầu tiên.";macroList.append(empty);return;}
+  for(const item of items){
+    const card=document.createElement("article");card.className="macro-card";
+    const info=document.createElement("div");info.className="macro-card-info";
+    const title=document.createElement("b");title.textContent=item.name;
+    const desc=document.createElement("small");desc.textContent=(item.description||"Chưa có mô tả")+" · v"+item.version;
+    info.append(title,desc);
+    const actions=document.createElement("div");actions.className="macro-card-actions";
+    for(const [action,label] of [["load","Mở"],["duplicate","Nhân bản"],["export","Xuất"],["delete","Xóa"]]){
+      const btn=document.createElement("button");btn.type="button";btn.className="quiet";btn.dataset.action=action;btn.dataset.id=item.id;btn.textContent=label;actions.append(btn);
+    }
+    card.append(info,actions);macroList.append(card);
+  }
+}
+function saveMacroToLibrary(asNew=false){
+  try{
+    const item=macroLibrary.save({id:asNew?null:editingMacroId,name:macroName.value,description:macroDescription.value,source:macroSource.value});
+    editingMacroId=item.id;macroName.value=item.name;macroDescription.value=item.description;renderMacroLibrary();macroLibraryStatus.textContent="Đã lưu “"+item.name+"” · phiên bản "+item.version; 
+  }catch(e){macroLibraryStatus.textContent="Không lưu được: "+e.message;}
+}
+document.querySelector("#saveMacroLibrary").addEventListener("click",()=>saveMacroToLibrary(false));
+document.querySelector("#saveMacroAsNew").addEventListener("click",()=>saveMacroToLibrary(true));
+document.querySelector("#exportMacroLibrary").addEventListener("click",()=>{
+  try{downloadText("sght-macro-library.json",macroLibrary.exportAll(),"application/json");macroLibraryStatus.textContent="Đã xuất toàn bộ thư viện.";}catch(e){macroLibraryStatus.textContent=e.message;}
+});
+document.querySelector("#importMacroLibrary").addEventListener("click",()=>macroFile.click());
+macroFile.addEventListener("change",async()=>{
+  const file=macroFile.files?.[0];if(!file)return;
+  try{const count=macroLibrary.importText(await file.text());renderMacroLibrary();macroLibraryStatus.textContent="Đã nhập "+count+" macro.";}catch(e){macroLibraryStatus.textContent="Nhập thất bại: "+e.message;}finally{macroFile.value="";}
+});
+macroList.addEventListener("click",e=>{
+  const btn=e.target.closest("button[data-action]");if(!btn)return;
+  const {action,id}=btn.dataset;
+  try{
+    if(action==="load"){
+      const item=macroLibrary.get(id);if(!item)throw new Error("Macro không còn tồn tại.");
+      editingMacroId=item.id;macroName.value=item.name;macroDescription.value=item.description;macroSource.value=item.source;macroPreview.textContent="Đã nạp macro vào trình soạn thảo. Hãy kiểm tra trước khi chạy.";macroLibraryStatus.textContent="Đang chỉnh sửa: "+item.name;
+    }else if(action==="duplicate"){
+      const item=macroLibrary.duplicate(id);renderMacroLibrary();macroLibraryStatus.textContent="Đã nhân bản thành “"+item.name+"”.";
+    }else if(action==="export"){
+      const item=macroLibrary.get(id);downloadText((item?.name||"macro").replace(/[^a-z0-9_-]+/gi,"_")+".sghtmacro.json",macroLibrary.exportOne(id),"application/json");macroLibraryStatus.textContent="Đã xuất macro.";
+    }else if(action==="delete"){
+      const item=macroLibrary.get(id);if(!item)return;if(!confirm("Xóa macro “"+item.name+"” khỏi thư viện trên thiết bị này?"))return;
+      macroLibrary.delete(id);if(editingMacroId===id){editingMacroId=null;macroName.value="";macroDescription.value="";}renderMacroLibrary();macroLibraryStatus.textContent="Đã xóa macro.";
+    }
+  }catch(err){macroLibraryStatus.textContent=err.message;}
+});
+function downloadText(filename,content,type){
+  const blob=new Blob([content],{type}),url=URL.createObjectURL(blob),link=document.createElement("a");
+  link.href=url;link.download=filename;link.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
+}
+document.querySelector("#openMacro").addEventListener("click",renderMacroLibrary);
+renderMacroLibrary();
+
 document.querySelector("#previewMacro").addEventListener("click",()=>{
   try { const plan=planMacro(macroSource.value); macroPreview.textContent=plan.map((x,i)=>(i+1)+". "+(x.type==="SET"?"Ghi "+x.cell+" = "+String(x.value):x.type==="COPY"?"Chép "+x.source+" → "+x.target:x.type==="CLEAR"?"Xóa "+x.range:"Tính tổng "+x.range+" → "+x.target)).join("\\n"); macroResult.textContent="Đã kiểm tra "+plan.length+" lệnh. Chưa có dữ liệu nào bị thay đổi."; }
   catch(e){macroPreview.textContent="";macroResult.textContent=(e.code||"LỖI")+" · "+e.message+(e.line?" (dòng "+e.line+")":"");}
