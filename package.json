@@ -3,6 +3,6 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "test": "node --check sght/app.js && node --check sght/engine/core.js && node --test sght/tests/*.test.mjs"
+    "test": "node --check sght/app.js && node --check sght/engine/core.js && node --check sght/automation/macro-engine.js && node --test sght/tests/*.test.mjs"
   }
 }
