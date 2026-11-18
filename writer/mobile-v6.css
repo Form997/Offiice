@@ -316,3 +316,38 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible{
 @media(prefers-reduced-motion:reduce){
   *,*::before,*::after{scroll-behavior:auto!important;animation-duration:.01ms!important;transition-duration:.01ms!important}
 }
+
+
+/* V6.1 mobile phase 2 — one-hand quick actions */
+@media(max-width:700px){
+  body{padding-bottom:calc(82px + var(--v6-safe-bottom))}
+  .editor-quickbar{
+    position:fixed;
+    left:10px;
+    right:10px;
+    bottom:calc(8px + var(--v6-safe-bottom));
+    top:auto;
+    z-index:30;
+    width:auto;
+    max-width:680px;
+    margin:0 auto;
+    justify-content:flex-start;
+    border:1px solid #d4e1da;
+    border-radius:15px;
+    background:#fffffff5;
+    box-shadow:0 8px 30px #102b2440;
+    padding:7px;
+    backdrop-filter:blur(16px);
+  }
+  .page-wrap{padding-bottom:12px}
+  .editor-quickbar button{
+    min-width:42px;
+    min-height:42px;
+    font-weight:650;
+  }
+  .editor-quickbar button:focus-visible{outline-offset:-2px}
+}
+@media(max-width:380px){
+  .editor-quickbar{left:7px;right:7px;bottom:calc(6px + var(--v6-safe-bottom));gap:3px;padding:6px}
+  .editor-quickbar button{min-width:39px;min-height:40px;padding-inline:7px}
+}
