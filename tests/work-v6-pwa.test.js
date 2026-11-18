@@ -24,7 +24,7 @@ test('WORK V6 service worker precaches every declared local asset',()=>{
   assert.ok(match,'FILES array must exist');
   const files=[...match[1].matchAll(/'([^']+)'/g)].map(item=>item[1]);
   assert.ok(files.includes('./icons/work.svg'));
-  assert.ok(files.some(file=>/^\.\/app\.js\?v=6\.\d+$/.test(file)));
+  assert.ok(files.some(file=>/^\\.\\/app\\.js\\?v=7\\.0$/.test(file)));
   for(const file of files){
     const local=file.split('?')[0].replace(/^\.\//,'');
     if(!local||local==='.')continue;
@@ -96,7 +96,7 @@ test('WORK V7 imports DOCX font and paragraph formatting instead of flattening r
   assert.match(app,/eastAsia/);
   assert.match(app,/font-size:/);
   assert.match(app,/background-color:/);
-  assert.match(app,/function docxParagraphHTML\(node,ns\)/);
+  assert.match(app,/function docxParagraphHTML\\(node,ns,styleMap,defaultCss\\)/);
   assert.match(app,/margin-left/);
   assert.match(app,/text-align:/);
   assert.match(app,/async function importDocx\(file\)/);
