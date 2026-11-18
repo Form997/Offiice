@@ -71,3 +71,21 @@ test('WORK V6.3 mobile workspace keeps its responsive stylesheet and touch navig
   assert.match(css,/\.ribbon-panel\[hidden\]\{display:none!important\}/);
   assert.match(css,/@media\(prefers-reduced-motion:reduce\)/);
 });
+
+test('WORK V6.4 appearance controls persist theme and reading size without changing document formatting',()=>{
+  const html=read('writer/index.html');
+  const css=read('writer/mobile-v6.css');
+  const sw=read('writer/sw.js');
+  assert.match(html,/id="writerTheme"/);
+  assert.match(html,/id="writerReadingSize"/);
+  assert.match(html,/id="resetAppearance"/);
+  assert.match(html,/haidat-writer-appearance-v1/);
+  assert.match(html,/localStorage\.setItem\(KEY/);
+  assert.match(css,/data-writer-theme="green"/);
+  assert.match(css,/data-writer-theme="light"/);
+  assert.match(css,/data-writer-theme="dark"/);
+  assert.match(css,/--writer-reading-size:16px/);
+  assert.match(css,/font-size:var\(--writer-reading-size\)!important/);
+  assert.match(sw,/haidat-work-v6-4-r2/);
+  assert.match(sw,/mobile-v6\.css\?v=6\.4/);
+});
