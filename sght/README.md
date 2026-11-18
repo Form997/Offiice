@@ -91,3 +91,14 @@ Mở `sght/index.html` qua GitHub Pages sau khi workflow triển khai hoàn tấ
 - Breakpoint chỉ áp dụng cho các dòng có lệnh đã phân tích; dòng ghi chú/trống không tạo điểm dừng.
 - Vẫn yêu cầu phê duyệt trước khi thực thi; tiếp tục giữ cơ chế hoàn tác phiên và giới hạn nhật ký 30 bước trên giao diện.
 - Chưa có conditional breakpoint, biểu thức Watch, step-into/over hoặc debugger VBA.
+
+
+## Macro Version Control & History — 2026-11-19
+
+- Thêm kho lịch sử phiên bản macro độc lập với danh sách macro hiện hành.
+- Ghi lại snapshot khi người dùng tạo mới, lưu/cập nhật và khôi phục macro; giữ nội dung, tên, mô tả, số phiên bản, thời điểm và loại thao tác.
+- Mỗi macro lưu tối đa 30 phiên bản gần nhất; toàn kho tối đa 2 MB. Khi gần chạm giới hạn, hệ thống rút gọn lịch sử mỗi macro còn 10 bản trước khi từ chối ghi nếu vẫn quá dung lượng.
+- Xem nội dung của từng phiên bản, so sánh hai phiên bản theo từng dòng, phân biệt thêm/sửa/xóa.
+- Khôi phục không ghi đè lịch sử cũ: nội dung phiên bản được chọn được lưu thành một phiên bản mới.
+- Có thể xuất lịch sử của một macro dưới dạng JSON để sao lưu.
+- Dữ liệu chỉ lưu trên localStorage của thiết bị; chưa đồng bộ nhiều thiết bị, chưa có tài khoản/người dùng phân quyền và chưa có chữ ký số.
