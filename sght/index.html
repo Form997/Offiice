@@ -54,6 +54,21 @@
         <h4>Đa cộng tuyến trong hồi quy</h4>
         <label>Ma trận biến độc lập X <input id="dsVifRange" value="A2:C20" placeholder="A2:C20"></label>
         <button id="dsVif" class="quiet" type="button">Tính VIF và chỉ số điều kiện</button>
+        <h4>ANCOVA · phân tích hiệp phương sai</h4>
+        <label>Hiệp biến liên tục X <input id="dsCovariateRange" value="E2:E20" placeholder="E2:E20"></label>
+        <button id="dsAncova" class="quiet" type="button">Chạy ANCOVA và kiểm tra đồng nhất độ dốc</button>
+        <h4>Kiểm định phi tham số</h4>
+        <button id="dsKruskal" class="quiet" type="button">Kruskal–Wallis</button>
+        <button id="dsDunn" class="quiet" type="button">Dunn hậu nghiệm · Holm</button>
+        <h4>Kích thước hiệu ứng và khoảng tin cậy</h4>
+        <button id="dsEffectSizes" class="quiet" type="button">η², ω², Cohen f và khoảng tin cậy</button>
+        <h4>Công suất và thiết kế cỡ mẫu · ANOVA một nhân tố</h4>
+        <label>Cohen f <input id="dsPowerF" type="number" min="0.01" step="0.01" value="0.25"></label>
+        <label>Số nghiệm thức <input id="dsPowerGroups" type="number" min="2" step="1" value="4"></label>
+        <label>Số lần lặp mỗi nghiệm thức <input id="dsPowerN" type="number" min="2" step="1" value="6"></label>
+        <button id="dsPower" class="quiet" type="button">Tính công suất hiện tại</button>
+        <label>Công suất mục tiêu <input id="dsTargetPower" type="number" min="0.5" max="0.99" step="0.01" value="0.8"></label>
+        <button id="dsSampleSize" class="quiet" type="button">Ước tính số lần lặp cần thiết</button>
         <h4>So sánh nghiệm thức & giả định</h4>
         <button id="dsLsd" class="quiet" type="button">So sánh Fisher LSD 0,05</button>
         <button id="dsLevene" class="quiet" type="button">Kiểm tra Levene</button><button id="dsBrownForsythe" class="quiet" type="button">Kiểm tra Brown–Forsythe</button>
