@@ -55,7 +55,7 @@ test('Writer V7 loads backup preflight before the application and PWA precaches 
  const fs=require('node:fs'),path=require('node:path'),root=path.resolve(__dirname,'..');
  const html=fs.readFileSync(path.join(root,'writer/index.html'),'utf8');
  const sw=fs.readFileSync(path.join(root,'writer/sw.js'),'utf8');
- const appScript=html.match(/app\\.js\\?v=7\\.0/);
+ const appScript=html.match(/app\.js\?v=7\.0/);
  assert.ok(appScript,'V7 app script must have the current versioned URL');
  assert.ok(html.indexOf('backup-studio.js?v=5.0')<html.indexOf(appScript[0]));
  assert.match(sw,/haidat-work-v7-0-r1/);
