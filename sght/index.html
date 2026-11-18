@@ -77,6 +77,14 @@
         <label>Nhân tố B <input id="dsFactorB" value="B2:B25" placeholder="B2:B25"></label>
         <label>Kết quả Y <input id="dsFactorY" value="C2:C25" placeholder="C2:C25"></label>
         <button id="dsTwoWay" class="quiet" type="button">Chạy ANOVA hai nhân tố</button>
+        <h4>Giai đoạn 9.3 · Đáp ứng liều lượng phân bón</h4>
+        <p class="macro-help">Nhập một cột liều lượng D và một cột năng suất Y. Mỗi dòng là một quan sát; cần ít nhất 5 quan sát và 3 mức liều.</p>
+        <label>Liều lượng phân bón D <input id="dsDoseRange" value="A2:A13" placeholder="A2:A13"></label>
+        <label>Năng suất Y <input id="dsDoseYieldRange" value="B2:B13" placeholder="B2:B13"></label>
+        <button id="dsDoseQuadratic" class="quiet" type="button">Khớp mô hình bậc hai</button>
+        <button id="dsDoseLinearPlateau" class="quiet" type="button">Khớp tuyến tính–bão hòa</button>
+        <button id="dsDoseQuadraticPlateau" class="quiet" type="button">Khớp bậc hai–bão hòa</button>
+        <button id="dsDoseCompare" class="primary" type="button">So sánh cả 3 mô hình & chọn theo AICc</button>
         <h4>Thống kê mô tả & chuỗi thời gian</h4>
         <label>Vùng thống kê mô tả <input id="dsDescRange" value="D2:D20" placeholder="D2:D20"></label>
         <button id="dsDescriptive" class="quiet" type="button">Tính thống kê mô tả đầy đủ</button>
