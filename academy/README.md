@@ -23,3 +23,12 @@
 
 ## Add a lesson
 Use a unique ID, chapter, app list, level, estimated minutes, title, objective, sections, exercise and checklist. Preserve existing IDs when editing a lesson. Do not create separate Writer/Calc/Slides copies of a shared lesson.
+
+
+## Nội dung và chất lượng
+- Giáo trình hiện có 14 bài: nền tảng, chuyên sâu Writer/Calc/Slides, khả năng tiếp cận và quy trình liên thông.
+- Xem bản đồ chương trình tại [COURSE-MAP.md](COURSE-MAP.md).
+- Quy chuẩn bản dịch tại [locales/README.md](locales/README.md).
+- Tiếng Việt là nội dung gốc; tiếng Anh hiện là gói khởi đầu, cần hiệu đính chuyên môn trước khi chứng nhận hoàn chỉnh.
+- Kiểm thử dữ liệu: `node --test tests/academy.test.js`.
+- Kiểm thử Chromium trên màn hình điện thoại: workflow Academy Browser QA; đây là mô phỏng viewport, không thay thế kiểm thử trên điện thoại vật lý.
