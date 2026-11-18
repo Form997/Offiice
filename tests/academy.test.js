@@ -1,0 +1,13 @@
+const test=require('node:test');
+const assert=require('node:assert/strict');
+const fs=require('node:fs');
+const path=require('node:path');
+const root=path.join(__dirname,'..');
+const curriculum=JSON.parse(fs.readFileSync(path.join(root,'academy/data/curriculum.json'),'utf8'));
+const languages=JSON.parse(fs.readFileSync(path.join(root,'academy/data/languages.json'),'utf8'));
+test('curriculum has stable unique lesson IDs',()=>{const ids=curriculum.lessons.map(x=>x.id);assert.ok(ids.length>=6);assert.equal(new Set(ids).size,ids.length);ids.forEach(id=>assert.match(id,/^[A-Z]+-\d{3}$/))});
+test('lessons reference only the three registered apps',()=>{const allowed=new Set(curriculum.applications.map(x=>x.id));assert.deepEqual([...allowed].sort(),['calc','slides','writer']);for(const lesson of curriculum.lessons){assert.ok(lesson.apps.length);lesson.apps.forEach(app=>assert.ok(allowed.has(app),lesson.id+' has unknown app '+app))}});
+test('each lesson has learning objective, content, exercise and checklist',()=>{for(const lesson of curriculum.lessons){assert.ok(lesson.title.vi,lesson.id);assert.ok(lesson.objective.vi,lesson.id);assert.ok(lesson.sections.length,lesson.id);assert.ok(lesson.exercise.vi,lesson.id);assert.ok(lesson.check.vi.length,lesson.id)}});
+test('language registry has a valid default locale and unique BCP-47-like codes',()=>{const codes=languages.languages.map(x=>x.code);assert.ok(codes.includes(languages.defaultLocale));assert.equal(new Set(codes).size,codes.length);for(const lang of languages.languages){assert.match(lang.code,/^[a-z]{2,3}(-[A-Z]{2})?$/);assert.ok(['ltr','rtl'].includes(lang.direction))}});
+test('academy reader safely builds content using textContent and loads shared JSON',()=>{const js=fs.readFileSync(path.join(root,'academy/app.js'),'utf8');assert.match(js,/textContent/);assert.match(js,/data\/curriculum\.json/);assert.match(js,/data\/languages\.json/);assert.doesNotMatch(js,/innerHTML\s*=/)});
+test('all three app pages link to the one shared academy',()=>{for(const app of ['writer','calc','slides']){const html=fs.readFileSync(path.join(root,app,'index.html'),'utf8');assert.match(html,/\.\.\/academy\//,app)}});
