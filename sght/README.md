@@ -184,3 +184,36 @@ Mở rộng bộ phân tích thống kê nghiên cứu chạy ngoại tuyến, d
 - Games–Howell không giả định phương sai đồng nhất; vẫn yêu cầu thiết kế và quan sát độc lập phù hợp, và phân phối không quá lệch/ngoại lệ chi phối.
 - VIF 5 và 10 chỉ là ngưỡng cảnh báo kinh nghiệm. Chỉ số điều kiện là chẩn đoán bổ sung, không tự quyết định loại biến.
 - Không diễn giải p-value như xác suất giả thuyết không đúng; không suy ra nhân quả từ so sánh/hồi quy.
+
+
+## SGHT Data Science — Giai đoạn 9.2 — 2026-11-19
+
+### ANCOVA — phân tích hiệp phương sai
+- Nhận cột mã nhóm, biến phụ thuộc Y và một hiệp biến liên tục X; các vùng phải cùng số dòng.
+- Ước lượng mô hình OLS có hiệu ứng nhóm và hiệp biến với giả định độ dốc chung.
+- Kiểm định hiệu ứng nhóm bằng so sánh mô hình lồng nhau; báo F, p và partial eta-squared.
+- Kiểm tra đồng nhất độ dốc bằng mô hình bổ sung tương tác nhóm × hiệp biến.
+- Báo trung bình nhóm đã hiệu chỉnh tại trung bình chung của hiệp biến và khoảng tin cậy t 95% (hoặc alpha do người dùng chọn).
+- Nếu tương tác nhóm × hiệp biến đáng kể, không diễn giải hiệu ứng nhóm theo mô hình độ dốc chung.
+
+### Kiểm định phi tham số
+- Kruskal–Wallis: xử lý đồng hạng bằng hiệu chỉnh tie; báo H, bậc tự do, p xấp xỉ chi-bình phương, thứ hạng trung bình và epsilon-squared.
+- Dunn hậu nghiệm: so sánh cặp trên thứ hạng, p xấp xỉ chuẩn và hiệu chỉnh Holm.
+- Dunn được hiển thị cùng cảnh báo chỉ nên diễn giải sau kiểm định Kruskal–Wallis tổng thể có ý nghĩa.
+- Kruskal–Wallis kiểm tra phân phối/thứ hạng; chỉ diễn giải như khác biệt trung vị khi hình dạng phân phối giữa nhóm tương tự.
+
+### Kích thước hiệu ứng, khoảng tin cậy và công suất
+- ANOVA một nhân tố: eta-squared (η²), omega-squared (ω²), Cohen f.
+- Khoảng tin cậy t cho trung bình từng nhóm và khoảng tin cậy chênh lệch cặp dựa trên phương sai gộp ANOVA.
+- Công suất ANOVA một nhân tố cân bằng: dùng Cohen f, số nhóm, số quan sát mỗi nhóm và alpha; phân phối F không trung tâm tính bằng hỗn hợp Poisson của phân phối F trung tâm.
+- Ước tính số lần lặp tối thiểu mỗi nhóm để đạt công suất mục tiêu (mặc định 80%), giới hạn tìm kiếm 500 quan sát/nhóm.
+
+### Giới hạn phương pháp
+- ANCOVA hiện hỗ trợ một hiệp biến liên tục và hiệu ứng nhóm một nhân tố; chưa hỗ trợ nhiều hiệp biến, hiệp biến phân loại, thiết kế khối, dữ liệu thiếu hoặc mô hình hỗn hợp.
+- ANCOVA cần quan sát độc lập, quan hệ tuyến tính Y–hiệp biến, đồng nhất độ dốc, phương sai phần dư phù hợp và không có điểm ảnh hưởng quá mức. Kiểm định tương tác không có ý nghĩa không chứng minh độ dốc hoàn toàn bằng nhau.
+- Kruskal–Wallis/Dunn dùng xấp xỉ tiệm cận; mẫu nhỏ, nhiều đồng hạng hoặc phân phối rất lệch cần đối chiếu phần mềm thống kê chuyên dụng.
+- Dunn dùng xấp xỉ chuẩn; không cung cấp khoảng tin cậy phi tham số cho chênh lệch trung vị.
+- Khoảng tin cậy chênh lệch trong ANOVA dùng MSE gộp, không phải hiệu chỉnh đồng thời cho mọi cặp; không thay thế Tukey/Games–Howell.
+- Công suất chỉ cho ANOVA một nhân tố cân bằng; không dùng cho ANCOVA, thiết kế khối, hai nhân tố hoặc cỡ mẫu không cân bằng. Cohen f phải được xác định trước từ nghiên cứu thí điểm/tài liệu chuyên môn.
+- Không dùng công suất hậu nghiệm để “chứng minh” kết quả; ưu tiên lập kế hoạch cỡ mẫu trước thí nghiệm.
+- Mọi mô-đun chạy ngoại tuyến, chỉ đọc vùng dữ liệu, không tự sửa ô và không gửi dữ liệu ra ngoài thiết bị.
