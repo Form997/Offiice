@@ -86,6 +86,12 @@
         <button id="dsDoseQuadraticPlateau" class="quiet" type="button">Khớp bậc hai–bão hòa</button>
         <button id="dsDoseCompare" class="primary" type="button">So sánh cả 3 mô hình & chọn theo AICc</button>
         <button id="dsDoseMitscherlich" class="quiet" type="button">Khớp Mitscherlich phi tuyến</button>
+        <h4>Giai đoạn 10 · Mặt đáp ứng hai yếu tố</h4>
+        <p class="macro-help">Nhập hai cột yếu tố đầu vào X1, X2 và một cột kết quả Y theo cùng thứ tự dòng. Mô hình bậc hai gồm hiệu ứng tuyến tính, bình phương và tương tác X1×X2; nên có ít nhất 3 mức mỗi yếu tố, điểm tâm và lần lặp.</p>
+        <label>Yếu tố X1 <input id="dsSurfaceX1" value="A2:A19" placeholder="A2:A19"></label>
+        <label>Yếu tố X2 <input id="dsSurfaceX2" value="B2:B19" placeholder="B2:B19"></label>
+        <label>Kết quả Y <input id="dsSurfaceY" value="C2:C19" placeholder="C2:C19"></label>
+        <button id="dsResponseSurface" class="primary" type="button">Khớp mặt đáp ứng & tìm vùng tối đa</button>
         <h4>Chẩn đoán độ phù hợp và phần dư</h4>
         <label>Mô hình cần chẩn đoán <select id="dsDoseDiagnosticModel"><option value="quadratic">Bậc hai</option><option value="linear-plateau">Tuyến tính–bão hòa</option><option value="quadratic-plateau">Bậc hai–bão hòa</option><option value="mitscherlich">Mitscherlich</option></select></label>
         <button id="dsDoseDiagnostics" class="quiet" type="button">Phân rã sai số thuần & kiểm tra phần dư</button>
