@@ -2,13 +2,13 @@ name: Writer V3.0 checks
 
 on:
   push:
-    branches: [v3-development]
+    branches: [v3-development, main]
     paths:
       - 'writer/**'
       - 'scripts/**'
       - '.github/workflows/writer-check.yml'
   pull_request:
-    branches: [v3-development]
+    branches: [main, v3-development]
     paths:
       - 'writer/**'
       - 'scripts/**'
