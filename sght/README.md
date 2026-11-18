@@ -128,3 +128,38 @@ Mở `sght/index.html` qua GitHub Pages sau khi workflow triển khai hoàn tấ
 - Giới hạn có chủ ý: chưa có hồi quy đa biến, LSD/Tukey hậu nghiệm, kiểm tra giả định bằng đồ thị, chuỗi thời gian hay biểu đồ tự sinh. ANOVA chỉ cho biết khác biệt tổng thể, không xác định cặp nghiệm thức khác nhau.
 - Cảnh báo: kết luận thống kê còn tùy thiết kế thí nghiệm, tính độc lập, phân phối phần dư và đồng nhất phương sai; không suy ra quan hệ nhân quả chỉ từ tương quan/hồi quy.
 - Bổ sung kiểm thử cho tương quan, hồi quy, ANOVA và trường hợp dữ liệu không hợp lệ.
+
+
+## SGHT Data Science — Giai đoạn 9 — 2026-11-19
+
+Mở rộng bộ phân tích thống kê nghiên cứu chạy ngoại tuyến, dùng dữ liệu trực tiếp từ vùng ô của bảng tính.
+
+### Chức năng
+- Thống kê mô tả: n, trung bình, trung vị, min/max, khoảng biến thiên, Q1/Q3, IQR, phương sai mẫu, độ lệch chuẩn mẫu và CV%.
+- Hồi quy tuyến tính đơn: hệ số, R², R² hiệu chỉnh, dự báo nội mẫu, phần dư và chẩn đoán phần dư.
+- Hồi quy tuyến tính đa biến OLS: ma trận nhiều biến độc lập, hệ số, sai số chuẩn, thống kê t, p-value, khoảng tin cậy 95%, R², R² hiệu chỉnh, F và p-value tổng thể; phát hiện ma trận suy biến/đa cộng tuyến hoàn hảo.
+- Tương quan Pearson.
+- ANOVA một nhân tố: bảng thành phần phương sai và p-value.
+- Fisher LSD 0,05: so sánh từng cặp dựa trên MSE và bậc tự do sai số; cảnh báo khi ANOVA tổng thể chưa có ý nghĩa và cảnh báo về sai số đa so sánh.
+- ANOVA hai nhân tố có lặp: kiểm định nhân tố A, B và tương tác A×B. Phiên bản này yêu cầu thiết kế cân bằng, đủ mọi tổ hợp và số lần lặp bằng nhau (ít nhất 2).
+- Kiểm tra Levene sơ bộ về đồng nhất phương sai.
+- Chẩn đoán phần dư: Jarque–Bera xấp xỉ, độ lệch, độ nhọn và Durbin–Watson mô tả.
+- Dự báo xu thế tuyến tính cơ bản cho chuỗi số liệu theo thứ tự thời gian.
+
+### Cách dùng
+- Mở nút **Data Science** trên thanh công cụ.
+- Nhập vùng ô theo cú pháp ví dụ `A2:A20` hoặc ma trận `A2:C20`.
+- Hồi quy đa biến: vùng X là ma trận nhiều cột, vùng Y là một cột cùng số dòng.
+- LSD/Levene: một vùng mã nghiệm thức và một vùng kết quả tương ứng.
+- ANOVA hai nhân tố: ba vùng nhãn A, nhãn B và kết quả Y, mỗi tổ hợp cần cùng số lần lặp.
+- Dự báo: vùng một chiều theo thứ tự thời gian, không bỏ trống; chọn số kỳ dự báo.
+
+### Giới hạn và nguyên tắc diễn giải
+- Không có Tukey HSD, Dunnett, Scheffé, Games–Howell, hồi quy logistic, hồi quy phi tuyến, mô hình hỗn hợp, ANCOVA, PCA hay chuỗi thời gian mùa vụ trong giai đoạn này; không được xem LSD là thay thế tương đương cho các thủ tục đó.
+- ANOVA hai nhân tố chỉ hỗ trợ thiết kế cân bằng có lặp; chưa xử lý thiết kế mất ô, không cân bằng hoặc không lặp.
+- Levene hiện dùng độ lệch tuyệt đối quanh trung bình; với dữ liệu nhạy ngoại lệ nên xem thêm Brown–Forsythe quanh trung vị.
+- Jarque–Bera trả p-value xấp xỉ; Durbin–Watson là chỉ báo, không có ngưỡng kết luận phổ quát ở đây.
+- Hồi quy đa biến dùng phương trình OLS và ma trận phương trình chuẩn; cảnh báo ma trận suy biến nhưng chưa cung cấp VIF/condition index để đánh giá đa cộng tuyến gần hoàn hảo.
+- Dự báo xu thế không có mùa vụ, khoảng dự báo, hay biến giải thích ngoại sinh.
+- Các phép kiểm định yêu cầu quan sát độc lập và thiết kế thí nghiệm phù hợp. Kết quả p-value không thay thế đánh giá chuyên môn, kiểm tra giả định, ngẫu nhiên hóa và bố trí thí nghiệm. Không suy ra quan hệ nhân quả chỉ từ tương quan/hồi quy.
+- Mọi phân tích chỉ đọc dữ liệu bảng tính, không tự ghi kết quả vào ô; không gửi dữ liệu ra ngoài thiết bị.
