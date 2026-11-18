@@ -8,7 +8,13 @@ HAI ĐẤT OFFICE là bộ ứng dụng văn phòng gồm ba công cụ độc l
 2. **HAI ĐẤT CALC** — tính toán, xử lý bảng dữ liệu và công thức.
 3. **HAI ĐẤT SLIDES** — thiết kế bài trình chiếu và trình bày nội dung.
 
-## Giáo trình dùng chung\n\n- **HAI ĐẤT OFFICE ACADEMY:** https://form997.github.io/Offiice/academy/ — một kho bài học liên thông cho cả Writer, Calc và Slides.\n- Mỗi bài có mã ổn định; có thể đọc theo ứng dụng, trình độ và ngôn ngữ. Tiến độ học lưu trên thiết bị.\n- Gói ngôn ngữ ban đầu có tiếng Việt và tiếng Anh ở mức nội dung khởi đầu; kiến trúc cho phép bổ sung các ngôn ngữ khác bằng bản dịch đã biên tập. Không tự nhận nội dung dự phòng là bản dịch hoàn chỉnh.\n\n## Mở ba ứng dụng
+## Giáo trình dùng chung
+
+- **HAI ĐẤT OFFICE ACADEMY:** https://form997.github.io/Offiice/academy/ — một kho bài học liên thông cho cả Writer, Calc và Slides.
+- Mỗi bài có mã ổn định; có thể đọc theo ứng dụng, trình độ và ngôn ngữ. Tiến độ học lưu trên thiết bị.
+- Gói ngôn ngữ ban đầu có tiếng Việt và tiếng Anh ở mức nội dung khởi đầu; kiến trúc cho phép bổ sung các ngôn ngữ khác bằng bản dịch đã biên tập. Không tự nhận nội dung dự phòng là bản dịch hoàn chỉnh.
+
+## Mở ba ứng dụng
 
 | Ứng dụng | Chức năng | Mở ứng dụng |
 |---|---|---|
