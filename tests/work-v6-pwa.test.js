@@ -62,7 +62,7 @@ test('WORK V6.3 mobile workspace keeps its responsive stylesheet and touch navig
   const css=read('writer/mobile-v6.css');
   assert.match(html,/<meta name="viewport" content="width=device-width,initial-scale=1">/);
   assert.match(html,/mobile-v6\.css\?v=6\.4/);
-  assert.match(html,/app\.js\?v=6\.3/);
+  assert.match(html,/app\\.js\\?v=7\\.0/);
   assert.match(html,/<nav class="ribbon" aria-label="Thanh công cụ Writer">/);
   assert.match(css,/env\(safe-area-inset-top,0px\)/);
   assert.match(css,/env\(safe-area-inset-bottom,0px\)/);
@@ -86,6 +86,35 @@ test('WORK V6.4 appearance controls persist theme and reading size without chang
   assert.match(css,/data-writer-theme="dark"/);
   assert.match(css,/--writer-reading-size:16px/);
   assert.match(css,/font-size:var\(--writer-reading-size\)!important/);
-  assert.match(sw,/haidat-work-v6-4-r2/);
+  assert.match(sw,/haidat-work-v7-0-r1/);
   assert.match(sw,/mobile-v6\.css\?v=6\.4/);
+});
+
+test('WORK V7 imports DOCX font and paragraph formatting instead of flattening runs',()=>{
+  const app=read('writer/app.js');
+  assert.match(app,/function docxRunHTML\(run,ns\)/);
+  assert.match(app,/eastAsia/);
+  assert.match(app,/font-size:/);
+  assert.match(app,/background-color:/);
+  assert.match(app,/function docxParagraphHTML\(node,ns\)/);
+  assert.match(app,/margin-left/);
+  assert.match(app,/text-align:/);
+  assert.match(app,/async function importDocx\(file\)/);
+});
+test('WORK V7 imports common ODT text and paragraph styles',()=>{
+  const app=read('writer/app.js');
+  assert.match(app,/async function importODT\(file\)/);
+  assert.match(app,/text-properties/);
+  assert.match(app,/paragraph-properties/);
+  assert.match(app,/font-family/);
+  assert.match(app,/text-underline-style/);
+});
+test('WORK V7 clearly identifies unsupported and lossy file formats',()=>{
+  const app=read('writer/app.js');
+  const html=read('writer/index.html');
+  assert.match(app,/DOC cũ \(Word 97–2003\) chưa đọc trực tiếp được/);
+  assert.match(app,/PDF chưa chuyển thành văn bản chỉnh sửa được/);
+  assert.match(html,/RTF: chuyển đổi có giới hạn/);
+  assert.match(html,/DOC\/PDF: chưa nhập trực tiếp/);
+  assert.match(html,/app\.js\?v=7\.0/);
 });
