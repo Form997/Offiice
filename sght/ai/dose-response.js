@@ -98,7 +98,7 @@ function diagnostics(y,fit,p){
  const skew=sd?res.reduce((s,v)=>s+((v-rm)/sd)**3,0)/n:null;
  const kurtosis=sd?res.reduce((s,v)=>s+((v-rm)/sd)**4,0)/n-3:null;
  const dw=res.slice(1).reduce((s,v,i)=>s+(v-res[i])**2,0)/(res.reduce((s,v)=>s+v*v,0)||NaN);
- return {residualMean:rm,residualSD:sd,residualSkewness:skew,residualExcessKurtosis:kurt,durbinWatson:dw,dfResidual:n-p,warning:"Skewness, kurtosis và Durbin–Watson chỉ là chỉ báo mô tả; không thay thế kiểm định giả định, đồ thị phần dư hoặc thiết kế lấy mẫu."};
+ return {residualMean:rm,residualSD:sd,residualSkewness:skew,residualExcessKurtosis:kurtosis,durbinWatson:dw,dfResidual:n-p,warning:"Skewness, kurtosis và Durbin–Watson chỉ là chỉ báo mô tả; không thay thế kiểm định giả định, đồ thị phần dư hoặc thiết kế lấy mẫu."};
 }
 function fitMitscherlich(D,Y){
  if(D.some(v=>v<0))throw new RangeError("Mitscherlich phiên bản này yêu cầu liều lượng D không âm.");
