@@ -77,3 +77,70 @@ export function varianceInflationFactors(X,names=[]){
  const eigen=jacobiEigenvalues(corr),positive=eigen.filter(v=>v>1e-12),conditionIndex=positive.length?Math.sqrt(eigen[0]/positive[positive.length-1]):Infinity;
  return {n:X.length,p,variables:vif,correlationMatrix:corr,eigenvalues:eigen,conditionIndex,interpretation:vif.map(v=>({name:v.name,level:!Number.isFinite(v.vif)?"đa cộng tuyến hoàn hảo":v.vif>=10?"cao (VIF ≥ 10)":v.vif>=5?"cần xem xét (VIF ≥ 5)":"thấp (VIF < 5)"})),warning:"Ngưỡng VIF 5/10 chỉ là quy ước tham khảo, không phải ranh giới phổ quát. VIF đo đa cộng tuyến tuyến tính; cần xem cỡ mẫu, mục tiêu mô hình và cấu trúc khoa học."};
 }
+
+
+// Shared OLS core for ANCOVA models. X must already include the intercept.
+function fitOLSDesign(X,y){
+ const Y=nums(y,"Y"),n=X.length,p=X[0]?.length;
+ if(n!==Y.length||!p||n<=p)throw new RangeError("Mô hình cần đủ quan sát, số cột và bậc tự do sai số dương.");
+ if(X.some(r=>!Array.isArray(r)||r.length!==p||r.some(v=>!Number.isFinite(v))))throw new TypeError("Ma trận thiết kế không hợp lệ.");
+ const xtx=Array.from({length:p},(_,i)=>Array.from({length:p},(_,j)=>X.reduce((s,r)=>s+r[i]*r[j],0))),xty=Array.from({length:p},(_,i)=>X.reduce((s,r,k)=>s+r[i]*Y[k],0)),cov=inverse(xtx),beta=solve(xtx,xty),pred=X.map(r=>r.reduce((s,v,j)=>s+v*beta[j],0)),res=Y.map((v,i)=>v-pred[i]),sse=res.reduce((s,v)=>s+v*v,0),df=n-p,mse=sse/df;
+ return {beta,cov,pred,res,sse,df,mse,n,p};
+}
+function partialF(reduced,full,df1){if(!(df1>0)||full.df<=0)throw new RangeError("Bậc tự do mô hình không hợp lệ.");const delta=Math.max(0,reduced.sse-full.sse),F=(delta/df1)/full.mse;return {SS:delta,df1,df2:full.df,F,p:fP(F,df1,full.df),partialEtaSquared:delta/(delta+full.sse)};}
+export function ancova(groups,alpha=.05){
+ validateAlpha(alpha);if(!Array.isArray(groups)||groups.length<2)throw new RangeError("ANCOVA cần ít nhất 2 nhóm.");
+ const rows=groups.flatMap((g,i)=>{const y=nums(g.values,"Y nhóm "+(i+1)),x=nums(g.covariate,"Hiệp biến nhóm "+(i+1));if(y.length!==x.length)throw new RangeError("Mỗi nhóm phải có số Y và hiệp biến bằng nhau.");return y.map((v,j)=>({group:String(g.name??("Nhóm "+(i+1))),y:v,x:x[j]}));});
+ const levels=[...new Set(rows.map(r=>r.group))],k=levels.length,n=rows.length;if(k<2||rows.some(r=>!Number.isFinite(r.x)))throw new RangeError("Dữ liệu ANCOVA không hợp lệ.");
+ const xMean=avg(rows.map(r=>r.x)),base=rows.map(r)=>[1,...levels.slice(1).map(g=>r.group===g?1:0),r.x]);
+ const reduced=fitOLSDesign(rows.map(r=>[1,r.x]),rows.map(r=>r.y)),main=fitOLSDesign(base,rows.map(r=>r.y));
+ const groupTest=partialF(reduced,main,k-1);
+ const interactionDesign=rows.map(r=>[1,...levels.slice(1).map(g=>r.group===g?1:0),r.x,...levels.slice(1).map(g=>(r.group===g?1:0)*r.x)]);
+ const interaction=fitOLSDesign(interactionDesign,rows.map(r=>r.y)),slopeTest=partialF(main,interaction,k-1);
+ const crit=tQuantile(1-alpha/2,main.df),adjustedMeans=levels.map((name,idx)=>{const contrast=[1,...levels.slice(1).map(g=>g===name?1:0),xMean],estimate=contrast.reduce((s,v,j)=>s+v*main.beta[j],0),variance=main.mse*contrast.reduce((s,v,i)=>s+v*contrast.reduce((z,w,j)=>z+main.cov[i][j]*w,0),0),se=Math.sqrt(Math.max(0,variance));return {name,n:rows.filter(r=>r.group===name).length,adjustedMean:estimate,se,ciLow:estimate-crit*se,ciHigh:estimate+crit*se};});
+ return {n,k,covariateMean:xMean,df:main.df,mse:main.mse,groupEffect:groupTest,slopeHomogeneity:slopeTest,adjustedMeans,coefficients:main.beta,alpha,warning:"ANCOVA giả định quan sát độc lập, quan hệ tuyến tính giữa hiệp biến và Y, độ dốc hồi quy đồng nhất giữa nhóm, phần dư phù hợp và không có ngoại lệ chi phối. Nếu kiểm định tương tác nhóm×hiệp biến đáng kể, không diễn giải hiệu ứng nhóm với một độ dốc chung; cân nhắc mô hình có tương tác."};
+}
+function gammaP(a,x){
+ if(x<=0)return 0;if(!Number.isFinite(x))return 1;
+ if(x<a+1){let sum=1/a,term=sum,ap=a;for(let n=1;n<=500;n++){ap++;term*=x/ap;sum+=term;if(Math.abs(term)<Math.abs(sum)*1e-14)break;}return Math.max(0,Math.min(1,sum*Math.exp(-x+a*Math.log(x)-logGamma(a))));}
+ let b=x+1-a,c=1e300,d=1/b,h=d;for(let i=1;i<=500;i++){const an=-i*(i-a);b+=2;d=an*d+b;if(Math.abs(d)<1e-300)d=1e-300;c=b+an/c;if(Math.abs(c)<1e-300)c=1e-300;d=1/d;const del=d*c;h*=del;if(Math.abs(del-1)<1e-14)break;}return Math.max(0,Math.min(1,1-Math.exp(-x+a*Math.log(x)-logGamma(a))*h));
+}
+function chiSquareP(x,df){return x<=0?1:Math.max(0,Math.min(1,1-gammaP(df/2,x/2)));}
+function normalTwoSidedP(z){return Math.max(0,Math.min(1,1-erfApprox(Math.abs(z)/Math.SQRT2)));}
+function rankWithTies(values){const sorted=values.map((v,i)=>({v,i})).sort((a,b)=>a.v-b.v),ranks=Array(values.length);let tieSum=0;for(let i=0;i<sorted.length;){let j=i+1;while(j<sorted.length&&sorted[j].v===sorted[i].v)j++;const rank=(i+1+j)/2;for(let q=i;q<j;q++)ranks[sorted[q].i]=rank;if(j-i>1)tieSum+=(j-i)**3-(j-i);i=j;}return {ranks,tieCorrection:1-tieSum/(values.length**3-values.length)};}
+export function kruskalWallis(groups,alpha=.05){
+ validateAlpha(alpha);if(!Array.isArray(groups)||groups.length<2)throw new RangeError("Kruskal–Wallis cần ít nhất 2 nhóm.");
+ const G=groups.map((g,i)=>({name:String(g.name??("Nhóm "+(i+1))),values:nums(g.values,"Nhóm "+(i+1))}));if(G.some(g=>g.values.length<1))throw new RangeError("Mỗi nhóm cần ít nhất 1 quan sát.");
+ const all=G.flatMap(g=>g.values),N=all.length,k=G.length;if(N<=k)throw new RangeError("Tổng số quan sát phải lớn hơn số nhóm.");
+ const ranked=rankWithTies(all),rankSums=[];let offset=0;for(const g of G){rankSums.push(g.values.reduce((s,_,i)=>s+ranked.ranks[offset+i],0));offset+=g.values.length;}
+ let H=12/(N*(N+1))*rankSums.reduce((s,r,i)=>s+r*r/G[i].values.length,0)-3*(N+1);const correction=ranked.tieCorrection;if(correction<=0)throw new RangeError("Không thể tính kiểm định khi mọi quan sát đều đồng hạng.");H=Math.max(0,H/correction);
+ const df=k-1,p=chiSquareP(H,df),epsilonSquared=Math.max(0,Math.min(1,(H-k+1)/(N-k)));
+ return {N,k,H,df,p,significant:p<alpha,epsilonSquared,tieCorrection:correction,groups:G.map((g,i)=>({name:g.name,n:g.values.length,meanRank:rankSums[i]/g.values.length,median:[...g.values].sort((a,b)=>a-b)[Math.floor(g.values.length/2)]})),warning:"Kruskal–Wallis kiểm tra khác biệt phân phối/rank giữa nhóm; chỉ có thể diễn giải như khác biệt trung vị khi hình dạng phân phối tương tự. Đây không phải ANOVA trên trung bình."};
+}
+export function dunnPostHoc(groups,alpha=.05){
+ validateAlpha(alpha);const kw=kruskalWallis(groups,alpha),G=groups.map((g,i)=>({name:String(g.name??("Nhóm "+(i+1))),values:nums(g.values)})),all=G.flatMap(g=>g.values),ranked=rankWithTies(all),N=all.length,k=G.length,sums=[];let offset=0;for(const g of G){sums.push(g.values.reduce((s,_,i)=>s+ranked.ranks[offset+i],0));offset+=g.values.length;}
+ const pairs=[];for(let i=0;i<k;i++)for(let j=i+1;j<k;j++){const ri=sums[i]/G[i].values.length,rj=sums[j]/G[j].values.length,se=Math.sqrt(N*(N+1)/12*ranked.tieCorrection*(1/G[i].values.length+1/G[j].values.length)),z=(ri-rj)/se,p=normalTwoSidedP(z);pairs.push({a:G[i].name,b:G[j].name,meanRankDifference:ri-rj,z,p});}
+ const order=pairs.map((v,i)=>({i,p:v.p})).sort((a,b)=>a.p-b.p);let prev=0;order.forEach((v,rank)=>{const adjusted=Math.min(1,(order.length-rank)*v.p);prev=Math.max(prev,adjusted);pairs[v.i].pHolm=prev;pairs[v.i].significant=prev<alpha;});
+ return {alpha,omnibusP:kw.p,protected:kw.p<alpha,pairs,warning:"Dunn dùng xấp xỉ chuẩn và hiệu chỉnh Holm. Nên diễn giải hậu nghiệm sau kiểm định Kruskal–Wallis tổng thể có ý nghĩa; p-value là xấp xỉ khi mẫu nhỏ."};
+}
+export function oneWayEffectSizes(groups,alpha=.05){
+ validateAlpha(alpha);const a=oneWayAnova(groups),eta=a.ssBetween/(a.ssBetween+a.ssWithin),omega=Math.max(0,(a.ssBetween-a.dfBetween*a.msWithin)/(a.ssBetween+a.ssWithin+a.msWithin)),f=Math.sqrt(eta/Math.max(1e-15,1-eta)),crit=tQuantile(1-alpha/2,a.dfWithin);
+ const means=a.groups.map(g=>{const source=groups.find(x=>String(x.name??"")===g.name);const values=nums(source.values);const se=g.sd/Math.sqrt(g.n);return {name:g.name,n:g.n,mean:g.mean,se,ciLow:g.mean-crit*se,ciHigh:g.mean+crit*se};});
+ const pairs=[];for(let i=0;i<a.groups.length;i++)for(let j=i+1;j<a.groups.length;j++){const A=a.groups[i],B=a.groups[j],diff=A.mean-B.mean,se=Math.sqrt(a.msWithin*(1/A.n+1/B.n)),margin=crit*se;pairs.push({a:A.name,b:B.name,difference:diff,se,ciLow:diff-margin,ciHigh:diff+margin});}
+ return {n:a.N,k:a.k,etaSquared:eta,omegaSquared:omega,cohensF:f,means,pairs,alpha,warning:"Khoảng tin cậy trung bình dùng t riêng từng nhóm; khoảng tin cậy chênh lệch dùng phương sai gộp ANOVA và giả định phương sai đồng nhất. η², ω² và f là kích thước hiệu ứng, không phải p-value."};
+}
+function noncentralFCDF(x,df1,df2,lambda){
+ if(x<=0)return 0;const mu=lambda/2;if(mu>500)throw new RangeError("Lambda quá lớn cho bộ tính công suất hiện tại.");
+ let weight=Math.exp(-mu),sum=0,total=0;for(let j=0;j<1000;j++){if(j>0)weight*=mu/j;const term=weight*fCDF(x,df1+2*j,df2);sum+=term;total+=weight;if(j>mu+12*Math.sqrt(mu+1)&&weight<1e-14)break;}return Math.max(0,Math.min(1,sum+(1-total)*0.5));
+}
+export function anovaPower(effectSizeF,groups,nPerGroup,alpha=.05){
+ validateAlpha(alpha);if(!(Number.isFinite(effectSizeF)&&effectSizeF>0)||!Number.isInteger(groups)||groups<2||!Number.isInteger(nPerGroup)||nPerGroup<2)throw new RangeError("Cần Cohen f > 0, ít nhất 2 nhóm và mỗi nhóm ít nhất 2 quan sát.");
+ const N=groups*nPerGroup,df1=groups-1,df2=N-groups,lambda=N*effectSizeF*effectSizeF;
+ let lo=0,hi=1;while(fP(hi,df1,df2)>alpha&&hi<1e12)hi*=2;for(let i=0;i<90;i++){const m=(lo+hi)/2;if(fCDF(m,df1,df2)<1-alpha)lo=m;else hi=m;}const critical=(lo+hi)/2,power=1-noncentralFCDF(critical,df1,df2,lambda);
+ return {effectSizeF,groups,nPerGroup,N,df1,df2,lambda,alpha,criticalF:critical,power,warning:"Công suất tính cho ANOVA một nhân tố cân bằng, dưới giả định mô hình và Cohen f đã chọn đúng. Đây là tính toán lập kế hoạch; không dùng power hậu nghiệm từ p-value quan sát để thay cho kích thước hiệu ứng và thiết kế."};
+}
+export function requiredAnovaSampleSize(effectSizeF,groups,targetPower=.8,alpha=.05,maxPerGroup=1000){
+ validateAlpha(alpha);if(!(Number.isFinite(effectSizeF)&&effectSizeF>0)||!Number.isInteger(groups)||groups<2||!(targetPower>0&&targetPower<1)||!Number.isInteger(maxPerGroup)||maxPerGroup<2)throw new RangeError("Tham số cỡ mẫu không hợp lệ.");
+ for(let n=2;n<=maxPerGroup;n++){const r=anovaPower(effectSizeF,groups,n,alpha);if(r.power>=targetPower)return {...r,targetPower,achievedPower:r.power};}
+ throw new RangeError("Không đạt công suất mục tiêu trong giới hạn "+maxPerGroup+" quan sát mỗi nhóm.");
+}
