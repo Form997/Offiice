@@ -17,8 +17,8 @@ function renderChrome(){
  const levelLabelEl=$('levelFilter').parentElement;if(levelLabelEl&&levelLabelEl.firstChild)levelLabelEl.firstChild.textContent=t.level;
  const appOptions=$('appFilter').options;appOptions[0].textContent=t.allApps;appOptions[4].textContent=t.shared;
  const levelOptions=$('levelFilter').options;levelOptions[0].textContent=t.allLevels;levelOptions[1].textContent=t.beginner;levelOptions[2].textContent=t.intermediate;
- const nav=$('.nav-heading');if(nav&&nav.querySelector('strong'))nav.querySelector('strong').textContent=t.catalog;
- const progress=$('.progress-box strong');if(progress)progress.textContent=t.progress;
+ const nav=document.querySelector('.nav-heading');if(nav&&nav.querySelector('strong'))nav.querySelector('strong').textContent=t.catalog;
+ const progress=document.querySelector('.progress-box strong');if(progress)progress.textContent=t.progress;
  $('resetProgress').textContent=t.reset;
  const heroLinks=document.querySelectorAll('.hero-links a');heroLinks.forEach((a,i)=>a.textContent=['Writer','Calc','Slides'][i]||a.textContent);
  document.title='HAI ĐẤT OFFICE ACADEMY';
