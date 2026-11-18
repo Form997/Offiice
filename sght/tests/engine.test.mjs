@@ -35,6 +35,6 @@ test("lỗi có mã rõ ràng",()=>{
   assert.throws(()=>evaluateFormula("=1/0"),e=>e instanceof FormulaError && e.code==="#DIV/0!");
   assert.throws(()=>evaluateFormula("=SQRT(-1)"),e=>e.code==="#NUM!");
   assert.throws(()=>evaluateFormula("=NOT_A_FUNCTION(1)"),e=>e.code==="#NAME?");
-  assert.throws(()=>evaluateFormula("=SUM(1)"),e=>e.code===undefined?false:true);
+  assert.throws(()=>evaluateFormula("=ABS()"),e=>e instanceof FormulaError && e.code==="#ARGS!");
 });
 test("danh mục hàm được công bố",()=>assert.ok(listFormulaFunctions().length>=20));
