@@ -59,7 +59,7 @@ Mở `sght/index.html` qua GitHub Pages sau khi workflow triển khai hoàn tấ
 - Bổ sung kiểm thử cho trạng thái ghi, dừng, dán vùng và giới hạn.
 - Chưa có ghi định dạng, chọn vùng, thao tác hàng/cột hoặc ghi sự kiện nền.
 
-## Macro Library — 2026-11-19
+## Macro Library — 2026-11-19 (bổ sung sửa lỗi khởi tạo)
 
 - Thêm thư viện macro cục bộ: lưu, đọc, cập nhật, nhân bản và xóa macro.
 - Mỗi macro có tên, mô tả, mã lệnh, thời điểm tạo/cập nhật và số phiên bản.
