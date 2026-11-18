@@ -168,3 +168,19 @@ Mở rộng bộ phân tích thống kê nghiên cứu chạy ngoại tuyến, d
 - Bổ sung kiểm tra Brown–Forsythe (độ lệch tuyệt đối quanh trung vị) bên cạnh Levene quanh trung bình.
 - Biểu đồ cột trung bình từng nghiệm thức kèm thanh ±1 SD; đây là mô tả, không phải khoảng tin cậy.
 - Xuất kết quả đang xem thành CSV UTF-8 có BOM để mở thuận tiện bằng bảng tính.
+
+
+## SGHT Data Science — Giai đoạn 9.1 — 2026-11-19
+
+### Hậu nghiệm và chẩn đoán hồi quy
+- Tukey–Kramer HSD: so sánh tất cả cặp trung bình, hỗ trợ cỡ mẫu nhóm không bằng nhau dưới giả định phương sai đồng nhất; trả chênh lệch, q, p đã điều chỉnh theo studentized range và khoảng tin cậy đồng thời.
+- Games–Howell: so sánh từng cặp khi phương sai và cỡ mẫu có thể không bằng nhau; dùng sai số chuẩn riêng và bậc tự do Welch–Satterthwaite.
+- VIF: hồi quy phụ từng biến X trên các biến X còn lại; báo R² phụ, VIF, ma trận tương quan, trị riêng và chỉ số điều kiện.
+- Giao diện: nhập alpha; chạy Tukey/Games–Howell từ vùng mã nhóm và kết quả; chạy VIF từ ma trận X nhiều cột; kết quả có thể xuất CSV qua nút xuất báo cáo.
+
+### Phương pháp số và giới hạn
+- Studentized-range CDF/quantile được tính bằng tích phân Simpson số trên phân phối chuẩn và chi-bình phương. Đây là xấp xỉ số, không phải bảng giá trị tới hạn tra cứu; kết quả có thể sai khác nhẹ so với phần mềm thống kê chuyên dụng. Metadata kết quả nêu rõ phương pháp.
+- Tukey–Kramer yêu cầu quan sát độc lập, phần dư gần chuẩn và phương sai đồng nhất. Không dùng Tukey khi phương sai khác biệt đáng kể; cân nhắc Games–Howell.
+- Games–Howell không giả định phương sai đồng nhất; vẫn yêu cầu thiết kế và quan sát độc lập phù hợp, và phân phối không quá lệch/ngoại lệ chi phối.
+- VIF 5 và 10 chỉ là ngưỡng cảnh báo kinh nghiệm. Chỉ số điều kiện là chẩn đoán bổ sung, không tự quyết định loại biến.
+- Không diễn giải p-value như xác suất giả thuyết không đúng; không suy ra nhân quả từ so sánh/hồi quy.
