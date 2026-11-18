@@ -64,7 +64,8 @@ export function fitDoseResponse(doses,y,model="quadratic") {
   return {...best,optimumDose:k,optimumYield:plateau,optimumType:"Điểm bắt đầu bão hòa trong khoảng khảo sát",candidateCount:candidates.length,warning:"Điểm gãy được tìm bằng lưới các mức liều lượng quan sát; không phải khoảng tin cậy. Mô hình bão hòa giả định đáp ứng không tăng thêm sau điểm gãy. Cần thêm nghiệm thức quanh điểm gãy để xác nhận."};
 }
 export function compareDoseResponse(doses,y) {
-  const models=["quadratic","linear-plateau","quadratic-plateau"].map(model=>fitDoseResponse(doses,y,model));\n  try{models.push(fitMitscherlich(vector(doses,"Liều lượng"),vector(y,"Năng suất")));}catch(error){models.push({model:"mitscherlich",unavailable:true,error:error.message,aicc:null});}
+  const models=["quadratic","linear-plateau","quadratic-plateau"].map(model=>fitDoseResponse(doses,y,model));
+  try{models.push(fitMitscherlich(vector(doses,"Liều lượng"),vector(y,"Năng suất")));}catch(error){models.push({model:"mitscherlich",unavailable:true,error:error.message,aicc:null});}
   return {models:models.sort((a,b)=>(a.aicc??Infinity)-(b.aicc??Infinity)),selection:"AICc nhỏ hơn biểu thị cân bằng độ khớp và độ phức tạp tốt hơn; không thay thế kiểm tra phần dư, cơ chế sinh học và xác nhận thực nghiệm.",warning:"Chỉ so sánh mô hình được khớp trên cùng bộ quan sát. AICc không chứng minh mô hình đúng và mức liều tối ưu không nên ngoại suy ngoài miền khảo sát."};
 }
 
