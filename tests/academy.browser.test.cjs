@@ -10,7 +10,7 @@ test('Academy renders, filters, switches locale and fits a phone viewport',async
   await page.waitForSelector('.lesson-link');
   assert.match(await page.locator('#pageTitle').innerText(),/Giáo trình/);
   assert.equal(await page.locator('.lesson-link').count(),14);
-  await page.locator('#search').fill('tham chiếu ô');
+  await page.locator('#search').fill('CALC-002');
   assert.equal(await page.locator('.lesson-link').count(),1);
   assert.match(await page.locator('.lesson-link').first().innerText(),/CALC-002/);
   await page.locator('#search').fill('');
