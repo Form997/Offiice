@@ -41,3 +41,12 @@ Không dùng bản beta làm nơi lưu trữ duy nhất cho tài liệu quan tr�
 - V3 và V4 được giữ nguyên.
 - V6 tiếp tục phát triển trên `v6-development`.
 - Chỉ chuyển sang stable sau khi CI và kiểm thử thiết bị hoàn tất.
+
+
+## Giao diện di động V6.1 — giai đoạn 2 (18/11/2026)
+
+- Bổ sung thanh thao tác nhanh cố định ở cạnh dưới màn hình, thuận tiện thao tác một tay.
+- Tăng khoảng trống an toàn phía dưới để thanh công cụ không che nội dung.
+- Cập nhật phiên bản CSS trong trang Writer và Service Worker; đổi cache key để thiết bị nhận bộ giao diện mới.
+- Sắp xếp ribbon theo các nhóm chức năng dạng thẻ trên màn hình nhỏ, giảm cuộn ngang trong từng nhóm.
+- Trạng thái: đã ghi mã nguồn trên nhánh `v6-development`; cần chạy CI và kiểm thử trực tiếp trên điện thoại trước khi xác nhận phát hành.
