@@ -20,7 +20,7 @@ function tokenize(source) {
     const range = rest.match(/^[A-Z]{1,3}[1-9][0-9]*:[A-Z]{1,3}[1-9][0-9]*/i);
     if (range) { out.push({type:"range", value:range[0].toUpperCase()}); i += range[0].length; continue; }
     const cell = rest.match(/^[A-Z]{1,3}[1-9][0-9]*/i);
-    if (cell && !/[A-Z0-9_.]/i.test(rest[cell[0].length] || "")) {
+    if (cell && rest[cell[0].length] !== "(" && !/[A-Z0-9_.]/i.test(rest[cell[0].length] || "")) {
       out.push({type:"cell", value:cell[0].toUpperCase()}); i += cell[0].length; continue;
     }
     const ident = rest.match(/^[A-Z_][A-Z0-9_.]*/i);
