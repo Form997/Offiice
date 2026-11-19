@@ -583,3 +583,15 @@ Bổ sung mô hình đáp ứng tăng dần, lợi ích biên giảm dần:
 - **Tự làm mới:** cấu hình Pivot được lưu cùng workbook trên thiết bị; báo cáo được tính lại khi giao diện bảng tính render sau thao tác thay đổi dữ liệu. Thay đổi bố trí và bộ lọc cũng cập nhật báo cáo.
 - Engine vẫn hỗ trợ API Pivot cũ để tương thích; bổ sung kiểm thử nhiều chỉ tiêu và lọc trường.
 - Giới hạn: một trường cột duy nhất; Pivot chưa có bộ lọc điều kiện số/ngày, chưa có tổng phụ phân cấp trong chính Pivot, chưa có Pivot Chart liên kết. Kết quả là báo cáo hiển thị, chưa ghi thành vùng ô có thể chỉnh sửa.
+
+
+## SGHT Pivot Chart — Giai đoạn 18.15 · Biểu đồ liên kết — 2026-11-19
+
+- Biểu đồ lấy trực tiếp kết quả Pivot Table hiện hành; không tạo bản sao dữ liệu độc lập. Thay đổi dữ liệu nguồn, trường Hàng/Cột/Giá trị, phép tổng hợp hoặc bộ lọc sẽ dựng lại Pivot và biểu đồ trong cùng chu kỳ render.
+- Hỗ trợ biểu đồ cột nhóm, đường nhiều chuỗi và vành khuyên cho một chuỗi không âm. Khi Pivot có trường Cột, mỗi giá trị trường Cột trở thành một chuỗi riêng.
+- Có thể chọn chỉ tiêu trong tối đa 4 phép tổng hợp Pivot; loại biểu đồ, chỉ tiêu được chọn được lưu cùng workbook trên thiết bị.
+- Biểu đồ giới hạn 24 nhóm đầu để giữ khả năng đọc trên điện thoại; bảng Pivot vẫn giữ toàn bộ nhóm. Trạng thái báo rõ khi biểu đồ bị rút gọn.
+- Xuất biểu đồ dạng SVG có thể mở bằng trình duyệt hoặc phần mềm đồ họa; không thay đổi dữ liệu workbook.
+- Biểu đồ vành khuyên từ chối giá trị âm, tổng bằng 0 và Pivot có nhiều chuỗi; trong trường hợp đó hãy dùng Cột nhóm hoặc Đường.
+- Giới hạn: chưa đồng bộ đám mây, chưa có xuất PNG/PDF hoặc tùy chỉnh sâu màu, trục và nhãn dữ liệu. Chưa thay thế kiểm thử tương tác thực tế trên nhiều thiết bị.
+- Engine pivot-chart.js kiểm tra chỉ tiêu, giới hạn nhóm, cấu trúc series và giá trị hữu hạn bằng kiểm thử độc lập.
