@@ -45,7 +45,7 @@ function render(){
   virtualWindow=getVirtualWindow({scrollTop:sheetScroll.scrollTop,scrollLeft:sheetScroll.scrollLeft,viewportHeight:sheetScroll.clientHeight||480,viewportWidth:sheetScroll.clientWidth||900,rowHeight:ROW_HEIGHT,columnWidth:COLUMN_WIDTH,overscanRows:OVERSCAN_ROWS,overscanColumns:OVERSCAN_COLUMNS,maxRow:ROWS,maxColumn:COLS});
   const w=virtualWindow,leftWidth=w.leftOffset,rightWidth=w.rightOffset;
   thead.innerHTML="<tr><th class='corner'></th>"+(leftWidth?"<th class='virtual-spacer' style='width:"+leftWidth+"px;min-width:"+leftWidth+"px'></th>":"")+Array.from({length:w.renderedColumns},(_,i)=>"<th>"+letters(w.columnStart+i)+"</th>").join("")+(rightWidth?"<th class='virtual-spacer' style='width:"+rightWidth+"px;min-width:"+rightWidth+"px'></th>":"")+"</tr>";
-  const rows=[],span=w.renderedColumns+3;
+  const rows=[],span=w.renderedColumns+1+(leftWidth?1:0)+(rightWidth?1:0);
   if(w.topOffset)rows.push("<tr class='virtual-gap'><td colspan='"+span+"' style='height:"+w.topOffset+"px'></td></tr>");
   for(let r=w.rowStart;r<=w.rowEnd;r++){
     let rowHtml="<th class='row-head'>"+r+"</th>";
