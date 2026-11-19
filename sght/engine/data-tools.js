@@ -26,7 +26,7 @@ export function filterRangeRows(cells,formats,bounds,options={}){
  const allowed=options.allowedValues||{};const hiddenRows=[];let visibleRows=0,totalRows=Math.max(0,b.endRow-b.startRow);
  for(let row=b.startRow+1;row<=b.endRow;row++){
   const rulePass=rules.length===0?true:join==="and"?rules.every(rule=>matchesRule(valueFor(cells,row,rule.column),rule)):rules.some(rule=>matchesRule(valueFor(cells,row,rule.column),rule));
-  const valuePass=Object.entries(allowed).every(([column,values])=>!Array.isArray(values)||values.length===0||values.includes(valueFor(cells,row,Number(column))));
+  const valuePass=Object.entries(allowed).every(([column,values])=>!Array.isArray(values)||values.includes(valueFor(cells,row,Number(column))));
   const colorPass=!color||Array.from({length:b.endCol-b.startCol+1},(_,i)=>formats[cellKey(row,b.startCol+i)]?.background?.toLowerCase()).includes(color);
   if(rulePass&&valuePass&&colorPass)visibleRows++;else hiddenRows.push(row);
  }

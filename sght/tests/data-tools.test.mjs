@@ -59,3 +59,12 @@ test("structured column reference resolves data cells excluding header",()=>{
  assert.equal(structuredColumnRange([t],"Bang[Yield]"),"B2:B3");
  assert.equal(structuredColumnRange([t],"Bang[Missing]"),null);
 });
+
+test("multi-column filter values are intersected and an empty selection hides every row",()=>{
+ const cells={A1:"Crop",B1:"Zone",A2:"Cải",B2:"Bắc",A3:"Cải",B3:"Nam",A4:"Rau",B4:"Bắc"};
+ const b={startRow:1,endRow:4,startCol:1,endCol:2};
+ const r=filterRangeRows(cells,{},b,{rules:[{column:1,operator:"equals",value:"Cải"},{column:2,operator:"equals",value:"Bắc"}],join:"and",allowedValues:{1:["Cải","Rau"]}});
+ assert.deepEqual(r.hiddenRows,[3,4]);
+ const none=filterRangeRows(cells,{},b,{allowedValues:{1:[]}});
+ assert.deepEqual(none.hiddenRows,[2,3,4]);
+});
