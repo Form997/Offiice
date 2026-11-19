@@ -56,7 +56,7 @@ export function replaceCells(cells, query, replacement, options = {}) {
   const {caseSensitive=false,wholeCell=false,scope=null,onlyAddress=null}=options;
   const next={...(cells||{})},addresses=[];
   const escaped=needle.replace(/[.*+?^${}()|[\]\\]/g,"\\$&");
-  const pattern=new RegExp(escaped,"giu");
+  const pattern=new RegExp(escaped,caseSensitive?"gu":"giu");
   for(const address of Object.keys(next)){
     if(onlyAddress&&address!==onlyAddress)continue;
     const point=parseAddress(address);
@@ -70,9 +70,8 @@ export function replaceCells(cells, query, replacement, options = {}) {
       if(raw!==substitute){next[address]=substitute;addresses.push(address);}
       continue;
     }
-    if(!pattern.test(raw))continue;
-    pattern.lastIndex=0;
-    const updated=raw.replace(pattern,substitute);
+    if(!(caseSensitive?raw.includes(needle):raw.toLocaleLowerCase().includes(needle.toLocaleLowerCase())))continue;
+    const updated=raw.replace(pattern,()=>substitute);
     if(updated!==raw){next[address]=updated;addresses.push(address);}
   }
   return {cells:next,changed:addresses.length,addresses};
