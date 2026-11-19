@@ -9,10 +9,10 @@ export function translateFormulaReferences(formula,rowDelta=0,colDelta=0){
   const ch=formula[i];
   if(ch==='"'){out+=ch;if(quoted&&formula[i+1]==='"'){out+='"';i+=2;continue;}quoted=!quoted;i++;continue;}
   if(quoted){out+=ch;i++;continue;}
-  const m=/^(\\$?)([A-Z]{1,3})(\\$?)([1-9][0-9]*)/i.exec(formula.slice(i));
+  const m=/^(\$?)([A-Z]{1,3})(\$?)([1-9][0-9]*)/i.exec(formula.slice(i));
   if(m){
    const before=i?formula[i-1]:"",after=formula[i+m[0].length]||"";
-   if(!/[A-Z0-9_.]/i.test(before)&&!/[A-Z0-9_]/i.test(after)&&!(/^\\s*\\(/.test(formula.slice(i+m[0].length)))){
+   if(!/[A-Z0-9_.]/i.test(before)&&!/[A-Z0-9_]/i.test(after)&&!(/^\s*\(/.test(formula.slice(i+m[0].length)))){
     const c=colNum(m[2])+(m[1]?0:colDelta),r=Number(m[4])+(m[3]?0:rowDelta);
     out+=c<1||r<1?"#REF!":m[1]+colName(c)+m[3]+r;i+=m[0].length;continue;
    }
