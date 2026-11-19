@@ -9,8 +9,8 @@ function gridOf(surface){
  const cols=rows[0].length;
  if(cols<2||rows.some(r=>r.length!==cols))throw new RangeError("Lưới mặt đáp ứng phải là hình chữ nhật ít nhất 2×2.");
  if(rows.flat().some(p=>![p.x,p.y,p.z].every(Number.isFinite)))throw new TypeError("Mọi tọa độ và giá trị dự báo phải hữu hạn.");
- for(let i=1;i<rows.length;i++)if(rows[i].some((p,j)=>p.x!==rows[0][j].x))throw new Error("Tọa độ X phải nhất quán giữa các hàng.");
- for(let i=0;i<rows.length;i++)if(rows[i].some(p=>p.y!==rows[i][0].y))throw new Error("Tọa độ Y phải nhất quán giữa các cột.");
+ for(let i=0;i<rows.length;i++)if(rows[i].some(p=>p.x!==rows[i][0].x))throw new Error("Tọa độ X phải nhất quán trong từng hàng.");
+ for(let j=1;j<cols;j++)if(rows.some(r=>r[j].y!==rows[0][j].y))throw new Error("Tọa độ Y phải nhất quán giữa các hàng.");
  return rows;
 }
 export function buildContourData(surface,levelCount=8){
