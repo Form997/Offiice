@@ -551,3 +551,14 @@ Bổ sung mô hình đáp ứng tăng dần, lợi ích biên giảm dần:
 - Tạo định nghĩa vùng dữ liệu có cấu trúc có tên, hàng tiêu đề và danh sách tên cột; lưu trong workbook cục bộ.
 - Giới hạn: vùng cấu trúc hiện là metadata được quản lý trong giao diện, chưa có Table Reference như [@Column] trong công thức, chưa tự mở rộng khi nhập hàng mới, chưa có bộ lọc theo danh sách giá trị riêng lẻ hoặc nhiều cột đồng thời.
 - Chưa kiểm thử thao tác trực tiếp trên trình duyệt/điện thoại; kiểm thử engine không thay thế xác nhận UX.
+
+
+## SGHT 18.12 — Bảng dữ liệu thông minh — 2026-11-19
+
+- Vùng dữ liệu có cấu trúc tự mở rộng khi nhập dữ liệu liền kề ngay dưới hàng cuối và trong phạm vi các cột của bảng; cập nhật phạm vi, metadata và công thức tham chiếu bảng.
+- Bộ lọc hỗ trợ điều kiện trên hai cột độc lập, AND/OR, lọc màu và danh sách giá trị duy nhất có thể chọn/bỏ chọn. Danh sách giá trị được nạp theo vùng hiện chọn.
+- Tổng hợp theo nhóm: tổng, trung bình, đếm số, nhỏ nhất, lớn nhất. Báo cáo xem trước, không ghi đè dữ liệu nguồn.
+- Tham chiếu cột bảng trong công thức: =SUM(TenBang[TenCot]); tham chiếu được chuyển thành vùng địa chỉ thực tại thời điểm tính. Tên bảng/cột phải khớp với định nghĩa vùng. Chưa hỗ trợ tham chiếu hàng hiện tại [@Cot], hàng tổng cộng, hoặc tham chiếu liên bảng trong workbook nhiều sheet.
+- Giới hạn tự mở rộng: chỉ nhận dữ liệu ghi liền kề ở hàng ngay sau bảng và trong các cột của bảng; thao tác chèn hàng/cột chưa tự tái cấu trúc metadata.
+- Bộ lọc và báo cáo nhóm là chế độ hiển thị; báo cáo tổng hợp chưa được ghi thành vùng ô để tránh ghi đè dữ liệu nguồn.
+- Chưa kiểm thử tương tác thủ công trên trình duyệt/điện thoại.

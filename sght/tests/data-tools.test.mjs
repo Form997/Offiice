@@ -33,3 +33,29 @@ test("structured range validates unique headers and stable name",()=>{
  assert.equal(t.range,"A1:B2");assert.deepEqual(t.columns,["Nghiệm thức","Năng suất"]);
  assert.throws(()=>defineStructuredRange({A1:"x",B1:"X",A2:"1",B2:"2"},{startRow:1,endRow:2,startCol:1,endCol:2},"Bang1"),/trùng/);
 });
+
+import {uniqueColumnValues,summarizeByGroup,expandStructuredRange,structuredColumnRange} from "../engine/data-tools.js";
+test("unique values are counted and sorted for filter checklist",()=>{
+ const values=uniqueColumnValues({A1:"Group",A2:"B",A3:"A",A4:"B"},{startRow:1,endRow:4,startCol:1,endCol:1},1);
+ assert.deepEqual(values,[{value:"A",count:1},{value:"B",count:2}]);
+});
+test("group summary supports sum average count min max",()=>{
+ const cells={A1:"Group",B1:"Yield",A2:"AL1",B2:"2",A3:"AL1",B3:"4",A4:"AL2",B4:"5"};
+ const b={startRow:1,endRow:4,startCol:1,endCol:2};
+ assert.deepEqual(summarizeByGroup(cells,b,{groupColumn:1,valueColumn:2,operation:"sum"}),[{group:"AL1",count:2,value:6},{group:"AL2",count:1,value:5}]);
+ assert.equal(summarizeByGroup(cells,b,{groupColumn:1,valueColumn:2,operation:"average"})[0].value,3);
+ assert.equal(summarizeByGroup(cells,b,{groupColumn:1,valueColumn:2,operation:"count"})[0].value,2);
+ assert.equal(summarizeByGroup(cells,b,{groupColumn:1,valueColumn:2,operation:"min"})[0].value,2);
+ assert.equal(summarizeByGroup(cells,b,{groupColumn:1,valueColumn:2,operation:"max"})[0].value,4);
+});
+test("structured table expands only on adjacent row within table columns",()=>{
+ const t={name:"Bang",bounds:{startRow:1,endRow:3,startCol:1,endCol:2},columns:["Crop","Yield"]};
+ assert.equal(expandStructuredRange(t,4,2).range,"A1:B4");
+ assert.equal(expandStructuredRange(t,5,2),t);
+ assert.equal(expandStructuredRange(t,4,3),t);
+});
+test("structured column reference resolves data cells excluding header",()=>{
+ const t={name:"Bang",bounds:{startRow:1,endRow:3,startCol:1,endCol:2},columns:["Crop","Yield"]};
+ assert.equal(structuredColumnRange([t],"Bang[Yield]"),"B2:B3");
+ assert.equal(structuredColumnRange([t],"Bang[Missing]"),null);
+});

@@ -4,7 +4,7 @@ import { captureRange, pasteCapturedRange } from "./engine/range-clipboard.js";
 import { fillRange } from "./engine/fill-series.js";
 import { serializeWorkbook, restoreWorkbook, pushHistoryEntry, moveHistory } from "./engine/history.js";
 import { searchCells, replaceCells } from "./engine/search.js";
-import { sortRangeRows, filterRangeRows, removeDuplicateRows, defineStructuredRange } from "./engine/data-tools.js";
+import { sortRangeRows, filterRangeRows, removeDuplicateRows, defineStructuredRange, uniqueColumnValues, summarizeByGroup, expandStructuredRange, structuredColumnRange } from "./engine/data-tools.js";
 import { getVirtualWindow } from "./engine/sparse-grid.js";
 import { expandGridCapacity } from "./engine/grid-capacity.js";
 import { buildFreezeLayout, normalizeFreezeSettings } from "./engine/freeze-panes.js";
@@ -151,7 +151,19 @@ window.addEventListener("keydown",event=>{
 });
 
 function raw(a){return Object.hasOwn(cells,a)?String(cells[a]):"";}
-function calculate(a,stack=new Set()){const value=raw(a);if(!value.startsWith("="))return value===""?"":coerce(value);if(stack.has(a))throw new FormulaError("#CYCLE!","Phát hiện công thức tham chiếu vòng.");stack.add(a);const ctx={getCell(ref){return calculate(ref.toUpperCase(),stack);},getRange(ref){const [s,e]=ref.toUpperCase().split(":").map(parseAddress);if(!s||!e)throw new FormulaError("#REF!","Vùng ô không hợp lệ.");const area=(Math.abs(e.r-s.r)+1)*(Math.abs(e.c-s.c)+1);if(!Number.isSafeInteger(area)||area>100000)throw new FormulaError("#REF!","Vùng công thức vượt giới hạn an toàn 100.000 ô.");const out=[];for(let r=Math.min(s.r,e.r);r<=Math.max(s.r,e.r);r++)for(let c=Math.min(s.c,e.c);c<=Math.max(s.c,e.c);c++)out.push(calculate(address(r,c),stack));return out;}};try{return evaluateFormula(value,ctx);}finally{stack.delete(a);}}
+function calculate(a,stack=new Set()){const value=raw(a);if(!value.startsWith("="))return value===""?"":coerce(value);if(stack.has(a))throw new FormulaError("#CYCLE!","Phát hiện công thức tham chiếu vòng.");stack.add(a);const ctx={getCell(ref){return calculate(ref.toUpperCase(),stack);},getRange(ref){const [s,e]=ref.toUpperCase().split(":").map(parseAddress);if(!s||!e)throw new FormulaError("#REF!","Vùng ô không hợp lệ.");const area=(Math.abs(e.r-s.r)+1)*(Math.abs(e.c-s.c)+1);if(!Number.isSafeInteger(area)||area>100000)throw new FormulaError("#REF!","Vùng công thức vượt giới hạn an toàn 100.000 ô.");const out=[];for(let r=Math.min(s.r,e.r);r<=Math.max(s.r,e.r);r++)for(let c=Math.min(s.c,e.c);c<=Math.max(s.c,e.c);c++)out.push(calculate(address(r,c),stack));return out;}};try{return evaluateFormula(expandStructuredFormula(value),ctx);}finally{stack.delete(a);}}
+
+function expandStructuredFormula(formula){
+ let out=formula;
+ for(const table of dataTables){for(const column of table.columns){const ref=table.name+"["+column+"]",range=structuredColumnRange(dataTables,ref);if(range)out=out.replaceAll(ref,range);}}
+ return out;
+}
+function expandTablesAfterWrite(startRow,endRow,startCol,endCol){
+ let changed=false;
+ dataTables=dataTables.map(table=>{let next=table;for(let row=startRow;row<=endRow;row++)for(let col=startCol;col<=endCol;col++){const expanded=expandStructuredRange(next,row,col);if(expanded!==next){next=expanded;changed=true;}}return next;});
+ if(changed)renderDataTables();
+}
+
 function coerce(v){if(typeof v!=="string")return v;if(v.trim()!==""&&Number.isFinite(Number(v)))return Number(v);return v;}
 function display(a){try{const v=calculate(a);if(typeof v!=="number")return String(v??"");const f=normalizeCellFormat(cellFormats[a]||{});if(f.numberFormat==="integer")return new Intl.NumberFormat("vi-VN",{maximumFractionDigits:0}).format(v);if(f.numberFormat==="number2")return new Intl.NumberFormat("vi-VN",{minimumFractionDigits:2,maximumFractionDigits:2}).format(v);if(f.numberFormat==="percent")return new Intl.NumberFormat("vi-VN",{style:"percent",maximumFractionDigits:2}).format(v);if(f.numberFormat==="currency")return new Intl.NumberFormat("vi-VN",{style:"currency",currency:"VND",maximumFractionDigits:0}).format(v);return String(Number(v.toPrecision(12)));}catch(e){return e.code||"#CALC!";}}
 function render(){
@@ -344,10 +356,10 @@ function endFillDrag(e){if(!fillDrag||e.pointerId!==fillDrag.pointerId)return;co
 window.addEventListener("pointermove",moveFillDrag,{passive:false});window.addEventListener("pointerup",endFillDrag);window.addEventListener("pointercancel",()=>{if(fillDrag){selectionRange={start:fillDrag.source.start,end:fillDrag.source.end};fillDrag=null;updateSelection();}});
 
 
-function setValue(a,v){snapshot();if(v===""){delete cells[a];if(!macroExecution)try{macroRecorder.recordClear(a);}catch(e){calcStatus.textContent=e.message;}}else{cells[a]=v;if(!macroExecution)try{macroRecorder.recordSet(a,v);}catch(e){calcStatus.textContent=e.message;}}render();save();calcStatus.textContent="Đã tính lại các ô phụ thuộc";}
+function setValue(a,v){const point=parseAddress(a);snapshot();if(v===""){delete cells[a];if(!macroExecution)try{macroRecorder.recordClear(a);}catch(e){calcStatus.textContent=e.message;}}else{cells[a]=v;if(!macroExecution)try{macroRecorder.recordSet(a,v);}catch(e){calcStatus.textContent=e.message;}}if(point)expandTablesAfterWrite(point.r,point.r,point.c,point.c);render();save();calcStatus.textContent="Đã tính lại các ô phụ thuộc";}
 function apply(){const value=formulaInput.value;setValue(selected,value.trim()===""?"":value);updateSelection();}
 function exportCsv(){const used=Object.keys(cells).map(parseAddress).filter(Boolean);const maxR=Math.max(1,...used.map(x=>x.r)),maxC=Math.max(1,...used.map(x=>x.c));const lines=[];for(let r=1;r<=maxR;r++){const row=[];for(let c=1;c<=maxC;c++){const v=display(address(r,c));row.push('"'+v.replace(/"/g,'""')+'"');}lines.push(row.join(","));}const blob=new Blob(["\ufeff"+lines.join("\r\n")],{type:"text/csv;charset=utf-8"}),url=URL.createObjectURL(blob),link=document.createElement("a");link.href=url;link.download=(sheetTitle||"sght").replace(/[\\/:*?"<>|]/g,"_")+".csv";link.click();URL.revokeObjectURL(url);}
-function pasteRange(text,clipboardPayload=null){const start=parseAddress(selected);if(!start)return;const matrix=parseTSV(text);if(!matrix.length)return;const width=Math.max(...matrix.map(row=>row.length));const targetRow=start.r+matrix.length-1,targetColumn=start.c+width-1;if(targetRow>MAX_ROWS||targetColumn>MAX_COLS){calcStatus.textContent="Vùng dán vượt giới hạn an toàn hiện tại: "+MAX_ROWS.toLocaleString("vi-VN")+" hàng × "+MAX_COLS.toLocaleString("vi-VN")+" cột.";return;}growGridTo(targetRow,targetColumn);snapshot();if(clipboardPayload){const next=pasteCapturedRange(cells,cellFormats,start,clipboardPayload);cells=next.cells;cellFormats=next.formats;}else{matrix.forEach((row,ri)=>row.forEach((v,ci)=>{const a=address(start.r+ri,start.c+ci);if(v==="")delete cells[a];else cells[a]=v;}));}selectionRange={start:selected,end:address(start.r+matrix.length-1,start.c+width-1)};render();save();calcStatus.textContent="Đã dán "+matrix.length+" hàng dữ liệu"+(clipboardPayload?" kèm định dạng":"");}
+function pasteRange(text,clipboardPayload=null){const start=parseAddress(selected);if(!start)return;const matrix=parseTSV(text);if(!matrix.length)return;const width=Math.max(...matrix.map(row=>row.length));const targetRow=start.r+matrix.length-1,targetColumn=start.c+width-1;if(targetRow>MAX_ROWS||targetColumn>MAX_COLS){calcStatus.textContent="Vùng dán vượt giới hạn an toàn hiện tại: "+MAX_ROWS.toLocaleString("vi-VN")+" hàng × "+MAX_COLS.toLocaleString("vi-VN")+" cột.";return;}growGridTo(targetRow,targetColumn);snapshot();if(clipboardPayload){const next=pasteCapturedRange(cells,cellFormats,start,clipboardPayload);cells=next.cells;cellFormats=next.formats;}else{matrix.forEach((row,ri)=>row.forEach((v,ci)=>{const a=address(start.r+ri,start.c+ci);if(v==="")delete cells[a];else cells[a]=v;}));}selectionRange={start:selected,end:address(start.r+matrix.length-1,start.c+width-1)};expandTablesAfterWrite(start.r,start.r+matrix.length-1,start.c,start.c+width-1);render();save();calcStatus.textContent="Đã dán "+matrix.length+" hàng dữ liệu"+(clipboardPayload?" kèm định dạng":"");}
 function handlePaste(e){const text=e.clipboardData?.getData("text/plain");if(!text||!/[\t\n\r]/.test(text))return;e.preventDefault();pasteRange(text);}
 grid.addEventListener("paste",e=>{const text=e.clipboardData?.getData("text/plain");if(text){e.preventDefault();pasteRange(text);}});
 grid.addEventListener("pointerdown",e=>{if(beginFillDrag(e))return;const b=e.target.closest("[data-cell]");if(!b)return;const current=getRangeBounds(selectionRange.start,selectionRange.end),p=parseAddress(b.dataset.cell),inside=p.r>=current.startRow&&p.r<=current.endRow&&p.c>=current.startCol&&p.c<=current.endCol;if(inside&&current.start!==current.end){pointerSelecting=false;return;}pointerSelecting=true;choose(b.dataset.cell,e.shiftKey);});grid.addEventListener("pointerover",e=>{if(!pointerSelecting)return;const b=e.target.closest("[data-cell]");if(b)choose(b.dataset.cell,true);});window.addEventListener("pointerup",()=>{pointerSelecting=false;});let dragPayload=null;grid.addEventListener("dragstart",e=>{const b=e.target.closest("[data-cell]");if(!b)return;const x=getRangeBounds(selectionRange.start,selectionRange.end),p=parseAddress(b.dataset.cell);if(!(p.r>=x.startRow&&p.r<=x.endRow&&p.c>=x.startCol&&p.c<=x.endCol)){choose(b.dataset.cell);dragPayload={bounds:getRangeBounds(b.dataset.cell,b.dataset.cell)};}else dragPayload={bounds:x};const matrix=[];for(let rr=dragPayload.bounds.startRow;rr<=dragPayload.bounds.endRow;rr++){const row=[];for(let cc=dragPayload.bounds.startCol;cc<=dragPayload.bounds.endCol;cc++){const a=address(rr,cc);row.push({value:raw(a),format:cellFormats[a]||null});}matrix.push(row);}dragPayload.matrix=matrix;e.dataTransfer.effectAllowed="move";e.dataTransfer.setData("text/plain","SGHT_RANGE_MOVE");});grid.addEventListener("dragover",e=>{if(dragPayload){e.preventDefault();e.dataTransfer.dropEffect="move";}});grid.addEventListener("drop",e=>{const b=e.target.closest("[data-cell]");if(!b||!dragPayload)return;e.preventDefault();const dest=parseAddress(b.dataset.cell),src=dragPayload.bounds,h=dragPayload.matrix.length,w=dragPayload.matrix[0]?.length||0;if(!h||!w||dest.r+h-1>MAX_ROWS||dest.c+w-1>MAX_COLS){calcStatus.textContent="Không thể thả vùng: vượt giới hạn an toàn của lưới.";dragPayload=null;return;}growGridTo(dest.r+h-1,dest.c+w-1);const sourceSet=new Set(expandRange(src.start,src.end));let overwrites=false;for(let rr=dest.r;rr<dest.r+h;rr++)for(let cc=dest.c;cc<dest.c+w;cc++){const a=address(rr,cc);if(!sourceSet.has(a)&&(Object.hasOwn(cells,a)||Object.hasOwn(cellFormats,a)))overwrites=true;}if(overwrites&&!confirm("Vùng đích có dữ liệu hoặc định dạng. Ghi đè khi di chuyển vùng?")){dragPayload=null;return;}snapshot();for(let rr=src.startRow;rr<=src.endRow;rr++)for(let cc=src.startCol;cc<=src.endCol;cc++){const a=address(rr,cc);delete cells[a];delete cellFormats[a];}dragPayload.matrix.forEach((row,ri)=>row.forEach((item,ci)=>{const a=address(dest.r+ri,dest.c+ci);if(item.value!=="")cells[a]=item.value;if(item.format)cellFormats[a]=item.format;}));selected=b.dataset.cell;selectionRange={start:selected,end:address(dest.r+h-1,dest.c+w-1)};dragPayload=null;render();save();calcStatus.textContent="Đã di chuyển vùng dữ liệu.";});grid.addEventListener("click",e=>{const b=e.target.closest("[data-cell]");if(b&&!pointerSelecting&&selected!==b.dataset.cell)choose(b.dataset.cell);});
@@ -387,16 +399,18 @@ document.querySelectorAll(".ribbon-tab").forEach(tab=>tab.addEventListener("clic
 
 const dataPanel=document.querySelector("#dataToolsPanel");
 const dataSortColumn=document.querySelector("#dataSortColumn"),dataSortOrder=document.querySelector("#dataSortOrder"),dataSortType=document.querySelector("#dataSortType");
-const dataFilterColumn=document.querySelector("#dataFilterColumn"),dataFilterOp1=document.querySelector("#dataFilterOp1"),dataFilterValue1=document.querySelector("#dataFilterValue1"),dataFilterJoin=document.querySelector("#dataFilterJoin"),dataFilterOp2=document.querySelector("#dataFilterOp2"),dataFilterValue2=document.querySelector("#dataFilterValue2"),dataFilterColor=document.querySelector("#dataFilterColor"),dataFilterColorEnabled=document.querySelector("#dataFilterColorEnabled");
+const dataFilterColumn=document.querySelector("#dataFilterColumn"),dataFilterColumn2=document.querySelector("#dataFilterColumn2"),dataFilterValues=document.querySelector("#dataFilterValues"),dataFilterOp1=document.querySelector("#dataFilterOp1"),dataFilterValue1=document.querySelector("#dataFilterValue1"),dataFilterJoin=document.querySelector("#dataFilterJoin"),dataFilterOp2=document.querySelector("#dataFilterOp2"),dataFilterValue2=document.querySelector("#dataFilterValue2"),dataFilterColor=document.querySelector("#dataFilterColor"),dataFilterColorEnabled=document.querySelector("#dataFilterColorEnabled");
 const dataTableName=document.querySelector("#dataTableName"),dataStatus=document.querySelector("#dataStatus");
 function selectedBounds(){return getRangeBounds(selectionRange.start,selectionRange.end);}
 function currentDataRules(){
- const bounds=selectedBounds(),column=parseAddress(String(dataFilterColumn.value).toUpperCase()+"1")?.c;
+ const bounds=selectedBounds(),column=parseAddress(String(dataFilterColumn.value).toUpperCase()+"1")?.c,column2=parseAddress(String(dataFilterColumn2.value).toUpperCase()+"1")?.c;
  if(!column||column<bounds.startCol||column>bounds.endCol)throw new Error("Cột lọc phải nằm trong vùng đang chọn.");
  const rules=[];
+ if(!column||column<bounds.startCol||column>bounds.endCol||!column2||column2<bounds.startCol||column2>bounds.endCol)throw new Error("Hai cột điều kiện phải nằm trong vùng đang chọn.");
  if(dataFilterOp1.value!=="all"){if(!dataFilterValue1.value&&dataFilterOp1.value!=="empty"&&dataFilterOp1.value!=="notEmpty")throw new Error("Nhập giá trị cho điều kiện lọc thứ nhất.");rules.push({column,operator:dataFilterOp1.value,value:dataFilterValue1.value});}
- if(dataFilterOp2.value!=="all"){if(!dataFilterValue2.value&&dataFilterOp2.value!=="empty"&&dataFilterOp2.value!=="notEmpty")throw new Error("Nhập giá trị cho điều kiện lọc thứ hai.");rules.push({column,operator:dataFilterOp2.value,value:dataFilterValue2.value});}
- return {bounds,rules,join:dataFilterJoin.value,color:dataFilterColorEnabled.checked?dataFilterColor.value:null};
+ if(dataFilterOp2.value!=="all"){if(!dataFilterValue2.value&&dataFilterOp2.value!=="empty"&&dataFilterOp2.value!=="notEmpty")throw new Error("Nhập giá trị cho điều kiện lọc thứ hai.");rules.push({column:column2,operator:dataFilterOp2.value,value:dataFilterValue2.value});}
+ const selectedValues=[...dataFilterValues.selectedOptions].map(o=>o.value);
+ return {bounds,rules,join:dataFilterJoin.value,color:dataFilterColorEnabled.checked?dataFilterColor.value:null,allowedValues:selectedValues.length?{[column]:selectedValues}:{}};
 }
 document.querySelector("#dataSortApply").addEventListener("click",()=>{
  try{
@@ -409,12 +423,21 @@ document.querySelector("#dataSortApply").addEventListener("click",()=>{
 });
 document.querySelector("#dataFilterApply").addEventListener("click",()=>{
  try{
-  const config=currentDataRules(),result=filterRangeRows(cells,cellFormats,config.bounds,{rules:config.rules,join:config.join,fillColor:config.color});
-  filteredRows=new Set(result.hiddenRows);activeFilter={bounds:config.bounds,rules:config.rules,join:config.join,color:config.color};
+  const config=currentDataRules(),result=filterRangeRows(cells,cellFormats,config.bounds,{rules:config.rules,join:config.join,fillColor:config.color,allowedValues:config.allowedValues});
+  filteredRows=new Set(result.hiddenRows);activeFilter={bounds:config.bounds,rules:config.rules,join:config.join,color:config.color,allowedValues:config.allowedValues};
   render();dataStatus.textContent="Đang hiển thị "+result.visibleRows+" / "+result.totalRows+" hàng dữ liệu trong vùng lọc.";
  }catch(e){dataStatus.textContent=e.message;}
 });
 document.querySelector("#dataFilterClear").addEventListener("click",()=>{filteredRows.clear();activeFilter=null;render();dataStatus.textContent="Đã bỏ bộ lọc; dữ liệu không bị xóa.";});
+
+function refreshFilterValues(){
+ try{const bounds=selectedBounds(),column=parseAddress(String(dataFilterColumn.value).toUpperCase()+"1")?.c;if(!column||column<bounds.startCol||column>bounds.endCol)throw new Error("Cột danh sách nằm ngoài vùng.");const values=uniqueColumnValues(cells,bounds,column);dataFilterValues.innerHTML=values.map(x=>"<option value='"+escapeHtml(x.value).replace(/'/g,"&#39;")+"' selected>"+escapeHtml(x.value||"(Ô trống)")+" · "+x.count+"</option>").join("");dataStatus.textContent="Đã nạp "+values.length+" giá trị duy nhất. Bỏ chọn giá trị không muốn hiển thị.";}catch(e){dataStatus.textContent=e.message;}
+}
+document.querySelector("#dataFilterValuesRefresh").addEventListener("click",refreshFilterValues);
+document.querySelector("#dataSubtotalApply").addEventListener("click",()=>{
+ try{const bounds=selectedBounds(),groupColumn=parseAddress(String(document.querySelector("#dataSubtotalGroup").value).toUpperCase()+"1")?.c,valueColumn=parseAddress(String(document.querySelector("#dataSubtotalValue").value).toUpperCase()+"1")?.c,operation=document.querySelector("#dataSubtotalOperation").value;const rows=summarizeByGroup(cells,bounds,{groupColumn,valueColumn,operation});if(!rows.length)throw new Error("Không có nhóm dữ liệu để tổng hợp.");const output=document.querySelector("#dataSubtotalOutput");output.innerHTML="<table><thead><tr><th>Nhóm</th><th>Số mẫu</th><th>"+escapeHtml(operation)+"</th></tr></thead><tbody>"+rows.map(r=>"<tr><td>"+escapeHtml(r.group||"(Trống)")+"</td><td>"+r.count+"</td><td>"+r.value+"</td></tr>").join("")+"</tbody></table>";dataStatus.textContent="Đã tổng hợp "+rows.length+" nhóm. Bảng kết quả chỉ là báo cáo xem trước, không ghi đè dữ liệu gốc.";}catch(e){dataStatus.textContent=e.message;}
+});
+
 document.querySelector("#dataRemoveDuplicates").addEventListener("click",()=>{
  try{
   const bounds=selectedBounds(),result=removeDuplicateRows(cells,cellFormats,bounds);
@@ -435,7 +458,7 @@ document.querySelector("#dataDefineTable").addEventListener("click",()=>{
 });
 function renderDataTables(){
  const list=document.querySelector("#dataTableList");
- list.innerHTML=dataTables.map(t=>"<li><b>"+escapeHtml(t.name)+"</b> · "+escapeHtml(t.range)+" · "+t.columns.length+" cột</li>").join("")||"<li>Chưa có vùng dữ liệu có cấu trúc.</li>";
+ list.innerHTML=dataTables.map(t=>"<li><b>"+escapeHtml(t.name)+"</b> · "+escapeHtml(t.range)+" · "+t.columns.length+" cột · tự mở rộng</li>").join("")||"<li>Chưa có vùng dữ liệu có cấu trúc.</li>";
 }
 document.querySelector("#dataClearTables").addEventListener("click",()=>{
  if(!dataTables.length)return;

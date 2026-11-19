@@ -23,11 +23,12 @@ function matchesRule(value,rule){
 export function filterRangeRows(cells,formats,bounds,options={}){
  const b=boundsOf(bounds),rules=options.rules||[],join=options.join==="or"?"or":"and",color=options.fillColor?.toLowerCase()||null;
  if(rules.some(r=>!Number.isInteger(r.column)||r.column<b.startCol||r.column>b.endCol))throw new RangeError("Cột điều kiện nằm ngoài vùng lọc.");
- const hiddenRows=[];let visibleRows=0,totalRows=Math.max(0,b.endRow-b.startRow);
+ const allowed=options.allowedValues||{};const hiddenRows=[];let visibleRows=0,totalRows=Math.max(0,b.endRow-b.startRow);
  for(let row=b.startRow+1;row<=b.endRow;row++){
   const rulePass=rules.length===0?true:join==="and"?rules.every(rule=>matchesRule(valueFor(cells,row,rule.column),rule)):rules.some(rule=>matchesRule(valueFor(cells,row,rule.column),rule));
+  const valuePass=Object.entries(allowed).every(([column,values])=>!Array.isArray(values)||values.length===0||values.includes(valueFor(cells,row,Number(column))));
   const colorPass=!color||Array.from({length:b.endCol-b.startCol+1},(_,i)=>formats[cellKey(row,b.startCol+i)]?.background?.toLowerCase()).includes(color);
-  if(rulePass&&colorPass)visibleRows++;else hiddenRows.push(row);
+  if(rulePass&&valuePass&&colorPass)visibleRows++;else hiddenRows.push(row);
  }
  return{hiddenRows,visibleRows,totalRows};
 }
@@ -50,4 +51,28 @@ export function defineStructuredRange(cells,bounds,name){
  for(let col=b.startCol;col<=b.endCol;col++){const header=valueFor(cells,b.startRow,col).trim();if(!header)throw new Error("Tiêu đề cột "+col+" đang trống.");const key=header.toLocaleLowerCase();if(used.has(key))throw new Error("Tên cột bị trùng: "+header);used.add(key);columns.push(header);}
  const range=cellKey(b.startRow,b.startCol)+":"+cellKey(b.endRow,b.endCol);
  return{name:safe,range,bounds:{...b},columns,headerRow:b.startRow,createdAt:new Date().toISOString()};
+}
+
+export function uniqueColumnValues(cells,bounds,column){
+ const b=boundsOf(bounds);if(!Number.isInteger(column)||column<b.startCol||column>b.endCol)throw new RangeError("Cột lấy danh sách giá trị nằm ngoài vùng.");
+ const seen=new Map();for(let row=b.startRow+1;row<=b.endRow;row++){const value=valueFor(cells,row,column);if(!seen.has(value))seen.set(value,{value,count:0});seen.get(value).count++;}
+ return [...seen.values()].sort((a,b)=>compareValues(a.value,b.value,"auto"));
+}
+export function summarizeByGroup(cells,bounds,{groupColumn,valueColumn,operation="sum"}={}){
+ const b=boundsOf(bounds);for(const c of [groupColumn,valueColumn])if(!Number.isInteger(c)||c<b.startCol||c>b.endCol)throw new RangeError("Cột tổng hợp nằm ngoài vùng.");
+ if(!["sum","average","count","min","max"].includes(operation))throw new RangeError("Phép tổng hợp không hợp lệ.");
+ const groups=new Map();for(let row=b.startRow+1;row<=b.endRow;row++){const key=valueFor(cells,row,groupColumn);if(!groups.has(key))groups.set(key,[]);const raw=valueFor(cells,row,valueColumn);if(raw.trim()!==""&&Number.isFinite(Number(raw)))groups.get(key).push(Number(raw));}
+ return [...groups.entries()].map(([group,values])=>({group,count:values.length,value:!values.length?0:operation==="sum"?values.reduce((a,b)=>a+b,0):operation==="average"?values.reduce((a,b)=>a+b,0)/values.length:operation==="count"?values.length:operation==="min"?Math.min(...values):Math.max(...values)}));
+}
+export function expandStructuredRange(table,row,column){
+ if(!table?.bounds)return table;const b=boundsOf(table.bounds);
+ if(row!==b.endRow+1||column<b.startCol||column>b.endCol)return table;
+ const nextBounds={...b,endRow:row};return{...table,bounds:nextBounds,range:cellKey(b.startRow,b.startCol)+":"+cellKey(row,b.endCol),updatedAt:new Date().toISOString()};
+}
+export function structuredColumnRange(tables,reference){
+ const match=/^([A-Za-z_][A-Za-z0-9_]*)\[([^\]]+)\]$/.exec(String(reference||"").trim());if(!match)return null;
+ const table=(tables||[]).find(t=>t.name.toLocaleLowerCase()===match[1].toLocaleLowerCase());if(!table)return null;
+ const index=table.columns.findIndex(c=>c.toLocaleLowerCase()===match[2].trim().toLocaleLowerCase());if(index<0)return null;
+ const b=boundsOf(table.bounds),column=b.startCol+index,start=b.startRow+1,end=b.endRow;
+ if(end<start)return null;return cellKey(start,column)+":"+cellKey(end,column);
 }
