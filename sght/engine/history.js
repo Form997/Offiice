@@ -40,8 +40,8 @@ export function trimHistoryStacks(undoStack, redoStack, { maxEntries = MAX_ENTRI
   while (undoStack.length > maxEntries) undoStack.shift();
   while (redoStack.length > maxEntries) redoStack.shift();
   let bytes = [...undoStack, ...redoStack].reduce((sum, entry) => sum + String(entry).length * 2, 0);
-  while (bytes > maxBytes && (undoStack.length > 1 || redoStack.length > 1)) {
-    const target = undoStack.length >= redoStack.length && undoStack.length > 1 ? undoStack : redoStack;
+  while (bytes > maxBytes && undoStack.length + redoStack.length > 1) {
+    const target = undoStack.length >= redoStack.length && undoStack.length ? undoStack : redoStack;
     bytes -= String(target.shift()).length * 2;
   }
   return { undo: undoStack.length, redo: redoStack.length, bytes };

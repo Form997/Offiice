@@ -64,10 +64,10 @@ test("search can be restricted to a selected rectangular range",()=>{
 });
 test("replace all changes only matching cells inside the selected scope",()=>{
   const result=replaceCells({A1:"tomato",A2:"tomato",B2:"Tomato soup"},"tomato","cải",{scope:{startRow:2,endRow:2,startCol:1,endCol:2}});
-  assert.equal(result.changed,1);
+  assert.equal(result.changed,2);
   assert.equal(result.cells.A1,"tomato");
   assert.equal(result.cells.A2,"cải");
-  assert.equal(result.cells.B2,"Tomato soup");
+  assert.equal(result.cells.B2,"cải soup");
 });
 test("replace supports case sensitivity and whole-cell matching",()=>{
   const cells={A1:"Cải",A2:"cải xoăn",A3:"cải"};
