@@ -572,3 +572,14 @@ Bổ sung mô hình đáp ứng tăng dần, lợi ích biên giảm dần:
 - Các bộ lọc tiếp tục kết hợp với AND/OR, danh sách giá trị và màu nền. Lọc không xóa dữ liệu nguồn.
 - Bổ sung kiểm thử cho phân cấp nhóm, Pivot Table, khoảng số, điều kiện chuỗi và ngày.
 - Giới hạn: Pivot hiện là bản xem trước, chưa có kéo-thả trường, Pivot Chart liên kết tự cập nhật hoặc tổng hợp theo nhiều phép tính cùng lúc; tổng phụ nhiều cấp tối đa 5 cấp.
+
+
+## SGHT Pivot Table — Giai đoạn 18.14 — 2026-11-19
+
+- **Bộ thiết kế Pivot tương tác:** nạp tên trường từ hàng tiêu đề của vùng chọn; kéo-thả trường vào Hàng, Cột, Giá trị và Bộ lọc. Có thao tác thêm trường bằng chạm để dùng trên điện thoại.
+- Hỗ trợ tối đa 4 trường hàng, 1 trường cột, 4 chỉ tiêu giá trị và 4 trường lọc.
+- Mỗi chỉ tiêu giá trị có phép tính riêng: Tổng, Trung bình, Đếm, Nhỏ nhất, Lớn nhất.
+- Bộ lọc Pivot cho phép chọn nhiều giá trị trên từng trường; bỏ chọn toàn bộ nghĩa là không có dòng nào thỏa bộ lọc.
+- **Tự làm mới:** cấu hình Pivot được lưu cùng workbook trên thiết bị; báo cáo được tính lại khi giao diện bảng tính render sau thao tác thay đổi dữ liệu. Thay đổi bố trí và bộ lọc cũng cập nhật báo cáo.
+- Engine vẫn hỗ trợ API Pivot cũ để tương thích; bổ sung kiểm thử nhiều chỉ tiêu và lọc trường.
+- Giới hạn: một trường cột duy nhất; Pivot chưa có bộ lọc điều kiện số/ngày, chưa có tổng phụ phân cấp trong chính Pivot, chưa có Pivot Chart liên kết. Kết quả là báo cáo hiển thị, chưa ghi thành vùng ô có thể chỉnh sửa.
