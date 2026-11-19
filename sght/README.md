@@ -331,3 +331,31 @@ Bổ sung mô hình đáp ứng tăng dần, lợi ích biên giảm dần:
 - PNG dùng canvas và có thể bị chặn bởi chính sách trình duyệt; SVG là lựa chọn vector ưu tiên.
 - Chưa có chỉnh sửa màu sắc/trục/chú giải nâng cao, nhiều chuỗi trên cùng đồ thị, zoom/pan, biểu đồ 3D tương tác, mẫu biểu đồ có đồng bộ đa thiết bị.
 - Xuất ảnh chỉ bao gồm biểu đồ đang hiển thị; không tự đính kèm dữ liệu gốc hoặc bảng kết quả thống kê.
+
+
+## SGHT Scientific Visualization Studio — Giai đoạn 14 · Nhiều chuỗi & tương tác biểu đồ — 2026-11-19
+
+### Chức năng mới
+- Vẽ từ 2 đến 12 chuỗi Y trên cùng biểu đồ đường hoặc phân tán, dùng chung một vùng X.
+- Mỗi chuỗi có tên riêng, màu phân biệt và chú giải tự động; dữ liệu phải có cùng số dòng, không tự nội suy, không tự điền giá trị thiếu.
+- Có ô đặt tiêu đề biểu đồ và trường nhập nhanh nhiều vùng Y, phân cách bằng dấu phẩy.
+- Tương tác trực tiếp trên vùng SVG: cuộn chuột để phóng to/thu nhỏ, kéo để dịch chuyển, nút khôi phục để trở về toàn cảnh.
+- Giữ nguyên xuất SVG, PNG 2× và in/lưu PDF từ Giai đoạn 13; thao tác xử lý hoàn toàn trên thiết bị.
+
+### Cách dùng nhiều chuỗi
+1. Chọn **Biểu đồ đường** hoặc **Biểu đồ phân tán**.
+2. Nhập X, ví dụ `A2:A20`.
+3. Nhập nhiều vùng Y, ví dụ `B2:B20,C2:C20,D2:D20`.
+4. Đặt tên chuỗi theo cùng thứ tự, ví dụ `Đối chứng,Nghiệm thức 1,Nghiệm thức 2`.
+5. Dựng biểu đồ; cuộn để zoom, kéo để pan, dùng nút khôi phục khi cần.
+
+### Kiểm soát và giới hạn
+- Chỉ hỗ trợ 2–12 chuỗi; mọi chuỗi phải cùng số quan sát với X.
+- Nhiều chuỗi hiện dùng chung một trục Y. Nếu biến có đơn vị hoặc độ lớn khác nhau, không nên đặt chung trục mà chưa chuẩn hóa hoặc thiết kế trục phụ có kiểm soát.
+- Zoom/pan hiện là tương tác trên SVG, không làm thay đổi dữ liệu hay kết quả thống kê; xuất ảnh phản ánh vùng xem hiện tại.
+- Chưa có trục Y thứ hai, bộ chỉnh sửa màu/kiểu nét riêng từng chuỗi, mẫu biểu đồ lưu trữ, 3D tương tác, xuất báo cáo nghiên cứu PDF có bố cục nhiều trang.
+- Không gọi tính năng 3D là đã hoàn thành; cần mô hình dữ liệu 3D, điều khiển camera và kiểm thử hiệu năng riêng.
+
+### Kiểm thử
+- Kiểm tra nhiều chuỗi cùng X, giữ nguyên thứ tự cặp quan sát.
+- Từ chối số dòng không khớp và số chuỗi vượt giới hạn.
