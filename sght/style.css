@@ -60,3 +60,8 @@
 
 /* SGHT Stage 17 */
 .format-controls{min-width:390px}.format-controls label{display:flex;align-items:center;gap:4px;color:#64756b;font-size:10px;white-space:nowrap}.format-controls select{height:28px;max-width:125px;border:1px solid var(--line);border-radius:5px;background:#fff;color:var(--ink);font-size:10px;padding:0 5px}.format-controls input[type=color]{width:28px;height:26px;padding:1px;border:1px solid var(--line);border-radius:4px;background:#fff}.cell.in-range{background:#e8f2eb;outline:1px solid #9bb9a5;outline-offset:-1px}.cell.selected{outline:2px solid #23744f;outline-offset:-2px;background:#dceee2;z-index:2}.sheet-grid .cell{user-select:none;-webkit-user-select:none}@media(max-width:680px){.format-controls{min-width:360px}.format-controls label{font-size:9px}}
+
+/* SGHT 18.2 — virtual grid spacers preserve scroll geometry without rendering empty cells. */
+.sheet-grid .virtual-spacer{padding:0!important;min-width:0!important;border:0!important;background:transparent!important;pointer-events:none}
+.sheet-grid .virtual-gap td{padding:0!important;border:0!important;line-height:0;font-size:0;background:transparent}
+.sheet-grid .virtual-gap{height:auto!important}

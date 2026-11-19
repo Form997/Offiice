@@ -1,6 +1,7 @@
 import { evaluateFormula, FormulaError } from "./engine/core.js";
 import { normalizeCellFormat, cellFormatStyle, getRangeBounds, expandRange, encodeTSV, parseTSV } from "./engine/cell-format.js";
 import { captureRange, pasteCapturedRange } from "./engine/range-clipboard.js";
+import { getVirtualWindow } from "./engine/sparse-grid.js";
 import { planMacro, executeMacro } from "./automation/macro-engine.js";
 import { MacroRecorder } from "./automation/macro-recorder.js";
 import { MacroLibrary } from "./automation/macro-library.js";
@@ -16,7 +17,10 @@ import { buildSurface3DData, projectSurface3D } from "./ai/chart-surface-3d.js";
 import { buildContourData, summarizeErrorBars, regressionUncertainty } from "./ai/chart-uncertainty.js";
 import { pearsonCorrelation, simpleLinearRegression, oneWayAnova, multipleLinearRegression, fisherLSD, twoWayAnovaBalanced, leveneTest, brownForsytheTest, linearTrendForecast, tukeyHSD, gamesHowell, varianceInflationFactors, descriptiveStatistics, ancova, kruskalWallis, dunnPostHoc, oneWayEffectSizes, anovaPower, requiredAnovaSampleSize } from "./ai/data-science.js";
 
-const COLS = 16, ROWS = 40, STORAGE_KEY = "haidat-sght-workbook-v1";
+const COLS = 100, ROWS = 1000, STORAGE_KEY = "haidat-sght-workbook-v1";
+const ROW_HEIGHT = 32, COLUMN_WIDTH = 108, OVERSCAN_ROWS = 5, OVERSCAN_COLUMNS = 2;
+const sheetScroll = document.querySelector("#sheetScroll");
+let virtualWindow = null;
 const letters = n => { let s=""; while(n>0){const r=(n-1)%26;s=String.fromCharCode(65+r)+s;n=Math.floor((n-1)/26);} return s; };
 const address = (r,c) => letters(c)+r;
 const parseAddress = a => { const m=/^([A-Z]+)([1-9][0-9]*)$/i.exec(a); if(!m)return null; let c=0; for(const ch of m[1].toUpperCase())c=c*26+ch.charCodeAt(0)-64; return {r:Number(m[2]),c}; };
@@ -36,10 +40,51 @@ function raw(a){return Object.hasOwn(cells,a)?String(cells[a]):"";}
 function calculate(a,stack=new Set()){const value=raw(a);if(!value.startsWith("="))return value===""?"":coerce(value);if(stack.has(a))throw new FormulaError("#CYCLE!","Phát hiện công thức tham chiếu vòng.");stack.add(a);const ctx={getCell(ref){return calculate(ref.toUpperCase(),stack);},getRange(ref){const [s,e]=ref.toUpperCase().split(":").map(parseAddress);if(!s||!e)throw new FormulaError("#REF!","Vùng ô không hợp lệ.");const area=(Math.abs(e.r-s.r)+1)*(Math.abs(e.c-s.c)+1);if(!Number.isSafeInteger(area)||area>100000)throw new FormulaError("#REF!","Vùng công thức vượt giới hạn an toàn 100.000 ô.");const out=[];for(let r=Math.min(s.r,e.r);r<=Math.max(s.r,e.r);r++)for(let c=Math.min(s.c,e.c);c<=Math.max(s.c,e.c);c++)out.push(calculate(address(r,c),stack));return out;}};try{return evaluateFormula(value,ctx);}finally{stack.delete(a);}}
 function coerce(v){if(typeof v!=="string")return v;if(v.trim()!==""&&Number.isFinite(Number(v)))return Number(v);return v;}
 function display(a){try{const v=calculate(a);if(typeof v!=="number")return String(v??"");const f=normalizeCellFormat(cellFormats[a]||{});if(f.numberFormat==="integer")return new Intl.NumberFormat("vi-VN",{maximumFractionDigits:0}).format(v);if(f.numberFormat==="number2")return new Intl.NumberFormat("vi-VN",{minimumFractionDigits:2,maximumFractionDigits:2}).format(v);if(f.numberFormat==="percent")return new Intl.NumberFormat("vi-VN",{style:"percent",maximumFractionDigits:2}).format(v);if(f.numberFormat==="currency")return new Intl.NumberFormat("vi-VN",{style:"currency",currency:"VND",maximumFractionDigits:0}).format(v);return String(Number(v.toPrecision(12)));}catch(e){return e.code||"#CALC!";}}
-function render(){const thead=grid.querySelector("thead"),tbody=grid.querySelector("tbody");thead.innerHTML="<tr><th class='corner'></th>"+Array.from({length:COLS},(_,i)=>"<th>"+letters(i+1)+"</th>").join("")+"</tr>";const rows=[];for(let r=1;r<=ROWS;r++){let html="<th class='row-head'>"+r+"</th>";for(let c=1;c<=COLS;c++){const a=address(r,c);html+="<td><button type='button' class='cell' draggable='true' data-cell='"+a+"' aria-label='Ô "+a+"'>"+escapeHtml(display(a))+"</button></td>";}rows.push("<tr>"+html+"</tr>");}tbody.innerHTML=rows.join("");for(const b of tbody.querySelectorAll("[data-cell]")){for(const [k,v] of Object.entries(cellFormatStyle(cellFormats[b.dataset.cell]||{})))b.style[k]=v;}updateSelection();}
+function render(){
+  const thead=grid.querySelector("thead"),tbody=grid.querySelector("tbody");
+  virtualWindow=getVirtualWindow({scrollTop:sheetScroll.scrollTop,scrollLeft:sheetScroll.scrollLeft,viewportHeight:sheetScroll.clientHeight||480,viewportWidth:sheetScroll.clientWidth||900,rowHeight:ROW_HEIGHT,columnWidth:COLUMN_WIDTH,overscanRows:OVERSCAN_ROWS,overscanColumns:OVERSCAN_COLUMNS,maxRow:ROWS,maxColumn:COLS});
+  const w=virtualWindow,leftWidth=w.leftOffset,rightWidth=w.rightOffset;
+  thead.innerHTML="<tr><th class='corner'></th>"+(leftWidth?"<th class='virtual-spacer' style='width:"+leftWidth+"px;min-width:"+leftWidth+"px'></th>":"")+Array.from({length:w.renderedColumns},(_,i)=>"<th>"+letters(w.columnStart+i)+"</th>").join("")+(rightWidth?"<th class='virtual-spacer' style='width:"+rightWidth+"px;min-width:"+rightWidth+"px'></th>":"")+"</tr>";
+  const rows=[],span=w.renderedColumns+3;
+  if(w.topOffset)rows.push("<tr class='virtual-gap'><td colspan='"+span+"' style='height:"+w.topOffset+"px'></td></tr>");
+  for(let r=w.rowStart;r<=w.rowEnd;r++){
+    let rowHtml="<th class='row-head'>"+r+"</th>";
+    if(leftWidth)rowHtml+="<td class='virtual-spacer' style='width:"+leftWidth+"px;min-width:"+leftWidth+"px'></td>";
+    for(let c=w.columnStart;c<=w.columnEnd;c++){
+      const a=address(r,c);
+      rowHtml+="<td><button type='button' class='cell' draggable='true' data-cell='"+a+"' aria-label='Ô "+a+"'>"+escapeHtml(display(a))+"</button></td>";
+    }
+    if(rightWidth)rowHtml+="<td class='virtual-spacer' style='width:"+rightWidth+"px;min-width:"+rightWidth+"px'></td>";
+    rows.push("<tr>"+rowHtml+"</tr>");
+  }
+  if(w.bottomOffset)rows.push("<tr class='virtual-gap'><td colspan='"+span+"' style='height:"+w.bottomOffset+"px'></td></tr>");
+  tbody.innerHTML=rows.join("");
+  for(const b of tbody.querySelectorAll("[data-cell]"))for(const [k,v] of Object.entries(cellFormatStyle(cellFormats[b.dataset.cell]||{})))b.style[k]=v;
+  updateSelection();
+}
 function escapeHtml(v){return String(v).replace(/[&<>"']/g,ch=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[ch]));}
-function updateSelection(){cellAddress.textContent=selected;formulaInput.value=raw(selected);const x=getRangeBounds(selectionRange.start,selectionRange.end),count=(x.endRow-x.startRow+1)*(x.endCol-x.startCol+1);selectionInfo.textContent=count===1?"Ô "+selected+" đang được chọn":"Vùng "+x.start+":"+x.end+" · "+count+" ô";grid.querySelectorAll(".cell.selected,.cell.in-range").forEach(el=>el.classList.remove("selected","in-range"));for(const a of expandRange(x.start,x.end)){const el=grid.querySelector("[data-cell='"+a+"']");if(el)el.classList.add(a===selected?"selected":"in-range");}}
-function choose(a,extend=false){if(!parseAddress(a))return;selected=a;if(extend)selectionRange.end=a;else selectionRange={start:a,end:a};updateSelection();formulaInput.focus();formulaInput.select();}
+function updateSelection(){
+  cellAddress.textContent=selected;formulaInput.value=raw(selected);
+  const x=getRangeBounds(selectionRange.start,selectionRange.end),count=(x.endRow-x.startRow+1)*(x.endCol-x.startCol+1);
+  selectionInfo.textContent=count===1?"Ô "+selected+" đang được chọn":"Vùng "+x.start+":"+x.end+" · "+count.toLocaleString("vi-VN")+" ô";
+  for(const el of grid.querySelectorAll(".cell")){
+    const p=parseAddress(el.dataset.cell);if(!p)continue;
+    const inside=p.r>=x.startRow&&p.r<=x.endRow&&p.c>=x.startCol&&p.c<=x.endCol;
+    el.classList.toggle("selected",el.dataset.cell===selected);
+    el.classList.toggle("in-range",inside&&el.dataset.cell!==selected);
+  }
+}
+function choose(a,extend=false){
+  const p=parseAddress(a);if(!p||p.r>ROWS||p.c>COLS)return;
+  selected=a;if(extend)selectionRange.end=a;else selectionRange={start:a,end:a};
+  const top=(p.r-1)*ROW_HEIGHT,bottom=top+ROW_HEIGHT,left=(p.c-1)*COLUMN_WIDTH,right=left+COLUMN_WIDTH;
+  if(top<sheetScroll.scrollTop)sheetScroll.scrollTop=top;
+  else if(bottom>sheetScroll.scrollTop+sheetScroll.clientHeight)sheetScroll.scrollTop=bottom-sheetScroll.clientHeight;
+  if(left<sheetScroll.scrollLeft)sheetScroll.scrollLeft=left;
+  else if(right>sheetScroll.scrollLeft+sheetScroll.clientWidth)sheetScroll.scrollLeft=right-sheetScroll.clientWidth;
+  updateSelection();formulaInput.focus();formulaInput.select();
+}
+sheetScroll.addEventListener("scroll",()=>render(),{passive:true});
 function setValue(a,v){snapshot();if(v===""){delete cells[a];if(!macroExecution)try{macroRecorder.recordClear(a);}catch(e){calcStatus.textContent=e.message;}}else{cells[a]=v;if(!macroExecution)try{macroRecorder.recordSet(a,v);}catch(e){calcStatus.textContent=e.message;}}render();save();calcStatus.textContent="Đã tính lại các ô phụ thuộc";}
 function apply(){const value=formulaInput.value;setValue(selected,value.trim()===""?"":value);updateSelection();}
 function exportCsv(){const used=Object.keys(cells).map(parseAddress).filter(Boolean);const maxR=Math.max(1,...used.map(x=>x.r)),maxC=Math.max(1,...used.map(x=>x.c));const lines=[];for(let r=1;r<=maxR;r++){const row=[];for(let c=1;c<=maxC;c++){const v=display(address(r,c));row.push('"'+v.replace(/"/g,'""')+'"');}lines.push(row.join(","));}const blob=new Blob(["\ufeff"+lines.join("\r\n")],{type:"text/csv;charset=utf-8"}),url=URL.createObjectURL(blob),link=document.createElement("a");link.href=url;link.download=(sheetTitle||"sght").replace(/[\\/:*?"<>|]/g,"_")+".csv";link.click();URL.revokeObjectURL(url);}

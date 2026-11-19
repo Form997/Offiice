@@ -412,3 +412,12 @@ Bổ sung mô hình đáp ứng tăng dần, lợi ích biên giảm dần:
 - Bổ sung cập nhật sparse map theo copy-on-write để giữ nguyên bản đồ nguồn khi thao tác.
 - Kiểm thử địa chỉ lớn, dữ liệu thưa, cửa sổ ảo, biên lưới và tính bất biến.
 - **Phạm vi 18.1:** đây là nền móng thuật toán, chưa thay thế renderer 16×40 hiện tại. Chưa công bố lưới vô hạn/ảo hóa đã tích hợp cho giao diện; bước 18.2 sẽ nối cửa sổ ảo vào vùng cuộn, bàn phím, chọn vùng, định dạng, clipboard và hoàn tác.
+
+## Giai đoạn 18.2 — Tích hợp lưới ảo vào giao diện — 2026-11-19
+
+- Kết nối engine/sparse-grid.js với bộ dựng lưới: chỉ dựng các hàng/cột đang nhìn thấy và một dải overscan, không dựng 100.000 ô cùng lúc.
+- Mở rộng vùng thao tác giao diện từ 16 cột × 40 hàng lên 100 cột × 1.000 hàng; địa chỉ ô, bàn phím, chọn vùng, công thức, định dạng và clipboard hiện có tiếp tục dùng chung bản đồ dữ liệu thưa.
+- Dùng các dải đệm ảo trên/dưới/trái/phải để giữ hình học cuộn; cuộn ngang/dọc sẽ dựng lại đúng cửa sổ hiển thị.
+- Chọn ô bằng bàn phím hoặc hộp địa chỉ sẽ tự cuộn ô vào vùng nhìn thấy. Tô chọn chỉ duyệt những ô đang được dựng, tránh lặp qua toàn bộ vùng lớn.
+- Dữ liệu và định dạng vẫn lưu theo địa chỉ ô trong localStorage; không chuyển dữ liệu sang ma trận ô rỗng.
+- Giới hạn minh bạch của 18.2: giao diện hiện hỗ trợ tối đa 1.000 hàng × 100 cột trong bước này để giữ tương thích với vùng dán hiện hành. Bộ địa chỉ và thuật toán nền có thể biểu diễn tọa độ lớn hơn, nhưng mở rộng động và cuộn phân đoạn vượt giới hạn giao diện sẽ thuộc bước tiếp theo; chưa tuyên bố lưới vô hạn.
