@@ -104,6 +104,7 @@ function dsRenderChart(spec){
  add("line",{x1:L,y1:T+plotH,x2:W-R,y2:T+plotH,stroke:"currentColor","stroke-width":1});
  let xs=[],ys=[];
  if(spec.series){xs=spec.series.flatMap(v=>v.points.map(p=>p.x));ys=spec.series.flatMap(v=>v.points.map(p=>p.y));}
+ if(spec.type==="surface3d"){xs=spec.grid.flat().map(p=>p.x);ys=spec.grid.flat().map(p=>p.z);}
  if(spec.points){xs=spec.points.map(p=>p.x);ys=spec.points.map(p=>p.y);}
  if(spec.bars){xs=spec.bars.map((p,i)=>i);ys=spec.bars.map(p=>p.count);}
  if(spec.groups){xs=spec.groups.map((p,i)=>i);ys=spec.groups.flatMap(p=>[p.min,p.max]);}
