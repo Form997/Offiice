@@ -49,3 +49,15 @@ test("tham chiếu ô và vùng tính được kết quả theo dữ liệu",()=
   assert.equal(evaluateFormula("=A1*B1",ctx),24);
   assert.equal(evaluateFormula("=SUM(A1:A2)",ctx),30);
 });
+
+
+test("MOD giữ dấu của số chia như quy ước bảng tính",()=>{
+  assert.equal(evaluateFormula("=MOD(7,3)"),1);
+  assert.equal(evaluateFormula("=MOD(7,-3)"),-2);
+  assert.equal(evaluateFormula("=MOD(-7,3)"),2);
+  assert.equal(evaluateFormula("=MOD(-7,-3)"),-1);
+});
+test("phép toán tràn miền số trả mã #NUM!",()=>{
+  assert.throws(()=>evaluateFormula("=1e308*1e308"),e=>e.code==="#NUM!");
+  assert.throws(()=>evaluateFormula("=1e308/1e-308"),e=>e.code==="#NUM!");
+});

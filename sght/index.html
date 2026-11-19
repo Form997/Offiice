@@ -15,7 +15,7 @@
   <main>
     <section class="document-head">
       <div><p class="eyebrow">KHÔNG GIAN LÀM VIỆC</p><input id="sheetName" class="sheet-name" value="Bảng tính chưa đặt tên" aria-label="Tên bảng tính"></div>
-      <div class="sheet-meta">Tự động lưu cục bộ · Lưới mở rộng theo dữ liệu</div>
+      <div class="sheet-meta">Tự động lưu cục bộ · Lưới hiện tại 16 cột × 40 hàng</div>
     </section>
     <nav class="ribbon-tabs" aria-label="Trình đơn bảng tính">
       <button class="ribbon-tab active" data-tab="home">Trang chủ</button>
@@ -27,7 +27,7 @@
     </nav>
     <section class="ribbon-panel" aria-label="Thanh công cụ">
       <div class="tool-group"><div class="tool-row"><button id="cutAction" class="tool-btn" title="Cắt">✂ Cắt</button><button id="copyAction" class="tool-btn" title="Sao chép">▢ Sao chép</button><button id="pasteAction" class="tool-btn" title="Dán">▣ Dán</button></div><small>Bảng tạm</small></div>
-      <div class="tool-group"><div class="tool-row"><button id="boldAction" class="tool-btn" title="In đậm">B</button><button id="italicAction" class="tool-btn" title="In nghiêng"><i>I</i></button><button id="clearAction" class="tool-btn">Xóa nội dung</button></div><small>Định dạng ô</small></div>
+      <div class="tool-group"><div class="tool-row"><button id="boldAction" class="tool-btn" title="Định dạng in đậm chưa được triển khai" disabled>B</button><button id="italicAction" class="tool-btn" title="Định dạng in nghiêng chưa được triển khai" disabled><i>I</i></button><button id="clearAction" class="tool-btn">Xóa nội dung</button></div><small>Định dạng ô</small></div>
       <div class="tool-group"><div class="tool-row"><button id="sumAction" class="tool-btn">∑ Tổng</button><button id="averageAction" class="tool-btn">Trung bình</button><button id="countAction" class="tool-btn">Đếm</button></div><small>Hàm nhanh</small></div>
       <div class="tool-group"><div class="tool-row"><button id="zoomOut" class="tool-btn">−</button><output id="zoomValue">100%</output><button id="zoomIn" class="tool-btn">+</button><button id="zoomReset" class="tool-btn">Vừa màn hình</button></div><small>Thu phóng</small></div>
     </section>
@@ -136,7 +136,7 @@
     <section class="sheet-shell" aria-label="Lưới bảng tính">
       <div class="sheet-scroll" id="sheetScroll"><table id="sheetGrid" class="sheet-grid"><thead></thead><tbody></tbody></table></div>
     </section>
-    <div class="sheet-tabs"><button class="sheet-tab active">Trang tính 1</button><button id="addSheet" class="add-sheet" title="Thêm trang tính">＋</button><span class="sheet-tab-note">Bảng tính cá nhân · Lưu trên thiết bị</span></div>
+    <div class="sheet-tabs"><button class="sheet-tab active">Trang tính 1</button><button id="addSheet" class="add-sheet" title="Nhiều trang tính chưa được triển khai" disabled>＋</button><span class="sheet-tab-note">Bảng tính cá nhân · Lưu trên thiết bị</span></div>
     <footer class="sheet-footer"><span id="selectionInfo">Ô A1 đang được chọn</span><span id="calcStatus">Bộ máy công thức SGHT</span><span id="statusCount">Sẵn sàng</span></footer>
     <section class="help"><b>Cách dùng nhanh</b><span>Chọn ô rồi nhập dữ liệu. Công thức bắt đầu bằng <code>=</code>, thí dụ <code>=A1+B1</code>, <code>=SUM(A1:A5)</code>.</span><span>Dán vùng dữ liệu dạng tab/newline từ clipboard. Dữ liệu tự lưu trên thiết bị này.</span></section>
   </main>

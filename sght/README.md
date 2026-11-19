@@ -381,3 +381,13 @@ Bổ sung mô hình đáp ứng tăng dần, lợi ích biên giảm dần:
 - Màu chuỗi nhận mã HEX hợp lệ; kiểu nét nhận solid, dash hoặc dot.
 - Trục Y phụ chỉ là trục hiển thị, không chuẩn hóa dữ liệu và không chứng minh hai đại lượng có quan hệ.
 - Chưa có WebGL 3D, bề mặt nhiều mô hình, tùy chỉnh nhãn trục đầy đủ, template chia sẻ đám mây hoặc trình biên tập báo cáo kéo-thả.
+
+
+## SGHT Basic Reliability Review — Giai đoạn 16 — 2026-11-19
+
+- Sửa `MOD` để phần dư mang cùng dấu với số chia, gồm cả trường hợp số chia âm.
+- Phát hiện kết quả tràn miền số ở các phép toán nhị phân và trả mã `#NUM!` thay vì hiển thị `Infinity`/`NaN`.
+- Giới hạn vùng tham chiếu công thức ở mức 100.000 ô mỗi lần đọc để tránh công thức vô tình quét vùng quá lớn.
+- Giữ nguyên khoảng trắng có chủ ý khi nhập văn bản; chỉ xem nội dung toàn khoảng trắng là ô trống.
+- Xuất CSV theo giá trị đã tính/hiển thị của ô, không xuất chuỗi công thức thô.
+- Đã ghi rõ các phần chưa hoàn thiện: lưới hiện tại 16×40; nhiều trang tính chưa hoạt động; định dạng in đậm/in nghiêng chưa lưu. Không quảng bá các nút này như tính năng đã hoàn tất.

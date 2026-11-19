@@ -83,7 +83,7 @@ function registerBuiltins() {
   add("ABS",1,1,a=>Math.abs(numberArg(a[0],"ABS")),"Giá trị tuyệt đối.");
   add("SQRT",1,1,a=>{const n=numberArg(a[0],"SQRT"); if(n<0) fail("#NUM!","Không lấy căn bậc hai số âm."); return Math.sqrt(n);},"Căn bậc hai.");
   add("POWER",2,2,a=>Math.pow(numberArg(a[0],"POWER"),numberArg(a[1],"POWER")),"Lũy thừa.");
-  add("MOD",2,2,a=>{const x=numberArg(a[0],"MOD"),y=numberArg(a[1],"MOD"); if(y===0) fail("#DIV/0!","Không thể chia cho 0."); return ((x%y)+y)%y;},"Phần dư không âm theo trị tuyệt đối số chia.");
+  add("MOD",2,2,a=>{const x=numberArg(a[0],"MOD"),y=numberArg(a[1],"MOD"); if(y===0) fail("#DIV/0!","Không thể chia cho 0."); const r=x%y; return r!==0&&Math.sign(r)!==Math.sign(y)?r+y:r;},"Phần dư mang cùng dấu với số chia.");
   add("INT",1,1,a=>Math.floor(numberArg(a[0],"INT")),"Làm tròn xuống số nguyên.");
   add("TRUNC",1,2,a=>{const n=numberArg(a[0],"TRUNC"),d=a.length>1?numberArg(a[1],"TRUNC"):0; const p=10**d; return Math.trunc(n*p)/p;},"Cắt phần thập phân.");
   add("ROUND",1,2,a=>{const n=numberArg(a[0],"ROUND"),d=a.length>1?numberArg(a[1],"ROUND"):0; const p=10**d; return Math.sign(n)*Math.round((Math.abs(n)+Number.EPSILON)*p)/p;},"Làm tròn gần nhất.");
@@ -110,8 +110,10 @@ function evaluate(node, context) {
       const a=evaluate(node.left,context), b=evaluate(node.right,context);
       if(["=","<>","<",">","<=",">="].includes(node.op)) { switch(node.op) { case "=":return a===b; case "<>":return a!==b; case "<":return a<b; case ">":return a>b; case "<=":return a<=b; default:return a>=b; } }
       const x=numberArg(a,"Phép toán"), y=numberArg(b,"Phép toán");
-      switch(node.op) { case "+":return x+y; case "-":return x-y; case "*":return x*y; case "/":if(y===0) fail("#DIV/0!","Không thể chia cho 0."); return x/y; case "%":if(y===0) fail("#DIV/0!","Không thể chia cho 0."); return x%y; case "^":return x**y; }
-      fail("#OP!","Toán tử chưa được hỗ trợ.");
+      let result;
+      switch(node.op) { case "+":result=x+y;break; case "-":result=x-y;break; case "*":result=x*y;break; case "/":if(y===0) fail("#DIV/0!","Không thể chia cho 0."); result=x/y;break; case "%":if(y===0) fail("#DIV/0!","Không thể chia cho 0."); result=x%y;break; case "^":result=x**y;break; default:fail("#OP!","Toán tử chưa được hỗ trợ."); }
+      if(!Number.isFinite(result)) fail("#NUM!","Kết quả phép toán vượt miền số hữu hạn.");
+      return result;
     }
     case "call": {
       const spec=registry.get(node.name); if(!spec) fail("#NAME?",`Hàm ${node.name} chưa được đăng ký.`);
