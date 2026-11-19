@@ -401,3 +401,14 @@ Bổ sung mô hình đáp ứng tăng dần, lợi ích biên giảm dần:
 - Sao chép/cắt/dán vùng dạng TSV; hỗ trợ nút công cụ, Ctrl/Cmd+C/X/V và dán dữ liệu bảng tính từ ứng dụng khác.
 - Undo/Redo ghi nhận cả nội dung và định dạng. Vùng thao tác giới hạn 10.000 ô; dán hiện giới hạn 1.000 hàng × 100 cột.
 - Sao chép/dán giữ nguyên chuỗi công thức, chưa tự điều chỉnh tham chiếu tương đối như Excel. Kéo chuột hiện dùng để chọn vùng, chưa triển khai kéo di chuyển hoặc điền chuỗi.
+
+
+## SGHT Grid Scalability — Giai đoạn 18.1 · Nền móng lưới thưa và cửa sổ ảo — 2026-11-19
+
+- Thêm mô-đun độc lập `engine/sparse-grid.js` cho địa chỉ ô theo chỉ số nguyên an toàn, không đóng khung ở 16 cột × 40 hàng.
+- Chuyển đổi nhãn cột theo cơ số 26 (A…Z, AA…AAA…), phân tích địa chỉ hàng/cột lớn và từ chối địa chỉ vượt miền số nguyên an toàn của JavaScript.
+- Tính biên dữ liệu thực sự từ các ô có giá trị hoặc định dạng; không tạo ma trận ô rỗng.
+- Tính cửa sổ hiển thị ảo theo vị trí cuộn, kích thước viewport và overscan; mô-đun chỉ trả về phạm vi cần dựng, không cấp phát toàn bộ lưới.
+- Bổ sung cập nhật sparse map theo copy-on-write để giữ nguyên bản đồ nguồn khi thao tác.
+- Kiểm thử địa chỉ lớn, dữ liệu thưa, cửa sổ ảo, biên lưới và tính bất biến.
+- **Phạm vi 18.1:** đây là nền móng thuật toán, chưa thay thế renderer 16×40 hiện tại. Chưa công bố lưới vô hạn/ảo hóa đã tích hợp cho giao diện; bước 18.2 sẽ nối cửa sổ ảo vào vùng cuộn, bàn phím, chọn vùng, định dạng, clipboard và hoàn tác.
