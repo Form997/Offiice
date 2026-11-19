@@ -15,7 +15,7 @@ test("sort is stable and puts empty keys last",()=>{
 });
 test("filter combines two rules with AND or OR and optional fill color",()=>{
  const cells={A1:"crop",A2:"Cải",A3:"Rau",A4:"Cải",B2:"4",B3:"8",B4:"2"};
- const formats={A2:{fillColor:"#fff2cc"},A3:{fillColor:"#ffffff"}};
+ const formats={A2:{background:"#fff2cc"},A3:{background:"#ffffff"}};
  const and=filterRangeRows(cells,formats,bounds,{rules:[{column:1,operator:"contains",value:"cải"},{column:2,operator:"greater",value:"3"}],join:"and"});
  assert.deepEqual(and.hiddenRows,[3,4]);
  const color=filterRangeRows(cells,formats,bounds,{fillColor:"#fff2cc"});
