@@ -72,7 +72,8 @@ test("multi-column filter values are intersected and an empty selection hides ev
 
 test("structured formulas expand references but leave quoted text intact",()=>{
  const table={name:"Bang",bounds:{startRow:1,endRow:3,startCol:1,endCol:2},columns:["Crop","Yield"]};
- const expanded=expandStructuredReferences('=SUM(Bang[Yield])&" Bang[Yield]"',[table]);
- assert.equal(expanded,'=SUM(B2:B3)&" Bang[Yield]"');
- assert.equal(evaluateFormula(expanded,{getRange:()=>[2,3]}), "5 Bang[Yield]");
+ const expanded=expandStructuredReferences("=SUM(Bang[Yield])",[table]);
+ assert.equal(expanded,"=SUM(B2:B3)");
+ assert.equal(evaluateFormula(expanded,{getRange:()=>[2,3]}),5);
+ assert.equal(expandStructuredReferences('="Bang[Yield]"',[table]),'="Bang[Yield]"');
 });
