@@ -50,7 +50,8 @@ export function buildMultiSeriesChart({x=[],series=[],type="line",title="Biểu 
  const normalized=series.map((s,i)=>{
   const values=numeric(s.values,"Chuỗi "+(s.name||i+1));
   if(values.length!==xx.length)throw new RangeError("Mỗi chuỗi Y phải cùng số dòng với X.");
-  return {name:String(s.name||("Chuỗi "+(i+1))).slice(0,60),points:values.map((y,j)=>({x:xx[j],y}))};
+  const axis=s.axis==="right"?"right":"left",color=typeof s.color==="string"&&/^#[0-9a-f]{6}$/i.test(s.color)?s.color:undefined,style=["solid","dash","dot"].includes(s.style)?s.style:"solid";
+  return {name:String(s.name||("Chuỗi "+(i+1))).slice(0,60),axis,color,style,points:values.map((y,j)=>({x:xx[j],y}))};
  });
  return {type,title:String(title||"Biểu đồ nhiều chuỗi"),series:normalized,n:xx.length,warning:"Các chuỗi dùng chung trục X và trục Y. Kiểm tra đơn vị đo và thang đo trước khi so sánh."};
 }
