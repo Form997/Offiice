@@ -95,6 +95,10 @@ function updateSelection(){
     el.classList.toggle("selected",el.dataset.cell===selected);
     el.classList.toggle("in-range",inside&&el.dataset.cell!==selected);
   }
+  for(const handle of document.querySelectorAll("[data-fill-handle]"))handle.remove();
+  const fillAddress=address(x.endRow,x.endCol);
+  const visibleCell=[grid,...(splitMode==="quadrant"?[quadrantPanes.topRight.grid,quadrantPanes.bottomLeft.grid,splitGrid]:splitMode!=="none"?[splitGrid]:[])].map(g=>g.querySelector("[data-cell='"+fillAddress+"']")).find(Boolean);
+  if(visibleCell){const handle=document.createElement("span");handle.className="fill-handle";handle.dataset.fillHandle=fillAddress;handle.title="Kéo để điền dữ liệu";handle.setAttribute("aria-label","Kéo để điền dữ liệu");visibleCell.append(handle);}
 }
 function growGridTo(row,column){
   const next=expandGridCapacity({rows:ROWS,columns:COLS},{row,column},{maxRows:MAX_ROWS,maxColumns:MAX_COLS});
