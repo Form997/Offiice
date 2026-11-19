@@ -4,12 +4,13 @@
  */
 const finite=v=>typeof v==="number"&&Number.isFinite(v);
 function gridOf(surface){
- if(!Array.isArray(surface)||surface.length<2||surface.some(r=>!Array.isArray(r)||r.length<2))throw new RangeError("Lưới mặt đáp ứng phải có ít nhất 2×2 điểm.");
+ if(!Array.isArray(surface)||surface.length<2||surface.some(r=>!Array.isArray(r)||r.length<1))throw new RangeError("Lưới mặt đáp ứng phải có ít nhất 2 hàng.");
  const rows=surface.map(row=>row.map(p=>({x:Number(p.x1??p.x),y:Number(p.x2??p.y),z:Number(p.predicted??p.z)})));
  const cols=rows[0].length;
- if(rows.some(r=>r.length!==cols)||rows.flat().some(p=>![p.x,p.y,p.z].every(Number.isFinite)))throw new TypeError("Lưới phải chữ nhật và mọi tọa độ/giá trị phải hữu hạn.");
+ if(cols<2||rows.some(r=>r.length!==cols))throw new RangeError("Lưới mặt đáp ứng phải là hình chữ nhật ít nhất 2×2.");
+ if(rows.flat().some(p=>![p.x,p.y,p.z].every(Number.isFinite)))throw new TypeError("Mọi tọa độ và giá trị dự báo phải hữu hạn.");
  for(let i=1;i<rows.length;i++)if(rows[i].some((p,j)=>p.x!==rows[0][j].x))throw new Error("Tọa độ X phải nhất quán giữa các hàng.");
- for(let j=1;j<cols;j++)if(rows.some(r=>r[j].y!==rows[0][j].y))throw new Error("Tọa độ Y phải nhất quán giữa các cột.");
+ for(let i=0;i<rows.length;i++)if(rows[i].some(p=>p.y!==rows[i][0].y))throw new Error("Tọa độ Y phải nhất quán giữa các cột.");
  return rows;
 }
 export function buildContourData(surface,levelCount=8){
