@@ -481,3 +481,14 @@ Bổ sung mô hình đáp ứng tăng dần, lợi ích biên giảm dần:
 - Chế độ hai khung ngang/dọc 18.5–18.6 vẫn được giữ.
 - Giới hạn: một tỷ lệ chia chung áp dụng cho cả hai trục; thanh giao hiện là chỉ báo bố cục, chưa kéo chỉnh độc lập theo từng trục. Chưa xác minh tương tác thực tế trên trình duyệt/điện thoại. Ghim hàng/cột vẫn là cơ chế riêng.
 - Kiểm thử engine bao gồm chuẩn hóa bốn vị trí, đồ thị đồng bộ và các trục độc lập; kiểm thử tự động không thay thế kiểm thử UX trên thiết bị thật.
+
+
+## SGHT AutoFill — Giai đoạn 18.8 · Kéo thả điền dữ liệu — 2026-11-19
+
+- Thêm nút kéo điền tại góc phải-dưới vùng đang chọn; kéo tới ô đích để mở rộng vùng và thả để điền.
+- Hỗ trợ kéo theo bốn hướng trên khung đơn, hai khung và bốn góc phần tư.
+- Điền lặp giá trị/văn bản, sao chép định dạng và ngoại suy cấp số cộng khi nguồn là dãy số ít nhất hai phần tử theo một chiều.
+- Công thức A1 được dịch tham chiếu tương đối; tham chiếu có dấu $ được giữ cố định theo hàng/cột. Chuỗi trong dấu ngoặc kép không bị sửa.
+- Mỗi lần điền là một giao dịch undo duy nhất; vùng đích được chọn và lưu cùng workbook.
+- Giới hạn mỗi lần điền: 100.000 ô; vẫn tuân theo giới hạn logic của lưới.
+- Chưa nhận diện chuỗi ngày, ngày làm việc, danh sách tùy chỉnh hoặc văn bản có hậu tố số. Chưa kiểm thử kéo cảm ứng trực tiếp trên thiết bị thật.
