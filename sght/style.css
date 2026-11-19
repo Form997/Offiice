@@ -30,3 +30,11 @@
  body.chart-print-mode .chart-export-tools{display:none!important}
  body.chart-print-mode .ds-chart{width:100%!important;height:auto!important;max-height:250mm!important}
 }
+
+/* SGHT Stage 14 — multi-series legend and interactive chart viewport */
+.chart-legend{display:flex;flex-wrap:wrap;gap:7px 14px;padding:4px 2px;font-size:10px;color:var(--ink,#203329)}
+.chart-legend span{display:inline-flex;align-items:center;gap:5px;max-width:100%;overflow-wrap:anywhere}
+.chart-legend i{display:inline-block;width:17px;height:3px;border-radius:2px;flex:0 0 auto}
+.ds-chart{touch-action:none}
+.ds-chart:focus{outline:2px solid var(--accent,#426b51);outline-offset:3px}
+@media(max-width:600px){.chart-legend{gap:6px 10px}.chart-legend span{font-size:9px}}
