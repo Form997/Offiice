@@ -298,3 +298,15 @@ Bổ sung mô hình đáp ứng tăng dần, lợi ích biên giảm dần:
 - SVG được dựng trực tiếp, không tải thư viện ngoài; co giãn theo chiều rộng màn hình, có nhãn trợ năng. Dữ liệu không gửi ra ngoài.
 - Hạn chế: chưa có xuất PNG/SVG riêng, nhiều chuỗi trên cùng biểu đồ, thanh sai số tùy chọn, CI/prediction bands, tương tác zoom/pan, bản đồ đường đồng mức nội suy và biểu đồ 3D.
 - Kiểm thử module: dữ liệu đường/phân tán, histogram, box plot/ngoại lệ, phần dư, heatmap và dữ liệu không hợp lệ.
+
+
+## SGHT Chart Studio — Giai đoạn 12 · Đường đồng mức & độ bất định — 2026-11-19
+
+- Thêm mô-đun ngoại tuyến `ai/chart-uncertainty.js`, không dùng thư viện bên ngoài.
+- Đường đồng mức nội suy bằng marching squares từ lưới mặt đáp ứng 21×21 của Giai đoạn 10; người dùng chọn 2–20 mức. Kiểm tra lưới chữ nhật, tọa độ nhất quán và dữ liệu hữu hạn.
+- Biểu đồ trung bình theo nhóm với thanh sai số có ba chế độ tách biệt: ±1 SD, ±1 SE và CI 95% cho trung bình. CI dùng xấp xỉ phân vị t theo khai triển Cornish–Fisher; ghi rõ giả định và độ xấp xỉ.
+- Hồi quy tuyến tính có dải CI 95% cho trung bình đáp ứng và khoảng dự đoán 95% cho một quan sát cá thể; hai dải được vẽ riêng để tránh đánh đồng.
+- Không tự sửa dữ liệu bảng; phân tích và vẽ hoàn toàn trên thiết bị.
+- Giới hạn: contour là nội suy tuyến tính từng ô lưới, phụ thuộc độ phân giải lưới; không phải phép đo mới hay bề mặt 3D. Dải hồi quy dựa trên OLS đơn, giả định tuyến tính, độc lập và phương sai phần dư phù hợp. CI nhóm dùng mẫu t độc lập; không thay thế mô hình phân cấp hay hiệu chỉnh đa so sánh.
+- Chưa có bootstrap/profile likelihood, nhiều chuỗi trên cùng biểu đồ, xuất ảnh PNG/SVG/PDF, zoom/pan hoặc biểu đồ 3D.
+- Kiểm thử riêng: marching squares, lưới lỗi/không biến thiên, phân biệt SD/SE/CI và phân biệt CI đường trung bình với khoảng dự đoán cá thể.
