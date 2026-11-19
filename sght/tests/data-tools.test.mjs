@@ -1,4 +1,5 @@
 import test from "node:test";
+import {evaluateFormula} from "../engine/core.js";
 import assert from "node:assert/strict";
 import {sortRangeRows,filterRangeRows,removeDuplicateRows,defineStructuredRange} from "../engine/data-tools.js";
 const bounds={startRow:1,endRow:4,startCol:1,endCol:2};
@@ -34,7 +35,7 @@ test("structured range validates unique headers and stable name",()=>{
  assert.throws(()=>defineStructuredRange({A1:"x",B1:"X",A2:"1",B2:"2"},{startRow:1,endRow:2,startCol:1,endCol:2},"Bang1"),/trùng/);
 });
 
-import {uniqueColumnValues,summarizeByGroup,expandStructuredRange,structuredColumnRange} from "../engine/data-tools.js";
+import {uniqueColumnValues,summarizeByGroup,expandStructuredRange,structuredColumnRange,expandStructuredReferences} from "../engine/data-tools.js";
 test("unique values are counted and sorted for filter checklist",()=>{
  const values=uniqueColumnValues({A1:"Group",A2:"B",A3:"A",A4:"B"},{startRow:1,endRow:4,startCol:1,endCol:1},1);
  assert.deepEqual(values,[{value:"A",count:1},{value:"B",count:2}]);
@@ -67,4 +68,11 @@ test("multi-column filter values are intersected and an empty selection hides ev
  assert.deepEqual(r.hiddenRows,[3,4]);
  const none=filterRangeRows(cells,{},b,{allowedValues:{1:[]}});
  assert.deepEqual(none.hiddenRows,[2,3,4]);
+});
+
+test("structured formulas expand references but leave quoted text intact",()=>{
+ const table={name:"Bang",bounds:{startRow:1,endRow:3,startCol:1,endCol:2},columns:["Crop","Yield"]};
+ const expanded=expandStructuredReferences('=SUM(Bang[Yield])&" Bang[Yield]"',[table]);
+ assert.equal(expanded,'=SUM(B2:B3)&" Bang[Yield]"');
+ assert.equal(evaluateFormula(expanded,{getRange:()=>[2,3]}), "5 Bang[Yield]");
 });

@@ -76,3 +76,15 @@ export function structuredColumnRange(tables,reference){
  const b=boundsOf(table.bounds),column=b.startCol+index,start=b.startRow+1,end=b.endRow;
  if(end<start)return null;return cellKey(start,column)+":"+cellKey(end,column);
 }
+
+export function expandStructuredReferences(formula,tables){
+ const refs=[];for(const table of tables||[])for(const column of table.columns||[]){const range=structuredColumnRange(tables,table.name+"["+column+"]");if(range)refs.push({source:table.name+"["+column+"]",range});}
+ let out="",i=0,quoted=false;
+ while(i<formula.length){
+  const ch=formula[i];
+  if(ch==='"'){out+=ch;if(quoted&&formula[i+1]==='"'){out+='"';i+=2;continue;}quoted=!quoted;i++;continue;}
+  if(!quoted){const hit=refs.find(r=>formula.slice(i,i+r.source.length).toLocaleLowerCase()===r.source.toLocaleLowerCase()&&!/[A-Za-z0-9_]/.test(formula[i-1]||"")&&!/[A-Za-z0-9_]/.test(formula[i+r.source.length]||""));if(hit){out+=hit.range;i+=hit.source.length;continue;}}
+  out+=ch;i++;
+ }
+ return out;
+}

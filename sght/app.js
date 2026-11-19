@@ -4,7 +4,7 @@ import { captureRange, pasteCapturedRange } from "./engine/range-clipboard.js";
 import { fillRange } from "./engine/fill-series.js";
 import { serializeWorkbook, restoreWorkbook, pushHistoryEntry, moveHistory } from "./engine/history.js";
 import { searchCells, replaceCells } from "./engine/search.js";
-import { sortRangeRows, filterRangeRows, removeDuplicateRows, defineStructuredRange, uniqueColumnValues, summarizeByGroup, expandStructuredRange, structuredColumnRange } from "./engine/data-tools.js";
+import { sortRangeRows, filterRangeRows, removeDuplicateRows, defineStructuredRange, uniqueColumnValues, summarizeByGroup, expandStructuredRange, structuredColumnRange, expandStructuredReferences } from "./engine/data-tools.js";
 import { getVirtualWindow } from "./engine/sparse-grid.js";
 import { expandGridCapacity } from "./engine/grid-capacity.js";
 import { buildFreezeLayout, normalizeFreezeSettings } from "./engine/freeze-panes.js";
@@ -153,11 +153,7 @@ window.addEventListener("keydown",event=>{
 function raw(a){return Object.hasOwn(cells,a)?String(cells[a]):"";}
 function calculate(a,stack=new Set()){const value=raw(a);if(!value.startsWith("="))return value===""?"":coerce(value);if(stack.has(a))throw new FormulaError("#CYCLE!","Phát hiện công thức tham chiếu vòng.");stack.add(a);const ctx={getCell(ref){return calculate(ref.toUpperCase(),stack);},getRange(ref){const [s,e]=ref.toUpperCase().split(":").map(parseAddress);if(!s||!e)throw new FormulaError("#REF!","Vùng ô không hợp lệ.");const area=(Math.abs(e.r-s.r)+1)*(Math.abs(e.c-s.c)+1);if(!Number.isSafeInteger(area)||area>100000)throw new FormulaError("#REF!","Vùng công thức vượt giới hạn an toàn 100.000 ô.");const out=[];for(let r=Math.min(s.r,e.r);r<=Math.max(s.r,e.r);r++)for(let c=Math.min(s.c,e.c);c<=Math.max(s.c,e.c);c++)out.push(calculate(address(r,c),stack));return out;}};try{return evaluateFormula(expandStructuredFormula(value),ctx);}finally{stack.delete(a);}}
 
-function expandStructuredFormula(formula){
- let out=formula;
- for(const table of dataTables){for(const column of table.columns){const ref=table.name+"["+column+"]",range=structuredColumnRange(dataTables,ref);if(range)out=out.replaceAll(ref,range);}}
- return out;
-}
+function expandStructuredFormula(formula){return expandStructuredReferences(formula,dataTables);}
 function expandTablesAfterWrite(startRow,endRow,startCol,endCol){
  let changed=false;
  dataTables=dataTables.map(table=>{let next=table;for(let row=startRow;row<=endRow;row++)for(let col=startCol;col<=endCol;col++){const expanded=expandStructuredRange(next,row,col);if(expanded!==next){next=expanded;changed=true;}}return next;});
