@@ -37,3 +37,20 @@ export function buildChartData(type,{x=[],y=[],labels=[],groups=[],surface=null,
  if(!["line","scatter"].includes(type))throw new RangeError("Loại biểu đồ chưa được hỗ trợ.");
  return {type,title:type==="line"?"Biểu đồ đường":"Biểu đồ phân tán",points:yy.map((v,i)=>({x:xx[i],y:v}))};
 }
+
+
+/**
+ * Chuẩn hóa nhiều chuỗi Y trên cùng hệ trục X.
+ * Mỗi chuỗi phải có cùng số quan sát với X; không tự nội suy hay điền thiếu.
+ */
+export function buildMultiSeriesChart({x=[],series=[],type="line",title="Biểu đồ nhiều chuỗi"}={}){
+ if(!["line","scatter"].includes(type))throw new RangeError("Nhiều chuỗi hiện hỗ trợ biểu đồ đường hoặc phân tán.");
+ const xx=numeric(x,"Dữ liệu X");
+ if(!Array.isArray(series)||series.length<2||series.length>12)throw new RangeError("Cần từ 2 đến 12 chuỗi Y.");
+ const normalized=series.map((s,i)=>{
+  const values=numeric(s.values,"Chuỗi "+(s.name||i+1));
+  if(values.length!==xx.length)throw new RangeError("Mỗi chuỗi Y phải cùng số dòng với X.");
+  return {name:String(s.name||("Chuỗi "+(i+1))).slice(0,60),points:values.map((y,j)=>({x:xx[j],y}))};
+ });
+ return {type,title:String(title||"Biểu đồ nhiều chuỗi"),series:normalized,n:xx.length,warning:"Các chuỗi dùng chung trục X và trục Y. Kiểm tra đơn vị đo và thang đo trước khi so sánh."};
+}
