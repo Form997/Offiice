@@ -421,3 +421,19 @@ Bổ sung mô hình đáp ứng tăng dần, lợi ích biên giảm dần:
 - Chọn ô bằng bàn phím hoặc hộp địa chỉ sẽ tự cuộn ô vào vùng nhìn thấy. Tô chọn chỉ duyệt những ô đang được dựng, tránh lặp qua toàn bộ vùng lớn.
 - Dữ liệu và định dạng vẫn lưu theo địa chỉ ô trong localStorage; không chuyển dữ liệu sang ma trận ô rỗng.
 - Giới hạn minh bạch của 18.2: giao diện hiện hỗ trợ tối đa 1.000 hàng × 100 cột trong bước này để giữ tương thích với vùng dán hiện hành. Bộ địa chỉ và thuật toán nền có thể biểu diễn tọa độ lớn hơn, nhưng mở rộng động và cuộn phân đoạn vượt giới hạn giao diện sẽ thuộc bước tiếp theo; chưa tuyên bố lưới vô hạn.
+
+## SGHT Dynamic Grid — Giai đoạn 18.3 · Mở rộng lưới theo nhu cầu — 2026-11-19
+
+### Triển khai
+- Chuyển kích thước giao diện từ hằng số cố định sang giới hạn logic có thể tăng theo nhu cầu; lưới khởi đầu 100 cột × 1.000 hàng.
+- Khi cuộn gần mép dưới hoặc mép phải, SGHT tự tăng kích thước lưới theo từng khối. Việc mở rộng chỉ thay đổi miền địa chỉ và khoảng cuộn; không tạo hàng loạt ô rỗng trong bộ nhớ.
+- Khi điều hướng tới địa chỉ lớn, dán vùng hoặc thả vùng dữ liệu, hệ thống mở rộng miền lưới trước khi thực hiện thao tác.
+- Giữ renderer ảo hóa: chỉ dựng cửa sổ nhìn thấy và overscan; dữ liệu/định dạng vẫn lưu theo địa chỉ trong sparse maps và localStorage.
+- Bổ sung chính sách mở rộng độc lập tại engine/grid-capacity.js cùng kiểm thử giới hạn, mở rộng khối, địa chỉ xa và dữ liệu đầu vào không hợp lệ.
+
+### Giới hạn kỹ thuật được công bố
+- Giới hạn logic hiện tại: **100.000 hàng × 16.384 cột** (tối đa 1.638.400.000 vị trí địa chỉ về mặt lý thuyết, không phải số ô được cấp phát).
+- Đây là lưới mở rộng động có giới hạn an toàn, **không phải lưới vô hạn**. Trình duyệt vẫn có giới hạn chiều dài cuộn vật lý, bộ nhớ, localStorage và hiệu năng tính toán; cuộn phân đoạn để vượt giới hạn pixel trình duyệt chưa được triển khai.
+- Công thức đọc vùng vẫn có giới hạn an toàn riêng 100.000 ô/lần; thao tác vùng/undo và dung lượng lưu trữ cũng có giới hạn riêng.
+- Xuất CSV hiện tạo hình chữ nhật từ A1 tới ô có dữ liệu xa nhất; tệp rất thưa nhưng có địa chỉ xa có thể tạo CSV lớn. Cần đánh giá riêng trước khi xuất workbook quy mô lớn.
+- Kiểm thử đơn vị chứng minh chính sách mở rộng và giới hạn; chưa thay thế kiểm thử trình duyệt trên nhiều thiết bị hoặc kiểm thử tải quy mô tối đa.
