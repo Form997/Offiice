@@ -17,3 +17,16 @@
 
 /* Giai đoạn 11 · Chart Studio */
 .ds-advanced select{min-width:0;width:100%;height:36px;padding:0 9px;border:1px solid var(--line);border-radius:6px;background:#fff;color:var(--ink,#203329);font:inherit}.ds-chart-studio{margin-top:14px}.ds-chart-wrap{overflow:hidden}.ds-chart{display:block;width:100%;max-width:900px;height:auto;min-height:190px;color:#426b51}.ds-chart-wrap> b{font-size:12px}.ds-chart-wrap small{line-height:1.5}
+
+
+/* SGHT Stage 13 — chart export and print */
+.chart-export-tools{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:12px}
+.chart-export-tools button{font-size:.88rem}
+.chart-export-status{color:var(--muted,#64748b);flex-basis:100%;font-size:.78rem}
+@media print{
+ body.chart-print-mode *{visibility:hidden!important}
+ body.chart-print-mode .ds-chart-wrap,body.chart-print-mode .ds-chart-wrap *{visibility:visible!important}
+ body.chart-print-mode .ds-chart-wrap{position:absolute!important;inset:12mm!important;width:calc(100% - 24mm)!important;max-width:none!important;break-inside:avoid}
+ body.chart-print-mode .chart-export-tools{display:none!important}
+ body.chart-print-mode .ds-chart{width:100%!important;height:auto!important;max-height:250mm!important}
+}
