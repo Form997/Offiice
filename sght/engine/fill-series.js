@@ -28,8 +28,8 @@ export function fillRange(cells={},formats={},sourceBounds,targetBounds,options=
  if(count>limit)throw new Error("Vùng điền vượt giới hạn "+limit+" ô.");
  if(t.startRow>s.startRow||t.startCol>s.startCol||t.endRow<s.endRow||t.endCol<s.endCol)throw new Error("Vùng đích phải bao trùm toàn bộ vùng nguồn.");
  const h=s.endRow-s.startRow+1,w=s.endCol-s.startCol+1;
- const vertical=t.endRow!==s.endRow&&t.startCol===s.startCol&&t.endCol===s.endCol;
- const horizontal=t.endCol!==s.endCol&&t.startRow===s.startRow&&t.endRow===s.endRow;
+ const vertical=(t.startRow!==s.startRow||t.endRow!==s.endRow)&&t.startCol===s.startCol&&t.endCol===s.endCol;
+ const horizontal=(t.startCol!==s.startCol||t.endCol!==s.endCol)&&t.startRow===s.startRow&&t.endRow===s.endRow;
  const vSeries=vertical&&w===1&&h>1&&Array.from({length:h},(_,i)=>Number(cells[addr(s.startRow+i,s.startCol)])).every(Number.isFinite);
  const hSeries=horizontal&&h===1&&w>1&&Array.from({length:w},(_,i)=>Number(cells[addr(s.startRow,s.startCol+i)])).every(Number.isFinite);
  const nextCells={...cells},nextFormats={...formats};let changed=0;
