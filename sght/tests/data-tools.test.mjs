@@ -17,9 +17,9 @@ test("filter combines two rules with AND or OR and optional fill color",()=>{
  const cells={A1:"crop",A2:"Cải",A3:"Rau",A4:"Cải",B2:"4",B3:"8",B4:"2"};
  const formats={A2:{fillColor:"#fff2cc"},A3:{fillColor:"#ffffff"}};
  const and=filterRangeRows(cells,formats,bounds,{rules:[{column:1,operator:"contains",value:"cải"},{column:2,operator:"greater",value:"3"}],join:"and"});
- assert.deepEqual(and.hiddenRows,[1,3,4]);
+ assert.deepEqual(and.hiddenRows,[3,4]);
  const color=filterRangeRows(cells,formats,bounds,{fillColor:"#fff2cc"});
- assert.deepEqual(color.hiddenRows,[1,3,4]);
+ assert.deepEqual(color.hiddenRows,[3,4]);
 });
 test("remove duplicates preserves first occurrence and shifts row formats",()=>{
  const cells={A1:"h",A2:"one",B2:"1",A3:"one",B3:"1",A4:"two",B4:"2"};
