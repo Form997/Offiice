@@ -539,3 +539,15 @@ Bổ sung mô hình đáp ứng tăng dần, lợi ích biên giảm dần:
 - Lịch sử chỉ đi theo workbook đang lưu trên cùng trình duyệt/thiết bị; chưa đồng bộ đám mây, chưa có nhật ký người dùng và chưa có phục hồi theo thời điểm.
 - Không hỗ trợ thay thế trong kết quả tính toán của công thức, tên trang tính hoặc metadata.
 - Vùng chọn là hình chữ nhật từ ô đầu đến ô cuối; không hỗ trợ nhiều vùng rời rạc trong một lệnh.
+
+
+## SGHT 18.11 — Quản lý vùng dữ liệu — 2026-11-19
+
+- Sắp xếp hàng trong vùng chữ nhật đang chọn theo một cột khóa: tăng/giảm, kiểu tự nhận diện/văn bản/số; di chuyển đồng bộ nội dung và định dạng của cả hàng trong vùng.
+- Lọc tối đa hai điều kiện trên một cột, kết hợp AND/OR; hỗ trợ bằng, khác, chứa, lớn hơn, nhỏ hơn, ô trống và không trống.
+- Lọc màu nền theo màu được chọn; có thể kết hợp với điều kiện giá trị.
+- Bộ lọc chỉ ẩn hàng khỏi khung hiển thị, không xóa hoặc sửa dữ liệu. Bỏ lọc sẽ hiện lại dữ liệu.
+- Loại hàng trùng lặp theo toàn bộ các cột trong vùng chọn, giữ lần xuất hiện đầu tiên; yêu cầu xác nhận và ghi thành một giao dịch Undo.
+- Tạo định nghĩa vùng dữ liệu có cấu trúc có tên, hàng tiêu đề và danh sách tên cột; lưu trong workbook cục bộ.
+- Giới hạn: vùng cấu trúc hiện là metadata được quản lý trong giao diện, chưa có Table Reference như [@Column] trong công thức, chưa tự mở rộng khi nhập hàng mới, chưa có bộ lọc theo danh sách giá trị riêng lẻ hoặc nhiều cột đồng thời.
+- Chưa kiểm thử thao tác trực tiếp trên trình duyệt/điện thoại; kiểm thử engine không thay thế xác nhận UX.
