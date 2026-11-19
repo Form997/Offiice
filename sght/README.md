@@ -391,3 +391,13 @@ Bổ sung mô hình đáp ứng tăng dần, lợi ích biên giảm dần:
 - Giữ nguyên khoảng trắng có chủ ý khi nhập văn bản; chỉ xem nội dung toàn khoảng trắng là ô trống.
 - Xuất CSV theo giá trị đã tính/hiển thị của ô, không xuất chuỗi công thức thô.
 - Đã ghi rõ các phần chưa hoàn thiện: lưới hiện tại 16×40; nhiều trang tính chưa hoạt động; định dạng in đậm/in nghiêng chưa lưu. Không quảng bá các nút này như tính năng đã hoàn tất.
+
+
+## Giai đoạn 17 — Định dạng ô và thao tác vùng (2026-11-19)
+
+- Định dạng ô lưu cùng workbook: phông chữ, cỡ chữ, đậm/nghiêng, màu chữ, màu nền, căn ngang/dọc, định dạng số (chung, số 2 chữ số, số nguyên, phần trăm, VND) và viền.
+- Định dạng áp dụng trên vùng chọn; có thao tác xóa định dạng.
+- Chọn vùng bằng kéo chuột hoặc Shift + phím mũi tên; trạng thái vùng và số ô được hiển thị.
+- Sao chép/cắt/dán vùng dạng TSV; hỗ trợ nút công cụ, Ctrl/Cmd+C/X/V và dán dữ liệu bảng tính từ ứng dụng khác.
+- Undo/Redo ghi nhận cả nội dung và định dạng. Vùng thao tác giới hạn 10.000 ô; dán hiện giới hạn 1.000 hàng × 100 cột.
+- Sao chép/dán giữ nguyên chuỗi công thức, chưa tự điều chỉnh tham chiếu tương đối như Excel. Kéo chuột hiện dùng để chọn vùng, chưa triển khai kéo di chuyển hoặc điền chuỗi.
