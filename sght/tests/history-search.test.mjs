@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { serializeWorkbook, restoreWorkbook, pushHistoryEntry, moveHistory } from "../engine/history.js";
-import { searchCells } from "../engine/search.js";
+import { serializeWorkbook, restoreWorkbook, pushHistoryEntry, moveHistory, trimHistoryStacks } from "../engine/history.js";
+import { searchCells, replaceCells } from "../engine/search.js";
 
 test("history snapshots restore cell values, formulas and formats",()=>{
   const cells={A1:"12",B1:"=A1*2"},formats={A1:{bold:true}};
@@ -50,4 +50,32 @@ test("search caps stored navigation addresses but reports total matches",()=>{
   const cells={A1:"x",A2:"x",A3:"x"};
   const result=searchCells(cells,"x",{mode:"raw",maxResults:2});
   assert.equal(result.total,3);assert.equal(result.matches.length,2);assert.equal(result.truncated,true);
+});
+
+test("history trimming enforces a combined persisted budget",()=>{
+  const undo=["u".repeat(80),"v".repeat(80)],redo=["r".repeat(80)];
+  const result=trimHistoryStacks(undo,redo,{maxEntries:10,maxBytes:180});
+  assert.ok(result.bytes<=180);
+  assert.ok(undo.length+redo.length>=1);
+});
+test("search can be restricted to a selected rectangular range",()=>{
+  const result=searchCells({A1:"x",B2:"x",C3:"x"},"x",{mode:"raw",scope:{startRow:2,endRow:3,startCol:2,endCol:3}});
+  assert.deepEqual(result.matches.map(x=>x.address),["B2","C3"]);
+});
+test("replace all changes only matching cells inside the selected scope",()=>{
+  const result=replaceCells({A1:"tomato",A2:"tomato",B2:"Tomato soup"},"tomato","cải",{scope:{startRow:2,endRow:2,startCol:1,endCol:2}});
+  assert.equal(result.changed,1);
+  assert.equal(result.cells.A1,"tomato");
+  assert.equal(result.cells.A2,"cải");
+  assert.equal(result.cells.B2,"Tomato soup");
+});
+test("replace supports case sensitivity and whole-cell matching",()=>{
+  const cells={A1:"Cải",A2:"cải xoăn",A3:"cải"};
+  assert.equal(replaceCells(cells,"cải","rau",{caseSensitive:true}).changed,2);
+  assert.equal(replaceCells(cells,"cải","rau",{wholeCell:true}).changed,2);
+});
+test("replace literal text treats regular-expression metacharacters as text",()=>{
+  const result=replaceCells({A1:"cost $5.00",A2:"cost 5x00"},"$5.00","$6.00");
+  assert.equal(result.changed,1);
+  assert.equal(result.cells.A1,"cost $6.00");
 });

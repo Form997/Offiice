@@ -517,3 +517,25 @@ Bổ sung mô hình đáp ứng tăng dần, lợi ích biên giảm dần:
 - Undo/Redo chưa khôi phục các thiết lập giao diện như chia vùng, ghim hàng/cột, zoom hoặc tên tệp.
 - Chưa có lịch sử thao tác sau khi đóng/mở lại trình duyệt, lịch sử cộng tác nhiều người dùng, hoặc tìm kiếm trong nhiều trang tính (SGHT hiện chưa có nhiều trang tính).
 - Tìm kiếm theo giá trị hiển thị tính lại công thức khi chạy tìm; kết quả không phải chỉ mục tìm kiếm nền thời gian thực.
+
+
+## SGHT 18.10 — Lịch sử bền vững và Tìm/Thay thế theo vùng — 2026-11-19
+
+### Lịch sử thao tác
+- Lưu ngăn xếp Undo/Redo cùng workbook trong localStorage; khi mở lại cùng workbook trên cùng trình duyệt, người dùng có thể tiếp tục hoàn tác/làm lại các giao dịch đã lưu.
+- Giới hạn 40 mốc mỗi chiều và thu gọn tổng lịch sử ở mức ngân sách ước tính 24 MiB để giảm nguy cơ vượt dung lượng lưu trữ trình duyệt.
+- Bản ghi cũ không có trường history vẫn được mở như bình thường; lịch sử khởi tạo rỗng.
+- Lịch sử không phải bản sao lưu độc lập: nếu người dùng xóa dữ liệu trang web hoặc bộ nhớ trình duyệt bị xóa/hỏng, các mốc cũng mất. Việc ghi lịch sử phụ thuộc khả năng lưu localStorage.
+
+### Tìm / Thay thế
+- Bổ sung thay thế một ô hiện hành hoặc thay thế hàng loạt.
+- Có thể giới hạn tìm kiếm và thay thế trong hình chữ nhật vùng ô đang chọn; bỏ chọn để thao tác trên toàn bộ các ô có dữ liệu.
+- Tìm kiếm tiếp tục hỗ trợ giá trị hiển thị, nội dung gốc/công thức, phân biệt hoa thường và khớp toàn ô.
+- Thay thế chỉ tác động nội dung gốc đã lưu trong ô. Không thể thay thế trực tiếp kết quả công thức đã tính; nếu tìm theo giá trị hiển thị, thao tác thay thế bị khóa để tránh sửa sai dữ liệu nguồn.
+- Thay thế hàng loạt yêu cầu xác nhận và được ghi thành một giao dịch Undo/Redo duy nhất; định dạng ô được giữ nguyên.
+- Chuỗi tìm kiếm được xử lý như văn bản thuần, không diễn giải ký tự đặc biệt thành biểu thức chính quy.
+
+### Giới hạn
+- Lịch sử chỉ đi theo workbook đang lưu trên cùng trình duyệt/thiết bị; chưa đồng bộ đám mây, chưa có nhật ký người dùng và chưa có phục hồi theo thời điểm.
+- Không hỗ trợ thay thế trong kết quả tính toán của công thức, tên trang tính hoặc metadata.
+- Vùng chọn là hình chữ nhật từ ô đầu đến ô cuối; không hỗ trợ nhiều vùng rời rạc trong một lệnh.

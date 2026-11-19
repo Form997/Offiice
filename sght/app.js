@@ -3,7 +3,7 @@ import { normalizeCellFormat, cellFormatStyle, getRangeBounds, expandRange, enco
 import { captureRange, pasteCapturedRange } from "./engine/range-clipboard.js";
 import { fillRange } from "./engine/fill-series.js";
 import { serializeWorkbook, restoreWorkbook, pushHistoryEntry, moveHistory } from "./engine/history.js";
-import { searchCells } from "./engine/search.js";
+import { searchCells, replaceCells } from "./engine/search.js";
 import { getVirtualWindow } from "./engine/sparse-grid.js";
 import { expandGridCapacity } from "./engine/grid-capacity.js";
 import { buildFreezeLayout, normalizeFreezeSettings } from "./engine/freeze-panes.js";
@@ -44,12 +44,12 @@ const macroSecurity=new MacroSecurityCenter();
 let editingMacroId=null;
 let macroExecution=false;
 const grid=document.querySelector("#sheetGrid"),formulaInput=document.querySelector("#formulaInput"),cellAddress=document.querySelector("#cellAddress"),selectionInfo=document.querySelector("#selectionInfo"),saveStatus=document.querySelector("#saveStatus"),calcStatus=document.querySelector("#calcStatus");
-const searchInput=document.querySelector("#searchQuery"),searchModeInput=document.querySelector("#searchMode"),searchCaseInput=document.querySelector("#searchCase"),searchWholeInput=document.querySelector("#searchWhole"),searchCount=document.querySelector("#searchCount");
+const searchInput=document.querySelector("#searchQuery"),searchModeInput=document.querySelector("#searchMode"),searchCaseInput=document.querySelector("#searchCase"),searchWholeInput=document.querySelector("#searchWhole"),searchCount=document.querySelector("#searchCount"),searchSelectionOnly=document.querySelector("#searchSelectionOnly"),replaceInput=document.querySelector("#replaceQuery"),replaceOneButton=document.querySelector("#replaceOne"),replaceAllButton=document.querySelector("#replaceAll"),replaceStatus=document.querySelector("#replaceStatus");
 let searchResults=[],searchIndex=-1,searchMatchAddresses=new Set(),currentSearchAddress=null,searchDirty=false,historyCaptureAvailable=true;
-function load(){try{const saved=JSON.parse(localStorage.getItem(STORAGE_KEY)||"null");if(saved&&saved.cells&&typeof saved.cells==="object"){cells=saved.cells;cellFormats=Object.create(null);for(const [a,f] of Object.entries(saved.formats||{})){if(parseAddress(a))cellFormats[a]=normalizeCellFormat(f);}sheetTitle=String(saved.title||sheetTitle);const freeze=normalizeFreezeSettings(saved.freeze||{});frozenRows=freeze.rows;frozenColumns=freeze.columns;const split=normalizeSplitSettings(saved.split);splitMode=split.mode;splitRatio=split.ratio;splitPositions=split.positions;quadrantPositions=normalizeQuadrantPositions(saved.split?.quadrants);}}catch{}document.querySelector("#sheetName").value=sheetTitle;document.querySelector("#freezeRowsInput").value=frozenRows;document.querySelector("#freezeColumnsInput").value=frozenColumns;document.querySelector("#splitMode").value=splitMode;applySplitMode(false);}
-function save(){try{localStorage.setItem(STORAGE_KEY,JSON.stringify({cells,formats:cellFormats,title:sheetTitle,freeze:{rows:frozenRows,columns:frozenColumns},split:{mode:splitMode,ratio:splitRatio,positions:readSplitPositions(),quadrants:readQuadrantPositions()},updatedAt:new Date().toISOString()}));saveStatus.textContent="Đã lưu trên thiết bị";}catch{saveStatus.textContent="Không đủ dung lượng lưu";}}
+function load(){try{const saved=JSON.parse(localStorage.getItem(STORAGE_KEY)||"null");if(saved&&saved.cells&&typeof saved.cells==="object"){cells=saved.cells;cellFormats=Object.create(null);for(const [a,f] of Object.entries(saved.formats||{})){if(parseAddress(a))cellFormats[a]=normalizeCellFormat(f);}sheetTitle=String(saved.title||sheetTitle);const freeze=normalizeFreezeSettings(saved.freeze||{});frozenRows=freeze.rows;frozenColumns=freeze.columns;const split=normalizeSplitSettings(saved.split);splitMode=split.mode;splitRatio=split.ratio;splitPositions=split.positions;quadrantPositions=normalizeQuadrantPositions(saved.split?.quadrants);if(saved.history&&Array.isArray(saved.history.undo)&&Array.isArray(saved.history.redo)){undoStack=saved.history.undo.filter(x=>typeof x==="string").slice(-40);redoStack=saved.history.redo.filter(x=>typeof x==="string").slice(-40);}}}catch{}document.querySelector("#sheetName").value=sheetTitle;document.querySelector("#freezeRowsInput").value=frozenRows;document.querySelector("#freezeColumnsInput").value=frozenColumns;document.querySelector("#splitMode").value=splitMode;applySplitMode(false);updateHistoryControls();}
+function save(){try{localStorage.setItem(STORAGE_KEY,JSON.stringify({cells,formats:cellFormats,title:sheetTitle,freeze:{rows:frozenRows,columns:frozenColumns},split:{mode:splitMode,ratio:splitRatio,positions:readSplitPositions(),quadrants:readQuadrantPositions()},history:{undo:undoStack,redo:redoStack},updatedAt:new Date().toISOString()}));saveStatus.textContent="Đã lưu trên thiết bị";}catch{saveStatus.textContent="Không đủ dung lượng lưu · lịch sử có thể chưa được ghi";}}
 function updateHistoryControls(){document.querySelector("#undoAction").disabled=undoStack.length===0;document.querySelector("#redoAction").disabled=redoStack.length===0;}
-function snapshot(){const current=serializeWorkbook(cells,cellFormats);historyCaptureAvailable=pushHistoryEntry(undoStack,current);redoStack=[];searchDirty=true;updateHistoryControls();return historyCaptureAvailable;}
+function snapshot(){const current=serializeWorkbook(cells,cellFormats);historyCaptureAvailable=pushHistoryEntry(undoStack,current);redoStack=[];searchDirty=true;updateHistoryControls();save();return historyCaptureAvailable;}
 function historyMove(from,to){if(!from.length)return;const state=moveHistory(from,to,serializeWorkbook(cells,cellFormats));if(!state)return;cells=state.cells;cellFormats=state.formats;searchDirty=true;updateHistoryControls();render();save();calcStatus.textContent="Đã khôi phục dữ liệu và định dạng ô";}
 
 function paintSearchState(){
@@ -65,7 +65,8 @@ function runSearch(reset=true){
     wholeCell:searchWholeInput.checked,
     mode:searchModeInput.value,
     displayValue:(address)=>display(address),
-    maxResults:10000
+    maxResults:10000,
+    scope:searchSelectionOnly.checked?getRangeBounds(selectionRange.start,selectionRange.end):null
   });
   searchResults=result.matches;
   if(reset&&searchResults.length)searchIndex=0;
@@ -75,9 +76,43 @@ function runSearch(reset=true){
   document.querySelector("#searchPrevious").disabled=searchResults.length===0;
   document.querySelector("#searchNext").disabled=searchResults.length===0;
   paintSearchState();
+  updateReplaceControls();
   if(result.total===0&&query)calcStatus.textContent="Không tìm thấy “"+query+"” trong dữ liệu đang lưu.";
   return result;
 }
+
+function updateReplaceControls(){
+  const allowed=searchModeInput.value!=="display"&&searchInput.value.length>0;
+  replaceOneButton.disabled=!allowed||!searchResults.length;
+  replaceAllButton.disabled=!allowed;
+}
+function replaceOptions(){
+  return {caseSensitive:searchCaseInput.checked,wholeCell:searchWholeInput.checked,scope:searchSelectionOnly.checked?getRangeBounds(selectionRange.start,selectionRange.end):null};
+}
+function replaceCurrent(){
+  if(searchModeInput.value==="display"){replaceStatus.textContent="Không thể thay thế kết quả tính toán; hãy chọn Nội dung gốc hoặc Cả hai.";return;}
+  if(!searchResults.length)runSearch(true);
+  if(!searchResults.length)return;
+  const item=searchResults[Math.max(0,searchIndex)],result=replaceCells(cells,searchInput.value,replaceInput.value,{...replaceOptions(),onlyAddress:item.address});
+  if(!result.changed){replaceStatus.textContent="Ô hiện hành không có nội dung gốc phù hợp để thay thế.";return;}
+  snapshot();cells=result.cells;render();save();replaceStatus.textContent="Đã thay thế ô "+item.address+".";
+  searchDirty=true;runSearch(false);
+}
+function replaceAllMatches(){
+  if(searchModeInput.value==="display"){replaceStatus.textContent="Không thể thay thế kết quả tính toán; hãy chọn Nội dung gốc hoặc Cả hai.";return;}
+  const query=searchInput.value;
+  if(!query){replaceStatus.textContent="Nhập nội dung cần tìm trước.";return;}
+  const result=replaceCells(cells,query,replaceInput.value,replaceOptions());
+  if(!result.changed){replaceStatus.textContent="Không có ô nào cần thay thế trong phạm vi đã chọn.";return;}
+  if(!confirm("Thay thế "+result.changed.toLocaleString("vi-VN")+" ô? Toàn bộ thay đổi sẽ là một giao dịch có thể hoàn tác."))return;
+  snapshot();cells=result.cells;render();save();searchDirty=true;runSearch(true);
+  replaceStatus.textContent="Đã thay thế "+result.changed.toLocaleString("vi-VN")+" ô trong một giao dịch. Có thể Hoàn tác một lần.";
+}
+replaceOneButton.addEventListener("click",replaceCurrent);
+replaceAllButton.addEventListener("click",replaceAllMatches);
+searchSelectionOnly.addEventListener("change",()=>{if(searchInput.value){runSearch(true);updateReplaceControls();}});
+replaceInput.addEventListener("keydown",event=>{if(event.key==="Enter"){event.preventDefault();replaceCurrent();}});
+
 function navigateSearch(direction){
   if(!searchResults.length){runSearch(true);if(!searchResults.length)return;const first=searchResults[0];choose(first.address,false,sheetScroll);searchInput.focus();return;}
   searchIndex=(searchIndex+direction+searchResults.length)%searchResults.length;
@@ -92,7 +127,7 @@ function clearSearch(){
   searchCount.textContent="Chưa tìm kiếm";
   document.querySelector("#searchPrevious").disabled=true;
   document.querySelector("#searchNext").disabled=true;
-  updateSelection();searchInput.focus();
+  updateSelection();updateReplaceControls();searchInput.focus();
 }
 searchInput.addEventListener("keydown",event=>{
   if(event.key==="Enter"){event.preventDefault();navigateSearch(event.shiftKey?-1:1);}
@@ -102,7 +137,7 @@ document.querySelector("#searchRun").addEventListener("click",()=>{runSearch(tru
 document.querySelector("#searchPrevious").addEventListener("click",()=>navigateSearch(-1));
 document.querySelector("#searchNext").addEventListener("click",()=>navigateSearch(1));
 document.querySelector("#searchClear").addEventListener("click",clearSearch);
-for(const control of [searchModeInput,searchCaseInput,searchWholeInput])control.addEventListener("change",()=>{if(searchInput.value){runSearch(true);if(searchResults.length)navigateSearch(0);}});
+for(const control of [searchModeInput,searchCaseInput,searchWholeInput])control.addEventListener("change",()=>{if(searchInput.value){runSearch(true);if(searchResults.length)navigateSearch(0);}updateReplaceControls();});
 window.addEventListener("keydown",event=>{
   const key=event.key.toLowerCase(),target=event.target;
   if((event.ctrlKey||event.metaKey)&&key==="f"){event.preventDefault();searchInput.focus();searchInput.select();return;}

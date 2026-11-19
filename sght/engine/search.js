@@ -22,12 +22,12 @@ function parseAddress(address) {
 export function searchCells(cells, query, options = {}) {
   const text = String(query ?? "");
   if (!text.length) return { matches: [], total: 0, truncated: false };
-  const { caseSensitive = false, wholeCell = false, mode = "display", displayValue = (_address, value) => value, maxResults = DEFAULT_MAX_RESULTS } = options;
+  const { caseSensitive = false, wholeCell = false, mode = "display", displayValue = (_address, value) => value, maxResults = DEFAULT_MAX_RESULTS, scope = null } = options;
   if (!["display", "raw", "both"].includes(mode)) throw new RangeError("Chế độ tìm kiếm không hợp lệ.");
   const limit = Number.isInteger(maxResults) && maxResults > 0 ? maxResults : DEFAULT_MAX_RESULTS;
   const matchesFound = [];
   let total = 0;
-  const addresses = Object.keys(cells || {}).filter(address => parseAddress(address) && String(cells[address] ?? "") !== "");
+  const addresses = Object.keys(cells || {}).filter(address => { const point=parseAddress(address); return point && String(cells[address] ?? "") !== "" && (!scope || (point.row>=scope.startRow && point.row<=scope.endRow && point.column>=scope.startCol && point.column<=scope.endCol)); });
   addresses.sort((left, right) => {
     const a = parseAddress(left), b = parseAddress(right);
     return a.row - b.row || a.column - b.column;
@@ -48,4 +48,32 @@ export function searchCells(cells, query, options = {}) {
     }
   }
   return { matches: matchesFound, total, truncated: total > matchesFound.length };
+}
+
+export function replaceCells(cells, query, replacement, options = {}) {
+  const needle=String(query ?? ""), substitute=String(replacement ?? "");
+  if(!needle.length) return {cells:{...(cells||{})},changed:0,addresses:[]};
+  const {caseSensitive=false,wholeCell=false,scope=null,onlyAddress=null}=options;
+  const next={...(cells||{})},addresses=[];
+  const escaped=needle.replace(/[.*+?^${}()|[\]\\]/g,"\\$&");
+  const pattern=new RegExp(escaped,"giu");
+  for(const address of Object.keys(next)){
+    if(onlyAddress&&address!==onlyAddress)continue;
+    const point=parseAddress(address);
+    if(!point||String(next[address]??"")==="")continue;
+    if(scope&&(point.row<scope.startRow||point.row>scope.endRow||point.column<scope.startCol||point.column>scope.endCol))continue;
+    const raw=String(next[address]);
+    const normalized=caseSensitive?raw:raw.toLocaleLowerCase();
+    const target=caseSensitive?needle:needle.toLocaleLowerCase();
+    if(wholeCell){
+      if(normalized!==target)continue;
+      if(raw!==substitute){next[address]=substitute;addresses.push(address);}
+      continue;
+    }
+    if(!pattern.test(raw))continue;
+    pattern.lastIndex=0;
+    const updated=raw.replace(pattern,substitute);
+    if(updated!==raw){next[address]=updated;addresses.push(address);}
+  }
+  return {cells:next,changed:addresses.length,addresses};
 }

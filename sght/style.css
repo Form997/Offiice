@@ -143,3 +143,11 @@
 .cell.search-match{box-shadow:inset 0 0 0 2px #d39b36;background:#fff6d9}
 .cell.search-current{box-shadow:inset 0 0 0 3px #d97706;background:#ffedb8;position:relative;z-index:2}
 @media(max-width:680px){.search-panel{margin:8px 7px;padding:8px}.search-main{gap:5px}.search-main input{flex-basis:100%;min-width:0}.search-options{gap:8px}.search-options small{flex-basis:100%}#searchCount{flex:1}}
+
+/* SGHT 18.10 — scoped find/replace and persistent history controls */
+.replace-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.replace-row input{flex:1 1 220px;min-width:150px;height:34px;border:1px solid #cbd8cf;border-radius:6px;padding:0 10px;background:#fff;color:var(--ink)}
+.replace-row button{height:34px;padding:0 12px;border:1px solid var(--line);border-radius:6px;background:#f4f7f4;color:var(--ink);font-size:12px;font-weight:650}
+.replace-row button:last-of-type{background:var(--green);color:#fff;border-color:var(--green)}
+.replace-row span{flex-basis:100%;font-size:11px;color:var(--muted)}
+@media(max-width:680px){.replace-row input{flex-basis:100%;min-width:0}.replace-row button{flex:1}}
