@@ -23,3 +23,13 @@ test("rejects missing or invalid chart data",()=>{
  assert.throws(()=>buildChartData("histogram",{y:[]}),/dãy số/);
  assert.throws(()=>buildChartData("unknown",{y:[1]}),/chưa được hỗ trợ/);
 });
+
+import {buildMultiSeriesChart} from "../ai/chart-engine.js";
+test("builds aligned multi-series line chart without altering source order",()=>{
+ const r=buildMultiSeriesChart({x:[1,2,3],series:[{name:"Đối chứng",values:[2,3,4]},{name:"Nghiệm thức",values:[3,5,7]}]});
+ assert.equal(r.series.length,2);assert.deepEqual(r.series[1].points[2],{x:3,y:7});
+});
+test("rejects mismatched or excessive multi-series input",()=>{
+ assert.throws(()=>buildMultiSeriesChart({x:[1,2],series:[{values:[1,2]},{values:[1]}]}),/cùng số dòng/);
+ assert.throws(()=>buildMultiSeriesChart({x:[1],series:Array.from({length:13},()=>({values:[1]}))}),/2 đến 12/);
+});
