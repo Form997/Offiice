@@ -52,7 +52,19 @@ function load(){try{const saved=JSON.parse(localStorage.getItem(STORAGE_KEY)||"n
 function save(){try{localStorage.setItem(STORAGE_KEY,JSON.stringify({cells,formats:cellFormats,title:sheetTitle,freeze:{rows:frozenRows,columns:frozenColumns},split:{mode:splitMode,ratio:splitRatio,positions:readSplitPositions(),quadrants:readQuadrantPositions()},history:{undo:undoStack,redo:redoStack},dataTables,updatedAt:new Date().toISOString()}));saveStatus.textContent="Đã lưu trên thiết bị";}catch{saveStatus.textContent="Không đủ dung lượng lưu · lịch sử có thể chưa được ghi";}}
 function updateHistoryControls(){document.querySelector("#undoAction").disabled=undoStack.length===0;document.querySelector("#redoAction").disabled=redoStack.length===0;}
 function snapshot(){const current=serializeWorkbook(cells,cellFormats);historyCaptureAvailable=pushHistoryEntry(undoStack,current);redoStack=[];searchDirty=true;updateHistoryControls();save();return historyCaptureAvailable;}
-function historyMove(from,to){if(!from.length)return;const state=moveHistory(from,to,serializeWorkbook(cells,cellFormats));if(!state)return;cells=state.cells;cellFormats=state.formats;searchDirty=true;updateHistoryControls();render();save();calcStatus.textContent="Đã khôi phục dữ liệu và định dạng ô";}
+function historyMove(from,to){if(!from.length)return;const state=moveHistory(from,to,serializeWorkbook(cells,cellFormats));if(!state)return;cells=state.cells;cellFormats=state.formats;reconcileStructuredTables();searchDirty=true;updateHistoryControls();render();save();calcStatus.textContent="Đã khôi phục dữ liệu và định dạng ô";}
+
+
+function reconcileStructuredTables(){
+ dataTables=dataTables.map(table=>{
+  const b=table.bounds;if(!b)return table;let last=b.startRow+1;
+  for(const key of Object.keys(cells)){const p=parseAddress(key);if(p&&p.r>b.startRow&&p.c>=b.startCol&&p.c<=b.endCol&&String(cells[key]).trim()!=="")last=Math.max(last,p.r);}
+  const endRow=Math.min(b.endRow,Math.max(b.startRow+1,last));
+  if(endRow===b.endRow)return table;
+  return {...table,bounds:{...b,endRow},range:address(b.startRow,b.startCol)+":"+address(endRow,b.endCol)};
+ });
+ renderDataTables();
+}
 
 function paintSearchState(){
   searchMatchAddresses=new Set(searchResults.map(item=>item.address));
@@ -402,11 +414,12 @@ function currentDataRules(){
  const bounds=selectedBounds(),column=parseAddress(String(dataFilterColumn.value).toUpperCase()+"1")?.c,column2=parseAddress(String(dataFilterColumn2.value).toUpperCase()+"1")?.c;
  if(!column||column<bounds.startCol||column>bounds.endCol)throw new Error("Cột lọc phải nằm trong vùng đang chọn.");
  const rules=[];
- if(!column||column<bounds.startCol||column>bounds.endCol||!column2||column2<bounds.startCol||column2>bounds.endCol)throw new Error("Hai cột điều kiện phải nằm trong vùng đang chọn.");
+ if(dataFilterOp1.value!=="all"&&(!column||column<bounds.startCol||column>bounds.endCol))throw new Error("Cột điều kiện thứ nhất nằm ngoài vùng đang chọn.");
+ if(dataFilterOp2.value!=="all"&&(!column2||column2<bounds.startCol||column2>bounds.endCol))throw new Error("Cột điều kiện thứ hai nằm ngoài vùng đang chọn.");
  if(dataFilterOp1.value!=="all"){if(!dataFilterValue1.value&&dataFilterOp1.value!=="empty"&&dataFilterOp1.value!=="notEmpty")throw new Error("Nhập giá trị cho điều kiện lọc thứ nhất.");rules.push({column,operator:dataFilterOp1.value,value:dataFilterValue1.value});}
  if(dataFilterOp2.value!=="all"){if(!dataFilterValue2.value&&dataFilterOp2.value!=="empty"&&dataFilterOp2.value!=="notEmpty")throw new Error("Nhập giá trị cho điều kiện lọc thứ hai.");rules.push({column:column2,operator:dataFilterOp2.value,value:dataFilterValue2.value});}
  const selectedValues=[...dataFilterValues.selectedOptions].map(o=>o.value);
- return {bounds,rules,join:dataFilterJoin.value,color:dataFilterColorEnabled.checked?dataFilterColor.value:null,allowedValues:selectedValues.length?{[column]:selectedValues}:{}};
+ return {bounds,rules,join:dataFilterJoin.value,color:dataFilterColorEnabled.checked?dataFilterColor.value:null,allowedValues:dataFilterValues.options.length?{[column]:selectedValues}:{}};
 }
 document.querySelector("#dataSortApply").addEventListener("click",()=>{
  try{
