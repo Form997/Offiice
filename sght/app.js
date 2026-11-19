@@ -4,6 +4,7 @@ import { captureRange, pasteCapturedRange } from "./engine/range-clipboard.js";
 import { getVirtualWindow } from "./engine/sparse-grid.js";
 import { expandGridCapacity } from "./engine/grid-capacity.js";
 import { buildFreezeLayout, normalizeFreezeSettings } from "./engine/freeze-panes.js";
+import { normalizeSplitSettings, synchronizedAxis } from "./engine/split-panes.js";
 import { planMacro, executeMacro } from "./automation/macro-engine.js";
 import { MacroRecorder } from "./automation/macro-recorder.js";
 import { MacroLibrary } from "./automation/macro-library.js";
@@ -38,7 +39,7 @@ const macroSecurity=new MacroSecurityCenter();
 let editingMacroId=null;
 let macroExecution=false;
 const grid=document.querySelector("#sheetGrid"),formulaInput=document.querySelector("#formulaInput"),cellAddress=document.querySelector("#cellAddress"),selectionInfo=document.querySelector("#selectionInfo"),saveStatus=document.querySelector("#saveStatus"),calcStatus=document.querySelector("#calcStatus");
-function load(){try{const saved=JSON.parse(localStorage.getItem(STORAGE_KEY)||"null");if(saved&&saved.cells&&typeof saved.cells==="object"){cells=saved.cells;cellFormats=Object.create(null);for(const [a,f] of Object.entries(saved.formats||{})){if(parseAddress(a))cellFormats[a]=normalizeCellFormat(f);}sheetTitle=String(saved.title||sheetTitle);const freeze=normalizeFreezeSettings(saved.freeze||{});frozenRows=freeze.rows;frozenColumns=freeze.columns;splitMode=["none","horizontal","vertical"].includes(saved.split?.mode)?saved.split.mode:"none";}}catch{}document.querySelector("#sheetName").value=sheetTitle;document.querySelector("#freezeRowsInput").value=frozenRows;document.querySelector("#freezeColumnsInput").value=frozenColumns;document.querySelector("#splitMode").value=splitMode;applySplitMode(false);}
+function load(){try{const saved=JSON.parse(localStorage.getItem(STORAGE_KEY)||"null");if(saved&&saved.cells&&typeof saved.cells==="object"){cells=saved.cells;cellFormats=Object.create(null);for(const [a,f] of Object.entries(saved.formats||{})){if(parseAddress(a))cellFormats[a]=normalizeCellFormat(f);}sheetTitle=String(saved.title||sheetTitle);const freeze=normalizeFreezeSettings(saved.freeze||{});frozenRows=freeze.rows;frozenColumns=freeze.columns;splitMode=normalizeSplitSettings(saved.split).mode;}}catch{}document.querySelector("#sheetName").value=sheetTitle;document.querySelector("#freezeRowsInput").value=frozenRows;document.querySelector("#freezeColumnsInput").value=frozenColumns;document.querySelector("#splitMode").value=splitMode;applySplitMode(false);}
 function save(){try{localStorage.setItem(STORAGE_KEY,JSON.stringify({cells,formats:cellFormats,title:sheetTitle,freeze:{rows:frozenRows,columns:frozenColumns},split:{mode:splitMode},updatedAt:new Date().toISOString()}));saveStatus.textContent="Đã lưu trên thiết bị";}catch{saveStatus.textContent="Không đủ dung lượng lưu";}}
 function snapshot(){undoStack.push(JSON.stringify({cells,formats:cellFormats}));if(undoStack.length>80)undoStack.shift();redoStack=[];}
 function historyMove(from,to){if(!from.length)return;to.push(JSON.stringify({cells,formats:cellFormats}));const state=JSON.parse(from.pop());if(state&&state.cells){cells=state.cells;cellFormats=state.formats||Object.create(null);}else{cells=state||Object.create(null);cellFormats=Object.create(null);}render();save();calcStatus.textContent="Đã khôi phục dữ liệu";}
@@ -109,8 +110,9 @@ function choose(a,extend=false){
 function handlePaneScroll(source,peer){
   if(splitMode!=="none"&&!syncingSplitScroll){
     syncingSplitScroll=true;
-    if(splitMode==="horizontal")peer.scrollLeft=source.scrollLeft;
-    if(splitMode==="vertical")peer.scrollTop=source.scrollTop;
+    const axis=synchronizedAxis(splitMode);
+    if(axis==="x")peer.scrollLeft=source.scrollLeft;
+    if(axis==="y")peer.scrollTop=source.scrollTop;
     syncingSplitScroll=false;
   }
   const nearBottom=source.scrollTop+source.clientHeight>=source.scrollHeight-Math.max(ROW_HEIGHT*24,source.clientHeight*2);
