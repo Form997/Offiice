@@ -359,3 +359,25 @@ Bổ sung mô hình đáp ứng tăng dần, lợi ích biên giảm dần:
 ### Kiểm thử
 - Kiểm tra nhiều chuỗi cùng X, giữ nguyên thứ tự cặp quan sát.
 - Từ chối số dòng không khớp và số chuỗi vượt giới hạn.
+
+
+## SGHT Scientific Chart Professional — Giai đoạn 15 · 2026-11-19
+
+### Chức năng
+- Tùy chỉnh màu chuỗi bằng mã HEX và kiểu nét solid/dash/dot cho biểu đồ nhiều chuỗi.
+- Hỗ trợ chỉ định một chuỗi Y dùng trục phụ bên phải; các chuỗi còn lại dùng trục trái. Chỉ áp dụng cho biểu đồ đường/phân tán nhiều chuỗi; người dùng phải kiểm tra ý nghĩa đơn vị và tránh gây hiểu nhầm do hai thang đo.
+- Lưu, nạp và xóa tối đa 30 mẫu cấu hình biểu đồ trong localStorage. Mẫu chỉ lưu cấu hình, không lưu dữ liệu bảng tính.
+- Bổ sung mặt đáp ứng 3D tương tác từ lưới dự báo hai yếu tố đã khớp; kéo chuột để xoay góc nhìn. Đây là phép chiếu phối cảnh SVG ngoại tuyến, không phải WebGL hay mô phỏng vật lý.
+- Bổ sung chế độ in báo cáo nghiên cứu nhiều trang từ vùng kết quả Data Science; người dùng chọn lưu PDF trong hộp thoại in của trình duyệt.
+
+### 3D và diễn giải
+- Bề mặt 3D biểu diễn giá trị dự báo của mô hình mặt đáp ứng bậc hai; không phải phép đo thực nghiệm ở mọi điểm.
+- Lưới phải chữ nhật, hữu hạn, tối đa 101×101; mặt đáp ứng hiện tại dùng lưới 21×21.
+- Xoay bằng cách kéo trực tiếp bề mặt. Dữ liệu và mô hình không bị thay đổi.
+- Báo cáo PDF dùng engine in của trình duyệt, phân trang tùy thiết bị; không phải bộ sinh PDF nhúng có cam kết dàn trang giống nhau trên mọi máy.
+
+### Mẫu biểu đồ và giới hạn
+- Tối đa 30 mẫu, lưu cục bộ; không đồng bộ giữa thiết bị.
+- Màu chuỗi nhận mã HEX hợp lệ; kiểu nét nhận solid, dash hoặc dot.
+- Trục Y phụ chỉ là trục hiển thị, không chuẩn hóa dữ liệu và không chứng minh hai đại lượng có quan hệ.
+- Chưa có WebGL 3D, bề mặt nhiều mô hình, tùy chỉnh nhãn trục đầy đủ, template chia sẻ đám mây hoặc trình biên tập báo cáo kéo-thả.
