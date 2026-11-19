@@ -19,6 +19,7 @@ import { analyzeWorkbook, suggestFormulas, draftMacroFromVietnamese } from "./ai
 import { fitDoseResponse, compareDoseResponse, fitMitscherlichDoseResponse, doseResponseDiagnostics } from "./ai/dose-response.js";
 import { fitResponseSurface } from "./ai/response-surface.js";
 import { buildChartData, buildMultiSeriesChart } from "./ai/chart-engine.js";
+import { buildPivotChartModel } from "./ai/pivot-chart.js";
 import { ChartPresetStore } from "./ai/chart-presets.js";
 import { buildSurface3DData, projectSurface3D } from "./ai/chart-surface-3d.js";
 import { buildContourData, summarizeErrorBars, regressionUncertainty } from "./ai/chart-uncertainty.js";
@@ -489,14 +490,13 @@ function renderPivotChart(p){
  const measures=p.measures||[];
  if(measureSelect){const selected=Math.min(Math.max(0,pivotChartSettings.measureIndex||0),Math.max(0,measures.length-1));pivotChartSettings.measureIndex=selected;measureSelect.innerHTML=measures.map((m,i)=>"<option value='"+i+"' "+(i===selected?"selected":"")+">"+escapeHtml(m.label||pivotFieldLabel(m.column))+"</option>").join("");}
  if(typeSelect)typeSelect.value=pivotChartSettings.type;
- const mi=pivotChartSettings.measureIndex||0,columns=p.columns?.length?p.columns:["Tổng"],rows=p.rows.slice(0,24),categories=rows.map(r=>r.labels.map(v=>String(v||"(Trống)")).join(" · "));
- const series=columns.map(col=>({name:String(col||"(Trống)"),values:rows.map(r=>{const m=r.metrics?.[mi];return Number(columns.length===1&&!p.columnField?m?.total:m?.values?.[col]??0);})}));
+ const mi=pivotChartSettings.measureIndex||0,model=buildPivotChartModel(p,{measureIndex:mi,limit:24}),categories=model.categories,series=model.series;
  if(!categories.length||!series.length){host.innerHTML="<p class='pivot-chart-empty'>Không có nhóm phù hợp với bộ lọc hiện tại.</p>";status.textContent="Không có dữ liệu để vẽ.";return;}
  if(series.some(s=>s.values.some(v=>!Number.isFinite(v))))throw new Error("Dữ liệu biểu đồ có giá trị không hợp lệ.");
  const type=pivotChartSettings.type||"bar",W=860,H=390,L=62,R=22,T=26,B=76,plotW=W-L-R,plotH=H-T-B,all=series.flatMap(s=>s.values),min=Math.min(0,...all),max=Math.max(0,...all),span=max-min||1,y=v=>T+(max-v)/span*plotH,x=i=>L+(i+.5)*plotW/categories.length,palette=["#2563eb","#0f766e","#d97706","#9333ea","#dc2626","#0891b2","#65a30d","#be185d"];
  let marks="";
  if(type!=="donut")for(let g=0;g<=4;g++){const val=min+span*g/4,yy=y(val);marks+="<line x1='"+L+"' y1='"+yy+"' x2='"+(W-R)+"' y2='"+yy+"' stroke='#dce3df'/><text x='"+(L-9)+"' y='"+(yy+4)+"' text-anchor='end' font-size='11' fill='#52615a'>"+escapeHtml(Number(val.toPrecision(5)).toLocaleString("vi-VN"))+"</text>";}
- const legend=series.map((s,i)=>"<span class='pivot-chart-legend-item'><i style='background:"+palette[i%palette.length]+"'></i>"+escapeHtml(s.name)+"</span>").join("");
+ const legend=(type==="donut"?categories.map((name,i)=>"<span class='pivot-chart-legend-item'><i style='background:"+palette[i%palette.length]+"'></i>"+escapeHtml(name)+"</span>"):series.map((s,i)=>"<span class='pivot-chart-legend-item'><i style='background:"+palette[i%palette.length]+"'></i>"+escapeHtml(s.name)+"</span>")).join("");
  if(type==="bar"){const groupW=plotW/categories.length,barW=Math.max(3,Math.min(34,groupW*.72/series.length));series.forEach((s,si)=>s.values.forEach((v,i)=>{const xx=L+i*groupW+groupW/2-series.length*barW/2+si*barW,zero=y(0),yy=y(v),height=Math.abs(yy-zero);marks+="<rect x='"+xx+"' y='"+Math.min(yy,zero)+"' width='"+(barW-2)+"' height='"+Math.max(1,height)+"' rx='3' fill='"+palette[si%palette.length]+"'><title>"+escapeHtml(categories[i]+" · "+s.name+": "+v)+"</title></rect>";}));}
  else if(type==="line"){series.forEach((s,si)=>{marks+="<polyline points='"+s.values.map((v,i)=>x(i)+","+y(v)).join(" ")+"' fill='none' stroke='"+palette[si%palette.length]+"' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'/>";s.values.forEach((v,i)=>{marks+="<circle cx='"+x(i)+"' cy='"+y(v)+"' r='4' fill='"+palette[si%palette.length]+"'><title>"+escapeHtml(categories[i]+" · "+s.name+": "+v)+"</title></circle>";});});}
  else{
@@ -508,7 +508,7 @@ function renderPivotChart(p){
   marks+="<text x='"+cx+"' y='"+(cy-2)+"' text-anchor='middle' font-size='13' fill='#52615a'>Tổng</text><text x='"+cx+"' y='"+(cy+22)+"' text-anchor='middle' font-size='20' font-weight='700' fill='#17231d'>"+escapeHtml(total.toLocaleString("vi-VN"))+"</text>";
  }
  const labels=type==="donut"?"":categories.map((c,i)=>"<text x='"+x(i)+"' y='"+(H-42)+"' text-anchor='middle' font-size='11' fill='#52615a'>"+escapeHtml(c.length>18?c.slice(0,17)+"…":c)+"</text>").join("");
- host.innerHTML="<div class='pivot-chart-meta'>"+escapeHtml(measures[mi]?.label||"Chỉ tiêu")+" · "+p.includedRows+" dòng sau lọc"+(p.rows.length>24?" · biểu đồ hiển thị 24 nhóm đầu":"")+"</div><div class='pivot-chart-scroll'><svg class='pivot-chart-svg' viewBox='0 0 "+W+" "+H+"' role='img' aria-label='Biểu đồ Pivot "+escapeHtml(type)+"'>"+marks+labels+"</svg></div><div class='pivot-chart-legend'>"+legend+"</div>";
+ host.innerHTML="<div class='pivot-chart-meta'>"+escapeHtml(measures[mi]?.label||"Chỉ tiêu")+" · "+p.includedRows+" dòng sau lọc"+(model.truncated?" · biểu đồ hiển thị 24 nhóm đầu":"")+"</div><div class='pivot-chart-scroll'><svg class='pivot-chart-svg' viewBox='0 0 "+W+" "+H+"' role='img' aria-label='Biểu đồ Pivot "+escapeHtml(type)+"'>"+marks+labels+"</svg></div><div class='pivot-chart-legend'>"+legend+"</div>";
  status.textContent="Biểu đồ đang liên kết trực tiếp với Pivot Table.";
 }
 document.querySelector("#pivotLoadFields").addEventListener("click",()=>{
