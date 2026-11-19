@@ -102,7 +102,7 @@ test("filter supports inclusive numeric ranges, text prefix and strict ISO/Vietn
 test("pivot supports multiple measures with independent aggregations",()=>{
  const cells={A1:"Vùng",B1:"Cây",C1:"Kg",D1:"Doanh thu",A2:"Bắc",B2:"Cải",C2:"2",D2:"100",A3:"Bắc",B3:"Rau",C3:"4",D3:"250",A4:"Nam",B4:"Cải",C4:"6",D4:"300"};
  const p=buildPivotTable(cells,{startRow:1,endRow:4,startCol:1,endCol:4},{rowColumns:[1],columnField:2,measures:[{column:3,operation:"sum",label:"Kg"},{column:4,operation:"average",label:"Doanh thu"}]});
- assert.equal(p.measures.length,2);assert.equal(p.rows[0].metrics[0].values["Rau"],4);assert.equal(p.rows[0].metrics[1].values["Rau"],250);assert.equal(p.grandTotals[0].total,12);assert.equal(p.grandTotals[1].total,650);
+ assert.equal(p.measures.length,2);assert.equal(p.rows[0].metrics[0].values["Rau"],4);assert.equal(p.rows[0].metrics[1].values["Rau"],250);assert.equal(p.grandTotals[0].total,12);assert.ok(Math.abs(p.grandTotals[1].total-(650/3))<1e-10);assert.equal(p.grandTotals[1].columnTotals["Rau"],250);
 });
 test("pivot field filters constrain rows and recalculate totals",()=>{
  const cells={A1:"Vùng",B1:"Cây",C1:"Kg",A2:"Bắc",B2:"Cải",C2:"2",A3:"Bắc",B3:"Rau",C3:"4",A4:"Nam",B4:"Cải",C4:"6"};
