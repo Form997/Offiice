@@ -460,3 +460,14 @@ Bổ sung mô hình đáp ứng tăng dần, lợi ích biên giảm dần:
 - Cấu hình bật/tắt chia vùng được lưu cùng workbook; bảng mới trở về chế độ một khung. Không nhân đôi dữ liệu ô trong bộ nhớ.
 - Giới hạn: 18.5 cung cấp chế độ hai khung (ngang **hoặc** dọc), chưa phải bố cục bốn góc phần tư đồng thời; chưa có kéo thanh chia để đổi tỷ lệ hoặc lưu vị trí cuộn riêng của từng khung. Ghim hàng/cột 18.4 vẫn là cơ chế riêng.
 - Kiểm thử: kiểm tra chế độ hợp lệ, chế độ mặc định và đồng bộ trục; cần kiểm thử trình duyệt thực tế trên nhiều kích thước màn hình trước khi coi là kiểm định giao diện hoàn tất.
+
+
+## SGHT Split View — Giai đoạn 18.6 · Kéo chỉnh và ghi nhớ vùng chia — 2026-11-19
+
+- Thanh phân cách hỗ trợ kéo bằng chuột/cảm ứng; tỷ lệ hai vùng giới hạn 20–80%.
+- Có thể điều chỉnh bằng bàn phím khi thanh phân cách được focus: phím mũi tên thay đổi 2%, Home/End đưa về biên 20%/80%.
+- Tỷ lệ chia và vị trí cuộn của cả hai khung được lưu trong cấu hình workbook; cấu hình cũ chỉ lưu mode được nâng cấp an toàn với mặc định 50% và vị trí đầu trang.
+- Chọn ô trong khung phụ cuộn ô vào tầm nhìn ở chính khung phụ.
+- Tự lưu vị trí cuộn có trì hoãn 300 ms để tránh ghi localStorage liên tục trong lúc cuộn.
+- Giới hạn: vẫn là hai khung ngang hoặc dọc; chưa hỗ trợ bốn phần tư đồng thời. Tỷ lệ chia giới hạn 20–80%.
+- Kiểm thử tự động bao gồm chuẩn hóa cấu hình cũ/mới, giới hạn tỷ lệ, vị trí cuộn, đồng bộ trục và tính tỷ lệ từ con trỏ. Cần xác nhận thao tác thực tế trên trình duyệt/điện thoại trước khi kết luận UX hoàn tất.

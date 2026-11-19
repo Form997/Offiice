@@ -26,7 +26,7 @@ const ROW_HEIGHT = 32, COLUMN_WIDTH = 108, OVERSCAN_ROWS = 5, OVERSCAN_COLUMNS =
 const sheetScroll = document.querySelector("#sheetScroll");
 const splitScroll = document.querySelector("#splitScroll");
 const splitGrid = document.querySelector("#splitGrid");
-let splitMode = "none", syncingSplitScroll = false;
+let splitMode = "none", splitRatio = 0.5, splitPositions = {primary:{top:0,left:0},secondary:{top:0,left:0}}, syncingSplitScroll = false, splitSaveTimer = null, resizingSplit = false;
 let virtualWindow = null;
 const letters = n => { let s=""; while(n>0){const r=(n-1)%26;s=String.fromCharCode(65+r)+s;n=Math.floor((n-1)/26);} return s; };
 const address = (r,c) => letters(c)+r;
@@ -39,8 +39,8 @@ const macroSecurity=new MacroSecurityCenter();
 let editingMacroId=null;
 let macroExecution=false;
 const grid=document.querySelector("#sheetGrid"),formulaInput=document.querySelector("#formulaInput"),cellAddress=document.querySelector("#cellAddress"),selectionInfo=document.querySelector("#selectionInfo"),saveStatus=document.querySelector("#saveStatus"),calcStatus=document.querySelector("#calcStatus");
-function load(){try{const saved=JSON.parse(localStorage.getItem(STORAGE_KEY)||"null");if(saved&&saved.cells&&typeof saved.cells==="object"){cells=saved.cells;cellFormats=Object.create(null);for(const [a,f] of Object.entries(saved.formats||{})){if(parseAddress(a))cellFormats[a]=normalizeCellFormat(f);}sheetTitle=String(saved.title||sheetTitle);const freeze=normalizeFreezeSettings(saved.freeze||{});frozenRows=freeze.rows;frozenColumns=freeze.columns;splitMode=normalizeSplitSettings(saved.split).mode;}}catch{}document.querySelector("#sheetName").value=sheetTitle;document.querySelector("#freezeRowsInput").value=frozenRows;document.querySelector("#freezeColumnsInput").value=frozenColumns;document.querySelector("#splitMode").value=splitMode;applySplitMode(false);}
-function save(){try{localStorage.setItem(STORAGE_KEY,JSON.stringify({cells,formats:cellFormats,title:sheetTitle,freeze:{rows:frozenRows,columns:frozenColumns},split:{mode:splitMode},updatedAt:new Date().toISOString()}));saveStatus.textContent="Đã lưu trên thiết bị";}catch{saveStatus.textContent="Không đủ dung lượng lưu";}}
+function load(){try{const saved=JSON.parse(localStorage.getItem(STORAGE_KEY)||"null");if(saved&&saved.cells&&typeof saved.cells==="object"){cells=saved.cells;cellFormats=Object.create(null);for(const [a,f] of Object.entries(saved.formats||{})){if(parseAddress(a))cellFormats[a]=normalizeCellFormat(f);}sheetTitle=String(saved.title||sheetTitle);const freeze=normalizeFreezeSettings(saved.freeze||{});frozenRows=freeze.rows;frozenColumns=freeze.columns;const split=normalizeSplitSettings(saved.split);splitMode=split.mode;splitRatio=split.ratio;splitPositions=split.positions;}}catch{}document.querySelector("#sheetName").value=sheetTitle;document.querySelector("#freezeRowsInput").value=frozenRows;document.querySelector("#freezeColumnsInput").value=frozenColumns;document.querySelector("#splitMode").value=splitMode;applySplitMode(false);}
+function save(){try{localStorage.setItem(STORAGE_KEY,JSON.stringify({cells,formats:cellFormats,title:sheetTitle,freeze:{rows:frozenRows,columns:frozenColumns},split:{mode:splitMode,ratio:splitRatio,positions:readSplitPositions()},updatedAt:new Date().toISOString()}));saveStatus.textContent="Đã lưu trên thiết bị";}catch{saveStatus.textContent="Không đủ dung lượng lưu";}}
 function snapshot(){undoStack.push(JSON.stringify({cells,formats:cellFormats}));if(undoStack.length>80)undoStack.shift();redoStack=[];}
 function historyMove(from,to){if(!from.length)return;to.push(JSON.stringify({cells,formats:cellFormats}));const state=JSON.parse(from.pop());if(state&&state.cells){cells=state.cells;cellFormats=state.formats||Object.create(null);}else{cells=state||Object.create(null);cellFormats=Object.create(null);}render();save();calcStatus.textContent="Đã khôi phục dữ liệu";}
 function raw(a){return Object.hasOwn(cells,a)?String(cells[a]):"";}
@@ -96,15 +96,15 @@ function growGridTo(row,column){
   if(next.rows!==ROWS||next.columns!==COLS){ROWS=next.rows;COLS=next.columns;const meta=document.querySelector(".sheet-meta");if(meta)meta.textContent="Tự động lưu cục bộ · Lưới đang mở rộng "+COLS.toLocaleString("vi-VN")+" cột × "+ROWS.toLocaleString("vi-VN")+" hàng";return true;}
   return false;
 }
-function choose(a,extend=false){
+function choose(a,extend=false,scrollElement=sheetScroll){
   const p=parseAddress(a);if(!p||p.r>MAX_ROWS||p.c>MAX_COLS)return;
   growGridTo(p.r,p.c);
   selected=a;if(extend)selectionRange.end=a;else selectionRange={start:a,end:a};
   const top=(p.r-1)*ROW_HEIGHT,bottom=top+ROW_HEIGHT,left=(p.c-1)*COLUMN_WIDTH,right=left+COLUMN_WIDTH;
-  if(top<sheetScroll.scrollTop)sheetScroll.scrollTop=top;
-  else if(bottom>sheetScroll.scrollTop+sheetScroll.clientHeight)sheetScroll.scrollTop=bottom-sheetScroll.clientHeight;
-  if(left<sheetScroll.scrollLeft)sheetScroll.scrollLeft=left;
-  else if(right>sheetScroll.scrollLeft+sheetScroll.clientWidth)sheetScroll.scrollLeft=right-sheetScroll.clientWidth;
+  if(top<scrollElement.scrollTop)scrollElement.scrollTop=top;
+  else if(bottom>scrollElement.scrollTop+scrollElement.clientHeight)scrollElement.scrollTop=bottom-scrollElement.clientHeight;
+  if(left<scrollElement.scrollLeft)scrollElement.scrollLeft=left;
+  else if(right>scrollElement.scrollLeft+scrollElement.clientWidth)scrollElement.scrollLeft=right-scrollElement.clientWidth;
   updateSelection();formulaInput.focus();formulaInput.select();
 }
 function handlePaneScroll(source,peer){
@@ -115,6 +115,9 @@ function handlePaneScroll(source,peer){
     if(axis==="y")peer.scrollTop=source.scrollTop;
     syncingSplitScroll=false;
   }
+  if(source===sheetScroll){splitPositions.primary={top:source.scrollTop,left:source.scrollLeft};if(splitMode!=="none")splitPositions.secondary={top:splitScroll.scrollTop,left:splitScroll.scrollLeft};}
+  else{splitPositions.secondary={top:source.scrollTop,left:source.scrollLeft};splitPositions.primary={top:sheetScroll.scrollTop,left:sheetScroll.scrollLeft};}
+  scheduleSplitSave();
   const nearBottom=source.scrollTop+source.clientHeight>=source.scrollHeight-Math.max(ROW_HEIGHT*24,source.clientHeight*2);
   const nearRight=source.scrollLeft+source.clientWidth>=source.scrollWidth-Math.max(COLUMN_WIDTH*8,source.clientWidth*2);
   let grew=false;
@@ -125,14 +128,63 @@ function handlePaneScroll(source,peer){
 }
 sheetScroll.addEventListener("scroll",()=>handlePaneScroll(sheetScroll,splitScroll),{passive:true});
 splitScroll.addEventListener("scroll",()=>{if(splitMode!=="none")handlePaneScroll(splitScroll,sheetScroll);},{passive:true});
+function readSplitPositions(){
+  return {primary:{top:sheetScroll.scrollTop,left:sheetScroll.scrollLeft},secondary:{top:splitScroll.scrollTop,left:splitScroll.scrollLeft}};
+}
+function restoreSplitPositions(){
+  requestAnimationFrame(()=>{
+    sheetScroll.scrollTop=splitPositions.primary.top;sheetScroll.scrollLeft=splitPositions.primary.left;
+    splitScroll.scrollTop=splitPositions.secondary.top;splitScroll.scrollLeft=splitPositions.secondary.left;
+    render();
+  });
+}
+function scheduleSplitSave(){
+  if(splitSaveTimer!==null)clearTimeout(splitSaveTimer);
+  splitSaveTimer=setTimeout(()=>{splitSaveTimer=null;save();},300);
+}
+function setSplitRatio(value,persist=true){
+  splitRatio=Math.max(0.2,Math.min(0.8,Number(value)||0.5));
+  document.querySelector("#sheetPanes").style.setProperty("--split-ratio",String(splitRatio));
+  if(persist)save();
+}
 function applySplitMode(persist=true){
   const panes=document.querySelector("#sheetPanes");
   panes.dataset.mode=splitMode;
   splitScroll.hidden=splitMode==="none";
-  if(splitMode==="none"){splitScroll.scrollTop=0;splitScroll.scrollLeft=0;}
+  const separator=panes.querySelector("#splitSeparator");
+  separator.hidden=splitMode==="none";
+  panes.style.setProperty("--split-ratio",String(splitRatio));
+  separator.setAttribute("aria-orientation",splitMode==="horizontal"?"horizontal":"vertical");
+  separator.setAttribute("aria-label",splitMode==="horizontal"?"Thanh chia ngang":"Thanh chia dọc");
   if(persist)save();
-  requestAnimationFrame(()=>render());
+  restoreSplitPositions();
 }
+const splitSeparator=document.querySelector("#splitSeparator");
+splitSeparator.addEventListener("pointerdown",event=>{
+  if(splitMode==="none")return;
+  event.preventDefault();resizingSplit=true;splitSeparator.setPointerCapture(event.pointerId);
+});
+splitSeparator.addEventListener("pointermove",event=>{
+  if(!resizingSplit)return;
+  const rect=document.querySelector("#sheetPanes").getBoundingClientRect();
+  const extent=splitMode==="horizontal"?rect.height:rect.width;
+  const offset=splitMode==="horizontal"?event.clientY-rect.top:event.clientX-rect.left;
+  setSplitRatio(extent>0?offset/extent:0.5,false);
+});
+function stopSplitResize(){if(!resizingSplit)return;resizingSplit=false;save();}
+splitSeparator.addEventListener("pointerup",stopSplitResize);
+splitSeparator.addEventListener("pointercancel",stopSplitResize);
+splitSeparator.addEventListener("lostpointercapture",stopSplitResize);
+splitSeparator.addEventListener("keydown",event=>{
+  if(!["ArrowUp","ArrowDown","ArrowLeft","ArrowRight","Home","End"].includes(event.key))return;
+  event.preventDefault();
+  const positive=splitMode==="horizontal"?event.key==="ArrowDown":event.key==="ArrowRight";
+  const negative=splitMode==="horizontal"?event.key==="ArrowUp":event.key==="ArrowLeft";
+  if(event.key==="Home")setSplitRatio(0.2);
+  else if(event.key==="End")setSplitRatio(0.8);
+  else if(positive)setSplitRatio(splitRatio+0.02);
+  else if(negative)setSplitRatio(splitRatio-0.02);
+});
 document.querySelector("#applySplit").addEventListener("click",()=>{
   const next=document.querySelector("#splitMode").value;
   if(!["none","horizontal","vertical"].includes(next))return;
@@ -140,10 +192,10 @@ document.querySelector("#applySplit").addEventListener("click",()=>{
   calcStatus.textContent=splitMode==="none"?"Đã tắt chia vùng.":splitMode==="horizontal"?"Đã chia ngang: cuộn dọc độc lập, cuộn ngang đồng bộ.":"Đã chia dọc: cuộn ngang độc lập, cuộn dọc đồng bộ.";
 });
 document.querySelector("#clearSplit").addEventListener("click",()=>{splitMode="none";document.querySelector("#splitMode").value="none";applySplitMode();calcStatus.textContent="Đã tắt chia vùng.";});
-splitGrid.addEventListener("pointerdown",e=>{const b=e.target.closest("[data-cell]");if(!b)return;pointerSelecting=true;choose(b.dataset.cell,e.shiftKey);});
-splitGrid.addEventListener("pointerover",e=>{if(!pointerSelecting)return;const b=e.target.closest("[data-cell]");if(b)choose(b.dataset.cell,true);});
-splitGrid.addEventListener("click",e=>{const b=e.target.closest("[data-cell]");if(b&&!pointerSelecting&&selected!==b.dataset.cell)choose(b.dataset.cell);});
-splitGrid.addEventListener("keydown",e=>{const b=e.target.closest("[data-cell]");if(!b)return;const p=parseAddress(b.dataset.cell);if(e.key==="Enter"||e.key==="ArrowDown"){e.preventDefault();choose(address(Math.min(ROWS,p.r+1),p.c),e.shiftKey);}else if(e.key==="Tab"||e.key==="ArrowRight"){e.preventDefault();choose(address(p.r,Math.min(COLS,p.c+1)),e.shiftKey);}else if(e.key==="ArrowUp"){e.preventDefault();choose(address(Math.max(1,p.r-1),p.c),e.shiftKey);}else if(e.key==="ArrowLeft"){e.preventDefault();choose(address(p.r,Math.max(1,p.c-1)),e.shiftKey);}});
+splitGrid.addEventListener("pointerdown",e=>{const b=e.target.closest("[data-cell]");if(!b)return;pointerSelecting=true;choose(b.dataset.cell,e.shiftKey,splitScroll);});
+splitGrid.addEventListener("pointerover",e=>{if(!pointerSelecting)return;const b=e.target.closest("[data-cell]");if(b)choose(b.dataset.cell,true,splitScroll);});
+splitGrid.addEventListener("click",e=>{const b=e.target.closest("[data-cell]");if(b&&!pointerSelecting&&selected!==b.dataset.cell)choose(b.dataset.cell,false,splitScroll);});
+splitGrid.addEventListener("keydown",e=>{const b=e.target.closest("[data-cell]");if(!b)return;const p=parseAddress(b.dataset.cell);if(e.key==="Enter"||e.key==="ArrowDown"){e.preventDefault();choose(address(Math.min(ROWS,p.r+1),p.c),e.shiftKey,splitScroll);}else if(e.key==="Tab"||e.key==="ArrowRight"){e.preventDefault();choose(address(p.r,Math.min(COLS,p.c+1)),e.shiftKey,splitScroll);}else if(e.key==="ArrowUp"){e.preventDefault();choose(address(Math.max(1,p.r-1),p.c),e.shiftKey,splitScroll);}else if(e.key==="ArrowLeft"){e.preventDefault();choose(address(p.r,Math.max(1,p.c-1)),e.shiftKey,splitScroll);}});
 splitGrid.addEventListener("paste",e=>{const text=e.clipboardData?.getData("text/plain");if(text){e.preventDefault();pasteRange(text);}});
 window.addEventListener("pointerup",()=>{pointerSelecting=false;});
 
