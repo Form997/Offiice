@@ -449,3 +449,14 @@ Bổ sung mô hình đáp ứng tăng dần, lợi ích biên giảm dần:
 - Không sửa nội dung ô, công thức hay định dạng khi ghim/bỏ ghim. Không thay đổi cấu trúc lưu trữ dữ liệu ô hiện có; thuộc tính freeze là trường bổ sung tương thích ngược.
 - Giới hạn có chủ ý: tối đa 20 hàng và 10 cột đầu để tránh che khuất vùng làm việc trên màn hình nhỏ. Đây là cố định từ mép đầu bảng; ghim vùng tùy chọn tại một địa chỉ bất kỳ chưa thuộc bước này.
 - Chưa tuyên bố hỗ trợ nhiều vùng ghim độc lập hoặc chia cửa sổ thành nhiều pane có cuộn riêng.
+
+
+## SGHT Split View — Giai đoạn 18.5 · Chia vùng xem độc lập — 2026-11-19
+
+- Bổ sung hai viewport của cùng một trang tính; cả hai đọc/ghi chung bản đồ ô và định dạng, dùng chung địa chỉ ô, vùng chọn, công thức và trạng thái dữ liệu.
+- **Chia ngang:** hai khung trên/dưới có vị trí cuộn dọc độc lập; cuộn ngang được đồng bộ để giữ cùng cột tham chiếu.
+- **Chia dọc:** hai khung trái/phải có vị trí cuộn ngang độc lập; cuộn dọc được đồng bộ để giữ cùng hàng tham chiếu.
+- Chọn ô ở khung nào cũng cập nhật thanh địa chỉ/công thức và vùng chọn trên cả hai khung. Bàn phím và dán văn bản dạng bảng được hỗ trợ trong khung phụ.
+- Cấu hình bật/tắt chia vùng được lưu cùng workbook; bảng mới trở về chế độ một khung. Không nhân đôi dữ liệu ô trong bộ nhớ.
+- Giới hạn: 18.5 cung cấp chế độ hai khung (ngang **hoặc** dọc), chưa phải bố cục bốn góc phần tư đồng thời; chưa có kéo thanh chia để đổi tỷ lệ hoặc lưu vị trí cuộn riêng của từng khung. Ghim hàng/cột 18.4 vẫn là cơ chế riêng.
+- Kiểm thử: kiểm tra chế độ hợp lệ, chế độ mặc định và đồng bộ trục; cần kiểm thử trình duyệt thực tế trên nhiều kích thước màn hình trước khi coi là kiểm định giao diện hoàn tất.

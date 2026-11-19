@@ -23,6 +23,9 @@ let COLS = 100, ROWS = 1000;
 const MAX_COLS = 16384, MAX_ROWS = 100000, STORAGE_KEY = "haidat-sght-workbook-v1";
 const ROW_HEIGHT = 32, COLUMN_WIDTH = 108, OVERSCAN_ROWS = 5, OVERSCAN_COLUMNS = 2;
 const sheetScroll = document.querySelector("#sheetScroll");
+const splitScroll = document.querySelector("#splitScroll");
+const splitGrid = document.querySelector("#splitGrid");
+let splitMode = "none", syncingSplitScroll = false;
 let virtualWindow = null;
 const letters = n => { let s=""; while(n>0){const r=(n-1)%26;s=String.fromCharCode(65+r)+s;n=Math.floor((n-1)/26);} return s; };
 const address = (r,c) => letters(c)+r;
@@ -35,8 +38,8 @@ const macroSecurity=new MacroSecurityCenter();
 let editingMacroId=null;
 let macroExecution=false;
 const grid=document.querySelector("#sheetGrid"),formulaInput=document.querySelector("#formulaInput"),cellAddress=document.querySelector("#cellAddress"),selectionInfo=document.querySelector("#selectionInfo"),saveStatus=document.querySelector("#saveStatus"),calcStatus=document.querySelector("#calcStatus");
-function load(){try{const saved=JSON.parse(localStorage.getItem(STORAGE_KEY)||"null");if(saved&&saved.cells&&typeof saved.cells==="object"){cells=saved.cells;cellFormats=Object.create(null);for(const [a,f] of Object.entries(saved.formats||{})){if(parseAddress(a))cellFormats[a]=normalizeCellFormat(f);}sheetTitle=String(saved.title||sheetTitle);const freeze=normalizeFreezeSettings(saved.freeze||{});frozenRows=freeze.rows;frozenColumns=freeze.columns;}}catch{}document.querySelector("#sheetName").value=sheetTitle;document.querySelector("#freezeRowsInput").value=frozenRows;document.querySelector("#freezeColumnsInput").value=frozenColumns;}
-function save(){try{localStorage.setItem(STORAGE_KEY,JSON.stringify({cells,formats:cellFormats,title:sheetTitle,freeze:{rows:frozenRows,columns:frozenColumns},updatedAt:new Date().toISOString()}));saveStatus.textContent="Đã lưu trên thiết bị";}catch{saveStatus.textContent="Không đủ dung lượng lưu";}}
+function load(){try{const saved=JSON.parse(localStorage.getItem(STORAGE_KEY)||"null");if(saved&&saved.cells&&typeof saved.cells==="object"){cells=saved.cells;cellFormats=Object.create(null);for(const [a,f] of Object.entries(saved.formats||{})){if(parseAddress(a))cellFormats[a]=normalizeCellFormat(f);}sheetTitle=String(saved.title||sheetTitle);const freeze=normalizeFreezeSettings(saved.freeze||{});frozenRows=freeze.rows;frozenColumns=freeze.columns;splitMode=["none","horizontal","vertical"].includes(saved.split?.mode)?saved.split.mode:"none";}}catch{}document.querySelector("#sheetName").value=sheetTitle;document.querySelector("#freezeRowsInput").value=frozenRows;document.querySelector("#freezeColumnsInput").value=frozenColumns;document.querySelector("#splitMode").value=splitMode;applySplitMode(false);}
+function save(){try{localStorage.setItem(STORAGE_KEY,JSON.stringify({cells,formats:cellFormats,title:sheetTitle,freeze:{rows:frozenRows,columns:frozenColumns},split:{mode:splitMode},updatedAt:new Date().toISOString()}));saveStatus.textContent="Đã lưu trên thiết bị";}catch{saveStatus.textContent="Không đủ dung lượng lưu";}}
 function snapshot(){undoStack.push(JSON.stringify({cells,formats:cellFormats}));if(undoStack.length>80)undoStack.shift();redoStack=[];}
 function historyMove(from,to){if(!from.length)return;to.push(JSON.stringify({cells,formats:cellFormats}));const state=JSON.parse(from.pop());if(state&&state.cells){cells=state.cells;cellFormats=state.formats||Object.create(null);}else{cells=state||Object.create(null);cellFormats=Object.create(null);}render();save();calcStatus.textContent="Đã khôi phục dữ liệu";}
 function raw(a){return Object.hasOwn(cells,a)?String(cells[a]):"";}
@@ -44,9 +47,13 @@ function calculate(a,stack=new Set()){const value=raw(a);if(!value.startsWith("=
 function coerce(v){if(typeof v!=="string")return v;if(v.trim()!==""&&Number.isFinite(Number(v)))return Number(v);return v;}
 function display(a){try{const v=calculate(a);if(typeof v!=="number")return String(v??"");const f=normalizeCellFormat(cellFormats[a]||{});if(f.numberFormat==="integer")return new Intl.NumberFormat("vi-VN",{maximumFractionDigits:0}).format(v);if(f.numberFormat==="number2")return new Intl.NumberFormat("vi-VN",{minimumFractionDigits:2,maximumFractionDigits:2}).format(v);if(f.numberFormat==="percent")return new Intl.NumberFormat("vi-VN",{style:"percent",maximumFractionDigits:2}).format(v);if(f.numberFormat==="currency")return new Intl.NumberFormat("vi-VN",{style:"currency",currency:"VND",maximumFractionDigits:0}).format(v);return String(Number(v.toPrecision(12)));}catch(e){return e.code||"#CALC!";}}
 function render(){
-  const thead=grid.querySelector("thead"),tbody=grid.querySelector("tbody");
-  virtualWindow=getVirtualWindow({scrollTop:sheetScroll.scrollTop,scrollLeft:sheetScroll.scrollLeft,viewportHeight:sheetScroll.clientHeight||480,viewportWidth:sheetScroll.clientWidth||900,rowHeight:ROW_HEIGHT,columnWidth:COLUMN_WIDTH,overscanRows:OVERSCAN_ROWS,overscanColumns:OVERSCAN_COLUMNS,maxRow:ROWS,maxColumn:COLS});
-  const w=virtualWindow, layout=buildFreezeLayout(w,{rows:frozenRows,columns:frozenColumns,rowHeight:ROW_HEIGHT,columnWidth:COLUMN_WIDTH,rowHeaderWidth:48});
+  renderGrid(grid,sheetScroll);
+  if(splitMode!=="none")renderGrid(splitGrid,splitScroll);
+}
+function renderGrid(targetGrid,targetScroll){
+  const thead=targetGrid.querySelector("thead"),tbody=targetGrid.querySelector("tbody");
+  const w=getVirtualWindow({scrollTop:targetScroll.scrollTop,scrollLeft:targetScroll.scrollLeft,viewportHeight:targetScroll.clientHeight||480,viewportWidth:targetScroll.clientWidth||900,rowHeight:ROW_HEIGHT,columnWidth:COLUMN_WIDTH,overscanRows:OVERSCAN_ROWS,overscanColumns:OVERSCAN_COLUMNS,maxRow:ROWS,maxColumn:COLS});
+  const layout=buildFreezeLayout(w,{rows:frozenRows,columns:frozenColumns,rowHeight:ROW_HEIGHT,columnWidth:COLUMN_WIDTH,rowHeaderWidth:48});
   const pinnedColumns=layout.pinnedColumns,pinnedRows=layout.pinnedRows;
   const colHeaders=pinnedColumns.map(c=>"<th class='freeze-col freeze-col-head' style='left:"+(48+(c-1)*COLUMN_WIDTH)+"px'>"+letters(c)+"</th>").join("");
   const visibleHeaders=Array.from({length:w.renderedColumns},(_,i)=>"<th>"+letters(w.columnStart+i)+"</th>").join("");
@@ -76,7 +83,7 @@ function updateSelection(){
   cellAddress.textContent=selected;formulaInput.value=raw(selected);
   const x=getRangeBounds(selectionRange.start,selectionRange.end),count=(x.endRow-x.startRow+1)*(x.endCol-x.startCol+1);
   selectionInfo.textContent=count===1?"Ô "+selected+" đang được chọn":"Vùng "+x.start+":"+x.end+" · "+count.toLocaleString("vi-VN")+" ô";
-  for(const el of grid.querySelectorAll(".cell")){
+  for(const el of [grid,...(splitMode!=="none"?[splitGrid]:[])].flatMap(g=>[...g.querySelectorAll(".cell")])){
     const p=parseAddress(el.dataset.cell);if(!p)continue;
     const inside=p.r>=x.startRow&&p.r<=x.endRow&&p.c>=x.startCol&&p.c<=x.endCol;
     el.classList.toggle("selected",el.dataset.cell===selected);
@@ -99,15 +106,45 @@ function choose(a,extend=false){
   else if(right>sheetScroll.scrollLeft+sheetScroll.clientWidth)sheetScroll.scrollLeft=right-sheetScroll.clientWidth;
   updateSelection();formulaInput.focus();formulaInput.select();
 }
-sheetScroll.addEventListener("scroll",()=>{
-  const nearBottom=sheetScroll.scrollTop+sheetScroll.clientHeight>=sheetScroll.scrollHeight-Math.max(ROW_HEIGHT*24,sheetScroll.clientHeight*2);
-  const nearRight=sheetScroll.scrollLeft+sheetScroll.clientWidth>=sheetScroll.scrollWidth-Math.max(COLUMN_WIDTH*8,sheetScroll.clientWidth*2);
+function handlePaneScroll(source,peer){
+  if(splitMode!=="none"&&!syncingSplitScroll){
+    syncingSplitScroll=true;
+    if(splitMode==="horizontal")peer.scrollLeft=source.scrollLeft;
+    if(splitMode==="vertical")peer.scrollTop=source.scrollTop;
+    syncingSplitScroll=false;
+  }
+  const nearBottom=source.scrollTop+source.clientHeight>=source.scrollHeight-Math.max(ROW_HEIGHT*24,source.clientHeight*2);
+  const nearRight=source.scrollLeft+source.clientWidth>=source.scrollWidth-Math.max(COLUMN_WIDTH*8,source.clientWidth*2);
   let grew=false;
   if(nearBottom&&ROWS<MAX_ROWS){const next=expandGridCapacity({rows:ROWS,columns:COLS},{row:ROWS+1,column:1},{maxRows:MAX_ROWS,maxColumns:MAX_COLS});ROWS=next.rows;grew=true;}
   if(nearRight&&COLS<MAX_COLS){const next=expandGridCapacity({rows:ROWS,columns:COLS},{row:1,column:COLS+1},{maxRows:MAX_ROWS,maxColumns:MAX_COLS});COLS=next.columns;grew=true;}
   if(grew){const meta=document.querySelector(".sheet-meta");if(meta)meta.textContent="Tự động lưu cục bộ · Lưới đang mở rộng "+COLS.toLocaleString("vi-VN")+" cột × "+ROWS.toLocaleString("vi-VN")+" hàng";}
   render();
-},{passive:true});
+}
+sheetScroll.addEventListener("scroll",()=>handlePaneScroll(sheetScroll,splitScroll),{passive:true});
+splitScroll.addEventListener("scroll",()=>{if(splitMode!=="none")handlePaneScroll(splitScroll,sheetScroll);},{passive:true});
+function applySplitMode(persist=true){
+  const panes=document.querySelector("#sheetPanes");
+  panes.dataset.mode=splitMode;
+  splitScroll.hidden=splitMode==="none";
+  if(splitMode==="none"){splitScroll.scrollTop=0;splitScroll.scrollLeft=0;}
+  if(persist)save();
+  requestAnimationFrame(()=>render());
+}
+document.querySelector("#applySplit").addEventListener("click",()=>{
+  const next=document.querySelector("#splitMode").value;
+  if(!["none","horizontal","vertical"].includes(next))return;
+  splitMode=next;applySplitMode();
+  calcStatus.textContent=splitMode==="none"?"Đã tắt chia vùng.":splitMode==="horizontal"?"Đã chia ngang: cuộn dọc độc lập, cuộn ngang đồng bộ.":"Đã chia dọc: cuộn ngang độc lập, cuộn dọc đồng bộ.";
+});
+document.querySelector("#clearSplit").addEventListener("click",()=>{splitMode="none";document.querySelector("#splitMode").value="none";applySplitMode();calcStatus.textContent="Đã tắt chia vùng.";});
+splitGrid.addEventListener("pointerdown",e=>{const b=e.target.closest("[data-cell]");if(!b)return;pointerSelecting=true;choose(b.dataset.cell,e.shiftKey);});
+splitGrid.addEventListener("pointerover",e=>{if(!pointerSelecting)return;const b=e.target.closest("[data-cell]");if(b)choose(b.dataset.cell,true);});
+splitGrid.addEventListener("click",e=>{const b=e.target.closest("[data-cell]");if(b&&!pointerSelecting&&selected!==b.dataset.cell)choose(b.dataset.cell);});
+splitGrid.addEventListener("keydown",e=>{const b=e.target.closest("[data-cell]");if(!b)return;const p=parseAddress(b.dataset.cell);if(e.key==="Enter"||e.key==="ArrowDown"){e.preventDefault();choose(address(Math.min(ROWS,p.r+1),p.c),e.shiftKey);}else if(e.key==="Tab"||e.key==="ArrowRight"){e.preventDefault();choose(address(p.r,Math.min(COLS,p.c+1)),e.shiftKey);}else if(e.key==="ArrowUp"){e.preventDefault();choose(address(Math.max(1,p.r-1),p.c),e.shiftKey);}else if(e.key==="ArrowLeft"){e.preventDefault();choose(address(p.r,Math.max(1,p.c-1)),e.shiftKey);}});
+splitGrid.addEventListener("paste",e=>{const text=e.clipboardData?.getData("text/plain");if(text){e.preventDefault();pasteRange(text);}});
+window.addEventListener("pointerup",()=>{pointerSelecting=false;});
+
 function setValue(a,v){snapshot();if(v===""){delete cells[a];if(!macroExecution)try{macroRecorder.recordClear(a);}catch(e){calcStatus.textContent=e.message;}}else{cells[a]=v;if(!macroExecution)try{macroRecorder.recordSet(a,v);}catch(e){calcStatus.textContent=e.message;}}render();save();calcStatus.textContent="Đã tính lại các ô phụ thuộc";}
 function apply(){const value=formulaInput.value;setValue(selected,value.trim()===""?"":value);updateSelection();}
 function exportCsv(){const used=Object.keys(cells).map(parseAddress).filter(Boolean);const maxR=Math.max(1,...used.map(x=>x.r)),maxC=Math.max(1,...used.map(x=>x.c));const lines=[];for(let r=1;r<=maxR;r++){const row=[];for(let c=1;c<=maxC;c++){const v=display(address(r,c));row.push('"'+v.replace(/"/g,'""')+'"');}lines.push(row.join(","));}const blob=new Blob(["\ufeff"+lines.join("\r\n")],{type:"text/csv;charset=utf-8"}),url=URL.createObjectURL(blob),link=document.createElement("a");link.href=url;link.download=(sheetTitle||"sght").replace(/[\\/:*?"<>|]/g,"_")+".csv";link.click();URL.revokeObjectURL(url);}
@@ -120,7 +157,7 @@ document.querySelector("#applyFormula").addEventListener("click",apply);
 grid.addEventListener("keydown",e=>{const b=e.target.closest("[data-cell]");if(!b)return;const p=parseAddress(b.dataset.cell);let r=p.r,c=p.c;if(e.key==="Enter"||e.key==="ArrowDown"){e.preventDefault();choose(address(Math.min(ROWS,r+1),c),e.shiftKey);}else if(e.key==="Tab"||e.key==="ArrowRight"){e.preventDefault();choose(address(r,Math.min(COLS,c+1)),e.shiftKey);}else if(e.key==="ArrowUp"){e.preventDefault();choose(address(Math.max(1,r-1),c),e.shiftKey);}else if(e.key==="ArrowLeft"){e.preventDefault();choose(address(r,Math.max(1,c-1)),e.shiftKey);}else if(e.key==="F2"){e.preventDefault();formulaInput.focus();}else if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==="c"){e.preventDefault();copySelection(false);}else if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==="x"){e.preventDefault();copySelection(true);}else if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==="v"){e.preventDefault();if(internalClipboard)pasteRange(internalClipboard.text,internalClipboard.payload);}});
 grid.addEventListener("paste",handlePaste);formulaInput.addEventListener("paste",handlePaste);
 document.querySelector("#sheetName").addEventListener("change",e=>{sheetTitle=e.target.value.trim()||"Bảng tính chưa đặt tên";save();});
-document.querySelector("#newSheet").addEventListener("click",()=>{if(!confirm("Tạo bảng tính mới? Dữ liệu hiện tại sẽ được thay thế trên thiết bị này."))return;snapshot();cells=Object.create(null);cellFormats=Object.create(null);sheetTitle="Bảng tính mới";frozenRows=0;frozenColumns=0;document.querySelector("#freezeRowsInput").value=0;document.querySelector("#freezeColumnsInput").value=0;document.querySelector("#sheetName").value=sheetTitle;selected="A1";sheetScroll.scrollTop=0;sheetScroll.scrollLeft=0;render();save();});
+document.querySelector("#newSheet").addEventListener("click",()=>{if(!confirm("Tạo bảng tính mới? Dữ liệu hiện tại sẽ được thay thế trên thiết bị này."))return;snapshot();cells=Object.create(null);cellFormats=Object.create(null);sheetTitle="Bảng tính mới";frozenRows=0;frozenColumns=0;splitMode="none";document.querySelector("#splitMode").value="none";applySplitMode(false);document.querySelector("#freezeRowsInput").value=0;document.querySelector("#freezeColumnsInput").value=0;document.querySelector("#sheetName").value=sheetTitle;selected="A1";sheetScroll.scrollTop=0;sheetScroll.scrollLeft=0;render();save();});
 
 function applyFreezeSettings(){
   const rows=Number(document.querySelector("#freezeRowsInput").value||0),columns=Number(document.querySelector("#freezeColumnsInput").value||0);

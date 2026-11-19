@@ -84,3 +84,21 @@
 .sheet-grid .freeze-intersection{z-index:10!important}
 .sheet-grid .freeze-gap td{background:transparent!important;border:0!important}
 @media(max-width:680px){.ribbon-tabs{top:58px}.ribbon-panel{top:98px}.formula-panel{top:166px}.freeze-controls{min-width:330px}.freeze-controls label{font-size:9px}}
+
+
+/* SGHT 18.5 — two independently navigable worksheet viewports. */
+.split-controls{min-width:300px}
+.split-controls label{display:flex;align-items:center;gap:5px;color:#64756b;font-size:10px;white-space:nowrap}
+.split-controls select{height:28px;border:1px solid var(--line);border-radius:5px;background:#fff;padding:0 6px;font-size:10px}
+.sheet-panes{display:block}
+.sheet-panes[data-mode="horizontal"]{display:grid;grid-template-columns:minmax(0,1fr);grid-template-rows:minmax(180px,1fr) 7px minmax(180px,1fr);height:min(720px,calc(100dvh - 300px));min-height:380px;gap:0}
+.sheet-panes[data-mode="vertical"]{display:grid;grid-template-columns:minmax(0,1fr) 7px minmax(0,1fr);grid-template-rows:minmax(300px,1fr);height:min(720px,calc(100dvh - 300px));min-height:380px;gap:0}
+.sheet-panes[data-mode="horizontal"] #sheetScroll{grid-row:1;max-height:none;min-height:0;height:100%}
+.sheet-panes[data-mode="horizontal"] #splitScroll{grid-row:3;max-height:none;min-height:0;height:100%}
+.sheet-panes[data-mode="vertical"] #sheetScroll{grid-column:1;max-height:none;min-height:0;height:100%}
+.sheet-panes[data-mode="vertical"] #splitScroll{grid-column:3;max-height:none;min-height:0;height:100%}
+.sheet-panes[data-mode="horizontal"]::after{content:"";grid-row:2;background:#d9e4dc;border-block:1px solid #b8c9bd;cursor:row-resize}
+.sheet-panes[data-mode="vertical"]::after{content:"";grid-column:2;background:#d9e4dc;border-inline:1px solid #b8c9bd;cursor:col-resize}
+.sheet-panes .sheet-scroll{width:100%;max-width:none}
+.split-scroll[hidden]{display:none!important}
+@media(max-width:680px){.split-controls{min-width:285px}.sheet-panes[data-mode="horizontal"],.sheet-panes[data-mode="vertical"]{height:calc(100dvh - 270px);min-height:360px}.sheet-panes[data-mode="vertical"]{grid-template-columns:minmax(0,1fr) 5px minmax(0,1fr)}}
