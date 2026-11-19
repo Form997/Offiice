@@ -20,4 +20,6 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
+      - run: node --check sght/app.js
+      - run: node --check sght/engine/cell-format.js
       - run: npm test
