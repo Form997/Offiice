@@ -19,7 +19,7 @@ test("sao chép và dán vùng giữ nguyên công thức, giá trị và địn
 
 test("dán vùng chặn vượt giới hạn trước khi tạo thay đổi", () => {
   const payload = captureRange({ A1: "x" }, {}, { start: "A1", end: "A1" });
-  assert.throws(() => pasteCapturedRange({}, {}, { r: 1000, c: 1 }, payload), /vượt giới hạn/);
+  assert.throws(() => pasteCapturedRange({}, {}, { r: 1001, c: 1 }, payload), /vượt giới hạn/);
   assert.throws(() => pasteCapturedRange({}, {}, { r: 1, c: 1 }, { ...payload, matrix: [[{ value: 2 }]] }), /không hợp lệ/);
 });
 
