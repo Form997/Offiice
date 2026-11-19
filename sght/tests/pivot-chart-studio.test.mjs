@@ -1,0 +1,7 @@
+import test from "node:test";
+import assert from "node:assert/strict";
+import {normalizePivotChartStudio,parsePivotChartColors,formatPivotChartNumber,isHexColor} from "../ai/pivot-chart-studio.js";
+test("normalizes chart options and protects defaults",()=>{const s=normalizePivotChartStudio({type:"line",measureIndex:2,title:"  Năng suất  ",showLabels:true,numberFormat:"decimal2",colors:["#abcdef","bad"]});assert.equal(s.title,"Năng suất");assert.equal(s.type,"line");assert.equal(s.showLabels,true);assert.deepEqual(s.colors,["#abcdef"]);assert.equal(s.showLegend,true);});
+test("rejects invalid chart color lists",()=>{assert.throws(()=>parsePivotChartColors("red"),TypeError);assert.throws(()=>parsePivotChartColors("#123456 #abcdef #111111 #222222 #333333 #444444 #555555 #666666 #777777"),RangeError);assert.deepEqual(parsePivotChartColors("#ABCDEF, #123456"),["#abcdef","#123456"]);assert.equal(isHexColor("#123456"),true);});
+test("formats numeric values predictably",()=>{assert.equal(formatPivotChartNumber(1.234,"decimal2"),"1,23");assert.match(formatPivotChartNumber(.25,"percent"),/^25/);assert.equal(formatPivotChartNumber(Infinity),"—");});
+test("normalizes malformed persisted settings safely",()=>{const s=normalizePivotChartStudio({type:"script",measureIndex:-1,showLegend:0,numberFormat:"bad"});assert.equal(s.type,"bar");assert.equal(s.measureIndex,0);assert.equal(s.showLegend,true);assert.equal(s.numberFormat,"auto");});
