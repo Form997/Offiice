@@ -97,3 +97,15 @@ test("filter supports inclusive numeric ranges, text prefix and strict ISO/Vietn
  assert.deepEqual(filterRangeRows(cells,{},b,{rules:[{column:2,operator:"startsWith",value:"cải"}]}).hiddenRows,[3]);
  assert.deepEqual(filterRangeRows(cells,{},b,{rules:[{column:3,operator:"dateBetween",min:"2026-11-01",max:"03/11/2026"}]}).hiddenRows,[4]);
 });
+
+
+test("pivot supports multiple measures with independent aggregations",()=>{
+ const cells={A1:"Vùng",B1:"Cây",C1:"Kg",D1:"Doanh thu",A2:"Bắc",B2:"Cải",C2:"2",D2:"100",A3:"Bắc",B3:"Rau",C3:"4",D3:"250",A4:"Nam",B4:"Cải",C4:"6",D4:"300"};
+ const p=buildPivotTable(cells,{startRow:1,endRow:4,startCol:1,endCol:4},{rowColumns:[1],columnField:2,measures:[{column:3,operation:"sum",label:"Kg"},{column:4,operation:"average",label:"Doanh thu"}]});
+ assert.equal(p.measures.length,2);assert.equal(p.rows[0].metrics[0].values["Rau"],4);assert.equal(p.rows[0].metrics[1].values["Rau"],250);assert.equal(p.grandTotals[0].total,12);assert.equal(p.grandTotals[1].total,650);
+});
+test("pivot field filters constrain rows and recalculate totals",()=>{
+ const cells={A1:"Vùng",B1:"Cây",C1:"Kg",A2:"Bắc",B2:"Cải",C2:"2",A3:"Bắc",B3:"Rau",C3:"4",A4:"Nam",B4:"Cải",C4:"6"};
+ const p=buildPivotTable(cells,{startRow:1,endRow:4,startCol:1,endCol:3},{rowColumns:[1],columnField:2,valueColumn:3,operation:"sum",filters:{2:["Cải"]}});
+ assert.equal(p.includedRows,2);assert.equal(p.grandTotal,8);assert.deepEqual(p.columns,["Cải"]);
+});

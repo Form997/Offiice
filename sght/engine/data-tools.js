@@ -112,16 +112,32 @@ export function summarizeByGroups(cells,bounds,{groupColumns=[],valueColumn,oper
  walk(Array.from({length:b.endRow-b.startRow},(_,i)=>b.startRow+1+i),0,[]);
  return output;
 }
-export function buildPivotTable(cells,bounds,{rowColumns=[],columnField=null,valueColumn,operation="sum"}={}){
+export function buildPivotTable(cells,bounds,{rowColumns=[],columnField=null,valueColumn,operation="sum",measures=null,filters={}}={}){
  const b=boundsOf(bounds);
  if(!Array.isArray(rowColumns)||rowColumns.length<1||rowColumns.length>4)throw new RangeError("Pivot cần từ 1 đến 4 trường hàng.");
- for(const c of [...rowColumns,...(columnField?[columnField]:[]),valueColumn])if(!Number.isInteger(c)||c<b.startCol||c>b.endCol)throw new RangeError("Trường Pivot nằm ngoài vùng dữ liệu.");
- if(new Set([...rowColumns,...(columnField?[columnField]:[])]).size!==rowColumns.length+(columnField?1:0))throw new Error("Không dùng trùng một cột cho nhiều trường Pivot.");
- if(!["sum","average","count","min","max"].includes(operation))throw new RangeError("Phép tổng hợp Pivot không hợp lệ.");
- const rowMap=new Map(),colSet=new Set(),all=[];
- for(let row=b.startRow+1;row<=b.endRow;row++){const rowKey=JSON.stringify(rowColumns.map(c=>valueFor(cells,row,c))),colKey=columnField?valueFor(cells,row,columnField):"Tổng",raw=valueFor(cells,row,valueColumn),value=raw.trim()!==""&&Number.isFinite(Number(raw))?Number(raw):null;if(!rowMap.has(rowKey))rowMap.set(rowKey,{labels:rowColumns.map(c=>valueFor(cells,row,c)),values:new Map()});const item=rowMap.get(rowKey);if(!item.values.has(colKey))item.values.set(colKey,[]);if(value!==null)item.values.get(colKey).push(value);colSet.add(colKey);all.push(value);}
+ const normalizedMeasures=Array.isArray(measures)&&measures.length?measures.map(m=>({column:m.column,operation:m.operation||"sum",label:String(m.label||"")})):[{column:valueColumn,operation,label:""}];
+ if(normalizedMeasures.length>4)throw new RangeError("Pivot hỗ trợ tối đa 4 chỉ tiêu giá trị.");
+ const dimensions=[...rowColumns,...(columnField?[columnField]:[])];
+ for(const c of [...dimensions,...normalizedMeasures.map(m=>m.column),...Object.keys(filters).map(Number)])if(!Number.isInteger(c)||c<b.startCol||c>b.endCol)throw new RangeError("Trường Pivot nằm ngoài vùng dữ liệu.");
+ if(new Set(dimensions).size!==dimensions.length)throw new Error("Không dùng trùng một cột cho nhiều trường hàng/cột.");
+ for(const m of normalizedMeasures)if(!["sum","average","count","min","max"].includes(m.operation))throw new RangeError("Phép tổng hợp Pivot không hợp lệ.");
+ for(const allowed of Object.values(filters))if(!Array.isArray(allowed))throw new TypeError("Bộ lọc Pivot phải là danh sách giá trị.");
+ const rowMap=new Map(),colSet=new Set(),grandValues=normalizedMeasures.map(()=>[]);
+ let includedRows=0;
+ for(let row=b.startRow+1;row<=b.endRow;row++){
+  if(!Object.entries(filters).every(([column,allowed])=>allowed.includes(valueFor(cells,row,Number(column)))))continue;
+  includedRows++;
+  const labels=rowColumns.map(c=>valueFor(cells,row,c)),rowKey=JSON.stringify(labels),colKey=columnField?valueFor(cells,row,columnField):"Tổng";
+  if(!rowMap.has(rowKey))rowMap.set(rowKey,{labels,values:normalizedMeasures.map(()=>new Map())});
+  const item=rowMap.get(rowKey);colSet.add(colKey);
+  normalizedMeasures.forEach((m,index)=>{const raw=valueFor(cells,row,m.column);if(!item.values[index].has(colKey))item.values[index].set(colKey,[]);if(raw.trim()!==""&&Number.isFinite(Number(raw))){const n=Number(raw);item.values[index].get(colKey).push(n);grandValues[index].push(n);}});
+ }
  const columns=[...colSet].sort((a,b)=>compareValues(a,b,"auto"));
- const calc=values=>{const v=values||[];return !v.length?0:operation==="sum"?v.reduce((a,x)=>a+x,0):operation==="average"?v.reduce((a,x)=>a+x,0)/v.length:operation==="count"?v.length:operation==="min"?Math.min(...v):Math.max(...v);};
- const rows=[...rowMap.values()].sort((a,b)=>{for(let i=0;i<a.labels.length;i++){const d=compareValues(a.labels[i],b.labels[i],"auto");if(d)return d;}return 0;}).map(item=>({labels:item.labels,values:Object.fromEntries(columns.map(col=>[col,calc(item.values.get(col))])),total:calc([...item.values.values()].flat())}));
- return{rowColumns:rowColumns.slice(),columnField,columns,rows,grandTotal:calc(all),operation,rowCount:rows.length};
+ const calc=(values,op)=>{const v=values||[];return !v.length?0:op==="sum"?v.reduce((a,x)=>a+x,0):op==="average"?v.reduce((a,x)=>a+x,0)/v.length:op==="count"?v.length:op==="min"?Math.min(...v):Math.max(...v);};
+ const rows=[...rowMap.values()].sort((a,b)=>{for(let i=0;i<a.labels.length;i++){const d=compareValues(a.labels[i],b.labels[i],"auto");if(d)return d;}return 0;}).map(item=>{
+  const metricRows=normalizedMeasures.map((m,index)=>{const values=Object.fromEntries(columns.map(col=>[col,calc(item.values[index].get(col),m.operation)]));return{label:m.label||cellKey(b.startRow,m.column),column:m.column,operation:m.operation,values,total:calc([...item.values[index].values()].flat(),m.operation)};});
+  return{labels:item.labels,values:metricRows[0]?.values||{},total:metricRows[0]?.total||0,metrics:metricRows};
+ });
+ const grandTotals=normalizedMeasures.map((m,index)=>({label:m.label||cellKey(b.startRow,m.column),column:m.column,operation:m.operation,total:calc(grandValues[index],m.operation)}));
+ return{rowColumns:rowColumns.slice(),columnField,columns,rows,grandTotal:grandTotals[0]?.total||0,grandTotals,measures:normalizedMeasures,rowCount:rows.length,includedRows};
 }
