@@ -100,6 +100,7 @@ function dsRenderChart(spec){
  add("line",{x1:L,y1:T,x2:L,y2:T+plotH,stroke:"currentColor","stroke-width":1});
  add("line",{x1:L,y1:T+plotH,x2:W-R,y2:T+plotH,stroke:"currentColor","stroke-width":1});
  let xs=[],ys=[];
+ if(spec.series){xs=spec.series.flatMap(v=>v.points.map(p=>p.x));ys=spec.series.flatMap(v=>v.points.map(p=>p.y));}
  if(spec.points){xs=spec.points.map(p=>p.x);ys=spec.points.map(p=>p.y);}
  if(spec.bars){xs=spec.bars.map((p,i)=>i);ys=spec.bars.map(p=>p.count);}
  if(spec.groups){xs=spec.groups.map((p,i)=>i);ys=spec.groups.flatMap(p=>[p.min,p.max]);}
@@ -117,7 +118,10 @@ function dsRenderChart(spec){
  if(!Number.isFinite(minX)||!Number.isFinite(maxX)){minX=0;maxX=1;}if(maxX===minX)maxX=minX+1;if(maxY===minY)maxY=minY+1;
  const px=x=>L+(x-minX)/(maxX-minX)*plotW,py=y=>T+plotH-(y-minY)/(maxY-minY)*plotH;
  for(let i=0;i<=4;i++){const y=T+plotH-i*plotH/4,val=minY+(maxY-minY)*i/4;add("line",{x1:L,y1:y,x2:W-R,y2:y,stroke:"currentColor",opacity:.14});txt(L-8,y+4,Number(val.toPrecision(4)),"end");}
- if(spec.type==="line"||spec.type==="scatter"||spec.type==="residual"){
+ if(spec.series&&(spec.type==="line"||spec.type==="scatter")){
+  const palette=["#276749","#2563eb","#b45309","#9333ea","#0891b2","#be123c","#4d7c0f","#475569","#c026d3","#0f766e","#a16207","#1d4ed8"];
+  spec.series.forEach((series,i)=>{const color=palette[i%palette.length],pts=series.points.slice().sort((a,b)=>a.x-b.x);if(spec.type==="line"){const d=pts.map((p,j)=>(j?"L ":"M ")+px(p.x)+" "+py(p.y)).join(" ");add("path",{d,fill:"none",stroke:color,"stroke-width":2.4});}pts.forEach(p=>add("circle",{cx:px(p.x),cy:py(p.y),r:3.5,fill:color}));});
+ }else if(spec.type==="line"||spec.type==="scatter"||spec.type==="residual"){
   if(spec.type!=="scatter"){let d="";spec.points.slice().sort((a,b)=>a.x-b.x).forEach((p,i)=>{d+=(i?" L ":"M ")+px(p.x)+" "+py(p.y);});add("path",{d,fill:"none",stroke:"currentColor","stroke-width":2.2});}
   spec.points.forEach(p=>add("circle",{cx:px(p.x),cy:py(p.y),r:4,fill:"currentColor",opacity:.8}));
   if(spec.type==="residual"||minY<0&&maxY>0){add("line",{x1:L,y1:py(0),x2:W-R,y2:py(0),stroke:"#a45a4f","stroke-dasharray":"5 4"});}
@@ -140,14 +144,21 @@ function dsRenderChart(spec){
   spec.grid.forEach((row,i)=>row.forEach((p,j)=>{const t=zmax===zmin?.5:(p.z-zmin)/(zmax-zmin);add("rect",{x:L+j*cw,y:T+plotH-(i+1)*ch,width:cw+.3,height:ch+.3,fill:"currentColor",opacity:.12+.78*t});}));
   txt(L+plotW/2,H-17,"X1 tăng → · X2 tăng theo trục dọc");
  }
+ if(spec.series){const palette=["#276749","#2563eb","#b45309","#9333ea","#0891b2","#be123c","#4d7c0f","#475569","#c026d3","#0f766e","#a16207","#1d4ed8"];const legend=document.createElement("div");legend.className="chart-legend";spec.series.forEach((series,i)=>{const item=document.createElement("span"),swatch=document.createElement("i");swatch.style.background=palette[i%palette.length];item.append(swatch,document.createTextNode(series.name));legend.append(item);});wrap.append(legend);}
  if(spec.type!=="heatmap"&&spec.type!=="contour"){txt(L+plotW/2,H-17,spec.type==="boxplot"||spec.type==="errorbar"?"Nhóm":spec.type==="histogram"?"Khoảng giá trị":spec.type==="regression-band"?"X / biến giải thích":"X / thứ tự quan sát");}
  const cap=document.createElement("small");cap.textContent=spec.type==="boxplot"?"Hộp: Q1–Q3 · đường giữa: trung vị · râu: phạm vi không tính ngoại lệ · điểm rời: ngoại lệ Tukey.":spec.type==="histogram"?"Mỗi cột là số quan sát trong khoảng; hình dạng phụ thuộc số bin.":spec.type==="heatmap"?"Màu đậm hơn biểu thị giá trị dự báo lớn hơn; đây là bản đồ nhiệt lưới.":spec.type==="contour"?spec.warning:spec.type==="errorbar"?"Thanh sai số "+(spec.mode==="sd"?"±1 SD":spec.mode==="se"?"±1 SE":"CI 95% cho trung bình")+". CI dùng phân phối t và giả định các quan sát độc lập.":spec.type==="regression-band"?"Dải trong: CI 95% của trung bình hồi quy; dải ngoài: khoảng dự đoán 95% cho một quan sát. Không suy ra nhân quả.":"Biểu đồ mô tả dữ liệu đã chọn; không tự chứng minh quan hệ nhân quả.";
  wrap.append(svg,cap);
+ let view={x:0,y:0,w:W,h:H},drag=null;
+ const applyView=()=>svg.setAttribute("viewBox",view.x+" "+view.y+" "+view.w+" "+view.h);
+ svg.addEventListener("wheel",e=>{e.preventDefault();const rect=svg.getBoundingClientRect(),cx=(e.clientX-rect.left)/rect.width*view.w+view.x,cy=(e.clientY-rect.top)/rect.height*view.h+view.y,f=e.deltaY<0?.88:1.14,nw=Math.max(W*.55,Math.min(W*3,view.w*f)),nh=Math.max(H*.55,Math.min(H*3,view.h*f));view={x:cx-(cx-view.x)*nw/view.w,y:cy-(cy-view.y)*nh/view.h,w:nw,h:nh};applyView();},{passive:false});
+ svg.addEventListener("pointerdown",e=>{drag={x:e.clientX,y:e.clientY,view:{...view}};svg.setPointerCapture?.(e.pointerId);svg.style.cursor="grabbing";});
+ svg.addEventListener("pointermove",e=>{if(!drag)return;const rect=svg.getBoundingClientRect();view.x=drag.view.x-(e.clientX-drag.x)/rect.width*drag.view.w;view.y=drag.view.y-(e.clientY-drag.y)/rect.height*drag.view.h;applyView();});
+ const stopDrag=()=>{drag=null;svg.style.cursor="grab";};svg.addEventListener("pointerup",stopDrag);svg.addEventListener("pointercancel",stopDrag);svg.style.cursor="grab";
  const tools=document.createElement("div");tools.className="chart-export-tools";
  const exportSvg=()=>{const clone=svg.cloneNode(true);clone.setAttribute("xmlns",ns);clone.setAttribute("width",W);clone.setAttribute("height",H);const source=new XMLSerializer().serializeToString(clone),blob=new Blob([source],{type:"image/svg+xml;charset=utf-8"}),url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download="sght-chart.svg";a.click();URL.revokeObjectURL(url);};
  const exportPng=()=>{const clone=svg.cloneNode(true);clone.setAttribute("xmlns",ns);clone.setAttribute("width",W*2);clone.setAttribute("height",H*2);const source=new XMLSerializer().serializeToString(clone),blob=new Blob([source],{type:"image/svg+xml;charset=utf-8"}),url=URL.createObjectURL(blob),img=new Image();img.onload=()=>{const canvas=document.createElement("canvas");canvas.width=W*2;canvas.height=H*2;const ctx=canvas.getContext("2d");ctx.fillStyle=getComputedStyle(document.documentElement).getPropertyValue("--surface").trim()||"#fff";ctx.fillRect(0,0,canvas.width,canvas.height);ctx.drawImage(img,0,0,canvas.width,canvas.height);URL.revokeObjectURL(url);canvas.toBlob(png=>{if(!png)return;const purl=URL.createObjectURL(png),a=document.createElement("a");a.href=purl;a.download="sght-chart.png";a.click();URL.revokeObjectURL(purl);},"image/png");};img.onerror=()=>{URL.revokeObjectURL(url);dsOutput.querySelector(".chart-export-status").textContent="Không thể dựng PNG trên trình duyệt này.";};img.src=url;};
  const button=(label,fn)=>{const b=document.createElement("button");b.type="button";b.className="quiet";b.textContent=label;b.addEventListener("click",fn);tools.append(b);};
- button("Xuất SVG",exportSvg);button("Xuất PNG 2×",exportPng);button("In / lưu PDF",()=>{document.body.classList.add("chart-print-mode");window.print();document.body.classList.remove("chart-print-mode");});
+ button("Khôi phục toàn cảnh",()=>{view={x:0,y:0,w:W,h:H};applyView();});button("Xuất SVG",exportSvg);button("Xuất PNG 2×",exportPng);button("In / lưu PDF",()=>{document.body.classList.add("chart-print-mode");window.print();document.body.classList.remove("chart-print-mode");});
  const status=document.createElement("small");status.className="chart-export-status";status.setAttribute("role","status");status.textContent="SVG giữ nét vector; PNG xuất độ phân giải 2×; PDF mở hộp thoại in của trình duyệt.";tools.append(status);wrap.append(tools);dsOutput.append(wrap);dsLastReport.push(["Biểu đồ",spec.title]);
 }
 function dsDrawGroupMeans(groups){
