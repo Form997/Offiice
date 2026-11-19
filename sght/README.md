@@ -310,3 +310,24 @@ Bổ sung mô hình đáp ứng tăng dần, lợi ích biên giảm dần:
 - Giới hạn: contour là nội suy tuyến tính từng ô lưới, phụ thuộc độ phân giải lưới; không phải phép đo mới hay bề mặt 3D. Dải hồi quy dựa trên OLS đơn, giả định tuyến tính, độc lập và phương sai phần dư phù hợp. CI nhóm dùng mẫu t độc lập; không thay thế mô hình phân cấp hay hiệu chỉnh đa so sánh.
 - Chưa có bootstrap/profile likelihood, nhiều chuỗi trên cùng biểu đồ, xuất ảnh PNG/SVG/PDF, zoom/pan hoặc biểu đồ 3D.
 - Kiểm thử riêng: marching squares, lưới lỗi/không biến thiên, phân biệt SD/SE/CI và phân biệt CI đường trung bình với khoảng dự đoán cá thể.
+
+
+## SGHT Scientific Visualization Pro — Giai đoạn 13 · Xuất biểu đồ — 2026-11-19
+
+### Chức năng mới
+- Bổ sung thao tác xuất biểu đồ SVG vector, PNG độ phân giải 2× và in/lưu PDF thông qua hộp thoại in của trình duyệt.
+- SVG được sao chép từ biểu đồ hiện hành, giữ nguyên viewBox và nhãn; PNG dựng từ SVG bằng canvas, không cần thư viện ngoài.
+- Chế độ in tập trung vào biểu đồ đang hiển thị, ẩn các vùng giao diện khác; người dùng chọn “Save as PDF” trong hộp thoại in nếu trình duyệt/hệ điều hành hỗ trợ.
+- Các thao tác xuất chỉ chạy khi người dùng bấm nút; dữ liệu không tải lên máy chủ.
+- Không tự lưu tệp xuống một vị trí cố định; trình duyệt quyết định nơi lưu và có thể yêu cầu quyền tải xuống.
+
+### Cách dùng
+1. Dựng một biểu đồ trong Data Science → Scientific Visualization Pro.
+2. Chọn **Xuất SVG** để lấy ảnh vector có thể phóng to; **Xuất PNG 2×** để dùng trong tài liệu; hoặc **In / lưu PDF** rồi chọn máy in PDF/lưu PDF trong hộp thoại.
+3. Nếu PNG không được hỗ trợ do giới hạn trình duyệt, dùng SVG hoặc chức năng in PDF thay thế.
+
+### Giới hạn
+- PDF được tạo qua hộp thoại in của trình duyệt, không phải bộ sinh PDF nhúng; bố cục cuối cùng tùy trình duyệt và hệ điều hành.
+- PNG dùng canvas và có thể bị chặn bởi chính sách trình duyệt; SVG là lựa chọn vector ưu tiên.
+- Chưa có chỉnh sửa màu sắc/trục/chú giải nâng cao, nhiều chuỗi trên cùng đồ thị, zoom/pan, biểu đồ 3D tương tác, mẫu biểu đồ có đồng bộ đa thiết bị.
+- Xuất ảnh chỉ bao gồm biểu đồ đang hiển thị; không tự đính kèm dữ liệu gốc hoặc bảng kết quả thống kê.
