@@ -138,6 +138,6 @@ export function buildPivotTable(cells,bounds,{rowColumns=[],columnField=null,val
   const metricRows=normalizedMeasures.map((m,index)=>{const values=Object.fromEntries(columns.map(col=>[col,calc(item.values[index].get(col),m.operation)]));return{label:m.label||cellKey(b.startRow,m.column),column:m.column,operation:m.operation,values,total:calc([...item.values[index].values()].flat(),m.operation)};});
   return{labels:item.labels,values:metricRows[0]?.values||{},total:metricRows[0]?.total||0,metrics:metricRows};
  });
- const grandTotals=normalizedMeasures.map((m,index)=>({label:m.label||cellKey(b.startRow,m.column),column:m.column,operation:m.operation,total:calc(grandValues[index],m.operation)}));
+ const grandTotals=normalizedMeasures.map((m,index)=>({label:m.label||cellKey(b.startRow,m.column),column:m.column,operation:m.operation,columnTotals:Object.fromEntries(columns.map(col=>[col,calc([...rowMap.values()].flatMap(item=>item.values[index].get(col)||[]),m.operation)])),total:calc(grandValues[index],m.operation)}));
  return{rowColumns:rowColumns.slice(),columnField,columns,rows,grandTotal:grandTotals[0]?.total||0,grandTotals,measures:normalizedMeasures,rowCount:rows.length,includedRows};
 }

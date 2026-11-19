@@ -179,6 +179,8 @@ function render(){
   if(splitMode==="quadrant"){for(const pane of Object.values(quadrantPanes))renderGrid(pane.grid,pane.scroll);renderPivotReport();return;}
   renderGrid(grid,sheetScroll);
   if(splitMode!=="none")renderGrid(splitGrid,splitScroll);
+  renderPivotBuilder();
+  renderPivotReport();
 }
 function renderGrid(targetGrid,targetScroll){
   const thead=targetGrid.querySelector("thead"),tbody=targetGrid.querySelector("tbody");
@@ -452,6 +454,7 @@ function pivotFieldLabel(column){return pivotFields.find(f=>f.column===column)?.
 function pivotAssign(column,target){
  if(!pivotConfig)pivotConfig={bounds:selectedBounds(),rowColumns:[],columnField:null,measures:[],filterColumns:[],filters:{}};
  if(!pivotConfig.bounds)pivotConfig.bounds=selectedBounds();
+ if((target==="row"&&pivotConfig.columnField===column)||(target==="column"&&pivotConfig.rowColumns.includes(column)))throw new Error("Một trường không thể đồng thời làm trường Hàng và Cột.");
  if(target==="row"){if(!pivotConfig.rowColumns.includes(column)&&pivotConfig.rowColumns.length<4)pivotConfig.rowColumns.push(column);}
  else if(target==="column"){if(pivotConfig.columnField===null||pivotConfig.columnField===column)pivotConfig.columnField=column;}
  else if(target==="value"){if(pivotConfig.measures.length<4&&!pivotConfig.measures.some(m=>m.column===column))pivotConfig.measures.push({column,operation:"sum",label:pivotFieldLabel(column)});}
@@ -460,6 +463,7 @@ function pivotAssign(column,target){
 }
 function renderPivotBuilder(){
  if(!pivotFieldList)return;
+ if(!pivotFields.length&&pivotConfig?.bounds){const b=pivotConfig.bounds;for(let c=b.startCol;c<=b.endCol;c++)pivotFields.push({column:c,label:String(cells[address(b.startRow,c)]??"").trim()||("Cột "+letters(c))});}
  pivotFieldList.innerHTML=pivotFields.map(f=>"<button type='button' draggable='true' class='pivot-field-chip' data-pivot-field='"+f.column+"'>"+escapeHtml(letters(f.column)+" · "+f.label)+"</button>").join("")||"<span>Chưa có trường. Hãy nạp trường từ vùng chọn.</span>";
  const tags=(list,kind)=>list.map(c=>"<span class='pivot-assignment'>"+escapeHtml(letters(c)+" · "+pivotFieldLabel(c))+" <button type='button' data-pivot-remove='"+kind+":"+c+"' aria-label='Bỏ trường'>×</button></span>").join("")||"Chưa có trường";
  pivotRowsZone.innerHTML=tags(pivotConfig?.rowColumns||[],"row");
@@ -471,10 +475,10 @@ function renderPivotReport(){
  if(!pivotConfig||!pivotConfig.bounds||!pivotConfig.rowColumns?.length||!pivotConfig.measures?.length)return;
  try{
   const p=buildPivotTable(cells,pivotConfig.bounds,{rowColumns:pivotConfig.rowColumns,columnField:pivotConfig.columnField,valueColumn:pivotConfig.measures[0].column,operation:pivotConfig.measures[0].operation,measures:pivotConfig.measures,filters:pivotConfig.filters||{}});
-  const rowHeaders=pivotConfig.rowColumns.map(pivotFieldLabel),headers=[...rowHeaders,...p.columns.flatMap(col=>p.measures.map(m=>col+" · "+(m.label||pivotFieldLabel(m.column))+" ("+m.operation+")")),"Tổng"];
-  const body=p.rows.map(r=>[...r.labels,...r.metrics.flatMap(m=>p.columns.map(c=>m.values[c]??0)),r.metrics[0]?.total??0]);
-  const totals=p.grandTotals.flatMap(m=>p.columns.map(()=>m.total));
-  const totalRow=[...rowHeaders.map((_,i)=>i===0?"Tổng cộng":""),...totals,p.grandTotal];
+  const rowHeaders=pivotConfig.rowColumns.map(pivotFieldLabel),headers=[...rowHeaders,...p.columns.flatMap(col=>p.measures.map(m=>col+" · "+(m.label||pivotFieldLabel(m.column))+" ("+m.operation+")")),...p.measures.map(m=>"Tổng · "+(m.label||pivotFieldLabel(m.column)))];
+  const body=p.rows.map(r=>[...r.labels,...r.metrics.flatMap(m=>p.columns.map(c=>m.values[c]??0)),...r.metrics.map(m=>m.total)]);
+  const totals=p.grandTotals.flatMap(m=>p.columns.map(c=>m.columnTotals[c]??0));
+  const totalRow=[...rowHeaders.map((_,i)=>i===0?"Tổng cộng":""),...totals,...p.grandTotals.map(m=>m.total)];
   document.querySelector("#pivotOutput").innerHTML="<div class='pivot-report-meta'>"+p.includedRows+" dòng nguồn · "+p.rowCount+" nhóm · tự làm mới khi dữ liệu thay đổi</div><table><thead><tr>"+headers.map(x=>"<th>"+escapeHtml(x)+"</th>").join("")+"</tr></thead><tbody>"+body.map(row=>"<tr>"+row.map(x=>"<td>"+escapeHtml(x)+"</td>").join("")+"</tr>").join("")+"<tr class='pivot-grand-total'>"+totalRow.map(x=>"<th>"+escapeHtml(x)+"</th>").join("")+"</tr></tbody></table>";
  }catch(e){document.querySelector("#pivotOutput").textContent="Không thể làm mới Pivot: "+e.message;}
 }
