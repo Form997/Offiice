@@ -70,6 +70,7 @@ function runSearch(reset=true){
   searchResults=result.matches;
   if(reset&&searchResults.length)searchIndex=0;
   else if(searchIndex>=searchResults.length)searchIndex=searchResults.length-1;
+  if(!reset&&searchResults.length&&searchIndex<0)searchIndex=0;
   searchCount.textContent=!query?"Nhập từ khóa để tìm":result.total===0?"Không tìm thấy":(searchIndex+1)+" / "+result.total+(result.truncated?" · hiển thị 10.000 kết quả đầu":"");
   document.querySelector("#searchPrevious").disabled=searchResults.length===0;
   document.querySelector("#searchNext").disabled=searchResults.length===0;
@@ -78,7 +79,7 @@ function runSearch(reset=true){
   return result;
 }
 function navigateSearch(direction){
-  if(!searchResults.length){runSearch(true);if(!searchResults.length)return;}
+  if(!searchResults.length){runSearch(true);if(!searchResults.length)return;const first=searchResults[0];choose(first.address,false,sheetScroll);searchInput.focus();return;}
   searchIndex=(searchIndex+direction+searchResults.length)%searchResults.length;
   const item=searchResults[searchIndex];
   choose(item.address,false,sheetScroll);
@@ -97,18 +98,19 @@ searchInput.addEventListener("keydown",event=>{
   if(event.key==="Enter"){event.preventDefault();navigateSearch(event.shiftKey?-1:1);}
   else if(event.key==="Escape"){event.preventDefault();clearSearch();}
 });
-document.querySelector("#searchRun").addEventListener("click",()=>runSearch(true));
+document.querySelector("#searchRun").addEventListener("click",()=>{runSearch(true);if(searchResults.length)navigateSearch(0);});
 document.querySelector("#searchPrevious").addEventListener("click",()=>navigateSearch(-1));
 document.querySelector("#searchNext").addEventListener("click",()=>navigateSearch(1));
 document.querySelector("#searchClear").addEventListener("click",clearSearch);
-for(const control of [searchModeInput,searchCaseInput,searchWholeInput])control.addEventListener("change",()=>{if(searchInput.value)runSearch(true);});
+for(const control of [searchModeInput,searchCaseInput,searchWholeInput])control.addEventListener("change",()=>{if(searchInput.value){runSearch(true);if(searchResults.length)navigateSearch(0);}});
 window.addEventListener("keydown",event=>{
   const key=event.key.toLowerCase(),target=event.target;
   if((event.ctrlKey||event.metaKey)&&key==="f"){event.preventDefault();searchInput.focus();searchInput.select();return;}
   if(target instanceof HTMLElement&&(target.isContentEditable||/^(INPUT|TEXTAREA|SELECT)$/.test(target.tagName)))return;
   if(!(event.ctrlKey||event.metaKey)||event.altKey)return;
-  if(key==="z"){event.preventDefault();historyMove(undoStack,redoStack);}
-  else if(key==="y"||(key==="z"&&event.shiftKey)){event.preventDefault();historyMove(redoStack,undoStack);}
+  if(key==="z"&&event.shiftKey){event.preventDefault();historyMove(redoStack,undoStack);}
+  else if(key==="z"){event.preventDefault();historyMove(undoStack,redoStack);}
+  else if(key==="y"){event.preventDefault();historyMove(redoStack,undoStack);}
 });
 
 function raw(a){return Object.hasOwn(cells,a)?String(cells[a]):"";}
