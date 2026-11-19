@@ -136,7 +136,14 @@ function handleQuadrantScroll(source){
  const key=Object.keys(quadrantPanes).find(k=>quadrantPanes[k].scroll===source);if(!key)return;
  syncingSplitScroll=true;const next=synchronizeQuadrantPositions(key,readQuadrantPositions());
  for(const target of quadrantScrollTargets(key)){const pane=quadrantPanes[target];pane.scroll.scrollTop=next[target].top;pane.scroll.scrollLeft=next[target].left;}
- quadrantPositions=readQuadrantPositions();syncingSplitScroll=false;scheduleSplitSave();render();
+ quadrantPositions=readQuadrantPositions();syncingSplitScroll=false;scheduleSplitSave();
+ const nearBottom=source.scrollTop+source.clientHeight>=source.scrollHeight-Math.max(ROW_HEIGHT*24,source.clientHeight*2);
+ const nearRight=source.scrollLeft+source.clientWidth>=source.scrollWidth-Math.max(COLUMN_WIDTH*8,source.clientWidth*2);
+ let grew=false;
+ if(nearBottom&&ROWS<MAX_ROWS){ROWS=expandGridCapacity({rows:ROWS,columns:COLS},{row:ROWS+1,column:1},{maxRows:MAX_ROWS,maxColumns:MAX_COLS}).rows;grew=true;}
+ if(nearRight&&COLS<MAX_COLS){COLS=expandGridCapacity({rows:ROWS,columns:COLS},{row:1,column:COLS+1},{maxRows:MAX_ROWS,maxColumns:MAX_COLS}).columns;grew=true;}
+ if(grew){const meta=document.querySelector(".sheet-meta");if(meta)meta.textContent="Tự động lưu cục bộ · Lưới đang mở rộng "+COLS.toLocaleString("vi-VN")+" cột × "+ROWS.toLocaleString("vi-VN")+" hàng";}
+ render();
 }
 for(const key of ["topRight","bottomLeft"]){const pane=quadrantPanes[key];pane.scroll.addEventListener("scroll",()=>{if(splitMode==="quadrant")handleQuadrantScroll(pane.scroll);},{passive:true});}
 sheetScroll.addEventListener("scroll",()=>handlePaneScroll(sheetScroll,splitScroll),{passive:true});
@@ -159,6 +166,7 @@ function scheduleSplitSave(){
 function setSplitRatio(value,persist=true){
   splitRatio=Number.isFinite(Number(value))?Math.max(0.2,Math.min(0.8,Number(value))):0.5;
   document.querySelector("#sheetPanes").style.setProperty("--split-ratio",String(splitRatio));
+  document.querySelector("#sheetPanes").style.setProperty("--split-percent",(splitRatio*100)+"%");
   if(persist)save();
 }
 function applySplitMode(persist=true){
@@ -170,6 +178,7 @@ function applySplitMode(persist=true){
   const separator=panes.querySelector("#splitSeparator");
   separator.hidden=splitMode==="none"||splitMode==="quadrant";
   panes.style.setProperty("--split-ratio",String(splitRatio));
+  panes.style.setProperty("--split-percent",(splitRatio*100)+"%");
   separator.setAttribute("aria-orientation",splitMode==="horizontal"?"horizontal":"vertical");
   separator.setAttribute("aria-label",splitMode==="horizontal"?"Thanh chia ngang":"Thanh chia dọc");
   if(persist)save();
@@ -212,7 +221,7 @@ splitGrid.addEventListener("pointerover",e=>{if(!pointerSelecting)return;const b
 splitGrid.addEventListener("click",e=>{const b=e.target.closest("[data-cell]");if(b&&!pointerSelecting&&selected!==b.dataset.cell)choose(b.dataset.cell,false,splitScroll);});
 splitGrid.addEventListener("keydown",e=>{const b=e.target.closest("[data-cell]");if(!b)return;const p=parseAddress(b.dataset.cell);if(e.key==="Enter"||e.key==="ArrowDown"){e.preventDefault();choose(address(Math.min(ROWS,p.r+1),p.c),e.shiftKey,splitScroll);}else if(e.key==="Tab"||e.key==="ArrowRight"){e.preventDefault();choose(address(p.r,Math.min(COLS,p.c+1)),e.shiftKey,splitScroll);}else if(e.key==="ArrowUp"){e.preventDefault();choose(address(Math.max(1,p.r-1),p.c),e.shiftKey,splitScroll);}else if(e.key==="ArrowLeft"){e.preventDefault();choose(address(p.r,Math.max(1,p.c-1)),e.shiftKey,splitScroll);}});
 splitGrid.addEventListener("paste",e=>{const text=e.clipboardData?.getData("text/plain");if(text){e.preventDefault();pasteRange(text);}});
-for(const key of ["topRight","bottomLeft"]){const pane=quadrantPanes[key];pane.grid.addEventListener("pointerdown",e=>{const b=e.target.closest("[data-cell]");if(!b)return;pointerSelecting=true;choose(b.dataset.cell,e.shiftKey,pane.scroll);});pane.grid.addEventListener("click",e=>{const b=e.target.closest("[data-cell]");if(b&&!pointerSelecting&&selected!==b.dataset.cell)choose(b.dataset.cell,false,pane.scroll);});pane.grid.addEventListener("paste",e=>{const value=e.clipboardData?.getData("text/plain");if(value){e.preventDefault();pasteRange(value);}});}
+for(const key of ["topRight","bottomLeft"]){const pane=quadrantPanes[key];pane.grid.addEventListener("pointerdown",e=>{const b=e.target.closest("[data-cell]");if(!b)return;pointerSelecting=true;choose(b.dataset.cell,e.shiftKey,pane.scroll);});pane.grid.addEventListener("pointerover",e=>{if(!pointerSelecting)return;const b=e.target.closest("[data-cell]");if(b)choose(b.dataset.cell,true,pane.scroll);});pane.grid.addEventListener("click",e=>{const b=e.target.closest("[data-cell]");if(b&&!pointerSelecting&&selected!==b.dataset.cell)choose(b.dataset.cell,false,pane.scroll);});pane.grid.addEventListener("keydown",e=>{const b=e.target.closest("[data-cell]");if(!b)return;const p=parseAddress(b.dataset.cell);if(e.key==="Enter"||e.key==="ArrowDown"){e.preventDefault();choose(address(Math.min(ROWS,p.r+1),p.c),e.shiftKey,pane.scroll);}else if(e.key==="Tab"||e.key==="ArrowRight"){e.preventDefault();choose(address(p.r,Math.min(COLS,p.c+1)),e.shiftKey,pane.scroll);}else if(e.key==="ArrowUp"){e.preventDefault();choose(address(Math.max(1,p.r-1),p.c),e.shiftKey,pane.scroll);}else if(e.key==="ArrowLeft"){e.preventDefault();choose(address(p.r,Math.max(1,p.c-1)),e.shiftKey,pane.scroll);}});pane.grid.addEventListener("paste",e=>{const value=e.clipboardData?.getData("text/plain");if(value){e.preventDefault();pasteRange(value);}});}
 window.addEventListener("pointerup",()=>{pointerSelecting=false;});
 
 function setValue(a,v){snapshot();if(v===""){delete cells[a];if(!macroExecution)try{macroRecorder.recordClear(a);}catch(e){calcStatus.textContent=e.message;}}else{cells[a]=v;if(!macroExecution)try{macroRecorder.recordSet(a,v);}catch(e){calcStatus.textContent=e.message;}}render();save();calcStatus.textContent="Đã tính lại các ô phụ thuộc";}
