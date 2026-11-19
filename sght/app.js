@@ -4,7 +4,7 @@ import { captureRange, pasteCapturedRange } from "./engine/range-clipboard.js";
 import { getVirtualWindow } from "./engine/sparse-grid.js";
 import { expandGridCapacity } from "./engine/grid-capacity.js";
 import { buildFreezeLayout, normalizeFreezeSettings } from "./engine/freeze-panes.js";
-import { normalizeSplitSettings, synchronizedAxis } from "./engine/split-panes.js";
+import { normalizeSplitSettings, synchronizedAxis, splitRatioFromPointer } from "./engine/split-panes.js";
 import { planMacro, executeMacro } from "./automation/macro-engine.js";
 import { MacroRecorder } from "./automation/macro-recorder.js";
 import { MacroLibrary } from "./automation/macro-library.js";
@@ -143,7 +143,7 @@ function scheduleSplitSave(){
   splitSaveTimer=setTimeout(()=>{splitSaveTimer=null;save();},300);
 }
 function setSplitRatio(value,persist=true){
-  splitRatio=Math.max(0.2,Math.min(0.8,Number(value)||0.5));
+  splitRatio=Number.isFinite(Number(value))?Math.max(0.2,Math.min(0.8,Number(value))):0.5;
   document.querySelector("#sheetPanes").style.setProperty("--split-ratio",String(splitRatio));
   if(persist)save();
 }
@@ -167,9 +167,8 @@ splitSeparator.addEventListener("pointerdown",event=>{
 splitSeparator.addEventListener("pointermove",event=>{
   if(!resizingSplit)return;
   const rect=document.querySelector("#sheetPanes").getBoundingClientRect();
-  const extent=splitMode==="horizontal"?rect.height:rect.width;
-  const offset=splitMode==="horizontal"?event.clientY-rect.top:event.clientX-rect.left;
-  setSplitRatio(extent>0?offset/extent:0.5,false);
+  const point=splitMode==="horizontal"?event.clientY:event.clientX;
+  setSplitRatio(splitRatioFromPointer(splitMode,point,rect),false);
 });
 function stopSplitResize(){if(!resizingSplit)return;resizingSplit=false;save();}
 splitSeparator.addEventListener("pointerup",stopSplitResize);
