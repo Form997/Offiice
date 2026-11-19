@@ -37,3 +37,5 @@ test("fill right extrapolates numeric series",()=>{const r=fillRange({A1:"3",B1:
 test("formula fill adjusts relative and absolute references",()=>assert.equal(translateFormulaReferences("=A1+$B$2+C$3+$D4",1,2),"=C2+$B$2+E$3+$D5"));
 test("formula fill does not rewrite quoted text",()=>assert.equal(translateFormulaReferences('="A1"&A1',1,0),'="A1"&A2'));
 test("fill rejects excessive and invalid target ranges",()=>{assert.throws(()=>fillRange({}, {}, {start:"A1",end:"A1"},{start:"A1",end:"A100001"}),/vượt giới hạn/);assert.throws(()=>fillRange({}, {}, {start:"A1",end:"A2"},{start:"A2",end:"A3"}),/bao trùm/);});
+
+test("fill upward and leftward extrapolates the same numeric pattern",()=>{const up=fillRange({A3:"6",A4:"8"},{},{start:"A3",end:"A4"},{start:"A1",end:"A4"});assert.deepEqual([up.cells.A1,up.cells.A2],["2","4"]);const left=fillRange({C1:"6",D1:"8"},{},{start:"C1",end:"D1"},{start:"A1",end:"D1"});assert.deepEqual([left.cells.A1,left.cells.B1],["2","4"]);});

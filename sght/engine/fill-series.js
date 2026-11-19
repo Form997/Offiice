@@ -35,11 +35,16 @@ export function fillRange(cells={},formats={},sourceBounds,targetBounds,options=
  const nextCells={...cells},nextFormats={...formats};let changed=0;
  for(let r=t.startRow;r<=t.endRow;r++)for(let c=t.startCol;c<=t.endCol;c++){
   if(r>=s.startRow&&r<=s.endRow&&c>=s.startCol&&c<=s.endCol)continue;
-  const sr=s.startRow+((r-s.startRow)%h),sc=s.startCol+((c-s.startCol)%w),src=addr(sr,sc),dst=addr(r,c);
+  const sr=s.startRow+(((r-s.startRow)%h)+h)%h,sc=s.startCol+(((c-s.startCol)%w)+w)%w,src=addr(sr,sc),dst=addr(r,c);
   let value=Object.hasOwn(cells,src)?String(cells[src]):"";
   if(value.startsWith("="))value=translateFormulaReferences(value,r-sr,c-sc);
-  else if(vSeries&&c===s.startCol){const a=Number(cells[addr(s.endRow-1,s.startCol)]),b=Number(cells[addr(s.endRow,s.startCol)]);value=String(b+(b-a)*(r-s.endRow));}
-  else if(hSeries&&r===s.startRow){const a=Number(cells[addr(s.startRow,s.endCol-1)]),b=Number(cells[addr(s.startRow,s.endCol)]);value=String(b+(b-a)*(c-s.endCol));}
+  else if(vSeries&&c===s.startCol){
+   if(r<s.startRow){const a=Number(cells[addr(s.startRow,s.startCol)]),b=Number(cells[addr(s.startRow+1,s.startCol)]);value=String(a-(b-a)*(s.startRow-r));}
+   else{const a=Number(cells[addr(s.endRow-1,s.startCol)]),b=Number(cells[addr(s.endRow,s.startCol)]);value=String(b+(b-a)*(r-s.endRow));}
+  }else if(hSeries&&r===s.startRow){
+   if(c<s.startCol){const a=Number(cells[addr(s.startRow,s.startCol)]),b=Number(cells[addr(s.startRow,s.startCol+1)]);value=String(a-(b-a)*(s.startCol-c));}
+   else{const a=Number(cells[addr(s.startRow,s.endCol-1)]),b=Number(cells[addr(s.startRow,s.endCol)]);value=String(b+(b-a)*(c-s.endCol));}
+  }
   if(value==="")delete nextCells[dst];else nextCells[dst]=value;
   if(formats[src]&&typeof formats[src]==="object")nextFormats[dst]={...formats[src]};else delete nextFormats[dst];
   changed++;
