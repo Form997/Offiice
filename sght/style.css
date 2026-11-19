@@ -169,3 +169,5 @@
 .data-tools-grid ul{width:100%;margin:0;padding-left:18px;font-size:11px;color:var(--muted)}
 .data-color-filter{white-space:nowrap}
 @media(max-width:720px){.data-tools-grid{grid-template-columns:1fr}.data-tools-head{display:block}.data-tools-grid fieldset{align-items:stretch}.data-tools-grid label{flex-wrap:wrap}.data-tools-grid input:not([type=color]):not([type=checkbox]),.data-tools-grid select{max-width:none;flex:1}}
+
+.data-tools-panel[hidden]{display:none!important}
