@@ -16,7 +16,17 @@ export function sortRangeRows(cells,formats,bounds,options={}){
  const next={...cells},nextFormats={...formats};for(let i=0;i<rows.length;i++)for(let col=b.startCol;col<=b.endCol;col++){const key=cellKey(b.startRow+1+i,col),idx=col-b.startCol,v=rows[i].values[idx],f=rows[i].styles[idx];if(v===undefined)delete next[key];else next[key]=v;if(f===undefined)delete nextFormats[key];else nextFormats[key]=f;}
  return{cells:next,formats:nextFormats,changed:rows.some((r,i)=>r.row!==b.startRow+1+i),rowCount:rows.length};
 }
-function parseFilterDate(value){const s=String(value??"").trim();let m;if((m=/^(\d{4})-(\d{2})-(\d{2})$/.exec(s))){const y=Number(m[1]),mo=Number(m[2]),d=Number(m[3]),t=Date.UTC(y,mo-1,d),x=new Date(t);return x.getUTCFullYear()===y&&x.getUTCMonth()===mo-1&&x.getUTCDate()===d?t:null;}if((m=/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/.exec(s))){const d=Number(m[1]),mo=Number(m[2]),y=Number(m[3]),t=Date.UTC(y,mo-1,d),x=new Date(t);return x.getUTCFullYear()===y&&x.getUTCMonth()===mo-1&&x.getUTCDate()===d?t:null;}return null;}\nfunction matchesRule(value,rule){
+function parseFilterDate(value){
+ const s=String(value??"").trim();
+ let parts;
+ if(s.includes("-")){parts=s.split("-").map(Number);if(parts.length!==3)return null;}
+ else if(s.includes("/")){const p=s.split("/").map(Number);if(p.length!==3)return null;parts=[p[2],p[1],p[0]];}
+ else return null;
+ const [y,mo,d]=parts;if(!Number.isInteger(y)||!Number.isInteger(mo)||!Number.isInteger(d))return null;
+ const t=Date.UTC(y,mo-1,d),x=new Date(t);
+ return x.getUTCFullYear()===y&&x.getUTCMonth()===mo-1&&x.getUTCDate()===d?t:null;
+}
+function matchesRule(value,rule){
  const text=String(value??""),target=String(rule.value??"");
  switch(rule.operator){case"equals":return text.toLocaleLowerCase()===target.toLocaleLowerCase();case"notEquals":return text.toLocaleLowerCase()!==target.toLocaleLowerCase();case"contains":return text.toLocaleLowerCase().includes(target.toLocaleLowerCase());case"greater":return text!==""&&Number.isFinite(Number(text))&&Number(text)>Number(target);case"less":return text!==""&&Number.isFinite(Number(text))&&Number(text)<Number(target);case"greaterOrEqual":return text!==""&&Number.isFinite(Number(text))&&Number(text)>=Number(target);case"lessOrEqual":return text!==""&&Number.isFinite(Number(text))&&Number(text)<=Number(target);case"between":{const n=Number(text),lo=Number(rule.min),hi=Number(rule.max);return text!==""&&Number.isFinite(n)&&Number.isFinite(lo)&&Number.isFinite(hi)&&n>=Math.min(lo,hi)&&n<=Math.max(lo,hi);}case"startsWith":return text.toLocaleLowerCase().startsWith(target.toLocaleLowerCase());case"endsWith":return text.toLocaleLowerCase().endsWith(target.toLocaleLowerCase());case"notContains":return !text.toLocaleLowerCase().includes(target.toLocaleLowerCase());case"dateBefore":{const d=parseFilterDate(text),t=parseFilterDate(target);return d!==null&&t!==null&&d<t;}case"dateAfter":{const d=parseFilterDate(text),t=parseFilterDate(target);return d!==null&&t!==null&&d>t;}case"dateBetween":{const d=parseFilterDate(text),lo=parseFilterDate(rule.min),hi=parseFilterDate(rule.max);return d!==null&&lo!==null&&hi!==null&&d>=Math.min(lo,hi)&&d<=Math.max(lo,hi);}case"empty":return text==="";case"notEmpty":return text!=="";default:return true;}
 }

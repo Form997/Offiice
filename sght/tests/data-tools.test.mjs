@@ -79,7 +79,7 @@ test("structured formulas expand references but leave quoted text intact",()=>{
 });
 
 
-import {summarizeByGroups,buildPivotTable} from "../engine/data-tools.js";
+import {summarizeByGroups,buildPivotTable,filterRangeRows} from "../engine/data-tools.js";
 test("nested subtotals aggregate each hierarchy level deterministically",()=>{
  const cells={A1:"Vùng",B1:"Cây",C1:"Kg",A2:"Bắc",B2:"Cải",C2:"2",A3:"Bắc",B3:"Cải",C3:"3",A4:"Bắc",B4:"Rau",C4:"4",A5:"Nam",B5:"Cải",C5:"6"};
  const rows=summarizeByGroups(cells,{startRow:1,endRow:5,startCol:1,endCol:3},{groupColumns:[1,2],valueColumn:3,operation:"sum"});
