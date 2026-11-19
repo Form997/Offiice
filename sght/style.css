@@ -223,11 +223,3 @@
 .pivot-chart-legend-item i{display:inline-block;width:10px;height:10px;border-radius:3px}
 .pivot-chart-empty{font-size:12px;color:var(--muted);margin:8px 0}
 @media(max-width:680px){.pivot-chart-toolbar{align-items:stretch}.pivot-chart-toolbar label{width:100%;justify-content:space-between}.pivot-chart-toolbar select{flex:1;max-width:none!important}.pivot-chart-toolbar>b{width:100%}.pivot-chart-panel{padding:7px}}
-
-/* SGHT 18.16 · Pivot Chart Studio */
-.pivot-chart-studio-controls{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;padding:10px;border:1px solid var(--line);border-radius:8px;background:#f8fbf8}
-.pivot-chart-studio-controls label{display:grid;gap:5px;min-width:0;font-size:11px;color:var(--muted)}
-.pivot-chart-studio-controls input:not([type=checkbox]),.pivot-chart-studio-controls select{width:100%;min-width:0;height:35px;padding:0 9px;border:1px solid var(--line);border-radius:6px;background:#fff;color:var(--ink,#203329);font:inherit}
-.pivot-chart-studio-controls .pivot-chart-check{display:flex;align-items:center;gap:7px}
-.pivot-chart-studio-controls button{align-self:end;min-height:35px}
-@media(max-width:680px){.pivot-chart-studio-controls{grid-template-columns:1fr}.pivot-chart-studio-controls button{justify-self:start}}
