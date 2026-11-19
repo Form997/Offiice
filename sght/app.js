@@ -2,6 +2,8 @@ import { evaluateFormula, FormulaError } from "./engine/core.js";
 import { normalizeCellFormat, cellFormatStyle, getRangeBounds, expandRange, encodeTSV, parseTSV } from "./engine/cell-format.js";
 import { captureRange, pasteCapturedRange } from "./engine/range-clipboard.js";
 import { fillRange } from "./engine/fill-series.js";
+import { serializeWorkbook, restoreWorkbook, pushHistoryEntry, moveHistory } from "./engine/history.js";
+import { searchCells } from "./engine/search.js";
 import { getVirtualWindow } from "./engine/sparse-grid.js";
 import { expandGridCapacity } from "./engine/grid-capacity.js";
 import { buildFreezeLayout, normalizeFreezeSettings } from "./engine/freeze-panes.js";
@@ -42,15 +44,79 @@ const macroSecurity=new MacroSecurityCenter();
 let editingMacroId=null;
 let macroExecution=false;
 const grid=document.querySelector("#sheetGrid"),formulaInput=document.querySelector("#formulaInput"),cellAddress=document.querySelector("#cellAddress"),selectionInfo=document.querySelector("#selectionInfo"),saveStatus=document.querySelector("#saveStatus"),calcStatus=document.querySelector("#calcStatus");
+const searchInput=document.querySelector("#searchQuery"),searchModeInput=document.querySelector("#searchMode"),searchCaseInput=document.querySelector("#searchCase"),searchWholeInput=document.querySelector("#searchWhole"),searchCount=document.querySelector("#searchCount");
+let searchResults=[],searchIndex=-1,searchMatchAddresses=new Set(),currentSearchAddress=null,searchDirty=false,historyCaptureAvailable=true;
 function load(){try{const saved=JSON.parse(localStorage.getItem(STORAGE_KEY)||"null");if(saved&&saved.cells&&typeof saved.cells==="object"){cells=saved.cells;cellFormats=Object.create(null);for(const [a,f] of Object.entries(saved.formats||{})){if(parseAddress(a))cellFormats[a]=normalizeCellFormat(f);}sheetTitle=String(saved.title||sheetTitle);const freeze=normalizeFreezeSettings(saved.freeze||{});frozenRows=freeze.rows;frozenColumns=freeze.columns;const split=normalizeSplitSettings(saved.split);splitMode=split.mode;splitRatio=split.ratio;splitPositions=split.positions;quadrantPositions=normalizeQuadrantPositions(saved.split?.quadrants);}}catch{}document.querySelector("#sheetName").value=sheetTitle;document.querySelector("#freezeRowsInput").value=frozenRows;document.querySelector("#freezeColumnsInput").value=frozenColumns;document.querySelector("#splitMode").value=splitMode;applySplitMode(false);}
 function save(){try{localStorage.setItem(STORAGE_KEY,JSON.stringify({cells,formats:cellFormats,title:sheetTitle,freeze:{rows:frozenRows,columns:frozenColumns},split:{mode:splitMode,ratio:splitRatio,positions:readSplitPositions(),quadrants:readQuadrantPositions()},updatedAt:new Date().toISOString()}));saveStatus.textContent="Đã lưu trên thiết bị";}catch{saveStatus.textContent="Không đủ dung lượng lưu";}}
-function snapshot(){undoStack.push(JSON.stringify({cells,formats:cellFormats}));if(undoStack.length>80)undoStack.shift();redoStack=[];}
-function historyMove(from,to){if(!from.length)return;to.push(JSON.stringify({cells,formats:cellFormats}));const state=JSON.parse(from.pop());if(state&&state.cells){cells=state.cells;cellFormats=state.formats||Object.create(null);}else{cells=state||Object.create(null);cellFormats=Object.create(null);}render();save();calcStatus.textContent="Đã khôi phục dữ liệu";}
+function updateHistoryControls(){document.querySelector("#undoAction").disabled=undoStack.length===0;document.querySelector("#redoAction").disabled=redoStack.length===0;}
+function snapshot(){const current=serializeWorkbook(cells,cellFormats);historyCaptureAvailable=pushHistoryEntry(undoStack,current);redoStack=[];searchDirty=true;updateHistoryControls();return historyCaptureAvailable;}
+function historyMove(from,to){if(!from.length)return;const state=moveHistory(from,to,serializeWorkbook(cells,cellFormats));if(!state)return;cells=state.cells;cellFormats=state.formats;searchDirty=true;updateHistoryControls();render();save();calcStatus.textContent="Đã khôi phục dữ liệu và định dạng ô";}
+
+function paintSearchState(){
+  searchMatchAddresses=new Set(searchResults.map(item=>item.address));
+  currentSearchAddress=searchIndex>=0?searchResults[searchIndex]?.address||null:null;
+  updateSelection();
+}
+function runSearch(reset=true){
+  const query=searchInput.value;
+  if(reset)searchIndex=-1;
+  const result=searchCells(cells,query,{
+    caseSensitive:searchCaseInput.checked,
+    wholeCell:searchWholeInput.checked,
+    mode:searchModeInput.value,
+    displayValue:(address)=>display(address),
+    maxResults:10000
+  });
+  searchResults=result.matches;
+  if(reset&&searchResults.length)searchIndex=0;
+  else if(searchIndex>=searchResults.length)searchIndex=searchResults.length-1;
+  searchCount.textContent=!query?"Nhập từ khóa để tìm":result.total===0?"Không tìm thấy":(searchIndex+1)+" / "+result.total+(result.truncated?" · hiển thị 10.000 kết quả đầu":"");
+  document.querySelector("#searchPrevious").disabled=searchResults.length===0;
+  document.querySelector("#searchNext").disabled=searchResults.length===0;
+  paintSearchState();
+  if(result.total===0&&query)calcStatus.textContent="Không tìm thấy “"+query+"” trong dữ liệu đang lưu.";
+  return result;
+}
+function navigateSearch(direction){
+  if(!searchResults.length){runSearch(true);if(!searchResults.length)return;}
+  searchIndex=(searchIndex+direction+searchResults.length)%searchResults.length;
+  const item=searchResults[searchIndex];
+  choose(item.address,false,sheetScroll);
+  searchCount.textContent=(searchIndex+1)+" / "+searchResults.length;
+  paintSearchState();
+  searchInput.focus();
+}
+function clearSearch(){
+  searchInput.value="";searchResults=[];searchIndex=-1;searchMatchAddresses.clear();currentSearchAddress=null;
+  searchCount.textContent="Chưa tìm kiếm";
+  document.querySelector("#searchPrevious").disabled=true;
+  document.querySelector("#searchNext").disabled=true;
+  updateSelection();searchInput.focus();
+}
+searchInput.addEventListener("keydown",event=>{
+  if(event.key==="Enter"){event.preventDefault();navigateSearch(event.shiftKey?-1:1);}
+  else if(event.key==="Escape"){event.preventDefault();clearSearch();}
+});
+document.querySelector("#searchRun").addEventListener("click",()=>runSearch(true));
+document.querySelector("#searchPrevious").addEventListener("click",()=>navigateSearch(-1));
+document.querySelector("#searchNext").addEventListener("click",()=>navigateSearch(1));
+document.querySelector("#searchClear").addEventListener("click",clearSearch);
+for(const control of [searchModeInput,searchCaseInput,searchWholeInput])control.addEventListener("change",()=>{if(searchInput.value)runSearch(true);});
+window.addEventListener("keydown",event=>{
+  const key=event.key.toLowerCase(),target=event.target;
+  if((event.ctrlKey||event.metaKey)&&key==="f"){event.preventDefault();searchInput.focus();searchInput.select();return;}
+  if(target instanceof HTMLElement&&(target.isContentEditable||/^(INPUT|TEXTAREA|SELECT)$/.test(target.tagName)))return;
+  if(!(event.ctrlKey||event.metaKey)||event.altKey)return;
+  if(key==="z"){event.preventDefault();historyMove(undoStack,redoStack);}
+  else if(key==="y"||(key==="z"&&event.shiftKey)){event.preventDefault();historyMove(redoStack,undoStack);}
+});
+
 function raw(a){return Object.hasOwn(cells,a)?String(cells[a]):"";}
 function calculate(a,stack=new Set()){const value=raw(a);if(!value.startsWith("="))return value===""?"":coerce(value);if(stack.has(a))throw new FormulaError("#CYCLE!","Phát hiện công thức tham chiếu vòng.");stack.add(a);const ctx={getCell(ref){return calculate(ref.toUpperCase(),stack);},getRange(ref){const [s,e]=ref.toUpperCase().split(":").map(parseAddress);if(!s||!e)throw new FormulaError("#REF!","Vùng ô không hợp lệ.");const area=(Math.abs(e.r-s.r)+1)*(Math.abs(e.c-s.c)+1);if(!Number.isSafeInteger(area)||area>100000)throw new FormulaError("#REF!","Vùng công thức vượt giới hạn an toàn 100.000 ô.");const out=[];for(let r=Math.min(s.r,e.r);r<=Math.max(s.r,e.r);r++)for(let c=Math.min(s.c,e.c);c<=Math.max(s.c,e.c);c++)out.push(calculate(address(r,c),stack));return out;}};try{return evaluateFormula(value,ctx);}finally{stack.delete(a);}}
 function coerce(v){if(typeof v!=="string")return v;if(v.trim()!==""&&Number.isFinite(Number(v)))return Number(v);return v;}
 function display(a){try{const v=calculate(a);if(typeof v!=="number")return String(v??"");const f=normalizeCellFormat(cellFormats[a]||{});if(f.numberFormat==="integer")return new Intl.NumberFormat("vi-VN",{maximumFractionDigits:0}).format(v);if(f.numberFormat==="number2")return new Intl.NumberFormat("vi-VN",{minimumFractionDigits:2,maximumFractionDigits:2}).format(v);if(f.numberFormat==="percent")return new Intl.NumberFormat("vi-VN",{style:"percent",maximumFractionDigits:2}).format(v);if(f.numberFormat==="currency")return new Intl.NumberFormat("vi-VN",{style:"currency",currency:"VND",maximumFractionDigits:0}).format(v);return String(Number(v.toPrecision(12)));}catch(e){return e.code||"#CALC!";}}
 function render(){
+  if(searchDirty){searchDirty=false;if(searchInput.value)runSearch(false);}
   if(splitMode==="quadrant"){for(const pane of Object.values(quadrantPanes))renderGrid(pane.grid,pane.scroll);return;}
   renderGrid(grid,sheetScroll);
   if(splitMode!=="none")renderGrid(splitGrid,splitScroll);
@@ -94,6 +160,8 @@ function updateSelection(){
     const inside=p.r>=x.startRow&&p.r<=x.endRow&&p.c>=x.startCol&&p.c<=x.endCol;
     el.classList.toggle("selected",el.dataset.cell===selected);
     el.classList.toggle("in-range",inside&&el.dataset.cell!==selected);
+    el.classList.toggle("search-match",searchMatchAddresses.has(el.dataset.cell));
+    el.classList.toggle("search-current",el.dataset.cell===currentSearchAddress);
   }
   for(const handle of document.querySelectorAll("[data-fill-handle]"))handle.remove();
   const fillAddress=address(x.endRow,x.endCol);
@@ -263,6 +331,7 @@ document.querySelector("#downloadCsv").addEventListener("click",exportCsv);
 document.querySelector("#saveAction").addEventListener("click",()=>{save();calcStatus.textContent="Đã lưu bảng tính";});
 document.querySelector("#undoAction").addEventListener("click",()=>historyMove(undoStack,redoStack));
 document.querySelector("#redoAction").addEventListener("click",()=>historyMove(redoStack,undoStack));
+updateHistoryControls();
 document.querySelector("#clearAction").addEventListener("click",()=>{const targets=expandRange(selectionRange.start,selectionRange.end);snapshot();for(const a of targets)delete cells[a];render();save();calcStatus.textContent="Đã xóa nội dung "+targets.length+" ô";});
 function applyFormat(patch){const targets=expandRange(selectionRange.start,selectionRange.end);snapshot();for(const a of targets)cellFormats[a]=normalizeCellFormat({...cellFormats[a],...patch});render();save();calcStatus.textContent="Đã định dạng "+targets.length+" ô";}
 for(const [id,key] of [["fontFamily","fontFamily"],["fontSize","fontSize"],["fontColor","color"],["fillColor","background"],["horizontalAlign","align"],["verticalAlign","vertical"],["numberFormat","numberFormat"],["borderStyle","border"]])document.querySelector("#"+id).addEventListener("change",e=>applyFormat({[key]:e.target.value}));
@@ -573,7 +642,7 @@ document.querySelector("#applyDebugConfig").addEventListener("click",applyDebugC
 function renderSecurity(){const p=macroSecurity.getPolicy();securityPolicyInput.value=p.allowedTypes.join(", ");securityMaxCommands.value=p.maxCommands;securityMaxCells.value=p.maxCells;const s=macroSecurity.status();securityStatus.textContent=(s.emergencyStopped?"ĐÃ KHÓA KHẨN CẤP":"Bảo vệ đang bật")+" · "+(s.active?"Phiên "+s.active.executed+" lệnh":"Không có phiên chạy");securityAudit.replaceChildren();for(const item of macroSecurity.listAudit(12)){const line=document.createElement("div");line.className="security-audit-row";line.textContent=new Date(item.at).toLocaleString()+" · "+item.event+" · "+JSON.stringify(item.details);securityAudit.append(line);}}
 function renderSecurityPreview(plan){const r=macroSecurity.preview(plan);const total=r.commands.reduce((n,x)=>n+x.cells,0);macroPreview.textContent="Kiểm tra an toàn: "+r.commandCount+" lệnh · "+r.uniqueCells+" ô duy nhất · "+total+" lượt ô tác động. Nhóm bị khóa: "+(r.blockedTypes.join(", ")||"không có")+". Giới hạn: "+(r.withinLimits?"đạt":"vượt")+"\n"+r.commands.map(x=>"Dòng "+x.line+" · "+x.type+" · "+x.cells+" ô"+(x.addresses.length?" · "+x.addresses.join(", "):"")).join("\n");return r;}
 function runSecuredUntilPause(){while(activeMacroDebugger.state().status==="paused"){const next=activeMacroDebugger.plan[activeMacroDebugger.index];if(!next)break;if(activeMacroDebugger.breakpoints.has(next.line)&&activeMacroDebugger.skipBreakpointIndex!==activeMacroDebugger.index){activeMacroDebugger.breakpointHit={line:next.line,step:activeMacroDebugger.index+1};activeMacroDebugger.skipBreakpointIndex=activeMacroDebugger.index;return activeMacroDebugger.state();}macroSecurity.beforeCommand(next);const state=activeMacroDebugger.step();macroSecurity.afterCommand(next);if(state.status==="completed")return state;}return activeMacroDebugger.state();}
-function finishMacroRun(state){if(["completed","stopped","error","rolled_back"].includes(state.status)){macroExecution=false;macroSecurity.finish(state.status);render();save();renderSecurity();}paintDebug(state);if(state.status==="completed")macroResult.textContent="Hoàn tất "+state.totalSteps+" lệnh. Có thể dùng Hoàn tác để phục hồi toàn phiên.";else if(state.status==="stopped")macroResult.textContent="Đã dừng tại bước "+state.currentStep+". Có thể hoàn tác toàn phiên ngay.";else if(state.status==="rolled_back"){macroResult.textContent="Đã hoàn tác toàn bộ thay đổi của phiên gỡ lỗi.";if(macroSnapshotOpen){undoStack.pop();macroSnapshotOpen=false;}}else if(state.status==="error")macroResult.textContent="Lỗi khi thực thi. Có thể hoàn tác các bước trước đó.";}
+function finishMacroRun(state){if(["completed","stopped","error","rolled_back"].includes(state.status)){macroExecution=false;macroSecurity.finish(state.status);render();save();renderSecurity();}paintDebug(state);if(state.status==="completed")macroResult.textContent="Hoàn tất "+state.totalSteps+" lệnh. Có thể dùng Hoàn tác để phục hồi toàn phiên.";else if(state.status==="stopped")macroResult.textContent="Đã dừng tại bước "+state.currentStep+". Có thể hoàn tác toàn phiên ngay.";else if(state.status==="rolled_back"){macroResult.textContent="Đã hoàn tác toàn bộ thay đổi của phiên gỡ lỗi.";if(macroSnapshotOpen){undoStack.pop();macroSnapshotOpen=false;updateHistoryControls();}}else if(state.status==="error")macroResult.textContent="Lỗi khi thực thi. Có thể hoàn tác các bước trước đó.";}
 function startDebugSession(){const plan=planMacro(macroSource.value);const report=renderSecurityPreview(plan);if(!report.withinLimits||report.blockedTypes.length){macroResult.textContent="Không thể chạy: chính sách bảo mật đang chặn macro hoặc giới hạn bị vượt.";return false;}if(!confirm("Phê duyệt phiên Macro gồm "+plan.length+" lệnh, dự kiến tác động "+report.uniqueCells+" ô? Hãy xem kỹ phạm vi trước khi đồng ý."))return false;const debuggerSession=new MacroDebugger(macroSource.value,macroAdapter());debuggerSession.setBreakpoints(parseNumberList(breakpointInput.value));debuggerSession.setWatches(parseWatchList(watchInput.value));macroSecurity.begin(plan,{approved:true});snapshot();macroSnapshotOpen=true;activeMacroDebugger=debuggerSession;activeMacroDebugger.start({approved:true});macroExecution=true;paintDebug(activeMacroDebugger.state());macroResult.textContent="Đã phê duyệt. Chạy từng bước hoặc tiếp tục đến breakpoint.";return true;}
 document.querySelector("#previewMacro").addEventListener("click",()=>{try{const plan=planMacro(macroSource.value);macroPreview.textContent=plan.map((x,i)=>(i+1)+". Dòng "+x.line+" · "+(x.type==="SET"?"Ghi "+x.cell+" = "+String(x.value):x.type==="COPY"?"Chép "+x.source+" → "+x.target:x.type==="CLEAR"?"Xóa "+x.range:"Tính tổng "+x.range+" → "+x.target)).join("\n");macroResult.textContent="Đã kiểm tra "+plan.length+" lệnh. Chưa thay đổi dữ liệu.";}catch(e){macroPreview.textContent="";macroResult.textContent=(e.code||"LỖI")+" · "+e.message+(e.line?" (dòng "+e.line+")":"");}});
 document.querySelector("#runMacro").addEventListener("click",()=>{try{if(!activeMacroDebugger||activeMacroDebugger.state().status!=="paused"){if(!startDebugSession())return;}finishMacroRun(runSecuredUntilPause());}catch(e){macroExecution=false;const state=activeMacroDebugger?.state();if(state?.status==="paused")finishMacroRun(activeMacroDebugger.stop());else if(state)finishMacroRun(state);macroResult.textContent=(e.code||"LỖI")+" · "+e.message+(e.line?" (dòng "+e.line+")":"");}});

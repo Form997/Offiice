@@ -10,7 +10,7 @@
 <body>
   <header class="topbar">
     <a class="brand" href="./index.html" aria-label="HAI ĐẤT SGHT"><span class="brand-mark">S</span><span><b>HAI ĐẤT</b><small>SGHT · BẢNG TÍNH</small></span></a>
-    <div class="top-actions"><span id="saveStatus" role="status">Đã lưu trên thiết bị</span><button id="undoAction" class="icon-action" title="Hoàn tác" aria-label="Hoàn tác">↶</button><button id="redoAction" class="icon-action" title="Làm lại" aria-label="Làm lại">↷</button><button id="saveAction" class="quiet">Lưu</button><button id="newSheet" class="quiet">Bảng mới</button><button id="downloadCsv" class="primary">Xuất CSV</button></div>
+    <div class="top-actions"><span id="saveStatus" role="status">Đã lưu trên thiết bị</span><button id="undoAction" class="icon-action" title="Hoàn tác (Ctrl+Z)" aria-label="Hoàn tác" disabled>↶</button><button id="redoAction" class="icon-action" title="Làm lại (Ctrl+Y)" aria-label="Làm lại" disabled>↷</button><button id="saveAction" class="quiet">Lưu</button><button id="newSheet" class="quiet">Bảng mới</button><button id="downloadCsv" class="primary">Xuất CSV</button></div>
   </header>
   <main>
     <section class="document-head">
@@ -134,6 +134,10 @@
       <div class="name-box" id="cellAddress">A1</div><div class="fx-mark">fx</div>
       <input id="formulaInput" autocomplete="off" spellcheck="false" placeholder="Nhập giá trị hoặc công thức, ví dụ =SUM(A1:A5)" aria-label="Nội dung ô đang chọn">
       <button id="applyFormula" class="apply">Áp dụng</button>
+    </section>
+    <section class="search-panel" aria-label="Tìm kiếm trong bảng tính">
+      <div class="search-main"><input id="searchQuery" type="search" placeholder="Tìm trong bảng tính… (Ctrl+F)" aria-label="Từ khóa tìm kiếm"><button id="searchRun" type="button" class="search-primary">Tìm</button><button id="searchPrevious" type="button" disabled aria-label="Kết quả trước">↑</button><button id="searchNext" type="button" disabled aria-label="Kết quả tiếp theo">↓</button><span id="searchCount" role="status">Chưa tìm kiếm</span><button id="searchClear" type="button" class="search-clear">Xóa</button></div>
+      <div class="search-options"><label>Phạm vi <select id="searchMode"><option value="display">Giá trị hiển thị</option><option value="raw">Nội dung gốc / công thức</option><option value="both">Cả giá trị và công thức</option></select></label><label><input id="searchCase" type="checkbox"> Phân biệt hoa thường</label><label><input id="searchWhole" type="checkbox"> Khớp toàn ô</label><small>Tìm trên các ô đã có dữ liệu, không quét toàn bộ lưới trống.</small></div>
     </section>
     <section class="sheet-shell" aria-label="Lưới bảng tính">
        <div class="sheet-panes" id="sheetPanes" data-mode="none"><div class="sheet-scroll" id="sheetScroll"><table id="sheetGrid" class="sheet-grid"><thead></thead><tbody></tbody></table></div><div class="sheet-scroll quadrant-pane" id="topRightScroll" hidden><table id="topRightGrid" class="sheet-grid"><thead></thead><tbody></tbody></table></div><div class="sheet-scroll quadrant-pane" id="bottomLeftScroll" hidden><table id="bottomLeftGrid" class="sheet-grid"><thead></thead><tbody></tbody></table></div><div class="split-separator" id="splitSeparator" role="separator" tabindex="0" aria-orientation="horizontal" aria-label="Thanh chia vùng" hidden></div><div class="sheet-scroll split-scroll" id="splitScroll"><table id="splitGrid" class="sheet-grid"><thead></thead><tbody></tbody></table></div></div>

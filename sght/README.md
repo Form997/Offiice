@@ -492,3 +492,28 @@ Bổ sung mô hình đáp ứng tăng dần, lợi ích biên giảm dần:
 - Mỗi lần điền là một giao dịch undo duy nhất; vùng đích được chọn và lưu cùng workbook.
 - Giới hạn mỗi lần điền: 100.000 ô; vẫn tuân theo giới hạn logic của lưới.
 - Chưa nhận diện chuỗi ngày, ngày làm việc, danh sách tùy chỉnh hoặc văn bản có hậu tố số. Chưa kiểm thử kéo cảm ứng trực tiếp trên thiết bị thật.
+
+
+## SGHT 18.9 — Lịch sử thao tác và tìm kiếm — 2026-11-19
+
+### Hoàn tác / Làm lại
+- Chuẩn hóa bản chụp trạng thái dữ liệu và định dạng ô bằng mô-đun độc lập `engine/history.js`.
+- Giới hạn lịch sử ở 40 mốc cho mỗi chiều; tự loại mốc cũ khi vượt ngân sách bộ nhớ ước tính 32 MiB (một mốc lớn được giữ riêng để không làm mất khả năng hoàn tác).
+- Hoàn tác/Làm lại khôi phục đồng thời nội dung, công thức và định dạng ô; thao tác khôi phục tạo mốc đối ứng để có thể làm lại.
+- Nút tự khóa/mở theo trạng thái lịch sử; hỗ trợ Ctrl+Z, Ctrl+Y và Ctrl+Shift+Z.
+- Một thao tác đã ghi nhận tạo một mốc; thao tác mới sau khi hoàn tác xóa nhánh Làm lại.
+- Lịch sử hiện là bộ nhớ phiên làm việc, chưa lưu xuyên lần tải lại trang; chưa phải lịch sử cộng tác hoặc lịch sử theo từng ô.
+
+### Tìm kiếm
+- Tìm theo giá trị hiển thị, nội dung gốc/công thức hoặc cả hai.
+- Tùy chọn phân biệt hoa thường và khớp toàn bộ nội dung ô.
+- Duyệt kết quả trước/sau, vòng từ cuối về đầu; chọn và cuộn đến ô tìm thấy.
+- Tô sáng tất cả kết quả đang hiển thị và làm nổi bật kết quả hiện hành.
+- Chỉ duyệt các ô có dữ liệu trong kho thưa (sparse storage), không quét hàng tỷ ô trống của lưới logic.
+- Lưu tối đa 10.000 địa chỉ kết quả để điều hướng; nếu có nhiều hơn, giao diện báo kết quả bị giới hạn ở 10.000 địa chỉ đầu.
+- Ctrl+F mở tìm kiếm; Enter đi tới kết quả kế tiếp, Shift+Enter về kết quả trước, Esc xóa tìm kiếm.
+
+### Phạm vi chưa bao gồm
+- Undo/Redo chưa khôi phục các thiết lập giao diện như chia vùng, ghim hàng/cột, zoom hoặc tên tệp.
+- Chưa có lịch sử thao tác sau khi đóng/mở lại trình duyệt, lịch sử cộng tác nhiều người dùng, hoặc tìm kiếm trong nhiều trang tính (SGHT hiện chưa có nhiều trang tính).
+- Tìm kiếm theo giá trị hiển thị tính lại công thức khi chạy tìm; kết quả không phải chỉ mục tìm kiếm nền thời gian thực.
