@@ -4,7 +4,7 @@ import { captureRange, pasteCapturedRange } from "./engine/range-clipboard.js";
 import { getVirtualWindow } from "./engine/sparse-grid.js";
 import { expandGridCapacity } from "./engine/grid-capacity.js";
 import { buildFreezeLayout, normalizeFreezeSettings } from "./engine/freeze-panes.js";
-import { normalizeSplitSettings, synchronizedAxis, splitRatioFromPointer } from "./engine/split-panes.js";
+import { normalizeSplitSettings, synchronizedAxis, splitRatioFromPointer, normalizeQuadrantPositions, synchronizeQuadrantPositions, quadrantScrollTargets } from "./engine/split-panes.js";
 import { planMacro, executeMacro } from "./automation/macro-engine.js";
 import { MacroRecorder } from "./automation/macro-recorder.js";
 import { MacroLibrary } from "./automation/macro-library.js";
@@ -26,6 +26,8 @@ const ROW_HEIGHT = 32, COLUMN_WIDTH = 108, OVERSCAN_ROWS = 5, OVERSCAN_COLUMNS =
 const sheetScroll = document.querySelector("#sheetScroll");
 const splitScroll = document.querySelector("#splitScroll");
 const splitGrid = document.querySelector("#splitGrid");
+const quadrantPanes = {topLeft:{scroll:sheetScroll,grid:document.querySelector("#sheetGrid")},topRight:{scroll:document.querySelector("#topRightScroll"),grid:document.querySelector("#topRightGrid")},bottomLeft:{scroll:document.querySelector("#bottomLeftScroll"),grid:document.querySelector("#bottomLeftGrid")},bottomRight:{scroll:splitScroll,grid:splitGrid}};
+let quadrantPositions = normalizeQuadrantPositions();
 let splitMode = "none", splitRatio = 0.5, splitPositions = {primary:{top:0,left:0},secondary:{top:0,left:0}}, syncingSplitScroll = false, splitSaveTimer = null, resizingSplit = false;
 let virtualWindow = null;
 const letters = n => { let s=""; while(n>0){const r=(n-1)%26;s=String.fromCharCode(65+r)+s;n=Math.floor((n-1)/26);} return s; };
@@ -39,8 +41,8 @@ const macroSecurity=new MacroSecurityCenter();
 let editingMacroId=null;
 let macroExecution=false;
 const grid=document.querySelector("#sheetGrid"),formulaInput=document.querySelector("#formulaInput"),cellAddress=document.querySelector("#cellAddress"),selectionInfo=document.querySelector("#selectionInfo"),saveStatus=document.querySelector("#saveStatus"),calcStatus=document.querySelector("#calcStatus");
-function load(){try{const saved=JSON.parse(localStorage.getItem(STORAGE_KEY)||"null");if(saved&&saved.cells&&typeof saved.cells==="object"){cells=saved.cells;cellFormats=Object.create(null);for(const [a,f] of Object.entries(saved.formats||{})){if(parseAddress(a))cellFormats[a]=normalizeCellFormat(f);}sheetTitle=String(saved.title||sheetTitle);const freeze=normalizeFreezeSettings(saved.freeze||{});frozenRows=freeze.rows;frozenColumns=freeze.columns;const split=normalizeSplitSettings(saved.split);splitMode=split.mode;splitRatio=split.ratio;splitPositions=split.positions;}}catch{}document.querySelector("#sheetName").value=sheetTitle;document.querySelector("#freezeRowsInput").value=frozenRows;document.querySelector("#freezeColumnsInput").value=frozenColumns;document.querySelector("#splitMode").value=splitMode;applySplitMode(false);}
-function save(){try{localStorage.setItem(STORAGE_KEY,JSON.stringify({cells,formats:cellFormats,title:sheetTitle,freeze:{rows:frozenRows,columns:frozenColumns},split:{mode:splitMode,ratio:splitRatio,positions:readSplitPositions()},updatedAt:new Date().toISOString()}));saveStatus.textContent="Đã lưu trên thiết bị";}catch{saveStatus.textContent="Không đủ dung lượng lưu";}}
+function load(){try{const saved=JSON.parse(localStorage.getItem(STORAGE_KEY)||"null");if(saved&&saved.cells&&typeof saved.cells==="object"){cells=saved.cells;cellFormats=Object.create(null);for(const [a,f] of Object.entries(saved.formats||{})){if(parseAddress(a))cellFormats[a]=normalizeCellFormat(f);}sheetTitle=String(saved.title||sheetTitle);const freeze=normalizeFreezeSettings(saved.freeze||{});frozenRows=freeze.rows;frozenColumns=freeze.columns;const split=normalizeSplitSettings(saved.split);splitMode=split.mode;splitRatio=split.ratio;splitPositions=split.positions;quadrantPositions=normalizeQuadrantPositions(saved.split?.quadrants);}}catch{}document.querySelector("#sheetName").value=sheetTitle;document.querySelector("#freezeRowsInput").value=frozenRows;document.querySelector("#freezeColumnsInput").value=frozenColumns;document.querySelector("#splitMode").value=splitMode;applySplitMode(false);}
+function save(){try{localStorage.setItem(STORAGE_KEY,JSON.stringify({cells,formats:cellFormats,title:sheetTitle,freeze:{rows:frozenRows,columns:frozenColumns},split:{mode:splitMode,ratio:splitRatio,positions:readSplitPositions(),quadrants:readQuadrantPositions()},updatedAt:new Date().toISOString()}));saveStatus.textContent="Đã lưu trên thiết bị";}catch{saveStatus.textContent="Không đủ dung lượng lưu";}}
 function snapshot(){undoStack.push(JSON.stringify({cells,formats:cellFormats}));if(undoStack.length>80)undoStack.shift();redoStack=[];}
 function historyMove(from,to){if(!from.length)return;to.push(JSON.stringify({cells,formats:cellFormats}));const state=JSON.parse(from.pop());if(state&&state.cells){cells=state.cells;cellFormats=state.formats||Object.create(null);}else{cells=state||Object.create(null);cellFormats=Object.create(null);}render();save();calcStatus.textContent="Đã khôi phục dữ liệu";}
 function raw(a){return Object.hasOwn(cells,a)?String(cells[a]):"";}
@@ -48,6 +50,7 @@ function calculate(a,stack=new Set()){const value=raw(a);if(!value.startsWith("=
 function coerce(v){if(typeof v!=="string")return v;if(v.trim()!==""&&Number.isFinite(Number(v)))return Number(v);return v;}
 function display(a){try{const v=calculate(a);if(typeof v!=="number")return String(v??"");const f=normalizeCellFormat(cellFormats[a]||{});if(f.numberFormat==="integer")return new Intl.NumberFormat("vi-VN",{maximumFractionDigits:0}).format(v);if(f.numberFormat==="number2")return new Intl.NumberFormat("vi-VN",{minimumFractionDigits:2,maximumFractionDigits:2}).format(v);if(f.numberFormat==="percent")return new Intl.NumberFormat("vi-VN",{style:"percent",maximumFractionDigits:2}).format(v);if(f.numberFormat==="currency")return new Intl.NumberFormat("vi-VN",{style:"currency",currency:"VND",maximumFractionDigits:0}).format(v);return String(Number(v.toPrecision(12)));}catch(e){return e.code||"#CALC!";}}
 function render(){
+  if(splitMode==="quadrant"){for(const pane of Object.values(quadrantPanes))renderGrid(pane.grid,pane.scroll);return;}
   renderGrid(grid,sheetScroll);
   if(splitMode!=="none")renderGrid(splitGrid,splitScroll);
 }
@@ -84,7 +87,7 @@ function updateSelection(){
   cellAddress.textContent=selected;formulaInput.value=raw(selected);
   const x=getRangeBounds(selectionRange.start,selectionRange.end),count=(x.endRow-x.startRow+1)*(x.endCol-x.startCol+1);
   selectionInfo.textContent=count===1?"Ô "+selected+" đang được chọn":"Vùng "+x.start+":"+x.end+" · "+count.toLocaleString("vi-VN")+" ô";
-  for(const el of [grid,...(splitMode!=="none"?[splitGrid]:[])].flatMap(g=>[...g.querySelectorAll(".cell")])){
+  for(const el of [grid,...(splitMode==="quadrant"?[quadrantPanes.topRight.grid,quadrantPanes.bottomLeft.grid,splitGrid]:splitMode!=="none"?[splitGrid]:[])].flatMap(g=>[...g.querySelectorAll(".cell")])){
     const p=parseAddress(el.dataset.cell);if(!p)continue;
     const inside=p.r>=x.startRow&&p.r<=x.endRow&&p.c>=x.startCol&&p.c<=x.endCol;
     el.classList.toggle("selected",el.dataset.cell===selected);
@@ -108,6 +111,7 @@ function choose(a,extend=false,scrollElement=sheetScroll){
   updateSelection();formulaInput.focus();formulaInput.select();
 }
 function handlePaneScroll(source,peer){
+  if(splitMode==="quadrant"){handleQuadrantScroll(source);return;}
   if(splitMode!=="none"&&!syncingSplitScroll){
     syncingSplitScroll=true;
     const axis=synchronizedAxis(splitMode);
@@ -126,15 +130,25 @@ function handlePaneScroll(source,peer){
   if(grew){const meta=document.querySelector(".sheet-meta");if(meta)meta.textContent="Tự động lưu cục bộ · Lưới đang mở rộng "+COLS.toLocaleString("vi-VN")+" cột × "+ROWS.toLocaleString("vi-VN")+" hàng";}
   render();
 }
+function readQuadrantPositions(){const out={};for(const [key,pane] of Object.entries(quadrantPanes))out[key]={top:pane.scroll.scrollTop,left:pane.scroll.scrollLeft};return out;}
+function handleQuadrantScroll(source){
+ if(syncingSplitScroll)return;
+ const key=Object.keys(quadrantPanes).find(k=>quadrantPanes[k].scroll===source);if(!key)return;
+ syncingSplitScroll=true;const next=synchronizeQuadrantPositions(key,readQuadrantPositions());
+ for(const target of quadrantScrollTargets(key)){const pane=quadrantPanes[target];pane.scroll.scrollTop=next[target].top;pane.scroll.scrollLeft=next[target].left;}
+ quadrantPositions=readQuadrantPositions();syncingSplitScroll=false;scheduleSplitSave();render();
+}
+for(const key of ["topRight","bottomLeft"]){const pane=quadrantPanes[key];pane.scroll.addEventListener("scroll",()=>{if(splitMode==="quadrant")handleQuadrantScroll(pane.scroll);},{passive:true});}
 sheetScroll.addEventListener("scroll",()=>handlePaneScroll(sheetScroll,splitScroll),{passive:true});
 splitScroll.addEventListener("scroll",()=>{if(splitMode!=="none")handlePaneScroll(splitScroll,sheetScroll);},{passive:true});
 function readSplitPositions(){
-  return {primary:{top:sheetScroll.scrollTop,left:sheetScroll.scrollLeft},secondary:{top:splitScroll.scrollTop,left:splitScroll.scrollLeft}};
+  return {primary:{top:sheetScroll.scrollTop,left:sheetScroll.scrollLeft},secondary:{top:splitScroll.scrollTop,left:splitScroll.scrollLeft},quadrants:readQuadrantPositions()};
 }
 function restoreSplitPositions(){
   requestAnimationFrame(()=>{
     sheetScroll.scrollTop=splitPositions.primary.top;sheetScroll.scrollLeft=splitPositions.primary.left;
     splitScroll.scrollTop=splitPositions.secondary.top;splitScroll.scrollLeft=splitPositions.secondary.left;
+    if(splitMode==="quadrant"){quadrantPositions=normalizeQuadrantPositions(splitPositions.quadrants);for(const [key,pane] of Object.entries(quadrantPanes)){pane.scroll.scrollTop=quadrantPositions[key].top;pane.scroll.scrollLeft=quadrantPositions[key].left;}}
     render();
   });
 }
@@ -150,9 +164,11 @@ function setSplitRatio(value,persist=true){
 function applySplitMode(persist=true){
   const panes=document.querySelector("#sheetPanes");
   panes.dataset.mode=splitMode;
-  splitScroll.hidden=splitMode==="none";
+  splitScroll.hidden=splitMode==="none"||splitMode==="quadrant";
+  document.querySelector("#topRightScroll").hidden=splitMode!=="quadrant";document.querySelector("#bottomLeftScroll").hidden=splitMode!=="quadrant";
+  panes.classList.toggle("quadrant-mode",splitMode==="quadrant");
   const separator=panes.querySelector("#splitSeparator");
-  separator.hidden=splitMode==="none";
+  separator.hidden=splitMode==="none"||splitMode==="quadrant";
   panes.style.setProperty("--split-ratio",String(splitRatio));
   separator.setAttribute("aria-orientation",splitMode==="horizontal"?"horizontal":"vertical");
   separator.setAttribute("aria-label",splitMode==="horizontal"?"Thanh chia ngang":"Thanh chia dọc");
@@ -186,9 +202,9 @@ splitSeparator.addEventListener("keydown",event=>{
 });
 document.querySelector("#applySplit").addEventListener("click",()=>{
   const next=document.querySelector("#splitMode").value;
-  if(!["none","horizontal","vertical"].includes(next))return;
+  if(!["none","horizontal","vertical","quadrant"].includes(next))return;
   splitMode=next;applySplitMode();
-  calcStatus.textContent=splitMode==="none"?"Đã tắt chia vùng.":splitMode==="horizontal"?"Đã chia ngang: cuộn dọc độc lập, cuộn ngang đồng bộ.":"Đã chia dọc: cuộn ngang độc lập, cuộn dọc đồng bộ.";
+  calcStatus.textContent=splitMode==="none"?"Đã tắt chia vùng.":splitMode==="quadrant"?"Đã chia bốn góc phần tư; các trục cuộn liên kết được đồng bộ.":splitMode==="horizontal"?"Đã chia ngang: cuộn dọc độc lập, cuộn ngang đồng bộ.":"Đã chia dọc: cuộn ngang độc lập, cuộn dọc đồng bộ.";
 });
 document.querySelector("#clearSplit").addEventListener("click",()=>{splitMode="none";document.querySelector("#splitMode").value="none";applySplitMode();calcStatus.textContent="Đã tắt chia vùng.";});
 splitGrid.addEventListener("pointerdown",e=>{const b=e.target.closest("[data-cell]");if(!b)return;pointerSelecting=true;choose(b.dataset.cell,e.shiftKey,splitScroll);});
@@ -196,6 +212,7 @@ splitGrid.addEventListener("pointerover",e=>{if(!pointerSelecting)return;const b
 splitGrid.addEventListener("click",e=>{const b=e.target.closest("[data-cell]");if(b&&!pointerSelecting&&selected!==b.dataset.cell)choose(b.dataset.cell,false,splitScroll);});
 splitGrid.addEventListener("keydown",e=>{const b=e.target.closest("[data-cell]");if(!b)return;const p=parseAddress(b.dataset.cell);if(e.key==="Enter"||e.key==="ArrowDown"){e.preventDefault();choose(address(Math.min(ROWS,p.r+1),p.c),e.shiftKey,splitScroll);}else if(e.key==="Tab"||e.key==="ArrowRight"){e.preventDefault();choose(address(p.r,Math.min(COLS,p.c+1)),e.shiftKey,splitScroll);}else if(e.key==="ArrowUp"){e.preventDefault();choose(address(Math.max(1,p.r-1),p.c),e.shiftKey,splitScroll);}else if(e.key==="ArrowLeft"){e.preventDefault();choose(address(p.r,Math.max(1,p.c-1)),e.shiftKey,splitScroll);}});
 splitGrid.addEventListener("paste",e=>{const text=e.clipboardData?.getData("text/plain");if(text){e.preventDefault();pasteRange(text);}});
+for(const key of ["topRight","bottomLeft"]){const pane=quadrantPanes[key];pane.grid.addEventListener("pointerdown",e=>{const b=e.target.closest("[data-cell]");if(!b)return;pointerSelecting=true;choose(b.dataset.cell,e.shiftKey,pane.scroll);});pane.grid.addEventListener("click",e=>{const b=e.target.closest("[data-cell]");if(b&&!pointerSelecting&&selected!==b.dataset.cell)choose(b.dataset.cell,false,pane.scroll);});pane.grid.addEventListener("paste",e=>{const value=e.clipboardData?.getData("text/plain");if(value){e.preventDefault();pasteRange(value);}});}
 window.addEventListener("pointerup",()=>{pointerSelecting=false;});
 
 function setValue(a,v){snapshot();if(v===""){delete cells[a];if(!macroExecution)try{macroRecorder.recordClear(a);}catch(e){calcStatus.textContent=e.message;}}else{cells[a]=v;if(!macroExecution)try{macroRecorder.recordSet(a,v);}catch(e){calcStatus.textContent=e.message;}}render();save();calcStatus.textContent="Đã tính lại các ô phụ thuộc";}
@@ -210,7 +227,7 @@ document.querySelector("#applyFormula").addEventListener("click",apply);
 grid.addEventListener("keydown",e=>{const b=e.target.closest("[data-cell]");if(!b)return;const p=parseAddress(b.dataset.cell);let r=p.r,c=p.c;if(e.key==="Enter"||e.key==="ArrowDown"){e.preventDefault();choose(address(Math.min(ROWS,r+1),c),e.shiftKey);}else if(e.key==="Tab"||e.key==="ArrowRight"){e.preventDefault();choose(address(r,Math.min(COLS,c+1)),e.shiftKey);}else if(e.key==="ArrowUp"){e.preventDefault();choose(address(Math.max(1,r-1),c),e.shiftKey);}else if(e.key==="ArrowLeft"){e.preventDefault();choose(address(r,Math.max(1,c-1)),e.shiftKey);}else if(e.key==="F2"){e.preventDefault();formulaInput.focus();}else if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==="c"){e.preventDefault();copySelection(false);}else if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==="x"){e.preventDefault();copySelection(true);}else if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==="v"){e.preventDefault();if(internalClipboard)pasteRange(internalClipboard.text,internalClipboard.payload);}});
 grid.addEventListener("paste",handlePaste);formulaInput.addEventListener("paste",handlePaste);
 document.querySelector("#sheetName").addEventListener("change",e=>{sheetTitle=e.target.value.trim()||"Bảng tính chưa đặt tên";save();});
-document.querySelector("#newSheet").addEventListener("click",()=>{if(!confirm("Tạo bảng tính mới? Dữ liệu hiện tại sẽ được thay thế trên thiết bị này."))return;snapshot();cells=Object.create(null);cellFormats=Object.create(null);sheetTitle="Bảng tính mới";frozenRows=0;frozenColumns=0;splitMode="none";document.querySelector("#splitMode").value="none";applySplitMode(false);document.querySelector("#freezeRowsInput").value=0;document.querySelector("#freezeColumnsInput").value=0;document.querySelector("#sheetName").value=sheetTitle;selected="A1";sheetScroll.scrollTop=0;sheetScroll.scrollLeft=0;render();save();});
+document.querySelector("#newSheet").addEventListener("click",()=>{if(!confirm("Tạo bảng tính mới? Dữ liệu hiện tại sẽ được thay thế trên thiết bị này."))return;snapshot();cells=Object.create(null);cellFormats=Object.create(null);sheetTitle="Bảng tính mới";frozenRows=0;frozenColumns=0;quadrantPositions=normalizeQuadrantPositions();splitMode="none";document.querySelector("#splitMode").value="none";applySplitMode(false);document.querySelector("#freezeRowsInput").value=0;document.querySelector("#freezeColumnsInput").value=0;document.querySelector("#sheetName").value=sheetTitle;selected="A1";sheetScroll.scrollTop=0;sheetScroll.scrollLeft=0;render();save();});
 
 function applyFreezeSettings(){
   const rows=Number(document.querySelector("#freezeRowsInput").value||0),columns=Number(document.querySelector("#freezeColumnsInput").value||0);

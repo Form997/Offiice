@@ -108,3 +108,16 @@
 .sheet-panes .sheet-scroll{width:100%;max-width:none}
 .split-scroll[hidden]{display:none!important}
 @media(max-width:680px){.split-controls{min-width:285px}.sheet-panes[data-mode="horizontal"],.sheet-panes[data-mode="vertical"]{height:calc(100dvh - 270px);min-height:360px}.sheet-panes[data-mode="vertical"]{grid-template-columns:minmax(100px,calc((100% - 6px)*var(--split-ratio,.5))) 6px minmax(100px,1fr)}}
+
+/* SGHT 18.7 — four synchronized worksheet quadrants. */
+.sheet-panes.quadrant-mode{position:relative;display:grid;grid-template-columns:minmax(0,calc(var(--split-ratio,.5)*100%)) 7px minmax(0,1fr);grid-template-rows:minmax(0,calc(var(--split-ratio,.5)*100%)) 7px minmax(0,1fr);height:min(720px,calc(100dvh - 300px));min-height:380px;gap:0}
+.sheet-panes.quadrant-mode #sheetScroll{grid-column:1;grid-row:1}
+.sheet-panes.quadrant-mode #topRightScroll{display:block!important;grid-column:3;grid-row:1}
+.sheet-panes.quadrant-mode #bottomLeftScroll{display:block!important;grid-column:1;grid-row:3}
+.sheet-panes.quadrant-mode #splitScroll{display:block!important;grid-column:3;grid-row:3}
+.sheet-panes.quadrant-mode .sheet-scroll{width:100%;height:100%;min-width:0;min-height:0;max-height:none;overflow:auto}
+.sheet-panes.quadrant-mode .split-separator{display:none}
+.sheet-panes.quadrant-mode::before,.sheet-panes.quadrant-mode::after{content:"";position:absolute;z-index:15;pointer-events:none;background:#b8c9bd}
+.sheet-panes.quadrant-mode::before{left:calc(var(--split-ratio,.5)*100% - 3.5px);top:0;bottom:0;width:7px}
+.sheet-panes.quadrant-mode::after{top:calc(var(--split-ratio,.5)*100% - 3.5px);left:0;right:0;height:7px}
+@media(max-width:680px){.sheet-panes.quadrant-mode{height:calc(100dvh - 270px);min-height:360px;grid-template-columns:minmax(0,calc(var(--split-ratio,.5)*100%)) 6px minmax(0,1fr);grid-template-rows:minmax(0,calc(var(--split-ratio,.5)*100%)) 6px minmax(0,1fr)}}

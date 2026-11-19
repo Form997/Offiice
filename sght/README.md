@@ -471,3 +471,13 @@ Bổ sung mô hình đáp ứng tăng dần, lợi ích biên giảm dần:
 - Tự lưu vị trí cuộn có trì hoãn 300 ms để tránh ghi localStorage liên tục trong lúc cuộn.
 - Giới hạn: vẫn là hai khung ngang hoặc dọc; chưa hỗ trợ bốn phần tư đồng thời. Tỷ lệ chia giới hạn 20–80%.
 - Kiểm thử tự động bao gồm chuẩn hóa cấu hình cũ/mới, giới hạn tỷ lệ, vị trí cuộn, đồng bộ trục và tính tỷ lệ từ con trỏ. Cần xác nhận thao tác thực tế trên trình duyệt/điện thoại trước khi kết luận UX hoàn tất.
+
+
+## SGHT Four-Quadrant Split — Giai đoạn 18.7 · Chia bốn góc phần tư — 2026-11-19
+
+- Bổ sung chế độ **Bốn góc phần tư**: trên-trái, trên-phải, dưới-trái và dưới-phải cùng hiển thị một trang tính, dùng chung dữ liệu ô, công thức, định dạng và vùng chọn; không nhân bản workbook.
+- Bốn viewport có vị trí cuộn độc lập theo trục, với liên kết: trên-trái đồng bộ hàng với trên-phải và đồng bộ cột với dưới-trái; trên-phải đồng bộ cột với dưới-phải; dưới-trái đồng bộ hàng với dưới-phải.
+- Trạng thái cuộn bốn khung được lưu trong workbook và khôi phục khi mở lại; cấu hình hai khung cũ vẫn được chuẩn hóa để tương thích.
+- Chế độ hai khung ngang/dọc 18.5–18.6 vẫn được giữ.
+- Giới hạn: một tỷ lệ chia chung áp dụng cho cả hai trục; thanh giao hiện là chỉ báo bố cục, chưa kéo chỉnh độc lập theo từng trục. Chưa xác minh tương tác thực tế trên trình duyệt/điện thoại. Ghim hàng/cột vẫn là cơ chế riêng.
+- Kiểm thử engine bao gồm chuẩn hóa bốn vị trí, đồ thị đồng bộ và các trục độc lập; kiểm thử tự động không thay thế kiểm thử UX trên thiết bị thật.
