@@ -173,3 +173,11 @@
 .data-tools-panel[hidden]{display:none!important}
 
 .data-tools-grid select[multiple]{min-width:160px;min-height:92px;padding:5px}.data-subtotal-output{width:100%;overflow:auto}.data-subtotal-output table{border-collapse:collapse;font-size:11px;width:100%}.data-subtotal-output th,.data-subtotal-output td{border:1px solid var(--line);padding:5px;text-align:left}.data-subtotal-output th{background:#eef4ef}
+
+
+/* SGHT 18.13 · nested summaries and pivot */
+#pivotOutput table,#dataSubtotalOutput table{width:100%;border-collapse:collapse;font-size:11px}
+#pivotOutput th,#pivotOutput td,#dataSubtotalOutput th,#dataSubtotalOutput td{border:1px solid var(--line);padding:6px 8px;text-align:right;white-space:nowrap}
+#pivotOutput th:first-child,#pivotOutput td:first-child,#dataSubtotalOutput th:nth-child(2),#dataSubtotalOutput td:nth-child(2){text-align:left}
+#pivotOutput{max-width:100%;overflow:auto}
+@media(max-width:680px){#pivotOutput th,#pivotOutput td,#dataSubtotalOutput th,#dataSubtotalOutput td{padding:5px;font-size:10px}}

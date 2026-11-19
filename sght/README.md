@@ -562,3 +562,13 @@ Bổ sung mô hình đáp ứng tăng dần, lợi ích biên giảm dần:
 - Giới hạn tự mở rộng: chỉ nhận dữ liệu ghi liền kề ở hàng ngay sau bảng và trong các cột của bảng; thao tác chèn hàng/cột chưa tự tái cấu trúc metadata.
 - Bộ lọc và báo cáo nhóm là chế độ hiển thị; báo cáo tổng hợp chưa được ghi thành vùng ô để tránh ghi đè dữ liệu nguồn.
 - Chưa kiểm thử tương tác thủ công trên trình duyệt/điện thoại.
+
+
+## SGHT Data Tools — Giai đoạn 18.13 — 2026-11-19
+
+- **Tổng phụ nhiều cấp:** nhóm lồng nhau tối đa 5 cấp; sắp xếp nhóm ổn định; tính Tổng, Trung bình, Đếm số, Nhỏ nhất, Lớn nhất. Báo cáo có đường dẫn nhóm, không ghi vào vùng nguồn.
+- **Pivot Table:** chọn 1–2 trường hàng trong giao diện (bộ máy hỗ trợ 1–4), một trường cột tùy chọn, trường giá trị và phép tổng hợp; dựng ma trận chéo, tổng hàng và tổng cộng. Kết quả là bản xem trước, không sửa dữ liệu gốc.
+- **Bộ lọc mở rộng:** lớn hơn/nhỏ hơn hoặc bằng, khoảng số bao gồm hai đầu, bắt đầu/kết thúc bằng, không chứa; lọc ngày trước/sau/trong khoảng. Ngày nhận ISO `YYYY-MM-DD` và Việt Nam `DD/MM/YYYY`, từ chối ngày không hợp lệ.
+- Các bộ lọc tiếp tục kết hợp với AND/OR, danh sách giá trị và màu nền. Lọc không xóa dữ liệu nguồn.
+- Bổ sung kiểm thử cho phân cấp nhóm, Pivot Table, khoảng số, điều kiện chuỗi và ngày.
+- Giới hạn: Pivot hiện là bản xem trước, chưa có kéo-thả trường, Pivot Chart liên kết tự cập nhật hoặc tổng hợp theo nhiều phép tính cùng lúc; tổng phụ nhiều cấp tối đa 5 cấp.

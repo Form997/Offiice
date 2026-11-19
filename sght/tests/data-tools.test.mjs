@@ -77,3 +77,23 @@ test("structured formulas expand references but leave quoted text intact",()=>{
  assert.equal(evaluateFormula(expanded,{getRange:()=>[2,3]}),5);
  assert.equal(expandStructuredReferences('="Bang[Yield]"',[table]),'="Bang[Yield]"');
 });
+
+
+import {summarizeByGroups,buildPivotTable,filterRangeRows} from "../engine/data-tools.js";
+test("nested subtotals aggregate each hierarchy level deterministically",()=>{
+ const cells={A1:"Vùng",B1:"Cây",C1:"Kg",A2:"Bắc",B2:"Cải",C2:"2",A3:"Bắc",B3:"Cải",C3:"3",A4:"Bắc",B4:"Rau",C4:"4",A5:"Nam",B5:"Cải",C5:"6"};
+ const rows=summarizeByGroups(cells,{startRow:1,endRow:5,startCol:1,endCol:3},{groupColumns:[1,2],valueColumn:3,operation:"sum"});
+ assert.deepEqual(rows.map(r=>[r.path,r.depth,r.value]),[[["Bắc"],0,9],[["Bắc","Cải"],1,5],[["Bắc","Rau"],1,4],[["Nam"],0,6],[["Nam","Cải"],1,6]]);
+});
+test("pivot table creates cross-tab values and grand total",()=>{
+ const cells={A1:"Vùng",B1:"Cây",C1:"Kg",A2:"Bắc",B2:"Cải",C2:"2",A3:"Bắc",B3:"Rau",C3:"4",A4:"Nam",B4:"Cải",C4:"6"};
+ const p=buildPivotTable(cells,{startRow:1,endRow:4,startCol:1,endCol:3},{rowColumns:[1],columnField:2,valueColumn:3,operation:"sum"});
+ assert.deepEqual(p.columns,["Cải","Rau"]);assert.deepEqual(p.rows.map(r=>[r.labels[0],r.values["Cải"],r.values["Rau"],r.total]),[["Bắc",2,4,6],["Nam",6,0,6]]);assert.equal(p.grandTotal,12);
+});
+test("filter supports inclusive numeric ranges, text prefix and strict ISO/Vietnamese dates",()=>{
+ const cells={A1:"Kg",A2:"3",A3:"7",A4:"10",B2:"Cải xoăn",B3:"Rau muống",B4:"Cải xanh",C2:"2026-11-01",C3:"02/11/2026",C4:"31/02/2026"};
+ const b={startRow:1,endRow:4,startCol:1,endCol:3};
+ assert.deepEqual(filterRangeRows(cells,{},b,{rules:[{column:1,operator:"between",min:"5",max:"9"}]}).hiddenRows,[2,4]);
+ assert.deepEqual(filterRangeRows(cells,{},b,{rules:[{column:2,operator:"startsWith",value:"cải"}]}).hiddenRows,[3]);
+ assert.deepEqual(filterRangeRows(cells,{},b,{rules:[{column:3,operator:"dateBetween",min:"2026-11-01",max:"03/11/2026"}]}).hiddenRows,[4]);
+});

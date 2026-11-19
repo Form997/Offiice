@@ -4,7 +4,7 @@ import { captureRange, pasteCapturedRange } from "./engine/range-clipboard.js";
 import { fillRange } from "./engine/fill-series.js";
 import { serializeWorkbook, restoreWorkbook, pushHistoryEntry, moveHistory } from "./engine/history.js";
 import { searchCells, replaceCells } from "./engine/search.js";
-import { sortRangeRows, filterRangeRows, removeDuplicateRows, defineStructuredRange, uniqueColumnValues, summarizeByGroup, expandStructuredRange, structuredColumnRange, expandStructuredReferences } from "./engine/data-tools.js";
+import { sortRangeRows, filterRangeRows, removeDuplicateRows, defineStructuredRange, uniqueColumnValues, summarizeByGroup, summarizeByGroups, buildPivotTable, expandStructuredRange, structuredColumnRange, expandStructuredReferences } from "./engine/data-tools.js";
 import { getVirtualWindow } from "./engine/sparse-grid.js";
 import { expandGridCapacity } from "./engine/grid-capacity.js";
 import { buildFreezeLayout, normalizeFreezeSettings } from "./engine/freeze-panes.js";
@@ -419,7 +419,7 @@ function currentDataRules(){
  if(dataFilterOp1.value!=="all"){if(!dataFilterValue1.value&&dataFilterOp1.value!=="empty"&&dataFilterOp1.value!=="notEmpty")throw new Error("Nhập giá trị cho điều kiện lọc thứ nhất.");rules.push({column,operator:dataFilterOp1.value,value:dataFilterValue1.value});}
  if(dataFilterOp2.value!=="all"){if(!dataFilterValue2.value&&dataFilterOp2.value!=="empty"&&dataFilterOp2.value!=="notEmpty")throw new Error("Nhập giá trị cho điều kiện lọc thứ hai.");rules.push({column:column2,operator:dataFilterOp2.value,value:dataFilterValue2.value});}
  const selectedValues=[...dataFilterValues.selectedOptions].map(o=>o.value);
- return {bounds,rules,join:dataFilterJoin.value,color:dataFilterColorEnabled.checked?dataFilterColor.value:null,allowedValues:dataFilterValues.options.length?{[column]:selectedValues}:{}};
+ for(const rule of rules){if(["between","dateBetween"].includes(rule.operator)){rule.min=rule.value;rule.max=document.querySelector(rule.column===column?"#dataFilterMax1":"#dataFilterMax2").value;if(!rule.max)throw new Error("Điền cận trên cho điều kiện khoảng.");}}return {bounds,rules,join:dataFilterJoin.value,color:dataFilterColorEnabled.checked?dataFilterColor.value:null,allowedValues:dataFilterValues.options.length?{[column]:selectedValues}:{}};
 }
 document.querySelector("#dataSortApply").addEventListener("click",()=>{
  try{
@@ -444,9 +444,11 @@ function refreshFilterValues(){
 }
 document.querySelector("#dataFilterValuesRefresh").addEventListener("click",refreshFilterValues);
 document.querySelector("#dataSubtotalApply").addEventListener("click",()=>{
- try{const bounds=selectedBounds(),groupColumn=parseAddress(String(document.querySelector("#dataSubtotalGroup").value).toUpperCase()+"1")?.c,valueColumn=parseAddress(String(document.querySelector("#dataSubtotalValue").value).toUpperCase()+"1")?.c,operation=document.querySelector("#dataSubtotalOperation").value;const rows=summarizeByGroup(cells,bounds,{groupColumn,valueColumn,operation});if(!rows.length)throw new Error("Không có nhóm dữ liệu để tổng hợp.");const output=document.querySelector("#dataSubtotalOutput");output.innerHTML="<table><thead><tr><th>Nhóm</th><th>Số mẫu</th><th>"+escapeHtml(operation)+"</th></tr></thead><tbody>"+rows.map(r=>"<tr><td>"+escapeHtml(r.group||"(Trống)")+"</td><td>"+r.count+"</td><td>"+r.value+"</td></tr>").join("")+"</tbody></table>";dataStatus.textContent="Đã tổng hợp "+rows.length+" nhóm. Bảng kết quả chỉ là báo cáo xem trước, không ghi đè dữ liệu gốc.";}catch(e){dataStatus.textContent=e.message;}
+ try{const bounds=selectedBounds(),g1=parseAddress(String(document.querySelector("#dataSubtotalGroup").value).toUpperCase()+"1")?.c,g2=parseAddress(String(document.querySelector("#dataSubtotalGroup2").value).toUpperCase()+"1")?.c,v=parseAddress(String(document.querySelector("#dataSubtotalValue").value).toUpperCase()+"1")?.c,op=document.querySelector("#dataSubtotalOperation").value,groups=[g1,...(document.querySelector("#dataSubtotalGroup2").value.trim()?[g2]:[])],rows=summarizeByGroups(cells,bounds,{groupColumns:groups,valueColumn:v,operation:op});if(!rows.length)throw new Error("Không có nhóm dữ liệu để tổng hợp.");document.querySelector("#dataSubtotalOutput").innerHTML="<table><thead><tr><th>Cấp</th><th>Đường dẫn nhóm</th><th>Số mẫu</th><th>"+escapeHtml(op)+"</th></tr></thead><tbody>"+rows.map(r=>"<tr><td>"+(r.depth+1)+"</td><td>"+escapeHtml(r.path.join(" › ")||"(Trống)")+"</td><td>"+r.count+"</td><td>"+r.value+"</td></tr>").join("")+"</tbody></table>";dataStatus.textContent="Đã tổng hợp "+rows.length+" nút nhóm lồng nhau. Báo cáo xem trước, không ghi đè dữ liệu.";}catch(e){dataStatus.textContent=e.message;}
 });
-
+document.querySelector("#pivotBuild").addEventListener("click",()=>{
+ try{const bounds=selectedBounds(),col=id=>{const s=document.querySelector(id).value.trim();return s?parseAddress(s.toUpperCase()+"1")?.c:null;},r1=col("#pivotRow1"),r2=col("#pivotRow2"),cf=col("#pivotColumn"),v=col("#pivotValue");if(!r1||!v)throw new Error("Cần trường hàng 1 và trường giá trị.");const p=buildPivotTable(cells,bounds,{rowColumns:[r1,...(r2?[r2]:[])],columnField:cf,valueColumn:v,operation:document.querySelector("#pivotOperation").value}),head=["Nhóm",...p.columns,"Tổng hàng"],body=p.rows.map(r=>[...r.labels,...p.columns.map(c=>r.values[c]??0),r.total]);document.querySelector("#pivotOutput").innerHTML="<table><thead><tr>"+head.map(x=>"<th>"+escapeHtml(x)+"</th>").join("")+"</tr></thead><tbody>"+body.map(row=>"<tr>"+row.map(x=>"<td>"+escapeHtml(x)+"</td>").join("")+"</tr>").join("")+"<tr><th colspan='"+(head.length-1)+"'>Tổng cộng</th><th>"+p.grandTotal+"</th></tr></tbody></table>";dataStatus.textContent="Pivot Table: "+p.rows.length+" nhóm hàng × "+p.columns.length+" nhóm cột. Dữ liệu nguồn không đổi.";}catch(e){dataStatus.textContent="Không tạo được Pivot Table: "+e.message;}
+});
 document.querySelector("#dataRemoveDuplicates").addEventListener("click",()=>{
  try{
   const bounds=selectedBounds(),result=removeDuplicateRows(cells,cellFormats,bounds);

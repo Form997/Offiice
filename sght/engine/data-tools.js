@@ -16,9 +16,9 @@ export function sortRangeRows(cells,formats,bounds,options={}){
  const next={...cells},nextFormats={...formats};for(let i=0;i<rows.length;i++)for(let col=b.startCol;col<=b.endCol;col++){const key=cellKey(b.startRow+1+i,col),idx=col-b.startCol,v=rows[i].values[idx],f=rows[i].styles[idx];if(v===undefined)delete next[key];else next[key]=v;if(f===undefined)delete nextFormats[key];else nextFormats[key]=f;}
  return{cells:next,formats:nextFormats,changed:rows.some((r,i)=>r.row!==b.startRow+1+i),rowCount:rows.length};
 }
-function matchesRule(value,rule){
+function parseFilterDate(value){const s=String(value??"").trim();let m;if((m=/^(\d{4})-(\d{2})-(\d{2})$/.exec(s))){const y=Number(m[1]),mo=Number(m[2]),d=Number(m[3]),t=Date.UTC(y,mo-1,d),x=new Date(t);return x.getUTCFullYear()===y&&x.getUTCMonth()===mo-1&&x.getUTCDate()===d?t:null;}if((m=/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/.exec(s))){const d=Number(m[1]),mo=Number(m[2]),y=Number(m[3]),t=Date.UTC(y,mo-1,d),x=new Date(t);return x.getUTCFullYear()===y&&x.getUTCMonth()===mo-1&&x.getUTCDate()===d?t:null;}return null;}\nfunction matchesRule(value,rule){
  const text=String(value??""),target=String(rule.value??"");
- switch(rule.operator){case"equals":return text.toLocaleLowerCase()===target.toLocaleLowerCase();case"notEquals":return text.toLocaleLowerCase()!==target.toLocaleLowerCase();case"contains":return text.toLocaleLowerCase().includes(target.toLocaleLowerCase());case"greater":return text!==""&&Number.isFinite(Number(text))&&Number(text)>Number(target);case"less":return text!==""&&Number.isFinite(Number(text))&&Number(text)<Number(target);case"empty":return text==="";case"notEmpty":return text!=="";default:return true;}
+ switch(rule.operator){case"equals":return text.toLocaleLowerCase()===target.toLocaleLowerCase();case"notEquals":return text.toLocaleLowerCase()!==target.toLocaleLowerCase();case"contains":return text.toLocaleLowerCase().includes(target.toLocaleLowerCase());case"greater":return text!==""&&Number.isFinite(Number(text))&&Number(text)>Number(target);case"less":return text!==""&&Number.isFinite(Number(text))&&Number(text)<Number(target);case"greaterOrEqual":return text!==""&&Number.isFinite(Number(text))&&Number(text)>=Number(target);case"lessOrEqual":return text!==""&&Number.isFinite(Number(text))&&Number(text)<=Number(target);case"between":{const n=Number(text),lo=Number(rule.min),hi=Number(rule.max);return text!==""&&Number.isFinite(n)&&Number.isFinite(lo)&&Number.isFinite(hi)&&n>=Math.min(lo,hi)&&n<=Math.max(lo,hi);}case"startsWith":return text.toLocaleLowerCase().startsWith(target.toLocaleLowerCase());case"endsWith":return text.toLocaleLowerCase().endsWith(target.toLocaleLowerCase());case"notContains":return !text.toLocaleLowerCase().includes(target.toLocaleLowerCase());case"dateBefore":{const d=parseFilterDate(text),t=parseFilterDate(target);return d!==null&&t!==null&&d<t;}case"dateAfter":{const d=parseFilterDate(text),t=parseFilterDate(target);return d!==null&&t!==null&&d>t;}case"dateBetween":{const d=parseFilterDate(text),lo=parseFilterDate(rule.min),hi=parseFilterDate(rule.max);return d!==null&&lo!==null&&hi!==null&&d>=Math.min(lo,hi)&&d<=Math.max(lo,hi);}case"empty":return text==="";case"notEmpty":return text!=="";default:return true;}
 }
 export function filterRangeRows(cells,formats,bounds,options={}){
  const b=boundsOf(bounds),rules=options.rules||[],join=options.join==="or"?"or":"and",color=options.fillColor?.toLowerCase()||null;
@@ -87,4 +87,31 @@ export function expandStructuredReferences(formula,tables){
   out+=ch;i++;
  }
  return out;
+}
+
+
+export function summarizeByGroups(cells,bounds,{groupColumns=[],valueColumn,operation="sum"}={}){
+ const b=boundsOf(bounds);
+ if(!Array.isArray(groupColumns)||!groupColumns.length||groupColumns.length>5)throw new RangeError("Chọn từ 1 đến 5 cấp nhóm.");
+ for(const c of [...groupColumns,valueColumn])if(!Number.isInteger(c)||c<b.startCol||c>b.endCol)throw new RangeError("Cột nhóm hoặc cột số liệu nằm ngoài vùng.");
+ if(!["sum","average","count","min","max"].includes(operation))throw new RangeError("Phép tổng hợp không hợp lệ.");
+ const numeric=row=>{const raw=valueFor(cells,row,valueColumn);return raw.trim()!==""&&Number.isFinite(Number(raw))?Number(raw):null;};
+ const aggregate=rows=>{const vals=rows.map(numeric).filter(v=>v!==null);return{count:vals.length,value:!vals.length?0:operation==="sum"?vals.reduce((a,v)=>a+v,0):operation==="average"?vals.reduce((a,v)=>a+v,0)/vals.length:operation==="count"?vals.length:operation==="min"?Math.min(...vals):Math.max(...vals)};};
+ const output=[];
+ const walk=(rows,level,path)=>{const groups=new Map();for(const row of rows){const key=valueFor(cells,row,groupColumns[level]);if(!groups.has(key))groups.set(key,[]);groups.get(key).push(row);}for(const [key,childRows] of [...groups].sort((a,b)=>compareValues(a[0],b[0],"auto"))){const nextPath=[...path,key],summary=aggregate(childRows);output.push({path:nextPath,group:key,depth:level,count:summary.count,value:summary.value,isSubtotal:true});if(level+1<groupColumns.length)walk(childRows,level+1,nextPath);}};
+ walk(Array.from({length:b.endRow-b.startRow},(_,i)=>b.startRow+1+i),0,[]);
+ return output;
+}
+export function buildPivotTable(cells,bounds,{rowColumns=[],columnField=null,valueColumn,operation="sum"}={}){
+ const b=boundsOf(bounds);
+ if(!Array.isArray(rowColumns)||rowColumns.length<1||rowColumns.length>4)throw new RangeError("Pivot cần từ 1 đến 4 trường hàng.");
+ for(const c of [...rowColumns,...(columnField?[columnField]:[]),valueColumn])if(!Number.isInteger(c)||c<b.startCol||c>b.endCol)throw new RangeError("Trường Pivot nằm ngoài vùng dữ liệu.");
+ if(new Set([...rowColumns,...(columnField?[columnField]:[])]).size!==rowColumns.length+(columnField?1:0))throw new Error("Không dùng trùng một cột cho nhiều trường Pivot.");
+ if(!["sum","average","count","min","max"].includes(operation))throw new RangeError("Phép tổng hợp Pivot không hợp lệ.");
+ const rowMap=new Map(),colSet=new Set(),all=[];
+ for(let row=b.startRow+1;row<=b.endRow;row++){const rowKey=JSON.stringify(rowColumns.map(c=>valueFor(cells,row,c))),colKey=columnField?valueFor(cells,row,columnField):"Tổng",raw=valueFor(cells,row,valueColumn),value=raw.trim()!==""&&Number.isFinite(Number(raw))?Number(raw):null;if(!rowMap.has(rowKey))rowMap.set(rowKey,{labels:rowColumns.map(c=>valueFor(cells,row,c)),values:new Map()});const item=rowMap.get(rowKey);if(!item.values.has(colKey))item.values.set(colKey,[]);if(value!==null)item.values.get(colKey).push(value);colSet.add(colKey);all.push(value);}
+ const columns=[...colSet].sort((a,b)=>compareValues(a,b,"auto"));
+ const calc=values=>{const v=values||[];return !v.length?0:operation==="sum"?v.reduce((a,x)=>a+x,0):operation==="average"?v.reduce((a,x)=>a+x,0)/v.length:operation==="count"?v.length:operation==="min"?Math.min(...v):Math.max(...v);};
+ const rows=[...rowMap.values()].sort((a,b)=>{for(let i=0;i<a.labels.length;i++){const d=compareValues(a.labels[i],b.labels[i],"auto");if(d)return d;}return 0;}).map(item=>({labels:item.labels,values:Object.fromEntries(columns.map(col=>[col,calc(item.values.get(col))])),total:calc([...item.values.values()].flat())}));
+ return{rowColumns:rowColumns.slice(),columnField,columns,rows,grandTotal:calc(all),operation,rowCount:rows.length};
 }
