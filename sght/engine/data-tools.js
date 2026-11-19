@@ -12,9 +12,9 @@ export function sortRangeRows(cells,formats,bounds,options={}){
  if(!Number.isInteger(keyColumn)||keyColumn<b.startCol||keyColumn>b.endCol)throw new RangeError("Cột khóa nằm ngoài vùng sắp xếp.");
  if(!["auto","text","number"].includes(type))throw new RangeError("Kiểu sắp xếp không hợp lệ.");
  const rows=[];for(let row=b.startRow+1;row<=b.endRow;row++){const values=[],styles=[];for(let col=b.startCol;col<=b.endCol;col++){const key=cellKey(row,col);values.push(cells[key]);styles.push(formats[key]);}rows.push({row,key:valueFor(cells,row,keyColumn),values,styles,order:row});}
- rows.sort((a,b)=>compareValues(a.key,b.key,type)*direction||a.order-b.order);
- const next={...cells},nextFormats={...formats};for(let i=0;i<rows.length;i++)for(let col=b.startCol;col<=b.endCol;col++){const key=cellKey(b.startRow+i,col),idx=col-b.startCol,v=rows[i].values[idx],f=rows[i].styles[idx];if(v===undefined)delete next[key];else next[key]=v;if(f===undefined)delete nextFormats[key];else nextFormats[key]=f;}
- return{cells:next,formats:nextFormats,changed:rows.some((r,i)=>r.row!==b.startRow+i),rowCount:rows.length};
+ rows.sort((a,b)=>{const emptyA=a.key==="",emptyB=b.key==="";const compared=compareValues(a.key,b.key,type);return (emptyA||emptyB?compared:compared*direction)||a.order-b.order;});
+ const next={...cells},nextFormats={...formats};for(let i=0;i<rows.length;i++)for(let col=b.startCol;col<=b.endCol;col++){const key=cellKey(b.startRow+1+i,col),idx=col-b.startCol,v=rows[i].values[idx],f=rows[i].styles[idx];if(v===undefined)delete next[key];else next[key]=v;if(f===undefined)delete nextFormats[key];else nextFormats[key]=f;}
+ return{cells:next,formats:nextFormats,changed:rows.some((r,i)=>r.row!==b.startRow+1+i),rowCount:rows.length};
 }
 function matchesRule(value,rule){
  const text=String(value??""),target=String(rule.value??"");
@@ -26,7 +26,7 @@ export function filterRangeRows(cells,formats,bounds,options={}){
  const hiddenRows=[];let visibleRows=0,totalRows=Math.max(0,b.endRow-b.startRow);
  for(let row=b.startRow+1;row<=b.endRow;row++){
   const rulePass=rules.length===0?true:join==="and"?rules.every(rule=>matchesRule(valueFor(cells,row,rule.column),rule)):rules.some(rule=>matchesRule(valueFor(cells,row,rule.column),rule));
-  const colorPass=!color||Array.from({length:b.endCol-b.startCol+1},(_,i)=>formats[cellKey(row,b.startCol+i)]?.fillColor?.toLowerCase()).includes(color);
+  const colorPass=!color||Array.from({length:b.endCol-b.startCol+1},(_,i)=>formats[cellKey(row,b.startCol+i)]?.background?.toLowerCase()).includes(color);
   if(rulePass&&colorPass)visibleRows++;else hiddenRows.push(row);
  }
  return{hiddenRows,visibleRows,totalRows};
