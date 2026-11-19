@@ -65,3 +65,22 @@
 .sheet-grid .virtual-spacer{padding:0!important;min-width:0!important;border:0!important;background:transparent!important;pointer-events:none}
 .sheet-grid .virtual-gap td{padding:0!important;border:0!important;line-height:0;font-size:0;background:transparent}
 .sheet-grid .virtual-gap{height:auto!important}
+
+/* SGHT 18.4 — pinned application chrome and freeze panes */
+.topbar{position:sticky;top:0;z-index:40}
+.ribbon-tabs{position:sticky;top:64px;z-index:35;background:var(--paper)}
+.ribbon-panel{position:sticky;top:104px;z-index:34;box-shadow:0 4px 10px #1c39250a}
+.formula-panel{position:sticky;top:190px;z-index:33;background:var(--paper);padding-top:6px;padding-bottom:6px}
+.freeze-controls{min-width:350px}
+.freeze-controls label{display:flex;align-items:center;gap:5px;color:#64756b;font-size:10px;white-space:nowrap}
+.freeze-controls input{width:48px;height:28px;border:1px solid var(--line);border-radius:5px;padding:0 5px;font-size:11px;background:#fff}
+.freeze-action{background:#e6f1e8;border-color:#bfd6c5;color:#1d583b}
+.sheet-grid .freeze-col{position:sticky;z-index:4;background:#f7faf7}
+.sheet-grid .freeze-col-head{z-index:7;background:#e6eee8}
+.sheet-grid .freeze-row-cell{position:sticky;z-index:3;background:#f7faf7}
+.sheet-grid tr.freeze-row>th,.sheet-grid tr.freeze-row>td{z-index:5;background:#f5f9f6}
+.sheet-grid tr.freeze-row>.row-head{z-index:8}
+.sheet-grid tr.freeze-row>.freeze-col{z-index:9;background:#eaf2ec}
+.sheet-grid .freeze-intersection{z-index:10!important}
+.sheet-grid .freeze-gap td{background:transparent!important;border:0!important}
+@media(max-width:680px){.ribbon-tabs{top:58px}.ribbon-panel{top:98px}.formula-panel{top:166px}.freeze-controls{min-width:330px}.freeze-controls label{font-size:9px}}

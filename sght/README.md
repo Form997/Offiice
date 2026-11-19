@@ -437,3 +437,15 @@ Bổ sung mô hình đáp ứng tăng dần, lợi ích biên giảm dần:
 - Công thức đọc vùng vẫn có giới hạn an toàn riêng 100.000 ô/lần; thao tác vùng/undo và dung lượng lưu trữ cũng có giới hạn riêng.
 - Xuất CSV hiện tạo hình chữ nhật từ A1 tới ô có dữ liệu xa nhất; tệp rất thưa nhưng có địa chỉ xa có thể tạo CSV lớn. Cần đánh giá riêng trước khi xuất workbook quy mô lớn.
 - Kiểm thử đơn vị chứng minh chính sách mở rộng và giới hạn; chưa thay thế kiểm thử trình duyệt trên nhiều thiết bị hoặc kiểm thử tải quy mô tối đa.
+
+
+## SGHT View & Freeze Panes — Giai đoạn 18.4 · Ghim vùng hiển thị — 2026-11-19
+
+- Bổ sung cố định đồng thời hàng đầu và cột đầu: người dùng nhập số hàng (0–20) và cột (0–10), sau đó chọn Ghim; 0 nghĩa là không ghim chiều đó.
+- Vùng hàng/cột ghim được dựng lại trong renderer ảo hóa khi cuộn xa; phần đệm ảo được tính lại để không nhân đôi địa chỉ và không làm mất hình học cuộn.
+- Ô giao giữa hàng ghim và cột ghim có lớp ưu tiên cao nhất; tiêu đề cột và số hàng giữ đúng vị trí khi cuộn ngang/dọc.
+- Cấu hình ghim lưu cùng workbook trong localStorage; tải lại trang vẫn giữ cấu hình. Lệnh Bỏ ghim xóa cả hai chiều; tạo bảng mới trở về trạng thái không ghim.
+- Ghim thanh ứng dụng, dải thẻ lệnh, thanh công cụ và thanh công thức bằng sticky positioning để giữ thao tác chính trong tầm nhìn khi cuộn trang.
+- Không sửa nội dung ô, công thức hay định dạng khi ghim/bỏ ghim. Không thay đổi cấu trúc lưu trữ dữ liệu ô hiện có; thuộc tính freeze là trường bổ sung tương thích ngược.
+- Giới hạn có chủ ý: tối đa 20 hàng và 10 cột đầu để tránh che khuất vùng làm việc trên màn hình nhỏ. Đây là cố định từ mép đầu bảng; ghim vùng tùy chọn tại một địa chỉ bất kỳ chưa thuộc bước này.
+- Chưa tuyên bố hỗ trợ nhiều vùng ghim độc lập hoặc chia cửa sổ thành nhiều pane có cuộn riêng.

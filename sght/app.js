@@ -3,6 +3,7 @@ import { normalizeCellFormat, cellFormatStyle, getRangeBounds, expandRange, enco
 import { captureRange, pasteCapturedRange } from "./engine/range-clipboard.js";
 import { getVirtualWindow } from "./engine/sparse-grid.js";
 import { expandGridCapacity } from "./engine/grid-capacity.js";
+import { buildFreezeLayout, normalizeFreezeSettings } from "./engine/freeze-panes.js";
 import { planMacro, executeMacro } from "./automation/macro-engine.js";
 import { MacroRecorder } from "./automation/macro-recorder.js";
 import { MacroLibrary } from "./automation/macro-library.js";
@@ -26,7 +27,7 @@ let virtualWindow = null;
 const letters = n => { let s=""; while(n>0){const r=(n-1)%26;s=String.fromCharCode(65+r)+s;n=Math.floor((n-1)/26);} return s; };
 const address = (r,c) => letters(c)+r;
 const parseAddress = a => { const m=/^([A-Z]+)([1-9][0-9]*)$/i.exec(a); if(!m)return null; let c=0; for(const ch of m[1].toUpperCase())c=c*26+ch.charCodeAt(0)-64; return {r:Number(m[2]),c}; };
-let cells = Object.create(null), cellFormats=Object.create(null), selected="A1", selectionRange={start:"A1",end:"A1"}, sheetTitle="Bảng tính chưa đặt tên", zoom=100, undoStack=[], redoStack=[], internalClipboard=null, pointerSelecting=false;
+let cells = Object.create(null), cellFormats=Object.create(null), selected="A1", selectionRange={start:"A1",end:"A1"}, sheetTitle="Bảng tính chưa đặt tên", zoom=100, undoStack=[], redoStack=[], internalClipboard=null, pointerSelecting=false, frozenRows=0, frozenColumns=0;
 const macroRecorder=new MacroRecorder();
 const macroLibrary=new MacroLibrary();
 const macroHistory=new MacroHistory();
@@ -34,8 +35,8 @@ const macroSecurity=new MacroSecurityCenter();
 let editingMacroId=null;
 let macroExecution=false;
 const grid=document.querySelector("#sheetGrid"),formulaInput=document.querySelector("#formulaInput"),cellAddress=document.querySelector("#cellAddress"),selectionInfo=document.querySelector("#selectionInfo"),saveStatus=document.querySelector("#saveStatus"),calcStatus=document.querySelector("#calcStatus");
-function load(){try{const saved=JSON.parse(localStorage.getItem(STORAGE_KEY)||"null");if(saved&&saved.cells&&typeof saved.cells==="object"){cells=saved.cells;cellFormats=Object.create(null);for(const [a,f] of Object.entries(saved.formats||{})){if(parseAddress(a))cellFormats[a]=normalizeCellFormat(f);}sheetTitle=String(saved.title||sheetTitle);}}catch{}document.querySelector("#sheetName").value=sheetTitle;}
-function save(){try{localStorage.setItem(STORAGE_KEY,JSON.stringify({cells,formats:cellFormats,title:sheetTitle,updatedAt:new Date().toISOString()}));saveStatus.textContent="Đã lưu trên thiết bị";}catch{saveStatus.textContent="Không đủ dung lượng lưu";}}
+function load(){try{const saved=JSON.parse(localStorage.getItem(STORAGE_KEY)||"null");if(saved&&saved.cells&&typeof saved.cells==="object"){cells=saved.cells;cellFormats=Object.create(null);for(const [a,f] of Object.entries(saved.formats||{})){if(parseAddress(a))cellFormats[a]=normalizeCellFormat(f);}sheetTitle=String(saved.title||sheetTitle);const freeze=normalizeFreezeSettings(saved.freeze||{});frozenRows=freeze.rows;frozenColumns=freeze.columns;}}catch{}document.querySelector("#sheetName").value=sheetTitle;document.querySelector("#freezeRowsInput").value=frozenRows;document.querySelector("#freezeColumnsInput").value=frozenColumns;}
+function save(){try{localStorage.setItem(STORAGE_KEY,JSON.stringify({cells,formats:cellFormats,title:sheetTitle,freeze:{rows:frozenRows,columns:frozenColumns},updatedAt:new Date().toISOString()}));saveStatus.textContent="Đã lưu trên thiết bị";}catch{saveStatus.textContent="Không đủ dung lượng lưu";}}
 function snapshot(){undoStack.push(JSON.stringify({cells,formats:cellFormats}));if(undoStack.length>80)undoStack.shift();redoStack=[];}
 function historyMove(from,to){if(!from.length)return;to.push(JSON.stringify({cells,formats:cellFormats}));const state=JSON.parse(from.pop());if(state&&state.cells){cells=state.cells;cellFormats=state.formats||Object.create(null);}else{cells=state||Object.create(null);cellFormats=Object.create(null);}render();save();calcStatus.textContent="Đã khôi phục dữ liệu";}
 function raw(a){return Object.hasOwn(cells,a)?String(cells[a]):"";}
@@ -45,20 +46,26 @@ function display(a){try{const v=calculate(a);if(typeof v!=="number")return Strin
 function render(){
   const thead=grid.querySelector("thead"),tbody=grid.querySelector("tbody");
   virtualWindow=getVirtualWindow({scrollTop:sheetScroll.scrollTop,scrollLeft:sheetScroll.scrollLeft,viewportHeight:sheetScroll.clientHeight||480,viewportWidth:sheetScroll.clientWidth||900,rowHeight:ROW_HEIGHT,columnWidth:COLUMN_WIDTH,overscanRows:OVERSCAN_ROWS,overscanColumns:OVERSCAN_COLUMNS,maxRow:ROWS,maxColumn:COLS});
-  const w=virtualWindow,leftWidth=w.leftOffset,rightWidth=w.rightOffset;
-  thead.innerHTML="<tr><th class='corner'></th>"+(leftWidth?"<th class='virtual-spacer' style='width:"+leftWidth+"px;min-width:"+leftWidth+"px'></th>":"")+Array.from({length:w.renderedColumns},(_,i)=>"<th>"+letters(w.columnStart+i)+"</th>").join("")+(rightWidth?"<th class='virtual-spacer' style='width:"+rightWidth+"px;min-width:"+rightWidth+"px'></th>":"")+"</tr>";
-  const rows=[],span=w.renderedColumns+1+(leftWidth?1:0)+(rightWidth?1:0);
-  if(w.topOffset)rows.push("<tr class='virtual-gap'><td colspan='"+span+"' style='height:"+w.topOffset+"px'></td></tr>");
-  for(let r=w.rowStart;r<=w.rowEnd;r++){
-    let rowHtml="<th class='row-head'>"+r+"</th>";
-    if(leftWidth)rowHtml+="<td class='virtual-spacer' style='width:"+leftWidth+"px;min-width:"+leftWidth+"px'></td>";
-    for(let c=w.columnStart;c<=w.columnEnd;c++){
-      const a=address(r,c);
-      rowHtml+="<td><button type='button' class='cell' draggable='true' data-cell='"+a+"' aria-label='Ô "+a+"'>"+escapeHtml(display(a))+"</button></td>";
-    }
-    if(rightWidth)rowHtml+="<td class='virtual-spacer' style='width:"+rightWidth+"px;min-width:"+rightWidth+"px'></td>";
-    rows.push("<tr>"+rowHtml+"</tr>");
-  }
+  const w=virtualWindow, layout=buildFreezeLayout(w,{rows:frozenRows,columns:frozenColumns,rowHeight:ROW_HEIGHT,columnWidth:COLUMN_WIDTH,rowHeaderWidth:48});
+  const pinnedColumns=layout.pinnedColumns,pinnedRows=layout.pinnedRows;
+  const colHeaders=pinnedColumns.map(c=>"<th class='freeze-col freeze-col-head' style='left:"+(48+(c-1)*COLUMN_WIDTH)+"px'>"+letters(c)+"</th>").join("");
+  const visibleHeaders=Array.from({length:w.renderedColumns},(_,i)=>"<th>"+letters(w.columnStart+i)+"</th>").join("");
+  const leftGap=layout.leftGap? "<th class='virtual-spacer' style='width:"+layout.leftGap+"px;min-width:"+layout.leftGap+"px'></th>":"";
+  const rightGap=w.rightOffset?"<th class='virtual-spacer' style='width:"+w.rightOffset+"px;min-width:"+w.rightOffset+"px'></th>":"";
+  thead.innerHTML="<tr><th class='corner'></th>"+colHeaders+leftGap+visibleHeaders+rightGap+"</tr>";
+  const rows=[],span=1+pinnedColumns.length+(layout.leftGap?1:0)+w.renderedColumns+(w.rightOffset?1:0);
+  if(layout.topGap)rows.push("<tr class='virtual-gap'><td colspan='"+span+"' style='height:"+layout.topGap+"px'></td></tr>");
+  const renderRow=(r,isFrozen)=>{
+    let rowHtml="<th class='row-head"+(isFrozen?" freeze-row-head":"")+"' "+(isFrozen?"style='top:"+(32+(r-1)*ROW_HEIGHT)+"px'":"")+">"+r+"</th>";
+    for(const c of pinnedColumns){const a=address(r,c);rowHtml+="<td class='freeze-col"+(isFrozen?" freeze-intersection":"")+"' style='left:"+(48+(c-1)*COLUMN_WIDTH)+"px"+(isFrozen?";top:"+(32+(r-1)*ROW_HEIGHT)+"px":"")+"'><button type='button' class='cell' draggable='true' data-cell='"+a+"' aria-label='Ô "+a+"'>"+escapeHtml(display(a))+"</button></td>";}
+    if(layout.leftGap)rowHtml+="<td class='virtual-spacer' style='width:"+layout.leftGap+"px;min-width:"+layout.leftGap+"px'></td>";
+    for(let c=w.columnStart;c<=w.columnEnd;c++){const a=address(r,c);rowHtml+="<td"+(isFrozen?" class='freeze-row-cell' style='top:"+(32+(r-1)*ROW_HEIGHT)+"px'":"")+"><button type='button' class='cell' draggable='true' data-cell='"+a+"' aria-label='Ô "+a+"'>"+escapeHtml(display(a))+"</button></td>";}
+    if(w.rightOffset)rowHtml+="<td class='virtual-spacer' style='width:"+w.rightOffset+"px;min-width:"+w.rightOffset+"px'></td>";
+    return "<tr"+(isFrozen?" class='freeze-row'":"")+">"+rowHtml+"</tr>";
+  };
+  for(const r of pinnedRows)rows.push(renderRow(r,true));
+  if(layout.activeRows)rows.push("<tr class='virtual-gap freeze-gap'><td colspan='"+span+"' style='height:"+layout.topGap+"px'></td></tr>");
+  for(let r=w.rowStart;r<=w.rowEnd;r++)rows.push(renderRow(r,false));
   if(w.bottomOffset)rows.push("<tr class='virtual-gap'><td colspan='"+span+"' style='height:"+w.bottomOffset+"px'></td></tr>");
   tbody.innerHTML=rows.join("");
   for(const b of tbody.querySelectorAll("[data-cell]"))for(const [k,v] of Object.entries(cellFormatStyle(cellFormats[b.dataset.cell]||{})))b.style[k]=v;
@@ -113,7 +120,16 @@ document.querySelector("#applyFormula").addEventListener("click",apply);
 grid.addEventListener("keydown",e=>{const b=e.target.closest("[data-cell]");if(!b)return;const p=parseAddress(b.dataset.cell);let r=p.r,c=p.c;if(e.key==="Enter"||e.key==="ArrowDown"){e.preventDefault();choose(address(Math.min(ROWS,r+1),c),e.shiftKey);}else if(e.key==="Tab"||e.key==="ArrowRight"){e.preventDefault();choose(address(r,Math.min(COLS,c+1)),e.shiftKey);}else if(e.key==="ArrowUp"){e.preventDefault();choose(address(Math.max(1,r-1),c),e.shiftKey);}else if(e.key==="ArrowLeft"){e.preventDefault();choose(address(r,Math.max(1,c-1)),e.shiftKey);}else if(e.key==="F2"){e.preventDefault();formulaInput.focus();}else if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==="c"){e.preventDefault();copySelection(false);}else if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==="x"){e.preventDefault();copySelection(true);}else if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==="v"){e.preventDefault();if(internalClipboard)pasteRange(internalClipboard.text,internalClipboard.payload);}});
 grid.addEventListener("paste",handlePaste);formulaInput.addEventListener("paste",handlePaste);
 document.querySelector("#sheetName").addEventListener("change",e=>{sheetTitle=e.target.value.trim()||"Bảng tính chưa đặt tên";save();});
-document.querySelector("#newSheet").addEventListener("click",()=>{if(!confirm("Tạo bảng tính mới? Dữ liệu hiện tại sẽ được thay thế trên thiết bị này."))return;snapshot();cells=Object.create(null);sheetTitle="Bảng tính mới";document.querySelector("#sheetName").value=sheetTitle;selected="A1";render();save();});
+document.querySelector("#newSheet").addEventListener("click",()=>{if(!confirm("Tạo bảng tính mới? Dữ liệu hiện tại sẽ được thay thế trên thiết bị này."))return;snapshot();cells=Object.create(null);cellFormats=Object.create(null);sheetTitle="Bảng tính mới";frozenRows=0;frozenColumns=0;document.querySelector("#freezeRowsInput").value=0;document.querySelector("#freezeColumnsInput").value=0;document.querySelector("#sheetName").value=sheetTitle;selected="A1";sheetScroll.scrollTop=0;sheetScroll.scrollLeft=0;render();save();});
+
+function applyFreezeSettings(){
+  const rows=Number(document.querySelector("#freezeRowsInput").value||0),columns=Number(document.querySelector("#freezeColumnsInput").value||0);
+  try{const next=normalizeFreezeSettings({rows,columns});frozenRows=next.rows;frozenColumns=next.columns;document.querySelector("#freezeRowsInput").value=frozenRows;document.querySelector("#freezeColumnsInput").value=frozenColumns;render();save();calcStatus.textContent=(frozenRows||frozenColumns)?"Đã ghim "+frozenRows+" hàng đầu và "+frozenColumns+" cột đầu.":"Đã bỏ ghim hàng và cột.";}
+  catch(e){calcStatus.textContent="Thiết lập ghim không hợp lệ: "+e.message;}
+}
+document.querySelector("#applyFreeze").addEventListener("click",applyFreezeSettings);
+document.querySelector("#clearFreeze").addEventListener("click",()=>{frozenRows=0;frozenColumns=0;document.querySelector("#freezeRowsInput").value=0;document.querySelector("#freezeColumnsInput").value=0;render();save();calcStatus.textContent="Đã bỏ toàn bộ ghim.";});
+
 document.querySelector("#downloadCsv").addEventListener("click",exportCsv);
 document.querySelector("#saveAction").addEventListener("click",()=>{save();calcStatus.textContent="Đã lưu bảng tính";});
 document.querySelector("#undoAction").addEventListener("click",()=>historyMove(undoStack,redoStack));
