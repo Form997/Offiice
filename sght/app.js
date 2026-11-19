@@ -454,7 +454,7 @@ function pivotFieldLabel(column){return pivotFields.find(f=>f.column===column)?.
 function pivotAssign(column,target){
  if(!pivotConfig)pivotConfig={bounds:selectedBounds(),rowColumns:[],columnField:null,measures:[],filterColumns:[],filters:{}};
  if(!pivotConfig.bounds)pivotConfig.bounds=selectedBounds();
- if((target==="row"&&pivotConfig.columnField===column)||(target==="column"&&pivotConfig.rowColumns.includes(column)))throw new Error("Một trường không thể đồng thời làm trường Hàng và Cột.");
+ if((target==="row"&&pivotConfig.columnField===column)||(target==="column"&&pivotConfig.rowColumns.includes(column))){dataStatus.textContent="Một trường không thể đồng thời làm trường Hàng và Cột.";return;}
  if(target==="row"){if(!pivotConfig.rowColumns.includes(column)&&pivotConfig.rowColumns.length<4)pivotConfig.rowColumns.push(column);}
  else if(target==="column"){if(pivotConfig.columnField===null||pivotConfig.columnField===column)pivotConfig.columnField=column;}
  else if(target==="value"){if(pivotConfig.measures.length<4&&!pivotConfig.measures.some(m=>m.column===column))pivotConfig.measures.push({column,operation:"sum",label:pivotFieldLabel(column)});}
