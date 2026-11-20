@@ -825,4 +825,5 @@ Bổ sung mô hình đáp ứng tăng dần, lợi ích biên giảm dần:
 - Kho được lưu riêng trong localStorage dưới khóa `haidat-sght-formula-audit-archive-v1`; dữ liệu workbook và lịch sử công thức không bị thay thế khi nhập.
 - SHA-256 phát hiện thay đổi so với hash đã lưu/đối chiếu; nó không chứng minh nguồn gốc nếu kẻ sửa dữ liệu có thể thay cả payload lẫn hash. Muốn có bằng chứng mạnh hơn cần giữ tệp xuất ngoài thiết bị, ký số hoặc neo hash lên dịch vụ tin cậy độc lập. Không tuyên bố localStorage là bất biến hay chống giả mạo.
 - Web Crypto yêu cầu môi trường hỗ trợ `crypto.subtle` (thông thường HTTPS/localhost); nếu không khả dụng, thao tác hash báo lỗi rõ ràng.
-- Kiểm thử tự động và triển khai được xác nhận theo CI sau commit; chưa tuyên bố kiểm thử thủ công trên thiết bị thật.
+- Kiểm thử tự động: 283/283 đạt; GitHub Pages triển khai thành công. Chưa tuyên bố kiểm thử thủ công trên thiết bị thật.
+- Bắt đầu phát triển và phát hành: 20/11/2026. Mã nguồn và tài liệu cập nhật trong giai đoạn: khoảng 350 KiB UTF-8 (ước tính theo 5 tệp chính; không phải mức RAM khi chạy).

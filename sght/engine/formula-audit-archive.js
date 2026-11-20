@@ -39,7 +39,7 @@ export async function createFormulaAuditArchive(history,chain=[],options={}){
  const verified=await verifyFormulaAuditArchiveChain(chain,cryptoImpl);
  if(!verified.valid)throw new Error("Kho lưu trữ hiện tại không toàn vẹn; không thể nối thêm bản mới.");
  if(!Array.isArray(history))throw new Error("Lịch sử phiên bản không hợp lệ.");
- const payload={history:JSON.parse(JSON.stringify(history)),recordCount:history.length};
+ const payload={history:JSON.parse(JSON.stringify(history)),recordCount:history.length,...(options.metadata?JSON.parse(JSON.stringify(options.metadata)):{})};
  const item={schema:FORMULA_AUDIT_ARCHIVE_SCHEMA,version:1,sequence:chain.length+1,createdAt:(options.now?new Date(options.now):new Date()).toISOString(),previousHash:chain.length?chain[chain.length-1].hash:GENESIS,payload,payloadHash:await sha256(payload,cryptoImpl)};
  item.hash=await sha256(bodyOf(item),cryptoImpl);
  return item;
