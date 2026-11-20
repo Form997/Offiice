@@ -182,8 +182,8 @@ export function createSghtAuthServer({pool,allowedOrigin,mailer=null,secureCooki
     }catch(e){await client.query("ROLLBACK");if(e?.code==="23505")return json(res,409,{code:"PASSKEY_ALREADY_REGISTERED",message:"This passkey is already registered."});throw e;}finally{client.release();}
    }
    if(method==="GET"&&path==="/v1/auth/passkeys"){
-    const u=await requireUser();const q=await pool.query("SELECT credential_id,device_type,backed_up,created_at FROM sght_passkeys WHERE user_id=$1 ORDER BY created_at DESC",[u.user_id]);
-    return json(res,200,{passkeys:q.rows.map(x=>({credentialId:x.credential_id,deviceType:x.device_type,backedUp:x.backed_up,createdAt:x.created_at}))});
+    const u=await requireUser();const q=await pool.query("SELECT credential_id,display_name,device_type,backed_up,created_at FROM sght_passkeys WHERE user_id=$1 ORDER BY created_at DESC",[u.user_id]);
+    return json(res,200,{passkeys:q.rows.map(x=>({credentialId:x.credential_id,displayName:x.display_name,deviceType:x.device_type,backedUp:x.backed_up,createdAt:x.created_at}))});
    }
    const passkeyMatch=path.match(/^\/v1\/auth\/passkeys\/([A-Za-z0-9_-]{16,1024})$/);
    if(passkeyMatch&&method==="PATCH"){
