@@ -1,0 +1,42 @@
+CREATE EXTENSION IF NOT EXISTS pgcrypto;
+CREATE TABLE IF NOT EXISTS sght_users (
+ id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+ email_normalized varchar(254) NOT NULL UNIQUE,
+ display_name varchar(120) NOT NULL,
+ password_hash char(128) NOT NULL,
+ password_salt char(32) NOT NULL,
+ role varchar(16) NOT NULL CHECK(role IN ('admin','signer','auditor','viewer')),
+ status varchar(16) NOT NULL DEFAULT 'active' CHECK(status IN ('active','disabled')),
+ created_at timestamptz NOT NULL DEFAULT now(),
+ updated_at timestamptz NOT NULL DEFAULT now()
+);
+CREATE TABLE IF NOT EXISTS sght_sessions (
+ id_hash char(64) PRIMARY KEY,
+ user_id uuid NOT NULL REFERENCES sght_users(id) ON DELETE CASCADE,
+ csrf_hash char(64) NOT NULL,
+ expires_at timestamptz NOT NULL,
+ created_at timestamptz NOT NULL DEFAULT now(),
+ last_seen_at timestamptz NOT NULL DEFAULT now(),
+ revoked_at timestamptz
+);
+CREATE INDEX IF NOT EXISTS sght_sessions_user_active ON sght_sessions(user_id) WHERE revoked_at IS NULL;
+CREATE TABLE IF NOT EXISTS sght_invitations (
+ id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+ email_normalized varchar(254) NOT NULL,
+ display_name varchar(120) NOT NULL,
+ role varchar(16) NOT NULL CHECK(role IN ('admin','signer','auditor','viewer')),
+ expires_at timestamptz NOT NULL,
+ consumed_at timestamptz,
+ created_by uuid NOT NULL REFERENCES sght_users(id),
+ created_at timestamptz NOT NULL DEFAULT now()
+);
+CREATE TABLE IF NOT EXISTS sght_audit_events (
+ id bigserial PRIMARY KEY,
+ actor_user_id uuid REFERENCES sght_users(id),
+ target_user_id uuid REFERENCES sght_users(id),
+ action varchar(80) NOT NULL,
+ metadata_json jsonb NOT NULL DEFAULT '{}'::jsonb,
+ created_at timestamptz NOT NULL DEFAULT now(),
+ request_id uuid NOT NULL
+);
+CREATE INDEX IF NOT EXISTS sght_audit_created ON sght_audit_events(created_at DESC);
