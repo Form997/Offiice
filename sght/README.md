@@ -742,3 +742,13 @@ Bổ sung mô hình đáp ứng tăng dần, lợi ích biên giảm dần:
 - Không tự bọc IFERROR/IF hoặc đoán cách thay mẫu số, dữ liệu hay tham chiếu: các cách sửa đó có thể làm đổi ý nghĩa phép tính. Lỗi chia cho 0, #REF!, #VALUE! và các lỗi chưa có quy tắc an toàn chỉ nhận hướng dẫn kiểm tra, không nhận công thức thay thế giả định.
 - Bộ gợi ý là heuristic xác định, chưa gọi mô hình AI và không gửi dữ liệu ra ngoài. Không tự sửa hàng loạt.
 - Giới hạn: mới hỗ trợ sửa tên hàm gần giống; chưa có bộ sửa cú pháp tổng quát, sửa tham chiếu, sửa kiểu dữ liệu hoặc AI đề xuất. Kết quả preview dùng dữ liệu workbook hiện tại; trước khi áp dụng SGHT kiểm tra lại ô gốc. Chưa kiểm thử thủ công trên trình duyệt/điện thoại thật.
+
+
+## SGHT 18.30 — Formula Audit & Repair History — 2026-11-20
+
+- Bổ sung sổ kiểm toán riêng cho luồng sửa công thức: có đề xuất, không có quy tắc sửa an toàn, thử thành công/thất bại, áp dụng, từ chối, đề xuất hết hiệu lực.
+- Mỗi sự kiện ghi mã sự kiện, thời điểm ISO, ID/tên trang tính, địa chỉ ô, công thức trước/sau, kết quả thử và ghi chú. Danh sách hiển thị 30 sự kiện mới nhất; dữ liệu lưu tối đa 1.000 sự kiện.
+- Nhật ký được lưu trong localStorage bằng khóa riêng, tách khỏi dữ liệu workbook và không bị Undo/Redo của ô xóa theo. Có thể xuất toàn bộ nhật ký đang lưu thành JSON.
+- Khi áp dụng công thức, nhật ký ghi lại công thức trước/sau và kết quả preview. Thao tác sửa ô vẫn đi qua setValue và lịch sử Undo/Redo của workbook.
+- Giới hạn: nhật ký chỉ nằm trên trình duyệt/thiết bị hiện tại, không đồng bộ đám mây và có thể mất khi xóa dữ liệu trang web. Đây không phải nhật ký chống sửa đổi hay bằng chứng pháp lý; người có quyền truy cập trình duyệt có thể sửa/xóa localStorage. Nếu hết quota, ứng dụng cảnh báo và khuyến nghị xuất JSON. Undo/Redo vẫn được ghi trong lịch sử workbook hiện hữu; nhật ký này chưa đối chiếu tự động từng Undo/Redo với một bản sửa cụ thể.
+- Chưa kiểm thử thủ công trên trình duyệt/điện thoại thật.

@@ -157,6 +157,11 @@
         <div class="formula-error-actions"><button id="previewFormulaRepair" class="quiet" type="button" disabled>Thử công thức</button><button id="applyFormulaRepair" class="primary" type="button" disabled>Chấp thuận &amp; áp dụng</button></div>
       </div>
       <small>Chỉ đề xuất sửa tên hàm khi có một hàm SGHT gần giống duy nhất (khoảng cách chỉnh sửa tối đa 2). Không tự đoán cách xử lý chia cho 0, tham chiếu sai hoặc lỗi dữ liệu. Mọi áp dụng đều cần thử thành công, xác nhận và có thể hoàn tác.</small>
+      <details class="formula-audit-panel">
+        <summary>Formula Audit &amp; Repair History <span id="formulaRepairAuditCount">0 / 1.000 sự kiện</span></summary>
+        <div class="formula-audit-actions"><span>Nhật ký lưu riêng trên thiết bị, không nằm trong nội dung workbook.</span><button id="exportFormulaRepairAudit" type="button" class="quiet">Xuất nhật ký JSON</button></div>
+        <pre id="formulaRepairAuditOutput" class="formula-audit-output" aria-live="polite">Đang nạp lịch sử sửa công thức…</pre>
+      </details>
     </section>
     <section class="search-panel" aria-label="Tìm kiếm trong bảng tính">
       <div class="search-main"><input id="searchQuery" type="search" placeholder="Tìm trong bảng tính… (Ctrl+F)" aria-label="Từ khóa tìm kiếm"><button id="searchRun" type="button" class="search-primary">Tìm</button><button id="searchPrevious" type="button" disabled aria-label="Kết quả trước">↑</button><button id="searchNext" type="button" disabled aria-label="Kết quả tiếp theo">↓</button><span id="searchCount" role="status">Chưa tìm kiếm</span><button id="searchClear" type="button" class="search-clear">Xóa</button></div>

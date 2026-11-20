@@ -1,6 +1,7 @@
 import { runFormulaBenchmark, collectFormulaDiagnostics, formatFormulaDiagnostics } from "./engine/formula-diagnostics.js";
 import { analyzeFormulaError, scanWorkbookFormulaErrors, formatFormulaErrorReport } from "./engine/formula-error-intelligence.js";
 import { suggestFormulaRepairs, validateRepairApproval } from "./engine/formula-fix-suggestions.js";
+import { appendRepairAudit, exportRepairAudit } from "./engine/repair-audit.js";
 import { evaluateFormula, FormulaError, listFormulaFunctions } from "./engine/core.js";
 import { buildDependencyGraph, updateDependencyNode, planRecalculation } from "./engine/dependency-engine.js";
 import { CalculationScheduler } from "./engine/calculation-scheduler.js";
@@ -37,6 +38,7 @@ import { pearsonCorrelation, simpleLinearRegression, oneWayAnova, multipleLinear
 
 let COLS = 100, ROWS = 1000;
 const MAX_COLS = 16384, MAX_ROWS = 100000, STORAGE_KEY = "haidat-sght-workbook-v1";
+const REPAIR_AUDIT_KEY = "haidat-sght-repair-audit-v1";
 const ROW_HEIGHT = 32, COLUMN_WIDTH = 108, OVERSCAN_ROWS = 5, OVERSCAN_COLUMNS = 2;
 const sheetScroll = document.querySelector("#sheetScroll");
 const splitScroll = document.querySelector("#splitScroll");
@@ -971,7 +973,7 @@ function createWorkbookSheetUI(){try{storeActiveSheet();workbookSheets=addWorkbo
 function deleteWorkbookSheetUI(id){if(workbookSheets.length<=1){calcStatus.textContent="Workbook phải còn ít nhất một trang tính.";return;}const sheet=getWorkbookSheet(workbookSheets,id);if(!sheet||!confirm("Xóa trang tính “"+sheet.name+"”? Thao tác này không thể hoàn tác."))return;storeActiveSheet();workbookSheets=removeWorkbookSheet(workbookSheets,id);rebuildDependencyEngine();if(id===activeSheetId){applySheetState(workbookSheets[0]);render();renderPivotBuilder();renderPivotReport();}dashboard=normalizeDashboard({...dashboard,widgets:dashboard.widgets.map(w=>w.pivotConfig?.sheetId===id?{...w,pivotConfig:null}:w)});renderDashboard();save();}
 document.querySelector("#sheetName").addEventListener("change",e=>{try{const previousName=sheetTitle,nextName=e.target.value.trim()||"Bảng tính chưa đặt tên";storeActiveSheet();workbookSheets=renameWorkbookSheet(workbookSheets,activeSheetId,nextName);workbookSheets=rewriteWorkbookSheetReferences(workbookSheets,previousName,nextName);sheetTitle=nextName;cells=getWorkbookSheet(workbookSheets,activeSheetId).cells;rebuildDependencyEngine();e.target.value=sheetTitle;renderSheetTabs();save();}catch(err){e.target.value=sheetTitle;calcStatus.textContent=err.message;}});
 
-load();rebuildDependencyEngine();render();renderDataTables();renderSecurity();
+load();loadRepairAudit();rebuildDependencyEngine();render();renderDataTables();renderSecurity();
 // SGHT 18.27: explicit, non-invasive formula diagnostics.
 const diagnosticsButton=document.querySelector("#runFormulaDiagnostics"),diagnosticsSize=document.querySelector("#diagnosticsSize"),diagnosticsOutput=document.querySelector("#formulaDiagnosticsOutput");
 if(diagnosticsButton&&diagnosticsOutput){diagnosticsButton.addEventListener("click",async()=>{
@@ -984,19 +986,42 @@ if(diagnosticsButton&&diagnosticsOutput){diagnosticsButton.addEventListener("cli
 // SGHT 18.28: user-triggered diagnosis; cell contents are never modified.
 const errorAnalyzeButton=document.querySelector("#analyzeFormulaError"),errorScanButton=document.querySelector("#scanFormulaErrors"),errorOutput=document.querySelector("#formulaErrorOutput");
 const repairPreviewButton=document.querySelector("#previewFormulaRepair"),repairApplyButton=document.querySelector("#applyFormulaRepair"),repairOutput=document.querySelector("#formulaRepairOutput");
+const repairAuditOutput=document.querySelector("#formulaRepairAuditOutput"),repairAuditExportButton=document.querySelector("#exportFormulaRepairAudit"),repairAuditCount=document.querySelector("#formulaRepairAuditCount");
+let repairAuditEvents=[];
+function renderRepairAudit(){
+ if(!repairAuditOutput)return;
+ if(repairAuditCount)repairAuditCount.textContent=repairAuditEvents.length.toLocaleString("vi-VN")+" / 1.000 sự kiện";
+ if(!repairAuditEvents.length){repairAuditOutput.textContent="Chưa có lịch sử sửa công thức.";return;}
+ const names={suggestion:"Đề xuất",no_safe_suggestion:"Không có đề xuất an toàn",preview_success:"Thử thành công",preview_failed:"Thử thất bại",applied:"Đã áp dụng",declined:"Đã từ chối",stale:"Đề xuất hết hiệu lực",undo:"Hoàn tác",redo:"Làm lại"};
+ repairAuditOutput.textContent=repairAuditEvents.slice(0,30).map(event=>"["+new Date(event.timestamp).toLocaleString("vi-VN")+"] "+(names[event.action]||event.action)+" · "+(event.sheetName||event.sheetId||"")+"/"+(event.address||"—")+"\nTrước: "+(event.before||"—")+"\nSau: "+(event.after||"—")+"\nKết quả: "+(event.result||"—")+(event.note?"\nGhi chú: "+event.note:"")).join("\n\n")+(repairAuditEvents.length>30?"\n\n… còn "+(repairAuditEvents.length-30)+" sự kiện trong tệp xuất.":"");
+}
+function recordRepairAudit(action,details={}){
+ const sheet=workbookSheets.find(item=>item.id===details.sheetId);
+ const event={id:"repair-"+Date.now().toString(36)+"-"+Math.random().toString(36).slice(2,8),timestamp:new Date().toISOString(),action,sheetId:details.sheetId||activeSheetId,sheetName:details.sheetName||sheet?.name||"",address:details.address||"",before:details.before||"",after:details.after||"",result:details.result||"",note:details.note||""};
+ repairAuditEvents=appendRepairAudit(repairAuditEvents,event,1000);
+ try{localStorage.setItem(REPAIR_AUDIT_KEY,JSON.stringify({version:1,events:repairAuditEvents}));}catch(error){if(repairOutput)repairOutput.textContent+="\n\nCảnh báo: không ghi được nhật ký vào bộ nhớ trình duyệt. Hãy xuất lịch sử hiện có.";}
+ renderRepairAudit();return event;
+}
+function loadRepairAudit(){try{const saved=JSON.parse(localStorage.getItem(REPAIR_AUDIT_KEY)||"null");repairAuditEvents=Array.isArray(saved?.events)?saved.events.slice(0,1000):[];}catch{repairAuditEvents=[];}renderRepairAudit();}
+if(repairAuditExportButton)repairAuditExportButton.addEventListener("click",()=>{
+ const blob=new Blob([exportRepairAudit(repairAuditEvents)],{type:"application/json;charset=utf-8"}),url=URL.createObjectURL(blob),link=document.createElement("a");
+ link.href=url;link.download="SGHT-Formula-Repair-Audit-"+new Date().toISOString().slice(0,10)+".json";link.click();URL.revokeObjectURL(url);
+});
+
 let pendingFormulaRepair=null,formulaRepairPreview=null;
 function clearFormulaRepair(){pendingFormulaRepair=null;formulaRepairPreview=null;if(repairOutput)repairOutput.textContent="Chưa có đề xuất sửa công thức.";if(repairApplyButton)repairApplyButton.disabled=true;if(repairPreviewButton)repairPreviewButton.disabled=true;}
 function showFormulaRepair(report){
  clearFormulaRepair();
  if(!report?.found||!report.selectedError||!repairOutput)return;
  const result=suggestFormulaRepairs({formula:report.formula,errorCode:report.selectedError.code,availableFunctions:listFormulaFunctions()});
- if(!result.available){repairOutput.textContent="Chưa có cách sửa tự động đủ an toàn cho lỗi "+report.selectedError.code+". "+(result.reason==="ambiguous-function-name"?"Có nhiều tên hàm gần giống; cần người dùng tự đối chiếu.":"Hãy kiểm tra các bước chẩn đoán phía trên; SGHT không đoán công thức thay thế.");return;}
+ if(!result.available){recordRepairAudit("no_safe_suggestion",{address:selected,before:report.formula||"",result:report.selectedError.code,note:result.reason});repairOutput.textContent="Chưa có cách sửa tự động đủ an toàn cho lỗi "+report.selectedError.code+". "+(result.reason==="ambiguous-function-name"?"Có nhiều tên hàm gần giống; cần người dùng tự đối chiếu.":"Hãy kiểm tra các bước chẩn đoán phía trên; SGHT không đoán công thức thay thế.");return;}
  pendingFormulaRepair={sheetId:activeSheetId,address:selected,original:report.formula,candidate:result.suggestions[0].formula,explanation:result.suggestions[0].explanation};
+ recordRepairAudit("suggestion",{address:selected,before:pendingFormulaRepair.original,after:pendingFormulaRepair.candidate,result:report.selectedError.code,note:pendingFormulaRepair.explanation});
  repairOutput.textContent="CÔNG THỨC HIỆN TẠI\n"+pendingFormulaRepair.original+"\n\nĐỀ XUẤT (chưa áp dụng)\n"+pendingFormulaRepair.candidate+"\n\n"+pendingFormulaRepair.explanation+"\nBấm “Thử công thức” để tính thử trước khi chấp thuận.";
  repairPreviewButton.disabled=false;
 }
 function previewFormulaRepair(){
- if(!pendingFormulaRepair||pendingFormulaRepair.sheetId!==activeSheetId||raw(pendingFormulaRepair.address)!==pendingFormulaRepair.original){clearFormulaRepair();if(repairOutput)repairOutput.textContent="Đề xuất đã cũ vì ô hoặc trang tính vừa thay đổi. Hãy phân tích lại.";return;}
+ if(!pendingFormulaRepair||pendingFormulaRepair.sheetId!==activeSheetId||raw(pendingFormulaRepair.address)!==pendingFormulaRepair.original){if(pendingFormulaRepair)recordRepairAudit("stale",{address:pendingFormulaRepair.address,before:pendingFormulaRepair.original,after:pendingFormulaRepair.candidate,note:"Ô hoặc trang tính đã thay đổi trước khi thử."});clearFormulaRepair();if(repairOutput)repairOutput.textContent="Đề xuất đã cũ vì ô hoặc trang tính vừa thay đổi. Hãy phân tích lại.";return;}
  try{
   const sourceSheetId=activeSheetId;
   const readRange=(ref,readCell)=>{const [start,end]=ref.toUpperCase().split(":").map(parseAddress);if(!start||!end)throw new FormulaError("#REF!","Vùng ô không hợp lệ.");const area=(Math.abs(end.r-start.r)+1)*(Math.abs(end.c-start.c)+1);if(!Number.isSafeInteger(area)||area>100000)throw new FormulaError("#REF!","Vùng vượt giới hạn 100.000 ô.");const values=[];for(let r=Math.min(start.r,end.r);r<=Math.max(start.r,end.r);r++)for(let c=Math.min(start.c,end.c);c<=Math.max(start.c,end.c);c++)values.push(readCell(address(r,c)));return values;};
@@ -1006,15 +1031,16 @@ function previewFormulaRepair(){
   formulaRepairPreview={value,display:typeof value==="object"?JSON.stringify(value):String(value)};
   repairOutput.textContent="CÔNG THỨC HIỆN TẠI\n"+pendingFormulaRepair.original+"\n\nĐỀ XUẤT\n"+pendingFormulaRepair.candidate+"\n\nKẾT QUẢ THỬ\n"+formulaRepairPreview.display+"\n\nKết quả thử thành công. Công thức gốc vẫn chưa bị thay đổi. Chỉ nút “Chấp thuận & áp dụng” mới ghi công thức mới.";
   repairApplyButton.disabled=false;
- }catch(error){formulaRepairPreview=null;repairApplyButton.disabled=true;repairOutput.textContent="KHÔNG QUA ĐƯỢC BƯỚC THỬ\n"+pendingFormulaRepair.candidate+"\n"+(error?.code||"#CALC!")+" · "+(error?.message||String(error))+"\n\nCông thức gốc được giữ nguyên; không thể chấp thuận đề xuất này.";}
+  recordRepairAudit("preview_success",{address:pendingFormulaRepair.address,before:pendingFormulaRepair.original,after:pendingFormulaRepair.candidate,result:formulaRepairPreview.display});
+ }catch(error){formulaRepairPreview=null;repairApplyButton.disabled=true;recordRepairAudit("preview_failed",{address:pendingFormulaRepair?.address,before:pendingFormulaRepair?.original||"",after:pendingFormulaRepair?.candidate||"",result:error?.code||"#CALC!",note:error?.message||String(error)});repairOutput.textContent="KHÔNG QUA ĐƯỢC BƯỚC THỬ\n"+pendingFormulaRepair.candidate+"\n"+(error?.code||"#CALC!")+" · "+(error?.message||String(error))+"\n\nCông thức gốc được giữ nguyên; không thể chấp thuận đề xuất này.";}
 }
 if(repairPreviewButton)repairPreviewButton.addEventListener("click",previewFormulaRepair);
 if(repairApplyButton)repairApplyButton.addEventListener("click",()=>{
  if(!pendingFormulaRepair||!formulaRepairPreview)return;
  const approval=validateRepairApproval({currentFormula:raw(pendingFormulaRepair.address),expectedFormula:pendingFormulaRepair.original,candidateFormula:pendingFormulaRepair.candidate,previewSucceeded:true});
- if(!approval||pendingFormulaRepair.sheetId!==activeSheetId||pendingFormulaRepair.address!==selected){repairOutput.textContent="Không áp dụng: ô đã đổi hoặc đề xuất không còn khớp. Hãy phân tích lại.";clearFormulaRepair();return;}
- if(!confirm("Áp dụng công thức đã thử vào ô "+selected+"? Thao tác này tạo một mốc Undo."))return;
- const formula=pendingFormulaRepair.candidate;setValue(selected,formula);formulaInput.value=formula;clearFormulaRepair();repairOutput.textContent="Đã áp dụng công thức vào "+selected+". Có thể dùng Hoàn tác (Ctrl+Z) để quay lại công thức cũ.";calcStatus.textContent="Đã áp dụng sửa công thức tại "+selected;
+ if(!approval||pendingFormulaRepair.sheetId!==activeSheetId||pendingFormulaRepair.address!==selected){recordRepairAudit("stale",{address:pendingFormulaRepair.address,before:pendingFormulaRepair.original,after:pendingFormulaRepair.candidate,note:"Công thức gốc không còn khớp tại thời điểm chấp thuận."});repairOutput.textContent="Không áp dụng: ô đã đổi hoặc đề xuất không còn khớp. Hãy phân tích lại.";clearFormulaRepair();return;}
+ if(!confirm("Áp dụng công thức đã thử vào ô "+selected+"? Thao tác này tạo một mốc Undo.")){recordRepairAudit("declined",{address:pendingFormulaRepair.address,before:pendingFormulaRepair.original,after:pendingFormulaRepair.candidate,result:formulaRepairPreview.display});return;}
+ const accepted={...pendingFormulaRepair},formula=accepted.candidate;setValue(selected,formula);formulaInput.value=formula;recordRepairAudit("applied",{sheetId:accepted.sheetId,address:accepted.address,before:accepted.original,after:formula,result:formulaRepairPreview.display,note:"Đã được người dùng xác nhận; ghi qua setValue và có thể Undo."});clearFormulaRepair();repairOutput.textContent="Đã áp dụng công thức vào "+selected+". Có thể dùng Hoàn tác (Ctrl+Z) để quay lại công thức cũ.";calcStatus.textContent="Đã áp dụng sửa công thức tại "+selected;
 });
 
 const evaluateFormulaNode=key=>{const split=key.indexOf("!");if(split<1)throw new Error("Khóa ô không hợp lệ: "+key);return calculate(key.slice(split+1),new Set(),key.slice(0,split));};
