@@ -815,3 +815,14 @@ Bổ sung mô hình đáp ứng tăng dần, lợi ích biên giảm dần:
 - Xuất báo cáo JSON có schema, thời điểm kiểm tra, số lượng bản ghi/giao dịch/ô, trạng thái và danh sách phát hiện.
 - Giới hạn quan trọng: đây là kiểm tra nhất quán nội bộ, không phải chữ ký số hoặc chuỗi hash neo tin cậy. Người có quyền sửa localStorage vẫn có thể thay lịch sử và báo cáo; không thể chứng minh lịch sử chưa từng bị sửa nếu không có bản sao/điểm neo bên ngoài. Bản ghi legacy có thể phát sinh cảnh báo do thiếu dữ liệu thô.
 - Kiểm định tự động và triển khai được ghi nhận theo kết quả CI sau commit; chưa tuyên bố kiểm thử thủ công trên thiết bị thật.
+
+
+## SGHT 18.37 — Immutable Audit Archive — 2026-11-20
+
+- Bổ sung mô-đun `sght/engine/formula-audit-archive.js` tạo kho lưu trữ kiểm toán theo chuỗi SHA-256.
+- Mỗi checkpoint đóng gói lịch sử phiên bản, số bản ghi, báo cáo kiểm định, thời điểm, số thứ tự, hash payload, hash gói và hash của checkpoint trước; checkpoint đầu tiên dùng mốc `GENESIS`.
+- Có thao tác tạo checkpoint, xác minh toàn chuỗi, xuất gói JSON và nhập gói JSON. Nhập chỉ chấp nhận chuỗi hợp lệ có phần đầu trùng kho hiện tại và có checkpoint mới nối tiếp; từ chối chuỗi bị sửa, nhánh khác, bản nhập cũ hoặc không có phần mở rộng.
+- Kho được lưu riêng trong localStorage dưới khóa `haidat-sght-formula-audit-archive-v1`; dữ liệu workbook và lịch sử công thức không bị thay thế khi nhập.
+- SHA-256 phát hiện thay đổi so với hash đã lưu/đối chiếu; nó không chứng minh nguồn gốc nếu kẻ sửa dữ liệu có thể thay cả payload lẫn hash. Muốn có bằng chứng mạnh hơn cần giữ tệp xuất ngoài thiết bị, ký số hoặc neo hash lên dịch vụ tin cậy độc lập. Không tuyên bố localStorage là bất biến hay chống giả mạo.
+- Web Crypto yêu cầu môi trường hỗ trợ `crypto.subtle` (thông thường HTTPS/localhost); nếu không khả dụng, thao tác hash báo lỗi rõ ràng.
+- Kiểm thử tự động và triển khai được xác nhận theo CI sau commit; chưa tuyên bố kiểm thử thủ công trên thiết bị thật.

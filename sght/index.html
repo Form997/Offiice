@@ -166,6 +166,12 @@
         <summary>Formula Version Control · Lịch sử phiên bản công thức <span id="formulaVersionCount">0 phiên bản</span></summary>
         <div class="formula-version-toolbar"><button id="loadFormulaVersions" type="button" class="quiet">Nạp lịch sử ô đang chọn</button><label>Bản A <select id="formulaVersionA"></select></label><label>Bản B <select id="formulaVersionB"></select></label><button id="compareFormulaVersions" type="button" class="quiet" disabled>So sánh A/B</button><button id="restoreFormulaVersion" type="button" class="primary" disabled>Khôi phục bản A</button><button id="exportFormulaVersions" type="button" class="quiet">Xuất JSON</button></div>
         <div class="formula-integrity-audit">
+          <strong>Kho lưu trữ kiểm toán SHA-256</strong>
+          <div class="formula-version-toolbar"><button id="createFormulaAuditArchive" type="button" class="quiet">Tạo bản lưu mới</button><button id="verifyFormulaAuditArchive" type="button" class="quiet">Kiểm tra chuỗi</button><button id="exportFormulaAuditArchive" type="button" class="quiet">Xuất kho JSON</button><button id="importFormulaAuditArchive" type="button" class="quiet">Nhập kho JSON</button><input id="formulaAuditArchiveFile" type="file" accept="application/json,.json" hidden></div>
+          <pre id="formulaArchiveStatus" class="formula-version-output" aria-live="polite">Chưa có thao tác kho lưu trữ. Tạo bản lưu đầu tiên để bắt đầu chuỗi SHA-256.</pre>
+          <small>Mỗi bản lưu chứa lịch sử phiên bản và báo cáo kiểm định, có hash nội dung, hash gói và liên kết bản trước. Nhập chỉ chấp nhận chuỗi hợp lệ nối tiếp kho hiện tại; không cho ghi đè hoặc hạ cấp. Hãy lưu tệp JSON ở nơi độc lập để có bản tham chiếu ngoài thiết bị.</small>
+        </div>
+        <div class="formula-integrity-audit">
           <strong>Kiểm định tính toàn vẹn lịch sử</strong>
           <div class="formula-version-toolbar"><button id="runFormulaIntegrityAudit" type="button" class="quiet">Kiểm tra lịch sử ngay</button><button id="exportFormulaIntegrityReport" type="button" class="quiet">Xuất báo cáo JSON</button></div>
           <pre id="formulaIntegrityOutput" class="formula-version-output" aria-live="polite">Chưa chạy kiểm định. Báo cáo chỉ đọc dữ liệu lịch sử đang lưu trên thiết bị này.</pre>

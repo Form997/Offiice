@@ -6,6 +6,7 @@ import { normalizeFormulaVersions, recordFormulaVersion, getFormulaCellVersions,
 import { collectFormulaVersionChanges } from "./engine/history-version-sync.js";
 import { buildFormulaTransactionRestorePlan } from "./engine/formula-version-history.js";
 import { auditFormulaVersionIntegrity, exportFormulaVersionIntegrityReport } from "./engine/formula-version-integrity.js";
+import { createFormulaAuditArchive, verifyFormulaAuditArchiveChain, verifyAndAppendFormulaAuditArchive, exportFormulaAuditArchive, parseFormulaAuditArchiveBundle } from "./engine/formula-audit-archive.js";
 import { evaluateFormula, FormulaError, listFormulaFunctions } from "./engine/core.js";
 import { buildDependencyGraph, updateDependencyNode, planRecalculation } from "./engine/dependency-engine.js";
 import { CalculationScheduler } from "./engine/calculation-scheduler.js";
@@ -44,6 +45,7 @@ let COLS = 100, ROWS = 1000;
 const MAX_COLS = 16384, MAX_ROWS = 100000, STORAGE_KEY = "haidat-sght-workbook-v1";
 const REPAIR_AUDIT_KEY = "haidat-sght-repair-audit-v1";
 const FORMULA_VERSION_KEY = "haidat-sght-formula-versions-v1";
+const FORMULA_AUDIT_ARCHIVE_KEY = "haidat-sght-formula-audit-archive-v1";
 const ROW_HEIGHT = 32, COLUMN_WIDTH = 108, OVERSCAN_ROWS = 5, OVERSCAN_COLUMNS = 2;
 const sheetScroll = document.querySelector("#sheetScroll");
 const splitScroll = document.querySelector("#splitScroll");
@@ -1076,6 +1078,17 @@ function runFormulaIntegrityAudit(){
  return report;
 }
 if(formulaIntegrityRun)formulaIntegrityRun.addEventListener("click",runFormulaIntegrityAudit);
+const archiveStatus=document.querySelector("#formulaArchiveStatus"),archiveCreate=document.querySelector("#createFormulaAuditArchive"),archiveVerify=document.querySelector("#verifyFormulaAuditArchive"),archiveExport=document.querySelector("#exportFormulaAuditArchive"),archiveImport=document.querySelector("#importFormulaAuditArchive"),archiveFile=document.querySelector("#formulaAuditArchiveFile");
+function loadFormulaAuditArchive(){try{const parsed=JSON.parse(localStorage.getItem(FORMULA_AUDIT_ARCHIVE_KEY)||"[]");return Array.isArray(parsed)?parsed:[];}catch{return [];}}
+function saveFormulaAuditArchive(chain){localStorage.setItem(FORMULA_AUDIT_ARCHIVE_KEY,JSON.stringify(chain));}
+function showFormulaArchiveStatus(lines){if(archiveStatus)archiveStatus.textContent=lines.join("\\n");}
+async function verifyLocalFormulaArchive(){const chain=loadFormulaAuditArchive(),result=await verifyFormulaAuditArchiveChain(chain);showFormulaArchiveStatus(["KHO LƯU TRỮ: "+(result.valid?"TOÀN VẸN":"CÓ VẤN ĐỀ"),"Số bản lưu: "+result.checked,"SHA-256 cuối: "+(result.lastHash||"chưa có"),...result.findings.map(x=>"["+x.code+"] "+x.message)]);return {chain,result};}
+if(archiveCreate)archiveCreate.addEventListener("click",async()=>{archiveCreate.disabled=true;try{const chain=loadFormulaAuditArchive(),check=await verifyFormulaAuditArchiveChain(chain);if(!check.valid)throw new Error("Kho lưu trữ đang có lỗi. Hãy xuất bản sao để kiểm tra, không ghi nối.");const raw=JSON.parse(localStorage.getItem(FORMULA_VERSION_KEY)||"null"),history=Array.isArray(raw)?raw:Array.isArray(raw?.versions)?raw.versions:[];const report=auditFormulaVersionIntegrity(raw);const item=await createFormulaAuditArchive(history,chain);item.payload.integrityReport=report;item.payloadHash=undefined;/* Rebuild through creator with the complete payload below. */const complete=await createFormulaAuditArchive(history,chain);complete.payload.integrityReport=report;const bytes=new TextEncoder().encode(JSON.stringify(complete.payload));const digest=await crypto.subtle.digest("SHA-256",bytes);complete.payloadHash=[...new Uint8Array(digest)].map(x=>x.toString(16).padStart(2,"0")).join("");const {hash,...body}=complete;const canonical=value=>value===null||typeof value!=="object"?JSON.stringify(value):Array.isArray(value)?"["+value.map(canonical).join(",")+"]":"{"+Object.keys(value).sort().map(k=>JSON.stringify(k)+":"+canonical(value[k])).join(",")+"}";const h=await crypto.subtle.digest("SHA-256",new TextEncoder().encode(canonical(body)));complete.hash=[...new Uint8Array(h)].map(x=>x.toString(16).padStart(2,"0")).join("");chain.push(complete);saveFormulaAuditArchive(chain);await verifyLocalFormulaArchive();}catch(error){showFormulaArchiveStatus(["Không tạo được bản lưu: "+error.message]);}finally{archiveCreate.disabled=false;}});
+if(archiveVerify)archiveVerify.addEventListener("click",()=>verifyLocalFormulaArchive().catch(e=>showFormulaArchiveStatus(["Lỗi kiểm tra: "+e.message])));
+if(archiveExport)archiveExport.addEventListener("click",()=>{const chain=loadFormulaAuditArchive(),blob=new Blob([exportFormulaAuditArchive(chain)],{type:"application/json;charset=utf-8"}),url=URL.createObjectURL(blob),link=document.createElement("a");link.href=url;link.download="SGHT-Audit-Archive-"+new Date().toISOString().slice(0,10)+".json";link.click();URL.revokeObjectURL(url);});
+if(archiveImport&&archiveFile)archiveImport.addEventListener("click",()=>archiveFile.click());
+if(archiveFile)archiveFile.addEventListener("change",async()=>{const file=archiveFile.files?.[0];if(!file)return;try{const incoming=parseFormulaAuditArchiveBundle(await file.text()),current=loadFormulaAuditArchive(),result=await verifyAndAppendFormulaAuditArchive(current,incoming);if(!result.accepted)throw new Error(result.reason);saveFormulaAuditArchive(result.chain);showFormulaArchiveStatus(["Đã nhập và xác minh thành công.",result.reason,"Số bản lưu: "+result.chain.length,"SHA-256 cuối: "+(result.verification.lastHash||"chưa có")]);}catch(error){showFormulaArchiveStatus(["Từ chối nhập kho: "+error.message,"Dữ liệu kho hiện tại không bị thay đổi."]);}finally{archiveFile.value="";}});
+
 if(formulaIntegrityExport)formulaIntegrityExport.addEventListener("click",()=>{const report=window.sghtFormulaIntegrityReport||runFormulaIntegrityAudit();if(!report)return;const blob=new Blob([exportFormulaVersionIntegrityReport(report)],{type:"application/json;charset=utf-8"}),url=URL.createObjectURL(blob),link=document.createElement("a");link.href=url;link.download="SGHT-Formula-History-Integrity-"+new Date().toISOString().slice(0,10)+".json";link.click();URL.revokeObjectURL(url);});
 
 if(formulaVersionCompare)formulaVersionCompare.addEventListener("click",()=>{try{const diff=compareFormulaVersions(formulaVersionHistory,formulaVersionA.value,formulaVersionB.value);formulaVersionOutput.textContent="SO SÁNH "+diff.address+"\n\nBẢN A · "+diff.versionA.timestamp+"\n"+(diff.from||"(không còn công thức)")+"\n\nBẢN B · "+diff.versionB.timestamp+"\n"+(diff.to||"(không còn công thức)")+"\n\n"+(diff.equal?"Hai phiên bản giống nhau.":"Hai phiên bản khác nhau.");}catch(error){formulaVersionOutput.textContent=error.message;}});
