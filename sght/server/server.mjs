@@ -19,7 +19,9 @@ function same(a,b){const x=Buffer.from(String(a)),y=Buffer.from(String(b));retur
 export function createSghtAuthServer({pool,allowedOrigin,secureCookies=true,now=()=>Date.now()}){
  if(!pool||!allowedOrigin)throw new Error("pool and allowedOrigin are required");
  const originUrl=new URL(allowedOrigin);if(secureCookies&&originUrl.protocol!=="https:")throw new Error("HTTPS origin required");
- const cookieOpts=secureCookies;\n const attempts=new Map();\n const rateLimit=(key)=>{const t=now(),entry=attempts.get(key)||{start:t,count:0};if(t-entry.start>60000){entry.start=t;entry.count=0;}entry.count++;attempts.set(key,entry);return entry.count<=12;};
+ const cookieOpts=secureCookies;
+ const attempts=new Map();
+ const rateLimit=(key)=>{const t=now(),entry=attempts.get(key)||{start:t,count:0};if(t-entry.start>60000){entry.start=t;entry.count=0;}entry.count++;attempts.set(key,entry);return entry.count<=12;};
  const app=createServer(async(req,res)=>{
   const requestId=randomUUID();
   try{
