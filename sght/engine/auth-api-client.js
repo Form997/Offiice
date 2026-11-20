@@ -20,6 +20,7 @@ export function resolveAuthApiBase(value, origin = globalThis.location?.origin |
 const SAFE_PATHS = new Set([
   "/v1/auth/csrf", "/v1/auth/login", "/v1/auth/me", "/v1/auth/logout",
   "/v1/auth/email-verification/request", "/v1/auth/email-verification/complete",
+  "/v1/auth/mfa/login/complete", "/v1/auth/mfa/enroll", "/v1/auth/mfa/enable", "/v1/auth/mfa/disable",
   "/v1/auth/invitations/accept", "/v1/auth/password-reset/request", "/v1/auth/password-reset/complete",
   "/v1/admin/users", "/v1/admin/audit", "/v1/auth/sessions"
 ]);
@@ -89,8 +90,14 @@ export class SghtAuthApiClient {
   }
   async login({ email, password }) {
     if (!email || !password) throw new AuthApiError("Cần email và mật khẩu.");
-    return safeSession(await this.request("/v1/auth/login", { method: "POST", body: { email: String(email).trim().toLowerCase(), password }, csrf: true }));
+    const data=await this.request("/v1/auth/login", { method: "POST", body: { email: String(email).trim().toLowerCase(), password }, csrf: true });
+    if(data.mfaRequired===true){if(typeof data.challengeToken!=="string"||data.challengeToken.length<32)throw new AuthApiError("Thử thách MFA từ máy chủ không hợp lệ.",0,"MFA_CHALLENGE_INVALID");return {mfaRequired:true,challengeToken:data.challengeToken,expiresInSeconds:Number(data.expiresInSeconds)||300};}
+    return safeSession(data);
   }
+  async completeMfaLogin(challengeToken,code){if(typeof challengeToken!=="string"||challengeToken.length<32||typeof code!=="string")throw new AuthApiError("Thử thách hoặc mã MFA không hợp lệ.");return safeSession(await this.request("/v1/auth/mfa/login/complete",{method:"POST",body:{challengeToken,code},csrf:true}));}
+  async enrollMfa(){return this.request("/v1/auth/mfa/enroll",{method:"POST",body:{},csrf:true});}
+  async enableMfa(code){return this.request("/v1/auth/mfa/enable",{method:"POST",body:{code},csrf:true});}
+  async disableMfa(password,code){return this.request("/v1/auth/mfa/disable",{method:"POST",body:{password,code},csrf:true});}
   async me() { return safeSession(await this.request("/v1/auth/me")); }
   async logout() { try { return await this.request("/v1/auth/logout", { method: "POST", body: {}, csrf: true }); } finally { this.clearSessionHints(); } }
   async createUser({ email, displayName, role }) { return this.request("/v1/admin/users", { method: "POST", body: { email, displayName, role }, csrf: true }); }
