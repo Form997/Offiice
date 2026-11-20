@@ -1,5 +1,6 @@
 import { evaluateFormula, FormulaError } from "./engine/core.js";
 import { buildDependencyGraph, updateDependencyNode, planRecalculation } from "./engine/dependency-engine.js";
+import { CalculationScheduler } from "./engine/calculation-scheduler.js";
 import { normalizeCellFormat, cellFormatStyle, getRangeBounds, expandRange, encodeTSV, parseTSV } from "./engine/cell-format.js";
 import { captureRange, pasteCapturedRange } from "./engine/range-clipboard.js";
 import { fillRange } from "./engine/fill-series.js";
@@ -171,9 +172,11 @@ window.addEventListener("keydown",event=>{
   else if(key==="y"){event.preventDefault();historyMove(redoStack,undoStack);}
 });
 
-let dependencyGraph=buildDependencyGraph(workbookSheets),formulaValueCache=new Map(),lastRecalculationPlan=null;
-function rebuildDependencyEngine(){storeActiveSheet();dependencyGraph=buildDependencyGraph(workbookSheets);formulaValueCache.clear();lastRecalculationPlan=null;}
-function invalidateFormulaCells(addresses){storeActiveSheet();const changed=[...new Set(addresses)].map(a=>activeSheetId+"!"+String(a).toUpperCase());for(const a of addresses)updateDependencyNode(dependencyGraph,workbookSheets,activeSheetId,a);const plan=planRecalculation(dependencyGraph,changed);lastRecalculationPlan=plan;for(const key of plan.affected)formulaValueCache.delete(key);return plan;}
+let dependencyGraph=buildDependencyGraph(workbookSheets),formulaValueCache=new Map(),lastRecalculationPlan=null,workbookRevision=0;
+const calculationScheduler=new CalculationScheduler({chunkSize:64,onProgress:state=>{if(state.remaining)calcStatus.textContent="Đang tính lại "+state.completed+"/"+state.queued+" công thức · còn "+state.remaining+" · đợt "+state.chunks;},onError:(error,key)=>{calcStatus.textContent="Lỗi tính toán "+key+": "+(error.code||error.message);},onComplete:state=>{if(state.queued)calcStatus.textContent="Đã tính lại "+state.completed+"/"+state.queued+" công thức trong "+state.chunks+" đợt"+(state.failed?" · lỗi "+state.failed:"")+". "+state.elapsedMs+" ms";}});
+function rebuildDependencyEngine(){calculationScheduler.cancel("workbook-rebuilt");workbookRevision++;storeActiveSheet();dependencyGraph=buildDependencyGraph(workbookSheets);formulaValueCache.clear();lastRecalculationPlan=null;}
+function scheduleRecalculation(plan){const revision=++workbookRevision;const visible=new Set([...document.querySelectorAll("#sheetGrid [data-cell],#splitGrid [data-cell]")].map(el=>activeSheetId+"!"+el.dataset.cell));calculationScheduler.enqueue(plan,{revision,getRevision:()=>workbookRevision,priority:key=>key.startsWith(activeSheetId+"!")?(visible.has(key)?3:2):1,run:key=>{const split=key.indexOf("!");if(split<1)return;calculate(key.slice(split+1),new Set(),key.slice(0,split));}});}
+function invalidateFormulaCells(addresses){storeActiveSheet();const changed=[...new Set(addresses)].map(a=>activeSheetId+"!"+String(a).toUpperCase());for(const a of addresses)updateDependencyNode(dependencyGraph,workbookSheets,activeSheetId,a);const plan=planRecalculation(dependencyGraph,changed);lastRecalculationPlan=plan;for(const key of plan.affected)formulaValueCache.delete(key);scheduleRecalculation(plan);return plan;}
 function raw(a){return Object.hasOwn(cells,a)?String(cells[a]):"";}
 function calculate(a,stack=new Set(),sourceSheetId=activeSheetId){
  const sourceSheet=getWorkbookSheet(workbookSheets,sourceSheetId);

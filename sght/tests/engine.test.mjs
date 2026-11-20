@@ -116,3 +116,30 @@ test("dependency graph does not expand oversized ranges",()=>{
  const g=buildDependencyGraph([{id:"s1",name:"Data",cells:{A1:"=SUM(A1:XFD1048576)"}}]);
  assert.equal(g.dependencies.get("s1!A1").size,0);assert.equal(g.unresolved[0].reason,"range-limit-or-invalid");
 });
+
+import { CalculationScheduler } from "../engine/calculation-scheduler.js";
+test("scheduler xử lý theo từng đợt và giữ thứ tự ưu tiên ổn định",()=>{
+ const tasks=[],done=[],progress=[];const scheduler=new CalculationScheduler({chunkSize:2,schedule:fn=>{tasks.push(fn);return tasks.length;},cancelSchedule:()=>{},onProgress:s=>progress.push(s)});
+ scheduler.enqueue({order:["a","b","c","d"]},{revision:1,getRevision:()=>1,priority:key=>key==="c"?5:0,run:key=>done.push(key)});
+ while(tasks.length)tasks.shift()();
+ assert.deepEqual(done,["c","a","b","d"]);assert.equal(scheduler.getState().completed,4);assert.equal(scheduler.getState().chunks,2);assert.equal(progress.at(-1).remaining,0);
+});
+test("scheduler hủy đợt cũ khi có phiên tính mới",()=>{
+ const tasks=[],done=[];const scheduler=new CalculationScheduler({schedule:fn=>{tasks.push(fn);return tasks.length;},cancelSchedule:()=>{},chunkSize:1});
+ scheduler.enqueue({order:["old1","old2"]},{revision:1,getRevision:()=>1,run:key=>done.push(key)});
+ scheduler.enqueue({order:["new"]},{revision:2,getRevision:()=>2,run:key=>done.push(key)});
+ while(tasks.length)tasks.shift()();
+ assert.deepEqual(done,["new"]);assert.equal(scheduler.getState().stale,0);
+});
+test("scheduler bỏ kết quả của revision đã lỗi thời",()=>{
+ const tasks=[],done=[];let current=1;const scheduler=new CalculationScheduler({schedule:fn=>{tasks.push(fn);return tasks.length;},cancelSchedule:()=>{},chunkSize:1});
+ scheduler.enqueue({order:["a","b"]},{revision:1,getRevision:()=>current,run:key=>done.push(key)});
+ current=2;while(tasks.length)tasks.shift()();
+ assert.deepEqual(done,[]);assert.equal(scheduler.getState().running,false);
+});
+test("scheduler tiếp tục các công thức còn lại khi một công thức lỗi",()=>{
+ const tasks=[],done=[],errors=[];const scheduler=new CalculationScheduler({schedule:fn=>{tasks.push(fn);return tasks.length;},cancelSchedule:()=>{},chunkSize:4,onError:(e,key)=>errors.push(key)});
+ scheduler.enqueue({order:["a","b","c"]},{revision:1,getRevision:()=>1,run:key=>{if(key==="b")throw Error("bad");done.push(key);}});
+ while(tasks.length)tasks.shift()();
+ assert.deepEqual(done,["a","c"]);assert.deepEqual(errors,["b"]);assert.equal(scheduler.getState().failed,1);
+});

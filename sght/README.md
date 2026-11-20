@@ -689,3 +689,15 @@ Bổ sung mô hình đáp ứng tăng dần, lợi ích biên giảm dần:
 - Đổi tên, thêm, xóa trang và Undo/Redo dựng lại đồ thị để tránh cạnh cũ.
 - Vùng trên 100.000 ô không bị bung thành hàng triệu nút; được ghi nhận là vùng chưa lập chỉ mục.
 - Bộ lập lịch hiện cung cấp thứ tự và phạm vi invalidation; chưa triển khai worker nền song song.
+
+
+
+## SGHT Calculation Scheduler 18.25 — Điều phối tính toán thông minh — 2026-11-20
+
+- Đưa kế hoạch topo từ Dependency Engine vào hàng đợi tính toán thực thi, thay vì chỉ ghi nhận phạm vi invalidation.
+- Ưu tiên công thức thuộc trang tính đang mở; trong đó các ô hiện diện trong vùng lưới đang hiển thị được ưu tiên trước. Công thức ở trang khác vẫn được xử lý sau theo thứ tự phụ thuộc.
+- Chia công việc thành từng đợt tối đa 64 công thức, nhường lượt cho trình duyệt giữa các đợt để giảm nguy cơ khóa giao diện khi workbook có nhiều công thức.
+- Khi phát sinh lần sửa mới hoặc workbook được nạp/đổi cấu trúc, đợt cũ bị hủy; revision token ngăn kết quả cũ ghi đè tiến trình mới.
+- Lỗi ở một công thức được ghi nhận riêng, không làm dừng toàn bộ các công thức còn lại trong hàng đợi. Công thức hiển thị vẫn có thể được tính tức thời theo nhu cầu khi render.
+- Hiển thị tiến độ, số công thức đã xử lý/còn lại, số đợt, lỗi và thời gian thực thi ở thanh trạng thái.
+- Đây là bộ điều phối chia đợt trên luồng chính bằng lịch nhường lượt của trình duyệt; chưa dùng Web Worker/worker pool, chưa tính song song và chưa có kiểm thử hiệu năng quy mô lớn.
