@@ -189,10 +189,12 @@ export function createSghtAuthServer({pool,allowedOrigin,mailer=null,secureCooki
    if(passkeyMatch&&method==="PATCH"){
     await checkCsrf();const u=await requireUser(),b=await body(req),displayName=String(b.displayName||"").trim();
     if(!displayName||displayName.length>48)return json(res,400,{code:"PASSKEY_NAME_INVALID",message:"Passkey name must contain 1–48 characters."});
-    const q=await pool.query("UPDATE sght_passkeys SET display_name=$3 WHERE user_id=$1 AND credential_id=$2 RETURNING credential_id",[u.user_id,passkeyMatch[1],displayName]);
-    if(!q.rowCount)return json(res,404,{code:"PASSKEY_NOT_FOUND",message:"Passkey not found."});
-    await pool.query("INSERT INTO sght_audit_events(actor_user_id,target_user_id,action,metadata_json,request_id) VALUES($1,$1,'auth.passkey_renamed',$2,$3)",[u.user_id,JSON.stringify({credentialId:passkeyMatch[1],displayName}),requestId]);
-    return json(res,200,{ok:true,credentialId:passkeyMatch[1],displayName});
+    const client=await pool.connect();try{await client.query("BEGIN");
+     const q=await client.query("UPDATE sght_passkeys SET display_name=$3 WHERE user_id=$1 AND credential_id=$2 RETURNING credential_id",[u.user_id,passkeyMatch[1],displayName]);
+     if(!q.rowCount){await client.query("ROLLBACK");return json(res,404,{code:"PASSKEY_NOT_FOUND",message:"Passkey not found."});}
+     await client.query("INSERT INTO sght_audit_events(actor_user_id,target_user_id,action,metadata_json,request_id) VALUES($1,$1,'auth.passkey_renamed',$2,$3)",[u.user_id,JSON.stringify({credentialId:passkeyMatch[1],displayName}),requestId]);
+     await client.query("COMMIT");return json(res,200,{ok:true,credentialId:passkeyMatch[1],displayName});
+    }catch(e){await client.query("ROLLBACK");throw e;}finally{client.release();}
    }
    if(passkeyMatch&&method==="DELETE"){
     await checkCsrf();const u=await requireUser(),b=await body(req),password=String(b.password||""),code=String(b.code||"").trim();
