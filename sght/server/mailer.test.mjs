@@ -17,11 +17,13 @@ test("mailer sends invitation and reset messages without exposing tokens in API 
  const mailer=createSghtMailer({transport:{sendMail:async message=>sent.push(message)},from:"SGHT <noreply@example.test>",publicAppUrl:"https://example.test/Offiice"});
  await mailer.sendInvitation({to:"person@example.test",displayName:"A <B>",role:"viewer",token:"invite-secret"});
  await mailer.sendPasswordReset({to:"person@example.test",displayName:"A",token:"reset-secret"});
- assert.equal(sent.length,2);
+ await mailer.sendEmailVerification({to:"person@example.test",displayName:"A",token:"verify-secret"});
+ assert.equal(sent.length,3);
  assert.equal(sent[0].to,"person@example.test");
  assert.match(sent[0].text,/#invite=invite-secret/);
  assert.match(sent[0].html,/A &lt;B&gt;/);
  assert.match(sent[1].text,/#reset=reset-secret/);
+ assert.match(sent[2].text,/#verify=verify-secret/);
  assert.equal(sent[0].from,"SGHT <noreply@example.test>");
 });
 test("SMTP is optional but partial configuration fails closed",async()=>{
