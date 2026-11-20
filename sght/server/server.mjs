@@ -49,7 +49,7 @@ export function createSghtAuthServer({pool,allowedOrigin,mailer=null,secureCooki
     const candidate=(await passwordHash(b.password,salt)).hash;
     if(!u||u.status!=="active"||!u.email_verified_at||!same(candidate,u.password_hash))return json(res,401,{code:"INVALID_CREDENTIALS",message:"Email or password is incorrect."});
     const mfa=await pool.query("SELECT enabled_at FROM sght_user_mfa WHERE user_id=$1 AND enabled_at IS NOT NULL",[u.id]);
-    if(mfa.rowCount){const challenge=token();await pool.query("INSERT INTO sght_mfa_challenges(token_hash,user_id,expires_at) VALUES($1,$2,now()+interval '5 minutes')",[hash(challenge),u.id]);return json(res,200,{mfaRequired:true,challengeToken:challenge,expiresInSeconds:300});}
+    if(mfa.rowCount){const masterKey=process.env.SGHT_MFA_ENCRYPTION_KEY;if(typeof masterKey!=="string"||Buffer.byteLength(masterKey,"utf8")<32)return json(res,503,{code:"MFA_NOT_CONFIGURED",message:"MFA encryption is not configured."});const challenge=token();await pool.query("INSERT INTO sght_mfa_challenges(token_hash,user_id,expires_at) VALUES($1,$2,now()+interval '5 minutes')",[hash(challenge),u.id]);return json(res,200,{mfaRequired:true,challengeToken:challenge,expiresInSeconds:300});}
     const sid=token(),csrf=issueCsrf();await pool.query("INSERT INTO sght_sessions(id_hash,user_id,csrf_hash,expires_at,user_agent) VALUES($1,$2,$3,now()+($4 * interval '1 millisecond'),$5)",[hash(sid),u.id,hash(csrf),SESSION_ABSOLUTE_TTL_MS,normalizeUserAgent(req.headers["user-agent"])]);
     res.setHeader("Set-Cookie",[cookie("sght_session",sid,28800),`sght_csrf=${csrf}; Path=/; SameSite=Strict; Max-Age=1800${cookieOpts?"; Secure":""}`]);
     await pool.query("INSERT INTO sght_audit_events(actor_user_id,target_user_id,action,metadata_json,request_id) VALUES($1,$1,'auth.login','{}',$2)",[u.id,requestId]);
@@ -89,6 +89,7 @@ export function createSghtAuthServer({pool,allowedOrigin,mailer=null,secureCooki
      return json(res,200,{user:safeUser(user)});
     }catch(e){await client.query("ROLLBACK");throw e;}finally{client.release();}
    }
+   if(method==="GET"&&path==="/v1/auth/mfa/status"){const u=await requireUser();const q=await pool.query("SELECT enabled_at FROM sght_user_mfa WHERE user_id=$1",[u.user_id]);const count=await pool.query("SELECT count(*)::int AS remaining FROM sght_mfa_recovery_codes WHERE user_id=$1",[u.user_id]);return json(res,200,{enabled:!!q.rows[0]?.enabled_at,recoveryCodesRemaining:count.rows[0]?.remaining||0});}
    if(method==="POST"&&path==="/v1/auth/mfa/enroll"){
     await checkCsrf();const u=await requireUser();if(!rateLimit("mfa-enroll:"+u.user_id,4))return json(res,429,{code:"MFA_RATE_LIMITED",message:"Too many MFA setup attempts."});
     const masterKey=process.env.SGHT_MFA_ENCRYPTION_KEY;if(typeof masterKey!=="string"||Buffer.byteLength(masterKey,"utf8")<32)return json(res,503,{code:"MFA_NOT_CONFIGURED",message:"MFA encryption is not configured."});
