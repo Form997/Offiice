@@ -624,3 +624,12 @@ Bổ sung mô hình đáp ứng tăng dần, lợi ích biên giảm dần:
 - Biểu đồ hiển thị bản sao SVG của Pivot Chart đang hoạt động; KPI đọc tổng cộng từ chỉ tiêu Pivot. Dashboard làm mới cùng chu kỳ Pivot.
 - Lưu/nạp mẫu theo tên, tối đa 30 mẫu; bố cục và mẫu lưu cùng workbook trong localStorage. Workbook cũ được khởi tạo dashboard rỗng.
 - Mọi thẻ dùng chung một Pivot nguồn; chưa có nhiều Pivot độc lập, bộ lọc chéo, kéo-thả tự do, resize kéo góc hoặc xuất toàn dashboard PDF/PNG. Chưa kiểm thử thủ công trên trình duyệt/thiết bị thật.
+
+
+## SGHT Dashboard đa nguồn — Giai đoạn 18.19 · 2026-11-20
+
+- Mỗi thẻ biểu đồ/KPI lưu một bản cấu hình Pivot độc lập (vùng nguồn, trường hàng/cột, tối đa 4 chỉ tiêu và bộ lọc riêng). Thêm thẻ sẽ chụp cấu hình Pivot hiện hành; nút “Lấy Pivot hiện hành” thay nguồn cho riêng thẻ đang chọn.
+- Mỗi thẻ được tính lại trực tiếp từ dữ liệu ô hiện hành bằng Pivot engine; biểu đồ và KPI không còn phụ thuộc vào SVG/giá trị tổng của một Pivot hiển thị chung. KPI chọn được chỉ tiêu riêng.
+- Bộ lọc dashboard dùng chung theo số cột; lựa chọn được áp dụng cho mọi nguồn Pivot có chứa cột tương ứng. Cấu hình lọc riêng của từng Pivot vẫn được giữ.
+- Lưu cấu hình nguồn độc lập và bộ lọc chung cùng workbook/mẫu. Chuẩn hóa dữ liệu cũ 18.18: thẻ cũ không có nguồn hiển thị trạng thái yêu cầu gán Pivot, không tự đoán nguồn dữ liệu.
+- Giới hạn: mọi nguồn vẫn lấy từ cùng trang tính hiện hành; bộ lọc liên kết nhận diện trường theo số cột (không theo tên trường), biểu đồ dashboard dùng dạng cột gọn; chưa có nhiều sheet, nguồn ngoài, cross-filter bằng cách bấm trực tiếp cột biểu đồ, hay kéo-thả tự do. Chưa kiểm thử thủ công trên thiết bị thật.
