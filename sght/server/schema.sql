@@ -74,3 +74,6 @@ CREATE TABLE IF NOT EXISTS sght_email_verifications (
  created_at timestamptz NOT NULL DEFAULT now()
 );
 CREATE INDEX IF NOT EXISTS sght_email_verifications_user_active ON sght_email_verifications(user_id) WHERE consumed_at IS NULL;
+
+-- 18.47 session device metadata; no raw IP address is retained.
+ALTER TABLE sght_sessions ADD COLUMN IF NOT EXISTS user_agent varchar(500);

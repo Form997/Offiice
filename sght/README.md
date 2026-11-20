@@ -937,3 +937,15 @@ Bổ sung mô hình đáp ứng tăng dần, lợi ích biên giảm dần:
 - Giới hạn: GitHub Pages vẫn là frontend tĩnh. Chưa cấu hình URL API, chưa triển khai PostgreSQL/SMTP, chưa thể gửi email hoặc xác nhận quy trình end-to-end thật. CORS, cookie cross-site, HTTPS, SMTP, SPF/DKIM/DMARC và bảo vệ dữ liệu workbook vẫn phải được cấu hình/kiểm định trước khi mở cho người dùng.
 - Kiểm thử cục bộ riêng cho mô-đun fragment: 4/4 đạt (Node.js v22.16.0), gồm token mời/xác minh/reset, fragment sai/đa khóa, xóa URL và giới hạn mật khẩu. Đã kiểm tra cú pháp app.js và account-lifecycle.js bằng bộ phân tích JavaScript; cả hai đạt. Chưa chạy toàn bộ bộ test của repository hoặc xác nhận trạng thái GitHub Actions/Pages trong lần cập nhật này; chưa kiểm thử thủ công trên điện thoại hoặc trình duyệt thật.
 - Bắt đầu và phát triển: 20/11/2026.
+
+## SGHT 18.47 — Session Security & Device Management — 2026-11-20
+
+- Nâng cấp quản lý phiên phía máy chủ: lưu User-Agent đã làm sạch (tối đa 500 ký tự) để phân loại thiết bị/trình duyệt; không lưu địa chỉ IP thô. Danh sách phiên trả nhãn thiết bị, thời điểm tạo, hoạt động gần nhất, hạn tuyệt đối và trạng thái phiên hiện tại.
+- Áp dụng chính sách hết phiên khi không hoạt động 30 phút; phiên vẫn có hạn tuyệt đối 8 giờ kể từ lúc đăng nhập. Máy chủ kiểm tra idle timeout trên yêu cầu đã xác thực, thu hồi phiên quá hạn và cập nhật last_seen_at có giới hạn tần suất (tối đa một lần mỗi phút).
+- Bổ sung cảnh báo heuristic khi User-Agent hiện tại khác User-Agent lúc đăng nhập. Đây chỉ là tín hiệu cần kiểm tra (trình duyệt cập nhật hoặc thay đổi cấu hình có thể tạo cảnh báo giả); không dùng User-Agent làm yếu tố xác thực và không tự động khóa tài khoản.
+- Gia cố CSRF theo phiên: khi có phiên hợp lệ, hash CSRF cookie phải khớp digest gắn với phiên trong database. Tuyến cấp CSRF đồng bộ digest mới cho phiên hiện hành; luồng trước đăng nhập vẫn dùng double-submit cookie + kiểm tra Origin.
+- Migration schema cộng thêm cột user_agent theo cách tương thích, không xóa dữ liệu phiên hiện có. Giao diện hiển thị tên thiết bị, thời điểm, hạn phiên, cảnh báo thay đổi trình duyệt và chính sách 30 phút/8 giờ.
+- Bổ sung mô-đun thuần sght/server/session-security.js và kiểm thử cho chuẩn hóa User-Agent, nhận diện trình duyệt/nền tảng, idle timeout và cảnh báo thay đổi User-Agent.
+- Giới hạn: User-Agent có thể giả mạo, không xác định chắc chắn thiết bị vật lý hoặc danh tính người dùng. Chưa có MFA, quản lý thiết bị tin cậy, thông báo đăng nhập qua email, phát hiện vị trí/IP bất thường, giới hạn tốc độ phân tán, Argon2id hoặc kiểm thử PostgreSQL end-to-end. Chính sách idle cần được kiểm chứng cùng môi trường triển khai; không tuyên bố dịch vụ xác thực production-ready.
+- Kiểm thử tự động: chờ GitHub Actions xác nhận sau commit. Chưa kiểm thử thủ công trên trình duyệt/điện thoại thật hoặc tích hợp PostgreSQL thật.
+- Bắt đầu và phát triển: 20/11/2026.
