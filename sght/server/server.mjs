@@ -15,7 +15,7 @@ const clearCookie = name => `${name}=; Path=/; HttpOnly; Secure; SameSite=Lax; M
 const json = (res,status,data,headers={}) => { res.writeHead(status,{"Content-Type":"application/json; charset=utf-8","Cache-Control":"no-store","X-Content-Type-Options":"nosniff","Referrer-Policy":"no-referrer",...headers});res.end(JSON.stringify(data)); };
 const safeUser = u => ({id:u.id,email:u.email||u.email_normalized,displayName:u.display_name,role:u.role,status:u.status});
 function cookies(req){return Object.fromEntries((req.headers.cookie||"").split(";").map(x=>x.trim().split(/=(.*)/s)).filter(x=>x.length===2));}
-async function body(req){let s="";for await(const chunk of req){s+=chunk;if(s.length>16384)throw Object.assign(new Error("Body too large"),{status:413,code:"BODY_TOO_LARGE"});}try{return s?JSON.parse(s):{};}catch{throw Object.assign(new Error("Invalid JSON"),{status:400,code:"INVALID_JSON"});}}
+async function body(req){let s="";for await(const chunk of req){s+=chunk;if(s.length>65536)throw Object.assign(new Error("Body too large"),{status:413,code:"BODY_TOO_LARGE"});}try{return s?JSON.parse(s):{};}catch{throw Object.assign(new Error("Invalid JSON"),{status:400,code:"INVALID_JSON"});}}
 function passwordValid(p){return typeof p==="string"&&p.length>=12&&p.length<=256;}
 async function passwordHash(password,salt= randomBytes(16).toString("hex")){const key=await scrypt(password,salt,64);return {salt,hash:key.toString("hex")};}
 function same(a,b){const x=Buffer.from(String(a)),y=Buffer.from(String(b));return x.length===y.length&&timingSafeEqual(x,y);}
