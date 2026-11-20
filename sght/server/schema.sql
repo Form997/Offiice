@@ -109,6 +109,7 @@ CREATE TABLE IF NOT EXISTS sght_passkeys (
  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
  user_id uuid NOT NULL REFERENCES sght_users(id) ON DELETE CASCADE,
  credential_id text NOT NULL UNIQUE,
+ display_name varchar(48) NOT NULL DEFAULT 'Passkey',
  public_key bytea NOT NULL,
  counter bigint NOT NULL DEFAULT 0,
  transports text[] NOT NULL DEFAULT ARRAY[]::text[],
@@ -117,6 +118,7 @@ CREATE TABLE IF NOT EXISTS sght_passkeys (
  created_at timestamptz NOT NULL DEFAULT now(),
  last_used_at timestamptz
 );
+ALTER TABLE sght_passkeys ADD COLUMN IF NOT EXISTS display_name varchar(48) NOT NULL DEFAULT 'Passkey';
 CREATE INDEX IF NOT EXISTS sght_passkeys_user ON sght_passkeys(user_id);
 CREATE TABLE IF NOT EXISTS sght_webauthn_challenges (
  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
