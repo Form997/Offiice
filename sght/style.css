@@ -231,3 +231,12 @@
 .pivot-chart-studio-controls .pivot-chart-check{display:flex;align-items:center;gap:7px}
 .pivot-chart-studio-controls button{align-self:end;min-height:35px}
 @media(max-width:680px){.pivot-chart-studio-controls{grid-template-columns:1fr}.pivot-chart-studio-controls button{justify-self:start}}
+
+/* SGHT 18.17 · Pivot Chart Manager */
+.pivot-chart-manager{display:grid;grid-template-columns:minmax(150px,1fr) minmax(150px,1fr);gap:9px;align-items:center;padding:12px;border:1px solid var(--line);border-radius:9px;background:#f5f8f6}
+.pivot-chart-manager>div:first-child{display:grid;gap:3px}.pivot-chart-manager small{color:var(--muted);font-size:11px}
+.pivot-chart-manager select{min-width:0;height:36px;border:1px solid var(--line);border-radius:6px;padding:0 8px;background:#fff}
+.pivot-chart-manager-actions{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:6px}
+.pivot-chart-manager-actions button{min-height:34px}
+.pivot-chart-manager-actions button:disabled{opacity:.42;cursor:not-allowed}
+@media(max-width:600px){.pivot-chart-manager{grid-template-columns:1fr}.pivot-chart-manager-actions{grid-column:1}}

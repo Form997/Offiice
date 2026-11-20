@@ -606,3 +606,13 @@ Bổ sung mô hình đáp ứng tăng dần, lợi ích biên giảm dần:
 - Xuất SVG, chuyển SVG sang PNG độ phân giải 2× bằng Canvas; tùy chọn In/Lưu PDF dùng hộp thoại in của trình duyệt (người dùng chọn đích PDF).
 - Tương thích cấu hình cũ 18.15: thiếu trường mới sẽ được chuẩn hóa về mặc định; kiểu biểu đồ và chỉ tiêu cũ tiếp tục được giữ.
 - Giới hạn: PNG phụ thuộc hỗ trợ Canvas của trình duyệt; PDF phụ thuộc hộp thoại in và trình điều khiển PDF của thiết bị. Trục tự động, không có thang log/đảo trục; màu tùy chỉnh áp dụng tuần tự, chưa hỗ trợ chọn màu riêng từng chuỗi. Chưa kiểm thử thủ công trên thiết bị thật.
+
+
+## SGHT Chart Manager — Giai đoạn 18.17 · Quản lý nhiều biểu đồ Pivot — 2026-11-20
+
+- Một Pivot có thể quản lý tối đa 20 cấu hình biểu đồ độc lập. Mỗi biểu đồ giữ loại biểu đồ, chỉ tiêu, tiêu đề, nhãn trục, chú giải, nhãn số, định dạng số và bảng màu riêng.
+- Thêm biểu đồ mới, chọn biểu đồ đang làm việc, nhân bản cấu hình, đổi tên, xóa (luôn giữ tối thiểu một biểu đồ) và sắp xếp thứ tự lên/xuống.
+- Biểu đồ đang chọn được dựng từ Pivot hiện hành; khi dữ liệu nguồn, trường Pivot hoặc bộ lọc thay đổi, biểu đồ đang chọn tự làm mới. Chuyển sang biểu đồ khác nạp cấu hình riêng tương ứng.
+- Lưu danh sách biểu đồ và lựa chọn hiện hành cùng workbook trong localStorage. Workbook 18.15/18.16 cũ tự chuyển cấu hình biểu đồ đơn thành biểu đồ đầu tiên, không xóa cấu hình cũ.
+- Xóa hoặc nhân bản cấu hình biểu đồ không sửa dữ liệu ô, công thức, định dạng, Undo/Redo hoặc vùng nguồn.
+- Giới hạn: các biểu đồ dùng chung một Pivot nguồn; mỗi lần chỉ hiển thị và xuất biểu đồ đang chọn, chưa có bảng điều khiển nhiều biểu đồ cùng lúc hoặc bố cục dashboard kéo-thả. Tối đa 20 biểu đồ trên một Pivot. Chưa kiểm thử thủ công trên thiết bị thật.
