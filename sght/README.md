@@ -664,5 +664,5 @@ Bổ sung mô hình đáp ứng tăng dần, lợi ích biên giảm dần:
 - Có thể thêm trang tính, chuyển qua lại bằng thanh tab, đổi tên trang tính; tên không được trùng. Không cho xóa trang cuối cùng; xóa trang khác cần xác nhận.
 - Workbook cũ chỉ có một trang được tự động chuyển thành trang tính đầu tiên; dữ liệu và định dạng cũ được giữ. Mỗi trang lưu độc lập trong cùng bản ghi workbook localStorage.
 - Tạo trang tính mới không còn xóa dữ liệu trang hiện hành. Nút “Trang tính mới” thêm trang trắng.
-- Nguồn Dashboard được chuẩn bị để gắn với ID trang tính; cấu hình Pivot cũ chưa tự động có thể tham chiếu nhiều trang. Các thẻ Dashboard 18.21 chưa được xác nhận hiển thị nguồn liên trang tính cho tới khi hoàn tất phần nối nguồn và lọc chéo theo định danh trường.
+- Nguồn Pivot của từng thẻ Dashboard gắn với ID trang tính; cấu hình cũ không có ID được tự động gắn vào trang đầu tiên của workbook để tránh trỏ nhầm khi mở nhiều trang.
 - Giới hạn: lưu cục bộ trên trình duyệt/thiết bị, chưa có đồng bộ đám mây, liên kết công thức giữa trang tính, bảo vệ trang tính, sao chép/di chuyển trang hoặc kiểm thử thủ công đa thiết bị.
