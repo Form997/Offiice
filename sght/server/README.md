@@ -123,3 +123,37 @@ Reapply schema.sql to an existing 18.43 database. Additive ALTER TABLE ... ADD C
 ### Remaining security limitations
 
 The existing scrypt password verifier is retained; Argon2id migration is still required before production. Rate limiting remains in-memory/per-process and is not distributed. No email provider, MFA, email verification, password-change notification, idle timeout, session device fingerprint, or live PostgreSQL integration tests are included. The development token mode is for local testing only. The backend remains undeployed; GitHub Pages remains static; workbook, formula, macro, signature, and export data routes are not yet protected by server authorization. Obtain an independent security review before exposing this API.
+
+
+## 18.45 — SMTP email delivery and verified account lifecycle
+
+The API now supports SMTP delivery through Nodemailer. Configure these environment variables in the backend deployment secret manager (never commit credentials):
+
+- SMTP_HOST, SMTP_PORT
+- SGHT_MAIL_FROM
+- SGHT_PUBLIC_APP_URL: HTTPS base URL of the static application, e.g. https://form997.github.io/Offiice (without query or fragment)
+- Optional SMTP authentication: both SMTP_USER and SMTP_PASSWORD
+- Optional SMTP_SECURE=true; port 465 defaults to implicit TLS, while other ports require STARTTLS. TLS minimum is 1.2.
+
+The server verifies the SMTP transport at startup. If SMTP variables are absent, the API starts without email delivery; invitation creation returns 503, while password-reset and email-verification request routes return generic responses and do not disclose whether an account exists. If SMTP is partially configured or transport verification fails, startup fails closed. Configure a trusted provider or private authenticated relay only.
+
+### Email and token flow
+
+- Admin invitation: generate a 256-bit random token, store only SHA-256, expiry 24 hours, send the link by email. API response contains invitation metadata and delivery status only—never the raw token. Failed delivery deletes the still-pending invitation.
+- Email verification: invitation acceptance proves mailbox possession and sets email_verified_at. Existing unverified accounts can request a 30-minute verification link. Completion consumes the one-time token in a transaction and records an audit event. Login is denied until the email is verified. The bootstrap administrator is marked verified because creation is an operator-controlled out-of-band action.
+- Password reset: only verified active accounts qualify. A 30-minute one-time token is stored hashed and sent by email. The public response is the same for unknown, disabled, unverified, or eligible accounts. Failed delivery deletes the pending reset token; successful reset revokes active sessions as specified in 18.44.
+- Links place the token in the URL fragment (#invite=, #verify=, #reset=) so browsers do not send it in the initial HTTP request, Referer header, or ordinary web-server access logs. The frontend must read the fragment and POST the token to the corresponding API endpoint; never put it in query parameters or analytics.
+- Added API client methods for invitation acceptance, email verification, password reset, session listing and session revocation.
+
+### Routes added or now wired to email
+
+- POST /v1/auth/email-verification/request + CSRF: { email }; generic response.
+- POST /v1/auth/email-verification/complete + CSRF: { token }.
+- POST /v1/auth/invitations/accept + CSRF: { token, password }.
+- POST /v1/auth/password-reset/request + CSRF: { email }; generic response.
+- POST /v1/auth/password-reset/complete + CSRF: { token, password }.
+- Existing admin invitation and session routes now use the secure delivery/client path.
+
+### Deployment and security limits
+
+GitHub Pages remains static and does not run SMTP or the Node/PostgreSQL API. The email provider, domain SPF/DKIM/DMARC, secrets manager, DNS, HTTPS API hosting, database and frontend fragment-handling UI must be configured separately. The API client exposes the routes, but the current spreadsheet UI does not yet provide complete invitation/verification/reset screens; that UI integration is a subsequent stage. No real email delivery or PostgreSQL integration was performed in CI. Rate limiting is still per-process; add a shared distributed limiter before public deployment. Existing scrypt password hashing remains pending Argon2id/provider migration. Do not enable a public service until an independent security review is complete.
