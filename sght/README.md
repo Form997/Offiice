@@ -795,6 +795,9 @@ Bổ sung mô hình đáp ứng tăng dần, lợi ích biên giảm dần:
 
 ## SGHT 18.35 — Transaction Restore & Rollback — 2026-11-20
 
+- Bắt đầu phát triển: 20/11/2026; hoàn tất triển khai sau khi CI và GitHub Pages đạt trạng thái thành công.
+- Kiểm thử tự động: 251/251 đạt; triển khai GitHub Pages: thành công. Chưa xác nhận kiểm thử thủ công trên trình duyệt/điện thoại thật.
+- Quy mô mã nguồn của giai đoạn: khoảng 197 KiB phần ứng dụng và tài liệu được cập nhật (ước tính theo tổng dung lượng UTF-8 của các tệp thay đổi; không phải dung lượng bộ nhớ khi chạy).
 - Bổ sung danh sách giao dịch lịch sử trên toàn workbook; chọn một giao dịch để xem các ô bị ảnh hưởng và giá trị trước/sau.
 - Bản xem trước kiểm tra đồng thời từng ô với trạng thái sau giao dịch đã ghi. Nếu có xung đột, thiếu trang tính, địa chỉ trùng hoặc dữ liệu đã thay đổi, toàn bộ thao tác bị chặn; không khôi phục một phần.
 - Khi hợp lệ, người dùng xác nhận một lần; SGHT tạo đúng một snapshot Undo, đảo ngược các ô trong giao dịch, ghi các mốc phiên bản nguồn `transaction-rollback`, dựng lại dependency engine và lưu workbook.
