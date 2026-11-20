@@ -10,13 +10,14 @@
 <body>
   <header class="topbar">
     <a class="brand" href="./index.html" aria-label="HAI ĐẤT SGHT"><span class="brand-mark">S</span><span><b>HAI ĐẤT</b><small>SGHT · BẢNG TÍNH</small></span></a>
-    <div class="top-actions"><span id="saveStatus" role="status">Đã lưu trên thiết bị</span><button id="undoAction" class="icon-action" title="Hoàn tác (Ctrl+Z)" aria-label="Hoàn tác" disabled>↶</button><button id="redoAction" class="icon-action" title="Làm lại (Ctrl+Y)" aria-label="Làm lại" disabled>↷</button><button id="saveAction" class="quiet">Lưu</button><button id="newSheet" class="quiet">Bảng mới</button><button id="downloadCsv" class="primary">Xuất CSV</button></div>
+    <div class="top-actions"><span id="saveStatus" role="status">Đã lưu trên thiết bị</span><button id="undoAction" class="icon-action" title="Hoàn tác (Ctrl+Z)" aria-label="Hoàn tác" disabled>↶</button><button id="redoAction" class="icon-action" title="Làm lại (Ctrl+Y)" aria-label="Làm lại" disabled>↷</button><button id="saveAction" class="quiet">Lưu</button><button id="newSheet" class="quiet">Trang tính mới</button><button id="downloadCsv" class="primary">Xuất CSV</button></div>
   </header>
   <main>
     <section class="document-head">
       <div><p class="eyebrow">KHÔNG GIAN LÀM VIỆC</p><input id="sheetName" class="sheet-name" value="Bảng tính chưa đặt tên" aria-label="Tên bảng tính"></div>
       <div class="sheet-meta">Tự động lưu cục bộ · Lưới ảo hóa mở rộng động · khởi đầu 100 cột × 1.000 hàng</div>
     </section>
+    <nav id="sheetTabs" class="sheet-tabs" aria-label="Các trang tính trong workbook"></nav>
     <nav class="ribbon-tabs" aria-label="Trình đơn bảng tính">
       <button class="ribbon-tab active" data-tab="home">Trang chủ</button>
       <button class="ribbon-tab" data-tab="insert">Chèn</button>

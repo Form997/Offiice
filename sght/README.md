@@ -656,3 +656,13 @@ Bổ sung mô hình đáp ứng tăng dần, lợi ích biên giảm dần:
 - Sửa hành vi ResizeObserver 18.20: không còn tự ghi kích thước nội dung sau mỗi lần quan sát gây vòng lặp lưu; kích thước tùy chỉnh đã lưu tiếp tục được khôi phục. Thay đổi kích thước thủ công cần kiểm tra lại trên trình duyệt mục tiêu.
 - Giới hạn: chưa có bộ lọc ngày chuyên biệt, nhóm thời gian tự động, kéo-thả căn lưới nâng cao, nhiều sheet/nguồn ngoài, lịch sử phiên bản Dashboard hoặc kiểm thử hiệu năng 100.000+ dòng.
 - Xuất PDF vẫn dùng hộp thoại in; PNG 2× vẫn tùy thuộc hỗ trợ SVG foreignObject/Canvas của trình duyệt.
+
+
+## SGHT Workbook đa trang tính — Giai đoạn 18.22 · 2026-11-20
+
+- Một workbook hỗ trợ tối đa 100 trang tính; mỗi trang có ID ổn định, tên riêng, kho ô thưa (sparse cells), định dạng, cấu hình ghim/chia vùng, bảng dữ liệu và Pivot/Chart riêng.
+- Có thể thêm trang tính, chuyển qua lại bằng thanh tab, đổi tên trang tính; tên không được trùng. Không cho xóa trang cuối cùng; xóa trang khác cần xác nhận.
+- Workbook cũ chỉ có một trang được tự động chuyển thành trang tính đầu tiên; dữ liệu và định dạng cũ được giữ. Mỗi trang lưu độc lập trong cùng bản ghi workbook localStorage.
+- Tạo trang tính mới không còn xóa dữ liệu trang hiện hành. Nút “Trang tính mới” thêm trang trắng.
+- Nguồn Dashboard được chuẩn bị để gắn với ID trang tính; cấu hình Pivot cũ chưa tự động có thể tham chiếu nhiều trang. Các thẻ Dashboard 18.21 chưa được xác nhận hiển thị nguồn liên trang tính cho tới khi hoàn tất phần nối nguồn và lọc chéo theo định danh trường.
+- Giới hạn: lưu cục bộ trên trình duyệt/thiết bị, chưa có đồng bộ đám mây, liên kết công thức giữa trang tính, bảo vệ trang tính, sao chép/di chuyển trang hoặc kiểm thử thủ công đa thiết bị.
