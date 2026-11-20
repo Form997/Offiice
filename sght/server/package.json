@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "pg": "^8.13.1",
-    "nodemailer": "^7.0.3"
+    "nodemailer": "^7.0.3",
+    "@simplewebauthn/server": "^14.1.0"
   }
 }
