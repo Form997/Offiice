@@ -983,3 +983,14 @@ Bổ sung mô hình đáp ứng tăng dần, lợi ích biên giảm dần:
 - Đăng nhập passwordless chưa bật: giai đoạn này giữ Passkey là yếu tố thứ hai sau mật khẩu, tránh thay đổi mô hình xác thực khi chưa có quy trình discoverable-credential, account recovery và chống dò tài khoản được kiểm định.
 
 - Dung lượng mã nguồn 18.49: `583991` byte UTF-8 trên 14 tệp thay đổi (đo theo snapshot nhánh phát triển; gồm cả workflow, mã nguồn, kiểm thử và tài liệu). CI workflow: chưa có trạng thái kiểm thử được xác nhận trong lần rà soát này; không đánh dấu đạt.
+
+
+## SGHT 18.50 — Gia cố phát hiện bất thường bộ đếm WebAuthn — 2026-11-20
+
+- Bổ sung chính sách kiểm tra signature counter độc lập tại `server/passkey-security.js`. Nếu authenticator cung cấp bộ đếm khác 0 nhưng giá trị mới không tăng so với giá trị đã lưu, máy chủ chặn lần đăng nhập Passkey đó như một tín hiệu nghi ngờ sao chép/nhân bản credential.
+- Khi phát hiện bất thường, transaction tiêu thụ challenge MFA và WebAuthn, ghi audit event `auth.passkey_counter_anomaly` (credential ID cùng hai giá trị counter), sau đó từ chối phát hành phiên. Người dùng có thể quay về TOTP hoặc mã khôi phục để đăng nhập và rà soát khóa xác thực.
+- Không đánh dấu bất thường khi bộ đếm cũ hoặc mới bằng 0; nhiều authenticator đồng bộ/passkey đa thiết bị không cung cấp bộ đếm có ý nghĩa. Đây là tín hiệu phát hiện rủi ro, không phải bằng chứng tuyệt đối rằng khóa đã bị sao chép.
+- Bổ sung kiểm thử cho bộ đếm bằng 0, bộ đếm tăng hợp lệ, bộ đếm không tăng/giảm và dữ liệu counter sai kiểu/ngoài miền. Đưa bộ kiểm thử mới vào lệnh `npm test` của backend.
+- Giới hạn: chưa chạy PostgreSQL end-to-end, chưa thử authenticator vật lý/đồng bộ đa thiết bị, chưa triển khai backend và chưa có kiểm toán bảo mật độc lập. Chính sách counter không thay thế rate limiting phân tán, quy trình khôi phục tài khoản hay giám sát vận hành.
+- Trạng thái kiểm thử: đã bổ sung test tự động vào workflow backend; chờ GitHub Actions xác nhận, không tự nhận đạt trước khi có kết quả.
+- Bắt đầu và phát triển: 20/11/2026.
