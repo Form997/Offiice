@@ -923,4 +923,5 @@ Bổ sung mô hình đáp ứng tăng dần, lợi ích biên giảm dần:
 - Liên kết email mang token trong URL fragment (#invite=, #verify=, #reset=), tránh đưa token vào query, HTTP request ban đầu hoặc Referer. Client API có các phương thức cho lời mời, xác minh email, reset mật khẩu và thu hồi phiên.
 - Thêm bảng sght_email_verifications, migration cột email_verified_at, kiểm thử mailer và CI.
 - Giới hạn: backend/API/SMTP chưa được triển khai; chưa gửi email thật, chưa kiểm thử PostgreSQL end-to-end. UI SGHT chưa có màn hình xử lý đầy đủ các fragment invitation/verification/reset. Cần cấu hình SMTP, SPF/DKIM/DMARC, HTTPS, secrets manager và đánh giá an ninh độc lập. Rate limit vẫn theo tiến trình; scrypt chưa thay bằng Argon2id. Không tuyên bố production-ready.
+- Kiểm thử GitHub Actions: 331/331 bài SGHT đạt; 3/3 kiểm thử mailer đạt; 0 lỗi (run 44684329701). GitHub Pages triển khai thành công (run 44684329678).
 - Bắt đầu và phát triển: 20/11/2026. Chưa kiểm thử thủ công trên trình duyệt/điện thoại thật.
