@@ -46,3 +46,17 @@ test("MFA status is fetched through the authenticated allowlisted endpoint",asyn
  const c=new SghtAuthApiClient({baseUrl:"https://auth.example.com",fetchImpl}),status=await c.mfaStatus();
  assert.equal(status.enabled,true);assert.equal(status.recoveryCodesRemaining,7);assert.equal(new URL(calls[0].url).pathname,"/v1/auth/mfa/status");
 });
+
+test("Passkey management allows scoped rename and reauthenticated revocation",async()=>{
+ const calls=[],fetchImpl=async(url,opts)=>{calls.push({url,opts});return url.endsWith("/csrf")?new Response(JSON.stringify({csrfToken:"csrf-token-value-123"}),{status:200}):new Response(JSON.stringify({ok:true}),{status:200});};
+ const c=new SghtAuthApiClient({baseUrl:"https://auth.example.com",fetchImpl});
+ const id="credential_id_0123456789";
+ await c.renamePasskey(id,"Máy tính cá nhân");
+ await c.deletePasskey(id,"correct horse battery","123456");
+ const changes=calls.filter(x=>!x.url.endsWith("/csrf"));
+ assert.deepEqual(changes.map(x=>x.opts.method),["PATCH","DELETE"]);
+ assert.ok(changes.every(x=>x.opts.headers["X-CSRF-Token"]==="csrf-token-value-123"));
+ assert.deepEqual(JSON.parse(changes[0].opts.body),{displayName:"Máy tính cá nhân"});
+ assert.deepEqual(JSON.parse(changes[1].opts.body),{password:"correct horse battery",code:"123456"});
+ await assert.rejects(()=>c.deletePasskey("../invalid","pw","123456"),/Mã Passkey/);
+});
