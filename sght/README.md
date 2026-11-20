@@ -935,5 +935,5 @@ Bổ sung mô hình đáp ứng tăng dần, lợi ích biên giảm dần:
 - Giao diện co giãn cho điện thoại, dùng textContent/DOM API để hiển thị dữ liệu phiên, không nội suy HTML từ phản hồi máy chủ.
 - Bổ sung kiểm thử độc lập cho fragment parsing, xóa URL, loại token sai/đa khóa và quy tắc độ dài mật khẩu.
 - Giới hạn: GitHub Pages vẫn là frontend tĩnh. Chưa cấu hình URL API, chưa triển khai PostgreSQL/SMTP, chưa thể gửi email hoặc xác nhận quy trình end-to-end thật. CORS, cookie cross-site, HTTPS, SMTP, SPF/DKIM/DMARC và bảo vệ dữ liệu workbook vẫn phải được cấu hình/kiểm định trước khi mở cho người dùng.
-- Kiểm thử và triển khai sẽ được cập nhật sau khi GitHub Actions hoàn tất; chưa tuyên bố đã kiểm thử thủ công trên điện thoại hoặc trình duyệt thật.
+- Kiểm thử cục bộ riêng cho mô-đun fragment: 4/4 đạt (Node.js v22.16.0), gồm token mời/xác minh/reset, fragment sai/đa khóa, xóa URL và giới hạn mật khẩu. Chưa chạy được toàn bộ bộ test của repository hoặc xác nhận trạng thái GitHub Actions/Pages trong lần cập nhật này; chưa kiểm thử thủ công trên điện thoại hoặc trình duyệt thật.
 - Bắt đầu và phát triển: 20/11/2026.
