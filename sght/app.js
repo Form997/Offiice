@@ -284,7 +284,7 @@ function choose(a,extend=false,scrollElement=sheetScroll){
   else if(bottom>scrollElement.scrollTop+scrollElement.clientHeight)scrollElement.scrollTop=bottom-scrollElement.clientHeight;
   if(left<scrollElement.scrollLeft)scrollElement.scrollLeft=left;
   else if(right>scrollElement.scrollLeft+scrollElement.clientWidth)scrollElement.scrollLeft=right-scrollElement.clientWidth;
-  updateSelection();formulaInput.focus();formulaInput.select();
+  updateSelection();if(typeof renderFormulaVersions==="function")renderFormulaVersions();formulaInput.focus();formulaInput.select();
 }
 function handlePaneScroll(source,peer){
   if(splitMode==="quadrant"){handleQuadrantScroll(source);return;}
@@ -993,9 +993,10 @@ let formulaVersionHistory=[];
 const formulaVersionOutput=document.querySelector("#formulaVersionOutput"),formulaVersionCount=document.querySelector("#formulaVersionCount"),formulaVersionA=document.querySelector("#formulaVersionA"),formulaVersionB=document.querySelector("#formulaVersionB"),formulaVersionCompare=document.querySelector("#compareFormulaVersions"),formulaVersionRestore=document.querySelector("#restoreFormulaVersion"),formulaVersionLoad=document.querySelector("#loadFormulaVersions"),formulaVersionExport=document.querySelector("#exportFormulaVersions");
 function saveFormulaVersions(){try{localStorage.setItem(FORMULA_VERSION_KEY,JSON.stringify({version:1,versions:formulaVersionHistory}));return true;}catch(error){if(formulaVersionOutput)formulaVersionOutput.textContent="Không ghi được lịch sử phiên bản do giới hạn bộ nhớ. Hãy xuất bản sao JSON.";return false;}}
 function recordFormulaCellVersion(cell,before,after,source="edit"){
+ if(!String(before??"").trimStart().startsWith("=")&&!String(after??"").trimStart().startsWith("="))return;
  const sheet=getWorkbookSheet(workbookSheets,activeSheetId);
  const next=recordFormulaVersion(formulaVersionHistory,{sheetId:activeSheetId,sheetName:sheet?.name||sheetTitle,address:cell,beforeFormula:before,afterFormula:after,source});
- if(next.length!==formulaVersionHistory.length||next[0]?.timestamp){formulaVersionHistory=next;saveFormulaVersions();}
+ if(next.length!==formulaVersionHistory.length||next[0]?.id!==formulaVersionHistory[0]?.id){formulaVersionHistory=next;saveFormulaVersions();}
 }
 function loadFormulaVersions(){try{const saved=JSON.parse(localStorage.getItem(FORMULA_VERSION_KEY)||"null");formulaVersionHistory=normalizeFormulaVersions(saved);}catch{formulaVersionHistory=[];}renderFormulaVersions();}
 function renderFormulaVersions(){
