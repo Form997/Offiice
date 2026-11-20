@@ -14,3 +14,16 @@ test("generic 403 is never retried",async()=>{let calls=0;const fetchImpl=async(
 test("401 invalidates CSRF token and disabled or unknown-role sessions are rejected",async()=>{let calls=0;const fetchImpl=async(url)=>{calls++;if(url.endsWith("/csrf"))return new Response(JSON.stringify({csrfToken:"csrf-token-value-123"}),{status:200});return new Response(JSON.stringify({code:"UNAUTHENTICATED"}),{status:401});};const c=new SghtAuthApiClient({baseUrl:"https://auth.example.com",fetchImpl});await assert.rejects(()=>c.request("/v1/auth/logout",{method:"POST",body:{},csrf:true}),e=>e.status===401);assert.equal(c.csrfToken,null);assert.equal(calls,2);});
 test("request includes timeout signal and maps network failure to safe error",async()=>{const c=new SghtAuthApiClient({baseUrl:"https://auth.example.com",fetchImpl:async(_url,opts)=>{assert.ok(opts.signal instanceof AbortSignal);throw new TypeError("private network detail");}});await assert.rejects(()=>c.me(),e=>e.code==="AUTH_NETWORK_ERROR"&&!e.message.includes("private"));});
 test("API base rejects query strings and invalid CSRF tokens",async()=>{assert.throws(()=>resolveAuthApiBase("https://auth.example.com/?token=x"),/query/);const c=new SghtAuthApiClient({baseUrl:"https://auth.example.com",fetchImpl:async()=>new Response(JSON.stringify({csrfToken:"x"}),{status:200})});await assert.rejects(()=>c.login({email:"a@b.test",password:"x"}),e=>e.code==="CSRF_MISSING");});
+
+test("account lifecycle and session revocation routes are allowlisted",async()=>{
+ const calls=[],fetchImpl=async(url,opts)=>{calls.push({url,opts});return url.endsWith("/csrf")?new Response(JSON.stringify({csrfToken:"csrf-token-value-123"}),{status:200}):new Response(JSON.stringify({ok:true}),{status:200});};
+ const c=new SghtAuthApiClient({baseUrl:"https://auth.example.com",fetchImpl});
+ await c.requestEmailVerification("a@example.test");
+ await c.acceptInvitation("invitation-token","long-password-123");
+ await c.requestPasswordReset("a@example.test");
+ await c.completeEmailVerification("verification-token");
+ await c.revokeSession("123e4567-e89b-12d3-a456-426614174000");
+ assert.equal(calls.at(-1).opts.method,"DELETE");
+ assert.equal(calls.at(-1).opts.headers["X-CSRF-Token"],"csrf-token-value-123");
+ await assert.rejects(()=>c.revokeSession("../bad"),/Mã phiên/);
+});
