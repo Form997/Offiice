@@ -701,3 +701,14 @@ Bổ sung mô hình đáp ứng tăng dần, lợi ích biên giảm dần:
 - Lỗi ở một công thức được ghi nhận riêng, không làm dừng toàn bộ các công thức còn lại trong hàng đợi. Công thức hiển thị vẫn có thể được tính tức thời theo nhu cầu khi render.
 - Hiển thị tiến độ, số công thức đã xử lý/còn lại, số đợt, lỗi và thời gian thực thi ở thanh trạng thái.
 - Đây là bộ điều phối chia đợt trên luồng chính bằng lịch nhường lượt của trình duyệt; chưa dùng Web Worker/worker pool, chưa tính song song và chưa có kiểm thử hiệu năng quy mô lớn.
+
+
+
+## SGHT 18.26 — Calculation Performance Engine — 2026-11-20
+
+- Thay cache Map không giới hạn bằng FormulaResultCache LRU: khi đạt ngưỡng, mục ít được truy cập gần đây nhất bị loại trước.
+- Có hai ngưỡng bảo vệ: tối đa 50.000 kết quả và 16 MiB dung lượng ước tính; một kết quả đơn lẻ vượt ngân sách sẽ không được lưu.
+- Các thao tác has/get cập nhật độ gần đây; invalidation chỉ xóa khóa bị ảnh hưởng, còn rebuild workbook giải phóng toàn bộ cache.
+- Thu thập số lượt trúng/trượt, ghi cache, eviction, invalidation, mục bị bỏ qua do quá lớn, số mục hiện giữ, dung lượng ước tính và tỷ lệ hit.
+- Thanh trạng thái sau đợt tính hiển thị dung lượng cache và tỷ lệ hit để hỗ trợ chẩn đoán hiệu năng.
+- Dung lượng là ước tính có tính bảo thủ theo kiểu dữ liệu, không phải số byte heap thực tế do trình duyệt cấp phát; chưa phải profiler bộ nhớ hoặc benchmark hiệu năng đa thiết bị.

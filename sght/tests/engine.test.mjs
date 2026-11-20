@@ -143,3 +143,28 @@ test("scheduler tiếp tục các công thức còn lại khi một công thức
  while(tasks.length)tasks.shift()();
  assert.deepEqual(done,["a","c"]);assert.deepEqual(errors,["b"]);assert.equal(scheduler.getState().failed,1);
 });
+
+import { FormulaResultCache } from "../engine/formula-result-cache.js";
+test("formula cache áp dụng LRU và đẩy mục ít dùng nhất",()=>{
+ const cache=new FormulaResultCache({maxEntries:2,maxBytes:4096});
+ cache.set("a",1);cache.set("b",2);assert.equal(cache.has("a"),true);cache.set("c",3);
+ assert.equal(cache.has("b"),false);assert.equal(cache.has("a"),true);assert.equal(cache.has("c"),true);
+ assert.equal(cache.stats().evictions,1);assert.equal(cache.stats().entries,2);
+});
+test("formula cache giới hạn dung lượng ước tính và không giữ mục quá lớn",()=>{
+ const cache=new FormulaResultCache({maxEntries:10,maxBytes:1024});
+ cache.set("large","x".repeat(1000));
+ assert.equal(cache.stats().entries,0);assert.equal(cache.stats().oversizedSkips,1);
+ cache.set("small",42);assert.equal(cache.get("small"),42);
+});
+test("formula cache xóa mục invalidation và duy trì thống kê",()=>{
+ const cache=new FormulaResultCache({maxEntries:4,maxBytes:4096});
+ cache.set("sheet!A1",12);assert.equal(cache.has("sheet!A1"),true);
+ assert.equal(cache.delete("sheet!A1"),true);assert.equal(cache.has("sheet!A1"),false);
+ const s=cache.stats();assert.equal(s.invalidations,1);assert.equal(s.hits,1);assert.equal(s.misses,1);assert.equal(s.entries,0);
+});
+test("formula cache clear giải phóng toàn bộ dung lượng nhưng giữ bộ đếm vận hành",()=>{
+ const cache=new FormulaResultCache({maxEntries:4,maxBytes:4096});
+ cache.set("a",1);cache.set("b","hai");cache.has("a");cache.clear();
+ assert.equal(cache.stats().entries,0);assert.equal(cache.stats().estimatedBytes,0);assert.equal(cache.stats().hits,1);
+});
