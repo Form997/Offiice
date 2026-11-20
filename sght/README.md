@@ -963,3 +963,17 @@ Bổ sung mô hình đáp ứng tăng dần, lợi ích biên giảm dần:
 - Kiểm định CI ngày 20/11/2026: `npm test` đạt 349/349; kiểm thử SMTP 3/3; các bước kiểm tra cú pháp đạt. GitHub Pages deployment của bản giao diện 18.48 hoàn tất thành công. Chưa chạy PostgreSQL end-to-end, chưa kiểm thử API thật hoặc thiết bị xác thực vật lý.
 - Kích thước 12 tệp mã nguồn, giao diện, migration, kiểm thử và tài liệu của 18.48 tại lần thống kê: khoảng 552.504 byte (539,55 KiB; 4.420.032 bit). Đây là tổng dung lượng nội dung tệp, không phải RAM khi chạy.
 - Bắt đầu và phát triển: 20/11/2026.
+
+
+## SGHT 18.49 — WebAuthn / Passkeys — 2026-11-20
+
+- Bổ sung Passkey/WebAuthn làm yếu tố thứ hai sau mật khẩu, song song TOTP và mã khôi phục. Không tự ý chuyển tài khoản sang passwordless.
+- Backend dùng thư viện `@simplewebauthn/server` 14.1.x để tạo tùy chọn và xác minh attestation/assertion; không tự viết thuật toán xác minh chữ ký WebAuthn.
+- Ràng buộc RP ID với đúng hostname của `SGHT_ALLOWED_ORIGIN`; kiểm tra origin, RP ID, challenge, thời hạn, user verification bắt buộc và credential thuộc đúng tài khoản. Challenge chỉ dùng một lần, hết hạn sau 5 phút.
+- Lưu credential ID, public key, signature counter, transports, loại thiết bị và trạng thái backup; không lưu private key. Cập nhật counter sau xác thực thành công và khóa credential row trong transaction.
+- Thêm giao diện đăng ký Passkey trên thiết bị và dùng Passkey ở bước MFA đăng nhập; TOTP/mã khôi phục vẫn là đường dự phòng.
+- Migration bổ sung `sght_passkeys` và `sght_webauthn_challenges`, không xóa dữ liệu cũ.
+- Cấu hình backend bắt buộc: `SGHT_WEBAUTHN_RP_ID` phải trùng hostname của `SGHT_ALLOWED_ORIGIN`; chỉ triển khai trên HTTPS (ngoại lệ secure context localhost khi phát triển). Trình duyệt/thiết bị phải hỗ trợ WebAuthn và có authenticator phù hợp.
+- Giới hạn: chưa có xóa/đổi tên Passkey trong giao diện, chưa có passwordless/discoverable login, chưa có kiểm thử PostgreSQL end-to-end hoặc thiết bị sinh trắc học thật. Backend vẫn chưa triển khai; GitHub Pages chỉ là frontend tĩnh. Chưa tuyên bố production-ready.
+- Kiểm thử mới kiểm tra chuyển đổi dữ liệu WebAuthn phía trình duyệt; kiểm tra xác minh thực tế phụ thuộc backend có cài thư viện, PostgreSQL, HTTPS và cấu hình RP ID. Không coi kiểm tra cú pháp là kiểm thử xác thực Passkey thật.
+- Bắt đầu và phát triển: 20/11/2026.
