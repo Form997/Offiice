@@ -165,6 +165,12 @@
       <details class="formula-version-panel">
         <summary>Formula Version Control · Lịch sử phiên bản công thức <span id="formulaVersionCount">0 phiên bản</span></summary>
         <div class="formula-version-toolbar"><button id="loadFormulaVersions" type="button" class="quiet">Nạp lịch sử ô đang chọn</button><label>Bản A <select id="formulaVersionA"></select></label><label>Bản B <select id="formulaVersionB"></select></label><button id="compareFormulaVersions" type="button" class="quiet" disabled>So sánh A/B</button><button id="restoreFormulaVersion" type="button" class="primary" disabled>Khôi phục bản A</button><button id="exportFormulaVersions" type="button" class="quiet">Xuất JSON</button></div>
+        <div class="formula-integrity-audit">
+          <strong>Kiểm định tính toàn vẹn lịch sử</strong>
+          <div class="formula-version-toolbar"><button id="runFormulaIntegrityAudit" type="button" class="quiet">Kiểm tra lịch sử ngay</button><button id="exportFormulaIntegrityReport" type="button" class="quiet">Xuất báo cáo JSON</button></div>
+          <pre id="formulaIntegrityOutput" class="formula-version-output" aria-live="polite">Chưa chạy kiểm định. Báo cáo chỉ đọc dữ liệu lịch sử đang lưu trên thiết bị này.</pre>
+          <small>Phát hiện mã trùng, trường sai/thiếu, giao dịch trộn trang tính, ô trùng, dấu thời gian bất hợp lệ và điểm nối giá trị bị đứt. Đây là kiểm tra nhất quán nội bộ, không phải bằng chứng chống giả mạo: localStorage có thể bị sửa hoặc xóa.</small>
+        </div>
         <div class="formula-transaction-restore">
           <strong>Khôi phục nguyên giao dịch</strong>
           <div class="formula-version-toolbar"><label>Giao dịch <select id="formulaTransactionSelect"></select></label><button id="previewFormulaTransaction" type="button" class="quiet" disabled>Xem trước khôi phục</button><button id="restoreFormulaTransaction" type="button" class="primary" disabled>Khôi phục toàn bộ giao dịch</button></div>

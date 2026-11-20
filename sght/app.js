@@ -5,6 +5,7 @@ import { appendRepairAudit, exportRepairAudit } from "./engine/repair-audit.js";
 import { normalizeFormulaVersions, recordFormulaVersion, getFormulaCellVersions, compareFormulaVersions, exportFormulaVersions, groupFormulaVersionTransactions } from "./engine/formula-version-history.js";
 import { collectFormulaVersionChanges } from "./engine/history-version-sync.js";
 import { buildFormulaTransactionRestorePlan } from "./engine/formula-version-history.js";
+import { auditFormulaVersionIntegrity, exportFormulaVersionIntegrityReport } from "./engine/formula-version-integrity.js";
 import { evaluateFormula, FormulaError, listFormulaFunctions } from "./engine/core.js";
 import { buildDependencyGraph, updateDependencyNode, planRecalculation } from "./engine/dependency-engine.js";
 import { CalculationScheduler } from "./engine/calculation-scheduler.js";
@@ -994,6 +995,7 @@ const repairAuditOutput=document.querySelector("#formulaRepairAuditOutput"),repa
 let formulaVersionHistory=[];
 let activeFormulaTransactionId=null;
 function createFormulaTransactionId(){return "tx-"+Date.now().toString(36)+"-"+Math.random().toString(36).slice(2,9);}
+const formulaIntegrityOutput=document.querySelector("#formulaIntegrityOutput"),formulaIntegrityRun=document.querySelector("#runFormulaIntegrityAudit"),formulaIntegrityExport=document.querySelector("#exportFormulaIntegrityReport");
 const formulaVersionOutput=document.querySelector("#formulaVersionOutput"),formulaVersionCount=document.querySelector("#formulaVersionCount"),formulaVersionA=document.querySelector("#formulaVersionA"),formulaVersionB=document.querySelector("#formulaVersionB"),formulaVersionCompare=document.querySelector("#compareFormulaVersions"),formulaVersionRestore=document.querySelector("#restoreFormulaVersion"),formulaVersionLoad=document.querySelector("#loadFormulaVersions"),formulaVersionExport=document.querySelector("#exportFormulaVersions");
 function saveFormulaVersions(){try{localStorage.setItem(FORMULA_VERSION_KEY,JSON.stringify({version:1,versions:formulaVersionHistory}));return true;}catch(error){if(formulaVersionOutput)formulaVersionOutput.textContent="Không ghi được lịch sử phiên bản do giới hạn bộ nhớ. Hãy xuất bản sao JSON.";return false;}}
 function recordFormulaCellVersion(cell,before,after,source="edit",sheetId=activeSheetId){
@@ -1061,6 +1063,21 @@ function renderFormulaVersions(){
  if(formulaVersionRestore)formulaVersionRestore.disabled=!items.some(x=>x.id===formulaVersionA?.value&&x.afterFormula);
 }
 if(formulaVersionLoad)formulaVersionLoad.addEventListener("click",renderFormulaVersions);
+function runFormulaIntegrityAudit(){
+ const output=document.querySelector("#formulaIntegrityOutput");
+ if(!output)return null;
+ let raw;
+ try{raw=JSON.parse(localStorage.getItem(FORMULA_VERSION_KEY)||"null");}
+ catch(error){const report=auditFormulaVersionIntegrity(null);output.textContent="Không đọc được JSON lịch sử: "+error.message;window.sghtFormulaIntegrityReport=report;return report;}
+ const report=auditFormulaVersionIntegrity(raw);
+ window.sghtFormulaIntegrityReport=report;
+ const s=report.summary;
+ output.textContent=["KẾT QUẢ: "+report.status.toUpperCase(),"Kiểm tra lúc: "+report.checkedAt,"Bản ghi: "+s.records+" · hợp lệ: "+s.validRecords,"Giao dịch: "+(s.transactions??0)+" · ô: "+(s.cells??0),"Lỗi: "+s.errors+" · Cảnh báo: "+s.warnings+" · Bản ghi cũ thiếu giá trị thô: "+s.legacyRecords,"",...report.findings.slice(0,250).map((f,i)=>(i+1)+". ["+f.severity.toUpperCase()+"] "+f.code+" — "+f.message+(f.id?" · "+f.id:"")+(f.address?" · "+f.address:"")+(f.cell?" · "+f.cell:"")),...(report.findings.length>250?["… còn "+(report.findings.length-250)+" phát hiện trong báo cáo JSON."]:[])].join("\\n");
+ return report;
+}
+if(formulaIntegrityRun)formulaIntegrityRun.addEventListener("click",runFormulaIntegrityAudit);
+if(formulaIntegrityExport)formulaIntegrityExport.addEventListener("click",()=>{const report=window.sghtFormulaIntegrityReport||runFormulaIntegrityAudit();if(!report)return;const blob=new Blob([exportFormulaVersionIntegrityReport(report)],{type:"application/json;charset=utf-8"}),url=URL.createObjectURL(blob),link=document.createElement("a");link.href=url;link.download="SGHT-Formula-History-Integrity-"+new Date().toISOString().slice(0,10)+".json";link.click();URL.revokeObjectURL(url);});
+
 if(formulaVersionCompare)formulaVersionCompare.addEventListener("click",()=>{try{const diff=compareFormulaVersions(formulaVersionHistory,formulaVersionA.value,formulaVersionB.value);formulaVersionOutput.textContent="SO SÁNH "+diff.address+"\n\nBẢN A · "+diff.versionA.timestamp+"\n"+(diff.from||"(không còn công thức)")+"\n\nBẢN B · "+diff.versionB.timestamp+"\n"+(diff.to||"(không còn công thức)")+"\n\n"+(diff.equal?"Hai phiên bản giống nhau.":"Hai phiên bản khác nhau.");}catch(error){formulaVersionOutput.textContent=error.message;}});
 if(formulaVersionRestore)formulaVersionRestore.addEventListener("click",()=>{const item=formulaVersionHistory.find(x=>x.id===formulaVersionA.value);if(!item||!item.afterFormula)return;if(item.sheetId!==activeSheetId||item.address!==selected){formulaVersionOutput.textContent="Phiên bản không thuộc ô đang chọn.";return;}if(!confirm("Khôi phục công thức cũ vào "+selected+"? Thao tác sẽ tạo một phiên bản mới và một mốc Undo."))return;setValue(selected,item.afterFormula);formulaInput.value=item.afterFormula;renderFormulaVersions();formulaVersionOutput.textContent="Đã khôi phục phiên bản đã chọn vào "+selected+". Lịch sử cũ vẫn được giữ; có thể Undo thao tác vừa rồi.";});
 if(formulaVersionExport)formulaVersionExport.addEventListener("click",()=>{const blob=new Blob([exportFormulaVersions(formulaVersionHistory)],{type:"application/json;charset=utf-8"}),url=URL.createObjectURL(blob),link=document.createElement("a");link.href=url;link.download="SGHT-Formula-Versions-"+new Date().toISOString().slice(0,10)+".json";link.click();URL.revokeObjectURL(url);});

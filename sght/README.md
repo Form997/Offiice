@@ -804,3 +804,14 @@ Bổ sung mô hình đáp ứng tăng dần, lợi ích biên giảm dần:
 - Từ giai đoạn này, mỗi phiên bản mới lưu thêm giá trị thô trước/sau, kể cả khi một phía là hằng số hoặc ô trống. Nhờ đó rollback không nhầm hằng số cũ thành ô trống.
 - Các mốc lịch sử cũ vốn chỉ lưu công thức trước/sau không có đủ dữ liệu để phục hồi chính xác hằng số; giao dịch cũ chỉ được khôi phục nếu kiểm tra được trạng thái an toàn. Không tự suy đoán dữ liệu đã mất.
 - Giới hạn: rollback chỉ áp dụng cho giao dịch thuộc một trang tính và trang đó phải đang hoạt động; lịch sử vẫn lưu localStorage, không đồng bộ đám mây và không chống sửa đổi. Cần kiểm thử thủ công trên trình duyệt/điện thoại thật.
+
+
+## SGHT 18.36 — Transaction Audit & Integrity — 2026-11-20
+
+- Bổ sung mô-đun kiểm định chỉ đọc `sght/engine/formula-version-integrity.js`; không ghi lại, chuẩn hóa hay sửa lịch sử gốc trong lúc kiểm tra.
+- Kiểm tra cấu trúc bản ghi, trường bắt buộc, timestamp, mã phiên bản trùng, transactionId thiếu, giao dịch trộn trang tính/nguồn, ô lặp trong một giao dịch, cặp formula/value không khớp, bản ghi legacy thiếu giá trị thô và điểm nối chuỗi giá trị của cùng ô.
+- Phân loại phát hiện thành lỗi và cảnh báo; giới hạn phần hiển thị 250 phát hiện đầu, báo cáo JSON giữ toàn bộ kết quả đã kiểm tra.
+- Đọc trực tiếp dữ liệu JSON gốc trong localStorage để phát hiện các bản ghi mà bước normalize thông thường có thể loại bỏ; dữ liệu nguồn không bị thay đổi.
+- Xuất báo cáo JSON có schema, thời điểm kiểm tra, số lượng bản ghi/giao dịch/ô, trạng thái và danh sách phát hiện.
+- Giới hạn quan trọng: đây là kiểm tra nhất quán nội bộ, không phải chữ ký số hoặc chuỗi hash neo tin cậy. Người có quyền sửa localStorage vẫn có thể thay lịch sử và báo cáo; không thể chứng minh lịch sử chưa từng bị sửa nếu không có bản sao/điểm neo bên ngoài. Bản ghi legacy có thể phát sinh cảnh báo do thiếu dữ liệu thô.
+- Kiểm định tự động và triển khai được ghi nhận theo kết quả CI sau commit; chưa tuyên bố kiểm thử thủ công trên thiết bị thật.
