@@ -24,7 +24,7 @@ const SAFE_PATHS = new Set([
   "/v1/admin/users", "/v1/admin/audit", "/v1/auth/sessions"
 ]);
 function allowedPath(path) {
-  return SAFE_PATHS.has(path) || /^\/v1\/admin\/users\/[A-Za-z0-9_-]{8,128}$/.test(path);
+  return SAFE_PATHS.has(path) || /^\/v1\/admin\/users\/[A-Za-z0-9_-]{8,128}$/.test(path) || /^\/v1\/auth\/sessions\/[0-9a-f-]{36}$/i.test(path);
 }
 export class SghtAuthApiClient {
   constructor({ baseUrl, fetchImpl = globalThis.fetch, csrfHeader = "X-CSRF-Token", timeoutMs = 15000 } = {}) {
@@ -75,8 +75,8 @@ export class SghtAuthApiClient {
   async request(path, { method = "GET", body, csrf = false } = {}) {
     if (!allowedPath(path)) throw new AuthApiError("Đường dẫn API không nằm trong danh sách cho phép.");
     const upper = method.toUpperCase();
-    if (!["GET", "POST", "PATCH"].includes(upper)) throw new AuthApiError("Phương thức API không được hỗ trợ.");
-    if (csrf && !["POST", "PATCH"].includes(upper)) throw new AuthApiError("CSRF chỉ dùng cho yêu cầu thay đổi dữ liệu.");
+    if (!["GET", "POST", "PATCH", "DELETE"].includes(upper)) throw new AuthApiError("Phương thức API không được hỗ trợ.");
+    if (csrf && !["POST", "PATCH", "DELETE"].includes(upper)) throw new AuthApiError("CSRF chỉ dùng cho yêu cầu thay đổi dữ liệu.");
     let token = csrf ? await this.getCsrfToken() : null;
     try { return await this.send(path, { method: upper, body, csrfToken: token }); }
     catch (error) {
