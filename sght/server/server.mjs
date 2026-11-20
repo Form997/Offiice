@@ -19,7 +19,7 @@ function same(a,b){const x=Buffer.from(String(a)),y=Buffer.from(String(b));retur
 export function createSghtAuthServer({pool,allowedOrigin,secureCookies=true,now=()=>Date.now()}){
  if(!pool||!allowedOrigin)throw new Error("pool and allowedOrigin are required");
  const originUrl=new URL(allowedOrigin);if(secureCookies&&originUrl.protocol!=="https:")throw new Error("HTTPS origin required");
- const cookieOpts=secureCookies;
+ const cookieOpts=secureCookies;\n const attempts=new Map();\n const rateLimit=(key)=>{const t=now(),entry=attempts.get(key)||{start:t,count:0};if(t-entry.start>60000){entry.start=t;entry.count=0;}entry.count++;attempts.set(key,entry);return entry.count<=12;};
  const app=createServer(async(req,res)=>{
   const requestId=randomUUID();
   try{
@@ -31,7 +31,7 @@ export function createSghtAuthServer({pool,allowedOrigin,secureCookies=true,now=
    const path=new URL(req.url,"http://localhost").pathname, method=req.method;
    const jar=cookies(req);
    const issueCsrf=()=>{const value=token();res.setHeader("Set-Cookie",`sght_csrf=${value}; Path=/; SameSite=Strict; Max-Age=1800${cookieOpts?"; Secure":""}`);return value;};
-   const checkCsrf=()=>{const c=jar.sght_csrf,h=req.headers["x-csrf-token"];if(!c||!h||!same(c,h))throw Object.assign(new Error("CSRF rejected"),{status:403,code:"CSRF_INVALID"});};
+   const checkCsrf=()=>{if(req.headers.origin!==allowedOrigin)throw Object.assign(new Error("Origin rejected"),{status:403,code:"ORIGIN_DENIED"});const c=jar.sght_csrf,h=req.headers["x-csrf-token"];if(!c||!h||!same(c,h))throw Object.assign(new Error("CSRF rejected"),{status:403,code:"CSRF_INVALID"});};
    const session=async()=>{const raw=jar.sght_session;if(!raw)return null;const q=await pool.query("SELECT s.id_hash,s.user_id,u.email,u.display_name,u.role,u.status,s.expires_at FROM sght_sessions s JOIN sght_users u ON u.id=s.user_id WHERE s.id_hash=$1 AND s.revoked_at IS NULL AND s.expires_at>now()",[hash(raw)]);if(!q.rowCount)return null;const u=q.rows[0];if(u.status!=="active"){await pool.query("UPDATE sght_sessions SET revoked_at=now() WHERE id_hash=$1",[u.id_hash]);return null;}return u;};
    const requireUser=async()=>{const u=await session();if(!u)throw Object.assign(new Error("Authentication required"),{status:401,code:"UNAUTHENTICATED"});return u;};
    const requireAdmin=async()=>{const u=await requireUser();if(u.role!=="admin")throw Object.assign(new Error("Forbidden"),{status:403,code:"FORBIDDEN"});return u;};
