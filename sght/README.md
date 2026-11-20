@@ -911,4 +911,5 @@ Bổ sung mô hình đáp ứng tăng dần, lợi ích biên giảm dần:
 - Bổ sung migration SQL tương thích cơ sở dữ liệu đã tạo theo schema 18.43; thêm bảng reset token và mã phiên công khai.
 - **Cổng gửi token:** chưa tích hợp email/SMS. Lời mời bị chặn bằng 503 trong cấu hình thường; chỉ môi trường phát triển có thể bật SGHT_TOKEN_DELIVERY_MODE=development để nhận token thử nghiệm. Tuyệt đối không bật chế độ này trên máy chủ công khai. Yêu cầu reset production chưa gửi thư nên chưa thể tự phục vụ người dùng.
 - **Giới hạn:** backend chưa triển khai, chưa có kiểm thử PostgreSQL end-to-end; còn scrypt thay vì Argon2id, rate limit chỉ trong tiến trình, chưa MFA/email verification. Chưa bảo vệ dữ liệu workbook, công thức, macro, chữ ký hoặc export bằng authorization phía máy chủ. Không tuyên bố production-ready.
-- Kiểm thử CI và triển khai sẽ được ghi nhận sau khi GitHub Actions hoàn tất; chưa kiểm thử thủ công trên trình duyệt/điện thoại thật.
+- Kiểm thử tự động GitHub Actions: 330/330 đạt, 0 lỗi (run 44683437824); triển khai GitHub Pages: thành công (run 44683437891). Đây là kiểm thử tự động của bộ SGHT hiện có, chưa phải kiểm thử tích hợp PostgreSQL cho các endpoint lifecycle.
+- Chưa kiểm thử thủ công trên trình duyệt/điện thoại thật.
