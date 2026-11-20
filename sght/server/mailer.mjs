@@ -3,7 +3,7 @@ const escapeHtml = value => String(value ?? "").replace(/[&<>"']/g, ch => ({
 }[ch]));
 
 export function buildAccountLink(publicAppUrl, kind, rawToken) {
-  if (!["invite", "reset"].includes(kind)) throw new TypeError("Unsupported account link type.");
+  if (!["invite", "reset", "verify"].includes(kind)) throw new TypeError("Unsupported account link type.");
   let url;
   try { url = new URL(publicAppUrl); } catch { throw new Error("SGHT_PUBLIC_APP_URL must be an absolute HTTPS URL."); }
   if (url.protocol !== "https:" || url.username || url.password || url.search || url.hash)
@@ -30,6 +30,13 @@ export function createSghtMailer({ transport, from, publicAppUrl }) {
       const text = `Xin chào ${name},\n\nBạn được mời tham gia SGHT với vai trò ${role}. Mở liên kết sau để xác nhận email và tạo mật khẩu (hết hạn sau 24 giờ):\n${link}\n\nNếu bạn không mong đợi thư này, hãy bỏ qua.\n`;
       const html = `<p>Xin chào ${escapeHtml(name)},</p><p>Bạn được mời tham gia SGHT với vai trò <strong>${escapeHtml(role)}</strong>.</p><p><a href="${escapeHtml(link)}">Xác nhận email và tạo tài khoản</a></p><p>Liên kết hết hạn sau 24 giờ. Nếu bạn không mong đợi thư này, hãy bỏ qua.</p>`;
       await deliver({ to, subject: "Lời mời tham gia SGHT", text, html });
+    },
+    async sendEmailVerification({ to, displayName, token }) {
+      const link = buildAccountLink(publicAppUrl, "verify", token);
+      const name = String(displayName || "bạn");
+      const text = `Xin chào ${name},\n\nXác nhận địa chỉ email dùng cho tài khoản SGHT trong vòng 30 phút:\n${link}\n\nNếu bạn không yêu cầu, hãy bỏ qua thư này.\n`;
+      const html = `<p>Xin chào ${escapeHtml(name)},</p><p>Vui lòng xác nhận địa chỉ email cho tài khoản SGHT.</p><p><a href="${escapeHtml(link)}">Xác nhận email</a></p><p>Liên kết hết hạn sau 30 phút.</p>`;
+      await deliver({ to, subject: "Xác nhận email SGHT", text, html });
     },
     async sendPasswordReset({ to, displayName, token }) {
       const link = buildAccountLink(publicAppUrl, "reset", token);
