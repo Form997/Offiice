@@ -173,6 +173,22 @@
 <div class="formula-version-toolbar"><select id="sghtAuthRole"><option value="admin">Quản trị viên</option><option value="signer">Người ký</option><option value="auditor">Kiểm toán</option><option value="viewer" selected>Người xem</option></select><button id="sghtAuthCreate" type="button" class="quiet">Tạo tài khoản / quản trị đầu tiên</button><button id="sghtAuthLogin" type="button" class="primary">Đăng nhập</button><button id="sghtAuthLogout" type="button" class="quiet">Đăng xuất</button></div>
 <div class="formula-version-toolbar"><select id="sghtAuthUserSelect"><option value="">Chọn tài khoản</option></select><button id="sghtAuthAssign" type="button" class="quiet">Gán vai trò đã chọn</button><select id="sghtAuthStatusSelect"><option value="active">Kích hoạt</option><option value="disabled">Khóa tài khoản</option></select><button id="sghtAuthSetStatus" type="button" class="quiet">Cập nhật trạng thái</button><button id="sghtAuthAuditExport" type="button" class="quiet">Xuất nhật ký tài khoản</button></div>
 <pre id="sghtAuthOutput" class="formula-version-output" aria-live="polite">Chưa khởi tạo.</pre>
+<div id="accountLifecyclePanel" class="account-lifecycle" hidden>
+  <div class="account-lifecycle-heading"><b>Account Lifecycle · Vòng đời tài khoản</b><span>Bảo vệ token · thao tác qua máy chủ</span></div>
+  <p id="accountLifecycleNotice" class="account-notice" role="status" aria-live="polite">Liên kết mời, xác minh và đặt lại mật khẩu sẽ được xử lý tại đây.</p>
+  <form id="accountActionForm" class="account-action-form" hidden>
+    <strong id="accountActionTitle">Thiết lập mật khẩu</strong>
+    <label>Mật khẩu mới<input id="accountActionPassword" type="password" minlength="12" maxlength="256" autocomplete="new-password" required></label>
+    <label>Nhập lại mật khẩu<input id="accountActionConfirm" type="password" minlength="12" maxlength="256" autocomplete="new-password" required></label>
+    <button id="accountActionSubmit" type="submit" class="primary">Xác nhận an toàn</button>
+  </form>
+  <div class="account-lifecycle-actions">
+    <button id="requestEmailVerification" type="button" class="quiet">Gửi lại thư xác minh email</button>
+    <button id="requestPasswordReset" type="button" class="quiet">Quên / đặt lại mật khẩu</button>
+    <button id="refreshAuthSessions" type="button" class="quiet" disabled>Nạp phiên đăng nhập</button>
+  </div>
+  <div id="authSessionsList" class="account-sessions" aria-live="polite"><p class="account-empty">Đăng nhập để xem các phiên đang hoạt động.</p></div>
+</div>
 <small>Giao diện chỉ kết nối máy chủ xác thực qua HTTPS. Cookie phiên phải do máy chủ phát hành với HttpOnly, Secure, SameSite; CSRF token lấy từ API. Không có API được cấu hình thì toàn bộ đăng nhập và quản trị bị khóa, không quay về xác thực localStorage. Chưa kết nối máy chủ thật trong bản GitHub Pages hiện tại.</small>
 </div>\n          <strong>Sổ danh tính & vòng đời khóa</strong>
           <div class="formula-version-toolbar"><label>Mã người thao tác <input id="identityActorId" type="text" placeholder="Mã người phê duyệt / quản trị"></label><label>Tên hiển thị <input id="identityDisplayName" type="text" placeholder="Tên cá nhân hoặc tổ chức"></label><label>Tổ chức <input id="identityOrganization" type="text" placeholder="Đơn vị (không bắt buộc)"></label></div>
