@@ -146,7 +146,7 @@ export function createSghtAuthServer({pool,allowedOrigin,mailer=null,secureCooki
    }
    if(method==="POST"&&path==="/v1/auth/passkeys/register/options"){
     await checkCsrf();const u=await requireUser(),b=await body(req);
-    if(typeof b.password!=="string"||!/^\\d{6}$/.test(String(b.code||"")))return json(res,400,{code:"PASSKEY_REAUTH_REQUIRED",message:"Re-enter your password and a fresh six-digit TOTP code to add a passkey."});
+    if(typeof b.password!=="string"||!/^\d{6}$/.test(String(b.code||"")))return json(res,400,{code:"PASSKEY_REAUTH_REQUIRED",message:"Re-enter your password and a fresh six-digit TOTP code to add a passkey."});
     if(!rateLimit("passkey-register:"+u.user_id,5))return json(res,429,{code:"PASSKEY_RATE_LIMITED",message:"Too many passkey setup attempts."});
     const rpID=process.env.SGHT_WEBAUTHN_RP_ID;if(!rpID||rpID!==originUrl.hostname)return json(res,503,{code:"PASSKEY_NOT_CONFIGURED",message:"Set SGHT_WEBAUTHN_RP_ID to the exact hostname of SGHT_ALLOWED_ORIGIN."});
     const masterKey=process.env.SGHT_MFA_ENCRYPTION_KEY;if(typeof masterKey!=="string"||Buffer.byteLength(masterKey,"utf8")<32)return json(res,503,{code:"MFA_NOT_CONFIGURED",message:"MFA encryption is not configured."});
