@@ -633,3 +633,14 @@ Bổ sung mô hình đáp ứng tăng dần, lợi ích biên giảm dần:
 - Bộ lọc dashboard dùng chung theo số cột; lựa chọn được áp dụng cho mọi nguồn Pivot có chứa cột tương ứng. Cấu hình lọc riêng của từng Pivot vẫn được giữ.
 - Lưu cấu hình nguồn độc lập và bộ lọc chung cùng workbook/mẫu. Chuẩn hóa dữ liệu cũ 18.18: thẻ cũ không có nguồn hiển thị trạng thái yêu cầu gán Pivot, không tự đoán nguồn dữ liệu.
 - Giới hạn: mọi nguồn vẫn lấy từ cùng trang tính hiện hành; bộ lọc liên kết nhận diện trường theo số cột (không theo tên trường), biểu đồ dashboard dùng dạng cột gọn; chưa có nhiều sheet, nguồn ngoài, cross-filter bằng cách bấm trực tiếp cột biểu đồ, hay kéo-thả tự do. Chưa kiểm thử thủ công trên thiết bị thật.
+
+
+## SGHT Dashboard tương tác nâng cao — Giai đoạn 18.20 · 2026-11-20
+
+- Kéo thả thẻ Dashboard để đổi thứ tự; nút lên/xuống vẫn là phương án bàn phím và cảm ứng thay thế.
+- Thẻ dùng tay nắm resize của trình duyệt; kích thước được lưu theo từng thẻ, giới hạn 240–1.400 px và 180–1.000 px.
+- Nhấn hoặc dùng Enter/Space trên cột biểu đồ để lọc chéo các thẻ khác có cùng trường và chứa cột đó. Thẻ nguồn được loại khỏi bộ lọc của chính nó; mỗi bộ lọc có nút bỏ lọc. Bộ lọc chung 18.19 vẫn độc lập.
+- Xuất PNG toàn Dashboard độ phân giải 2× qua SVG/foreignObject/Canvas; xuất PDF mở hộp thoại in và áp dụng bố cục in riêng.
+- Kéo thả dùng chuột/trackpad; điện thoại dùng nút lên/xuống. Resize dựa vào tay nắm gốc của trình duyệt.
+- Lọc chéo nhận diện trường theo số cột (như 18.19), không sửa dữ liệu nguồn hay cấu hình Pivot gốc. PNG phụ thuộc hỗ trợ foreignObject/Canvas; PDF phụ thuộc hộp thoại in.
+- Cần kiểm thử thủ công trên các trình duyệt/thiết bị mục tiêu trước khi xác nhận UX.
