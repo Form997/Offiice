@@ -23,7 +23,7 @@ export function createSghtAuthServer({pool,allowedOrigin,mailer=null,secureCooki
  const originUrl=new URL(allowedOrigin);if(secureCookies&&originUrl.protocol!=="https:")throw new Error("HTTPS origin required");
  const cookieOpts=secureCookies;
  const attempts=new Map();
- const rateLimit=(key)=>{const t=now(),entry=attempts.get(key)||{start:t,count:0};if(t-entry.start>60000){entry.start=t;entry.count=0;}entry.count++;attempts.set(key,entry);return entry.count<=12;};
+ const rateLimit=(key,limit=12)=>{const t=now(),entry=attempts.get(key)||{start:t,count:0};if(t-entry.start>60000){entry.start=t;entry.count=0;}entry.count++;attempts.set(key,entry);return entry.count<=limit;};
  const app=createServer(async(req,res)=>{
   const requestId=randomUUID();
   try{
