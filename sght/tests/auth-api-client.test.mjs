@@ -40,3 +40,9 @@ test("MFA methods use allowlisted routes and CSRF headers",async()=>{
  assert.deepEqual(calls.filter(x=>!x.url.endsWith("/csrf")).map(x=>new URL(x.url).pathname),["/v1/auth/mfa/login/complete","/v1/auth/mfa/enroll","/v1/auth/mfa/enable","/v1/auth/mfa/disable"]);
  assert.ok(calls.filter(x=>!x.url.endsWith("/csrf")).every(x=>x.opts.headers["X-CSRF-Token"]==="csrf-token-value-123"));
 });
+
+test("MFA status is fetched through the authenticated allowlisted endpoint",async()=>{
+ const calls=[],fetchImpl=async(url,opts)=>{calls.push({url,opts});return url.endsWith("/csrf")?new Response(JSON.stringify({csrfToken:"csrf-token-value-123"}),{status:200}):new Response(JSON.stringify({enabled:true,recoveryCodesRemaining:7}),{status:200});};
+ const c=new SghtAuthApiClient({baseUrl:"https://auth.example.com",fetchImpl}),status=await c.mfaStatus();
+ assert.equal(status.enabled,true);assert.equal(status.recoveryCodesRemaining,7);assert.equal(new URL(calls[0].url).pathname,"/v1/auth/mfa/status");
+});
