@@ -148,10 +148,15 @@
       <button id="applyFormula" class="apply">Áp dụng</button>
     </section>
     <section class="formula-error-panel" aria-label="Trợ lý chẩn đoán lỗi công thức">
-      <div class="formula-error-heading"><b>Formula Error Intelligence · Trợ lý truy nguyên lỗi</b><span>Chỉ phân tích · không tự sửa</span></div>
+      <div class="formula-error-heading"><b>Formula Error Intelligence · Trợ lý truy nguyên lỗi</b><span>Phân tích · thử trước · người dùng chấp thuận</span></div>
       <div class="formula-error-actions"><button id="analyzeFormulaError" class="quiet" type="button">Phân tích ô đang chọn</button><button id="scanFormulaErrors" class="quiet" type="button">Quét lỗi toàn workbook</button></div>
       <pre id="formulaErrorOutput" class="formula-error-output" aria-live="polite">Chọn một ô công thức rồi phân tích để xem mã lỗi, đường phụ thuộc và nguyên nhân gốc. Quét toàn workbook giới hạn 5.000 công thức mỗi lượt.</pre>
-      <small>Gợi ý sửa lỗi chỉ để tham khảo. Không tự thay đổi công thức, giá trị hay định dạng ô.</small>
+      <div class="formula-repair" aria-label="Đề xuất sửa công thức">
+        <b>Formula Repair Preview · Đề xuất có kiểm soát</b>
+        <pre id="formulaRepairOutput" class="formula-repair-output" aria-live="polite">Chưa có đề xuất sửa công thức.</pre>
+        <div class="formula-error-actions"><button id="previewFormulaRepair" class="quiet" type="button" disabled>Thử công thức</button><button id="applyFormulaRepair" class="primary" type="button" disabled>Chấp thuận &amp; áp dụng</button></div>
+      </div>
+      <small>Chỉ đề xuất sửa tên hàm khi có một hàm SGHT gần giống duy nhất (khoảng cách chỉnh sửa tối đa 2). Không tự đoán cách xử lý chia cho 0, tham chiếu sai hoặc lỗi dữ liệu. Mọi áp dụng đều cần thử thành công, xác nhận và có thể hoàn tác.</small>
     </section>
     <section class="search-panel" aria-label="Tìm kiếm trong bảng tính">
       <div class="search-main"><input id="searchQuery" type="search" placeholder="Tìm trong bảng tính… (Ctrl+F)" aria-label="Từ khóa tìm kiếm"><button id="searchRun" type="button" class="search-primary">Tìm</button><button id="searchPrevious" type="button" disabled aria-label="Kết quả trước">↑</button><button id="searchNext" type="button" disabled aria-label="Kết quả tiếp theo">↓</button><span id="searchCount" role="status">Chưa tìm kiếm</span><button id="searchClear" type="button" class="search-clear">Xóa</button></div>

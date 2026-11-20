@@ -732,3 +732,13 @@ Bổ sung mô hình đáp ứng tăng dần, lợi ích biên giảm dần:
 - Các thao tác chỉ đọc nội dung workbook; không tự sửa công thức, giá trị hay định dạng. Việc đánh giá công thức có thể cập nhật cache kết quả nội bộ.
 - Truy nguyên là phân tích theo đồ thị tĩnh hiện có; tham chiếu động/chưa lập chỉ mục và lỗi phụ thuộc ngoài đồ thị có thể khiến đường nguyên nhân chưa đầy đủ. “Nguyên nhân gốc” là nút lỗi sâu nhất quan sát được, không phải kết luận chắc chắn về ý định nhập liệu.
 - Có giới hạn số nút truy vết và số công thức quét để tránh khóa giao diện trên workbook lớn; chưa có chạy nền Web Worker.
+
+
+## SGHT 18.29 — Formula Suggestions & Auto-Fix Preview — 2026-11-20
+
+- Bổ sung bộ đề xuất sửa công thức có kiểm soát. Phiên bản này chỉ tự đề xuất đổi tên hàm khi mã lỗi là #NAME? và có đúng một hàm SGHT được hỗ trợ gần tên nhập (khoảng cách chỉnh sửa tối đa 2 ký tự).
+- Hiển thị công thức hiện tại và công thức đề xuất; người dùng phải bấm “Thử công thức” để đánh giá bằng Formula Engine trước. Nếu phép thử còn lỗi, nút áp dụng bị khóa.
+- Chỉ áp dụng sau khi người dùng xác nhận lần nữa; kiểm tra công thức gốc và trang tính chưa thay đổi để chống áp dụng đề xuất đã cũ. Ghi thay đổi qua luồng setValue/snapshot hiện có, nên có thể Undo/Redo.
+- Không tự bọc IFERROR/IF hoặc đoán cách thay mẫu số, dữ liệu hay tham chiếu: các cách sửa đó có thể làm đổi ý nghĩa phép tính. Lỗi chia cho 0, #REF!, #VALUE! và các lỗi chưa có quy tắc an toàn chỉ nhận hướng dẫn kiểm tra, không nhận công thức thay thế giả định.
+- Bộ gợi ý là heuristic xác định, chưa gọi mô hình AI và không gửi dữ liệu ra ngoài. Không tự sửa hàng loạt.
+- Giới hạn: mới hỗ trợ sửa tên hàm gần giống; chưa có bộ sửa cú pháp tổng quát, sửa tham chiếu, sửa kiểu dữ liệu hoặc AI đề xuất. Kết quả preview dùng dữ liệu workbook hiện tại; trước khi áp dụng SGHT kiểm tra lại ô gốc. Chưa kiểm thử thủ công trên trình duyệt/điện thoại thật.

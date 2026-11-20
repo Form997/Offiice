@@ -1,6 +1,7 @@
 import { runFormulaBenchmark, collectFormulaDiagnostics, formatFormulaDiagnostics } from "./engine/formula-diagnostics.js";
 import { analyzeFormulaError, scanWorkbookFormulaErrors, formatFormulaErrorReport } from "./engine/formula-error-intelligence.js";
-import { evaluateFormula, FormulaError } from "./engine/core.js";
+import { suggestFormulaRepairs, validateRepairApproval } from "./engine/formula-fix-suggestions.js";
+import { evaluateFormula, FormulaError, listFormulaFunctions } from "./engine/core.js";
 import { buildDependencyGraph, updateDependencyNode, planRecalculation } from "./engine/dependency-engine.js";
 import { CalculationScheduler } from "./engine/calculation-scheduler.js";
 import { FormulaResultCache } from "./engine/formula-result-cache.js";
@@ -982,6 +983,40 @@ if(diagnosticsButton&&diagnosticsOutput){diagnosticsButton.addEventListener("cli
 
 // SGHT 18.28: user-triggered diagnosis; cell contents are never modified.
 const errorAnalyzeButton=document.querySelector("#analyzeFormulaError"),errorScanButton=document.querySelector("#scanFormulaErrors"),errorOutput=document.querySelector("#formulaErrorOutput");
+const repairPreviewButton=document.querySelector("#previewFormulaRepair"),repairApplyButton=document.querySelector("#applyFormulaRepair"),repairOutput=document.querySelector("#formulaRepairOutput");
+let pendingFormulaRepair=null,formulaRepairPreview=null;
+function clearFormulaRepair(){pendingFormulaRepair=null;formulaRepairPreview=null;if(repairOutput)repairOutput.textContent="Chưa có đề xuất sửa công thức.";if(repairApplyButton)repairApplyButton.disabled=true;if(repairPreviewButton)repairPreviewButton.disabled=true;}
+function showFormulaRepair(report){
+ clearFormulaRepair();
+ if(!report?.found||!report.selectedError||!repairOutput)return;
+ const result=suggestFormulaRepairs({formula:report.formula,errorCode:report.selectedError.code,availableFunctions:listFormulaFunctions()});
+ if(!result.available){repairOutput.textContent="Chưa có cách sửa tự động đủ an toàn cho lỗi "+report.selectedError.code+". "+(result.reason==="ambiguous-function-name"?"Có nhiều tên hàm gần giống; cần người dùng tự đối chiếu.":"Hãy kiểm tra các bước chẩn đoán phía trên; SGHT không đoán công thức thay thế.");return;}
+ pendingFormulaRepair={sheetId:activeSheetId,address:selected,original:report.formula,candidate:result.suggestions[0].formula,explanation:result.suggestions[0].explanation};
+ repairOutput.textContent="CÔNG THỨC HIỆN TẠI\n"+pendingFormulaRepair.original+"\n\nĐỀ XUẤT (chưa áp dụng)\n"+pendingFormulaRepair.candidate+"\n\n"+pendingFormulaRepair.explanation+"\nBấm “Thử công thức” để tính thử trước khi chấp thuận.";
+ repairPreviewButton.disabled=false;
+}
+function previewFormulaRepair(){
+ if(!pendingFormulaRepair||pendingFormulaRepair.sheetId!==activeSheetId||raw(pendingFormulaRepair.address)!==pendingFormulaRepair.original){clearFormulaRepair();if(repairOutput)repairOutput.textContent="Đề xuất đã cũ vì ô hoặc trang tính vừa thay đổi. Hãy phân tích lại.";return;}
+ try{
+  const sourceSheetId=activeSheetId;
+  const readRange=(ref,readCell)=>{const [start,end]=ref.toUpperCase().split(":").map(parseAddress);if(!start||!end)throw new FormulaError("#REF!","Vùng ô không hợp lệ.");const area=(Math.abs(end.r-start.r)+1)*(Math.abs(end.c-start.c)+1);if(!Number.isSafeInteger(area)||area>100000)throw new FormulaError("#REF!","Vùng vượt giới hạn 100.000 ô.");const values=[];for(let r=Math.min(start.r,end.r);r<=Math.max(start.r,end.r);r++)for(let c=Math.min(start.c,end.c);c<=Math.max(start.c,end.c);c++)values.push(readCell(address(r,c)));return values;};
+  const findSheet=name=>workbookSheets.find(sheet=>String(sheet.name).normalize("NFKC").toLocaleLowerCase()===String(name).normalize("NFKC").toLocaleLowerCase());
+  const context={getCell:ref=>calculate(ref.toUpperCase(),new Set(),sourceSheetId),getRange:ref=>readRange(ref,cell=>calculate(cell,new Set(),sourceSheetId)),getSheetCell:(name,ref)=>{const sheet=findSheet(name);if(!sheet)throw new FormulaError("#REF!","Không tìm thấy trang tính "+name);return calculate(ref.toUpperCase(),new Set(),sheet.id);},getSheetRange:(name,ref)=>{const sheet=findSheet(name);if(!sheet)throw new FormulaError("#REF!","Không tìm thấy trang tính "+name);return readRange(ref,cell=>calculate(cell,new Set(),sheet.id));}};
+  const value=evaluateFormula(expandStructuredFormula(pendingFormulaRepair.candidate),context);
+  formulaRepairPreview={value,display:typeof value==="object"?JSON.stringify(value):String(value)};
+  repairOutput.textContent="CÔNG THỨC HIỆN TẠI\n"+pendingFormulaRepair.original+"\n\nĐỀ XUẤT\n"+pendingFormulaRepair.candidate+"\n\nKẾT QUẢ THỬ\n"+formulaRepairPreview.display+"\n\nKết quả thử thành công. Công thức gốc vẫn chưa bị thay đổi. Chỉ nút “Chấp thuận & áp dụng” mới ghi công thức mới.";
+  repairApplyButton.disabled=false;
+ }catch(error){formulaRepairPreview=null;repairApplyButton.disabled=true;repairOutput.textContent="KHÔNG QUA ĐƯỢC BƯỚC THỬ\n"+pendingFormulaRepair.candidate+"\n"+(error?.code||"#CALC!")+" · "+(error?.message||String(error))+"\n\nCông thức gốc được giữ nguyên; không thể chấp thuận đề xuất này.";}
+}
+if(repairPreviewButton)repairPreviewButton.addEventListener("click",previewFormulaRepair);
+if(repairApplyButton)repairApplyButton.addEventListener("click",()=>{
+ if(!pendingFormulaRepair||!formulaRepairPreview)return;
+ const approval=validateRepairApproval({currentFormula:raw(pendingFormulaRepair.address),expectedFormula:pendingFormulaRepair.original,candidateFormula:pendingFormulaRepair.candidate,previewSucceeded:true});
+ if(!approval||pendingFormulaRepair.sheetId!==activeSheetId||pendingFormulaRepair.address!==selected){repairOutput.textContent="Không áp dụng: ô đã đổi hoặc đề xuất không còn khớp. Hãy phân tích lại.";clearFormulaRepair();return;}
+ if(!confirm("Áp dụng công thức đã thử vào ô "+selected+"? Thao tác này tạo một mốc Undo."))return;
+ const formula=pendingFormulaRepair.candidate;setValue(selected,formula);formulaInput.value=formula;repairOutput.textContent="Đã áp dụng công thức vào "+selected+". Có thể dùng Hoàn tác (Ctrl+Z) để quay lại công thức cũ.";clearFormulaRepair();calcStatus.textContent="Đã áp dụng sửa công thức tại "+selected;
+});
+
 const evaluateFormulaNode=key=>{const split=key.indexOf("!");if(split<1)throw new Error("Khóa ô không hợp lệ: "+key);return calculate(key.slice(split+1),new Set(),key.slice(0,split));};
-if(errorAnalyzeButton&&errorOutput)errorAnalyzeButton.addEventListener("click",()=>{try{const report=analyzeFormulaError({cellKey:activeSheetId+"!"+selected,graph:dependencyGraph,sheets:workbookSheets,evaluateNode:evaluateFormulaNode});errorOutput.textContent=report.found?formatFormulaErrorReport(report):"Ô "+selected+" hiện không có lỗi công thức. Nếu ô chứa công thức, hãy kiểm tra lại sau khi cập nhật dữ liệu.";calcStatus.textContent=report.found?"Đã truy vết lỗi tại "+selected:"Không phát hiện lỗi tại "+selected;}catch(error){errorOutput.textContent="Không thể phân tích: "+(error?.message||String(error));}});
+if(errorAnalyzeButton&&errorOutput)errorAnalyzeButton.addEventListener("click",()=>{try{const report=analyzeFormulaError({cellKey:activeSheetId+"!"+selected,graph:dependencyGraph,sheets:workbookSheets,evaluateNode:evaluateFormulaNode});errorOutput.textContent=report.found?formatFormulaErrorReport(report):"Ô "+selected+" hiện không có lỗi công thức. Nếu ô chứa công thức, hãy kiểm tra lại sau khi cập nhật dữ liệu.";showFormulaRepair(report);calcStatus.textContent=report.found?"Đã truy vết lỗi tại "+selected:"Không phát hiện lỗi tại "+selected;}catch(error){errorOutput.textContent="Không thể phân tích: "+(error?.message||String(error));}});
 if(errorScanButton&&errorOutput)errorScanButton.addEventListener("click",()=>{errorScanButton.disabled=true;errorOutput.textContent="Đang quét tối đa 5.000 công thức…";try{const report=scanWorkbookFormulaErrors({graph:dependencyGraph,sheets:workbookSheets,evaluateNode:evaluateFormulaNode,maxFormulas:5000});const lines=["KẾT QUẢ QUÉT LỖI WORKBOOK","Đã kiểm tra "+report.checked.toLocaleString("vi-VN")+"/"+report.totalFormulas.toLocaleString("vi-VN")+" công thức","Số công thức lỗi: "+report.errors.length,...Object.entries(report.byCode).map(([code,count])=>code+": "+count),"",...report.errors.slice(0,200).map(item=>item.cellKey+" · "+item.code+" · "+item.title+" · "+item.message)];if(report.errors.length>200)lines.push("… còn "+(report.errors.length-200)+" lỗi không hiển thị trong danh sách.");if(report.truncated)lines.push("Đã dừng ở giới hạn 5.000 công thức; cần chia nhỏ workbook để quét tiếp.");lines.push("","Không có công thức hay dữ liệu nào bị tự động sửa.");errorOutput.textContent=lines.join("\n");calcStatus.textContent="Quét hoàn tất · "+report.errors.length+" công thức lỗi";}catch(error){errorOutput.textContent="Không thể quét workbook: "+(error?.message||String(error));}finally{errorScanButton.disabled=false;}});
