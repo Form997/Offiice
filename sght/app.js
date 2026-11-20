@@ -171,7 +171,24 @@ window.addEventListener("keydown",event=>{
 });
 
 function raw(a){return Object.hasOwn(cells,a)?String(cells[a]):"";}
-function calculate(a,stack=new Set()){const value=raw(a);if(!value.startsWith("="))return value===""?"":coerce(value);if(stack.has(a))throw new FormulaError("#CYCLE!","Phát hiện công thức tham chiếu vòng.");stack.add(a);const ctx={getCell(ref){return calculate(ref.toUpperCase(),stack);},getRange(ref){const [s,e]=ref.toUpperCase().split(":").map(parseAddress);if(!s||!e)throw new FormulaError("#REF!","Vùng ô không hợp lệ.");const area=(Math.abs(e.r-s.r)+1)*(Math.abs(e.c-s.c)+1);if(!Number.isSafeInteger(area)||area>100000)throw new FormulaError("#REF!","Vùng công thức vượt giới hạn an toàn 100.000 ô.");const out=[];for(let r=Math.min(s.r,e.r);r<=Math.max(s.r,e.r);r++)for(let c=Math.min(s.c,e.c);c<=Math.max(s.c,e.c);c++)out.push(calculate(address(r,c),stack));return out;}};try{return evaluateFormula(expandStructuredFormula(value),ctx);}finally{stack.delete(a);}}
+function calculate(a,stack=new Set(),sourceSheetId=activeSheetId){
+ const sourceSheet=getWorkbookSheet(workbookSheets,sourceSheetId);
+ const sourceCells=sourceSheetId===activeSheetId?cells:(sourceSheet?.cells||{});
+ const value=Object.hasOwn(sourceCells,a)?String(sourceCells[a]):"";
+ if(!value.startsWith("="))return value===""?"":coerce(value);
+ const cycleKey=sourceSheetId+"!"+a;
+ if(stack.has(cycleKey))throw new FormulaError("#CYCLE!","Phát hiện công thức tham chiếu vòng giữa các trang tính.");
+ stack.add(cycleKey);
+ const readRange=(ref,readCell)=>{const [s,e]=ref.toUpperCase().split(":").map(parseAddress);if(!s||!e)throw new FormulaError("#REF!","Vùng ô không hợp lệ.");const area=(Math.abs(e.r-s.r)+1)*(Math.abs(e.c-s.c)+1);if(!Number.isSafeInteger(area)||area>100000)throw new FormulaError("#REF!","Vùng công thức vượt giới hạn an toàn 100.000 ô.");const out=[];for(let r=Math.min(s.r,e.r);r<=Math.max(s.r,e.r);r++)for(let c=Math.min(s.c,e.c);c<=Math.max(s.c,e.c);c++)out.push(readCell(address(r,c)));return out;};
+ const findSheet=name=>workbookSheets.find(x=>String(x.name).normalize("NFKC").toLocaleLowerCase()===String(name).normalize("NFKC").toLocaleLowerCase());
+ const ctx={
+  getCell:ref=>calculate(ref.toUpperCase(),stack,sourceSheetId),
+  getRange:ref=>readRange(ref,cell=>calculate(cell,stack,sourceSheetId)),
+  getSheetCell:(name,ref)=>{const target=findSheet(name);if(!target)throw new FormulaError("#REF!","Không tìm thấy trang tính '"+name+"'.");return calculate(ref.toUpperCase(),stack,target.id);},
+  getSheetRange:(name,ref)=>{const target=findSheet(name);if(!target)throw new FormulaError("#REF!","Không tìm thấy trang tính '"+name+"'.");return readRange(ref,cell=>calculate(cell,stack,target.id));}
+ };
+ try{return evaluateFormula(expandStructuredFormula(value),ctx);}finally{stack.delete(cycleKey);}
+}
 
 function expandStructuredFormula(formula){return expandStructuredReferences(formula,dataTables);}
 function expandTablesAfterWrite(startRow,endRow,startCol,endCol){

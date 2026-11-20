@@ -666,3 +666,14 @@ Bổ sung mô hình đáp ứng tăng dần, lợi ích biên giảm dần:
 - Tạo trang tính mới không còn xóa dữ liệu trang hiện hành. Nút “Trang tính mới” thêm trang trắng.
 - Nguồn Pivot của từng thẻ Dashboard gắn với ID trang tính; cấu hình cũ không có ID được tự động gắn vào trang đầu tiên của workbook để tránh trỏ nhầm khi mở nhiều trang.
 - Giới hạn: lưu cục bộ trên trình duyệt/thiết bị, chưa có đồng bộ đám mây, liên kết công thức giữa trang tính, bảo vệ trang tính, sao chép/di chuyển trang hoặc kiểm thử thủ công đa thiết bị.
+
+
+## SGHT Formula Engine 18.23 — Tham chiếu chéo trang tính — 2026-11-20
+
+- Nhận diện tham chiếu ô/vùng ở trang khác: `=VatTu!A1`, `=SUM(VatTu!B2:B20)`.
+- Hỗ trợ tên trang có dấu, khoảng trắng và dấu nháy đơn: `='Vật tư'!B2`, `='Vật tư O''Brien'!C3`.
+- Hỗ trợ địa chỉ tuyệt đối trong tham chiếu chéo; ký hiệu `$` được chuẩn hóa về địa chỉ ô.
+- Ứng dụng tra cứu tên trang theo chuẩn hóa NFKC, không phân biệt hoa/thường. Đổi tên trang được phân giải theo tên mới khi tính lại; trang bị xóa/đổi tên không còn khớp trả `#REF!`.
+- Công thức đọc trực tiếp dữ liệu nguồn hiện hành; phát hiện vòng tham chiếu xuyên trang bằng khóa trang + địa chỉ ô. Giới hạn vùng 100.000 ô mỗi lần đọc.
+- Chưa có đồ thị phụ thuộc gia tăng, nên kết quả ở trang đang mở chưa tự làm mới tức thời khi trang nguồn khác thay đổi; chưa hỗ trợ tham chiếu có cấu trúc xuyên trang.
+- Kiểm thử parser tham chiếu đơn/vùng, tiếng Việt, dấu nháy đơn, địa chỉ tuyệt đối, lỗi #REF! và tương thích công thức nội trang.

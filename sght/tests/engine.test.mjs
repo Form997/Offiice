@@ -61,3 +61,26 @@ test("phép toán tràn miền số trả mã #NUM!",()=>{
   assert.throws(()=>evaluateFormula("=1e308*1e308"),e=>e.code==="#NUM!");
   assert.throws(()=>evaluateFormula("=1e308/1e-308"),e=>e.code==="#NUM!");
 });
+
+test("tham chiếu ô ở trang tính khác",()=>{
+ const ctx={getSheetCell:(name,ref)=>({A1:12,B1:8}[ref]??"")};
+ assert.equal(evaluateFormula("=VatTu!A1+vatTU!B1",ctx),20);
+});
+test("tham chiếu vùng ở trang khác dùng được trong hàm tổng hợp",()=>{
+ const ctx={getSheetRange:(name,ref)=>{assert.equal(name,"Vat Tu");assert.equal(ref,"B2:B4");return [2,3,5];}};
+ assert.equal(evaluateFormula("=SUM('Vat Tu'!B2:B4)",ctx),10);
+ assert.equal(evaluateFormula("=AVERAGE('Vat Tu'!B2:B4)",ctx),10/3);
+});
+test("tên trang tiếng Việt, khoảng trắng và dấu nháy đơn",()=>{
+ const ctx={getSheetCell:(name,ref)=>{assert.equal(name,"Vật tư O'Brien");assert.equal(ref,"C3");return 17;}};
+ assert.equal(evaluateFormula("='Vật tư O''Brien'!C3*2",ctx),34);
+});
+test("tham chiếu tuyệt đối",()=>{
+ const ctx={getSheetCell:(name,ref)=>{assert.equal(ref,"B2");return 9;}};
+ assert.equal(evaluateFormula("='Kho'!$B$2",ctx),9);
+});
+test("thiếu bộ đọc trang tính trả #REF!",()=>assert.throws(()=>evaluateFormula("=Kho!A1"),e=>e.code==="#REF!"));
+test("công thức nội trang cũ vẫn hoạt động",()=>{
+ const ctx={getCell:r=>({A1:4,A2:6}[r]),getRange:r=>[4,6]};
+ assert.equal(evaluateFormula("=SUM(A1:A2)+A1",ctx),14);
+});

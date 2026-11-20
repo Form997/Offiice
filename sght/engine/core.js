@@ -17,6 +17,19 @@ function tokenize(source) {
     if (number) { out.push({type:"number", value:Number(number[0])}); i += number[0].length; continue; }
     const string = rest.match(/^"(?:""|[^"])*"/);
     if (string) { out.push({type:"string", value:string[0].slice(1,-1).replace(/""/g,'"')}); i += string[0].length; continue; }
+    const addressPattern = String.raw`\$?[A-Z]{1,3}\$?[1-9][0-9]*`;
+    const quotedSheet = rest.match(new RegExp("^'((?:[^']|'')+)'!("+addressPattern+"(?::"+addressPattern+")?)","i"));
+    if (quotedSheet) {
+      const ref = quotedSheet[2].toUpperCase().replace(/\$/g, "");
+      out.push({type:ref.includes(":")?"sheetRange":"sheetCell",value:{sheet:quotedSheet[1].replace(/''/g,"'"),ref}});
+      i += quotedSheet[0].length; continue;
+    }
+    const plainSheet = rest.match(new RegExp("^([\\p{L}_][\\p{L}\\p{N}_.]*)!("+addressPattern+"(?::"+addressPattern+")?)","iu"));
+    if (plainSheet) {
+      const ref = plainSheet[2].toUpperCase().replace(/\$/g, "");
+      out.push({type:ref.includes(":")?"sheetRange":"sheetCell",value:{sheet:plainSheet[1],ref}});
+      i += plainSheet[0].length; continue;
+    }
     const range = rest.match(/^[A-Z]{1,3}[1-9][0-9]*:[A-Z]{1,3}[1-9][0-9]*/i);
     if (range) { out.push({type:"range", value:range[0].toUpperCase()}); i += range[0].length; continue; }
     const cell = rest.match(/^[A-Z]{1,3}[1-9][0-9]*/i);
@@ -43,6 +56,8 @@ class Parser {
     if(t.type==="number" || t.type==="string") left={kind:"literal",value:t.value};
     else if(t.type==="cell") left={kind:"cell",ref:t.value};
     else if(t.type==="range") left={kind:"range",ref:t.value};
+    else if(t.type==="sheetCell") left={kind:"sheetCell",sheet:t.value.sheet,ref:t.value.ref};
+    else if(t.type==="sheetRange") left={kind:"sheetRange",sheet:t.value.sheet,ref:t.value.ref};
     else if(t.type==="ident") {
       if(this.peek().value==="(") {
         this.take(); const args=[];
@@ -105,6 +120,8 @@ function evaluate(node, context) {
     case "literal": return node.value;
     case "cell": if(typeof context.getCell!=="function") fail("#REF!","Chưa có bảng dữ liệu để đọc ô "+node.ref+"."); return context.getCell(node.ref);
     case "range": { if(typeof context.getRange!=="function") fail("#REF!","Chưa có bảng dữ liệu để đọc vùng "+node.ref+"."); return {__range:true,values:context.getRange(node.ref)}; }
+    case "sheetCell": if(typeof context.getSheetCell!=="function") fail("#REF!","Chưa có bộ đọc trang tính để đọc "+node.sheet+"!"+node.ref+"."); return context.getSheetCell(node.sheet,node.ref);
+    case "sheetRange": { if(typeof context.getSheetRange!=="function") fail("#REF!","Chưa có bộ đọc trang tính để đọc vùng "+node.sheet+"!"+node.ref+"."); return {__range:true,values:context.getSheetRange(node.sheet,node.ref)}; }
     case "unary": { const n=numberArg(evaluate(node.arg,context),"Toán tử"); return node.op==="-"?-n:n; }
     case "binary": {
       const a=evaluate(node.left,context), b=evaluate(node.right,context);
