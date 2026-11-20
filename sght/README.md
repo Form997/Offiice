@@ -878,3 +878,13 @@ Bổ sung mô hình đáp ứng tăng dần, lợi ích biên giảm dần:
 - Chuẩn hóa lỗi mạng/hết thời gian, không đưa chi tiết lỗi vận chuyển thô ra giao diện.
 - Bổ sung kiểm thử cho allowlist, CSRF refresh, 401, 403, tài khoản khóa, phản hồi sai cấu trúc và lỗi mạng.
 - **Giới hạn:** chưa có backend thật, database, session store hoặc kiểm thử tích hợp trực tiếp. GitHub Pages vẫn là frontend tĩnh; URL API vẫn để trống và đăng nhập vẫn khóa. Chưa được xem là xác thực đa người dùng dùng trong sản xuất.
+
+
+## SGHT 18.43 — Dựng nền máy chủ xác thực — 2026-11-20
+
+- Bổ sung backend Node.js 22+ và PostgreSQL trong `sght/server/`: HTTP API, schema cơ sở dữ liệu, lệnh chạy dịch vụ và bootstrap quản trị viên một lần.
+- API hiện có các tuyến CSRF, đăng nhập, truy vấn phiên, đăng xuất, tạo lời mời, danh sách/cập nhật tài khoản và đọc nhật ký kiểm toán.
+- Phiên dùng cookie HttpOnly/Secure/SameSite; chỉ lưu SHA-256 digest của session ID. Mật khẩu bootstrap dùng scrypt với salt ngẫu nhiên. Thay đổi vai trò/trạng thái thu hồi phiên đang hoạt động và ghi audit trong transaction; bảo vệ quản trị viên hoạt động cuối cùng.
+- Bổ sung kiểm tra Origin cho yêu cầu thay đổi và giới hạn đăng nhập cơ bản theo tiến trình; CI kiểm tra cú pháp các entrypoint backend.
+- **Chưa triển khai:** GitHub Pages vẫn chỉ phục vụ frontend; chưa có dịch vụ API công khai, database production hay cấu hình URL API. Chưa có kiểm thử tích hợp PostgreSQL.
+- **Giới hạn an ninh:** chưa phải dịch vụ danh tính production. Còn thiếu Argon2id, MFA, xác minh email, đặt lại mật khẩu, hoàn tất lời mời, giới hạn tốc độ phân tán, CSRF gắn phiên, quản lý phiên/refresh, và phân quyền server-side cho dữ liệu workbook, macro, công thức, chữ ký, xuất tệp. Phải qua kiểm tra bảo mật độc lập trước khi mở truy cập.
