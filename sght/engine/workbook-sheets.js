@@ -24,22 +24,6 @@ export function rewriteWorkbookSheetReferences(input,oldName,newName){
   return changed?{...sheet,cells}:sheet;
  });
 }
-export function updateWorkbookSheet(input,id,patch){");
- const quotedOld="'"+oldTitle.replace(/'/g,"''")+"'"+"!";
- const quotedNext="'"+newTitle.replace(/'/g,"''")+"'"+"!";
- const quotedPattern=new RegExp(escape(quotedOld),"giu");
- const plainPattern=/^[\p{L}_][\p{L}\p{N}_.]*$/u.test(oldTitle)?new RegExp("(^|[^\\p{L}\\p{N}_.])"+escape(oldTitle)+"!","giu"):null;
- return (Array.isArray(input)?input:normalizeWorkbookSheets(input)).map(sheet=>{
-  let changed=false;const cells={...(sheet.cells||{})};
-  for(const [address,value] of Object.entries(cells)){
-   if(typeof value!=="string"||!value.startsWith("="))continue;
-   let next=value.replace(quotedPattern,quotedNext);
-   if(plainPattern)next=next.replace(plainPattern,(_,prefix)=>prefix+quotedNext);
-   if(next!==value){cells[address]=next;changed=true;}
-  }
-  return changed?{...sheet,cells}:sheet;
- });
-}
 export function updateWorkbookSheet(input,id,patch){const sheets=Array.isArray(input)?input:normalizeWorkbookSheets(input);return sheets.map(x=>x.id===id?{...x,...patch,id}:x);}
 export function getWorkbookSheet(input,id){return(Array.isArray(input)?input:[]).find(x=>x.id===id)||null;}
 export function workbookFieldKey(header,occurrence=1){const label=String(header??"").trim().normalize("NFKC").toLocaleLowerCase().replace(/\s+/g," ");return "field:"+encodeURIComponent(label||"(blank)")+":"+occurrence;}
