@@ -11,7 +11,7 @@ const pool=new Pool({connectionString:process.env.DATABASE_URL,ssl:{rejectUnauth
 try{
  const client=await pool.connect();
  try{await client.query("BEGIN");const exists=await client.query("SELECT id FROM sght_users WHERE role='admin' AND status='active' LIMIT 1");if(exists.rowCount)throw new Error("An active administrator already exists; bootstrap is one-time only.");
- await client.query("INSERT INTO sght_users(email_normalized,display_name,password_hash,password_salt,role,status) VALUES($1,$2,$3,$4,'admin','active')",[email,name,derived.toString("hex"),salt]);
+ await client.query("INSERT INTO sght_users(email_normalized,display_name,password_hash,password_salt,role,status,email_verified_at) VALUES($1,$2,$3,$4,'admin','active',now())",[email,name,derived.toString("hex"),salt]);
  await client.query("COMMIT");process.stdout.write("Initial administrator created. Remove bootstrap secrets from the deployment environment.\n");}
  catch(e){await client.query("ROLLBACK");throw e;}finally{client.release();}
 }finally{await pool.end();}
