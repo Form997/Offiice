@@ -188,3 +188,8 @@ The database stores only credential public keys and metadata. Private keys remai
 The authentication flow checks the authenticator's signature counter after cryptographic assertion verification. If both the stored and returned counters are non-zero and the returned value is not strictly greater, the server consumes the MFA and WebAuthn challenges, writes an `auth.passkey_counter_anomaly` audit event, and refuses to issue a session. The user can authenticate with TOTP or a recovery code while reviewing the affected authenticator.
 
 A zero counter is not treated as an anomaly because some synced and multi-device passkeys do not expose a meaningful monotonic counter. A counter anomaly is a risk signal, not conclusive proof of credential cloning. Unit tests cover zero, increasing, repeated, decreasing, and invalid counters. PostgreSQL integration, real authenticator testing, backend deployment, and independent security review remain outstanding.
+
+
+## 19 — Account recovery hardening
+
+Password-reset requests now enforce Origin/CSRF, parse and normalize the submitted email, and apply a five-per-minute per-email in-process throttle while retaining a uniform response to reduce account enumeration. Email-verification requests use the same normalization helper and a five-per-minute per-email throttle. Successful password reset consumes outstanding reset tokens, revokes all active sessions, consumes pending MFA and WebAuthn challenges, and records an audit event in the same transaction. Enrolled TOTP and passkeys remain enrolled; only outstanding challenges are invalidated. The rate limiter is process-local and is not sufficient for a multi-instance public deployment.
