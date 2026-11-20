@@ -25,7 +25,7 @@ const SAFE_PATHS = new Set([
   "/v1/admin/users", "/v1/admin/audit", "/v1/auth/sessions"
 ]);
 function allowedPath(path) {
-  return SAFE_PATHS.has(path) || /^\/v1\/admin\/users\/[A-Za-z0-9_-]{8,128}$/.test(path) || /^\/v1\/auth\/sessions\/[0-9a-f-]{36}$/i.test(path);
+  return SAFE_PATHS.has(path) || /^\/v1\/admin\/users\/[A-Za-z0-9_-]{8,128}$/.test(path) || /^\/v1\/auth\/sessions\/[0-9a-f-]{36}$/i.test(path) || /^\/v1\/auth\/passkeys\/[A-Za-z0-9_-]{16,1024}$/.test(path);
 }
 export class SghtAuthApiClient {
   constructor({ baseUrl, fetchImpl = globalThis.fetch, csrfHeader = "X-CSRF-Token", timeoutMs = 15000 } = {}) {
@@ -76,7 +76,7 @@ export class SghtAuthApiClient {
   async request(path, { method = "GET", body, csrf = false } = {}) {
     if (!allowedPath(path)) throw new AuthApiError("Đường dẫn API không nằm trong danh sách cho phép.");
     const upper = method.toUpperCase();
-    if (!["GET", "POST", "PATCH", "DELETE"].includes(upper) || (upper === "DELETE" && !path.startsWith("/v1/auth/sessions/"))) throw new AuthApiError("Phương thức API không được hỗ trợ.");
+    if (!["GET", "POST", "PATCH", "DELETE"].includes(upper) || (upper === "DELETE" && !path.startsWith("/v1/auth/sessions/") && !/^\/v1\/auth\/passkeys\/[A-Za-z0-9_-]{16,1024}$/.test(path))) throw new AuthApiError("Phương thức API không được hỗ trợ.");
     if (csrf && !["POST", "PATCH", "DELETE"].includes(upper)) throw new AuthApiError("CSRF chỉ dùng cho yêu cầu thay đổi dữ liệu.");
     let token = csrf ? await this.getCsrfToken() : null;
     try { return await this.send(path, { method: upper, body, csrfToken: token }); }
@@ -98,6 +98,8 @@ export class SghtAuthApiClient {
   async registerPasskeyOptions(password,code){return this.request("/v1/auth/passkeys/register/options",{method:"POST",body:{password,code},csrf:true});}
   async verifyPasskeyRegistration(response){return this.request("/v1/auth/passkeys/register/verify",{method:"POST",body:{response},csrf:true});}
   async listPasskeys(){return this.request("/v1/auth/passkeys");}
+  async renamePasskey(credentialId,displayName){if(!/^[A-Za-z0-9_-]{16,1024}$/.test(credentialId||""))throw new AuthApiError("Mã Passkey không hợp lệ.");return this.request("/v1/auth/passkeys/"+encodeURIComponent(credentialId),{method:"PATCH",body:{displayName},csrf:true});}
+  async deletePasskey(credentialId,password,code){if(!/^[A-Za-z0-9_-]{16,1024}$/.test(credentialId||""))throw new AuthApiError("Mã Passkey không hợp lệ.");return this.request("/v1/auth/passkeys/"+encodeURIComponent(credentialId),{method:"DELETE",body:{password,code},csrf:true});}
   async passkeyLoginOptions(challengeToken){return this.request("/v1/auth/mfa/passkey/options",{method:"POST",body:{challengeToken},csrf:true});}
   async completePasskeyLogin(challengeToken,response){return safeSession(await this.request("/v1/auth/mfa/passkey/verify",{method:"POST",body:{challengeToken,response},csrf:true}));}
   async mfaStatus(){return this.request("/v1/auth/mfa/status");}
