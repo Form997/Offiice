@@ -12,6 +12,7 @@ CREATE TABLE IF NOT EXISTS sght_users (
 );
 CREATE TABLE IF NOT EXISTS sght_sessions (
  id_hash char(64) PRIMARY KEY,
+ public_id uuid NOT NULL UNIQUE DEFAULT gen_random_uuid(),
  user_id uuid NOT NULL REFERENCES sght_users(id) ON DELETE CASCADE,
  csrf_hash char(64) NOT NULL,
  expires_at timestamptz NOT NULL,
@@ -25,6 +26,7 @@ CREATE TABLE IF NOT EXISTS sght_invitations (
  email_normalized varchar(254) NOT NULL,
  display_name varchar(120) NOT NULL,
  role varchar(16) NOT NULL CHECK(role IN ('admin','signer','auditor','viewer')),
+ token_hash char(64) UNIQUE,
  expires_at timestamptz NOT NULL,
  consumed_at timestamptz,
  created_by uuid NOT NULL REFERENCES sght_users(id),
@@ -40,3 +42,13 @@ CREATE TABLE IF NOT EXISTS sght_audit_events (
  request_id uuid NOT NULL
 );
 CREATE INDEX IF NOT EXISTS sght_audit_created ON sght_audit_events(created_at DESC);
+
+CREATE TABLE IF NOT EXISTS sght_password_resets (
+ id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+ token_hash char(64) NOT NULL UNIQUE,
+ user_id uuid NOT NULL REFERENCES sght_users(id) ON DELETE CASCADE,
+ expires_at timestamptz NOT NULL,
+ consumed_at timestamptz,
+ created_at timestamptz NOT NULL DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS sght_password_resets_user_active ON sght_password_resets(user_id) WHERE consumed_at IS NULL;
