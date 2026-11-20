@@ -483,7 +483,8 @@ function renderPivotReport(){
   const body=p.rows.map(r=>[...r.labels,...r.metrics.flatMap(m=>p.columns.map(c=>m.values[c]??0)),...r.metrics.map(m=>m.total)]);
   const totals=p.grandTotals.flatMap(m=>p.columns.map(c=>m.columnTotals[c]??0)),totalRow=[...rowHeaders.map((_,i)=>i===0?"Tổng cộng":""),...totals,...p.grandTotals.map(m=>m.total)];
   output.innerHTML="<div class='pivot-report-meta'>"+p.includedRows+" dòng nguồn · "+p.rowCount+" nhóm · tự làm mới khi dữ liệu thay đổi</div><table><thead><tr>"+headers.map(x=>"<th>"+escapeHtml(x)+"</th>").join("")+"</tr></thead><tbody>"+body.map(row=>"<tr>"+row.map(x=>"<td>"+escapeHtml(x)+"</td>").join("")+"</tr>").join("")+"<tr class='pivot-grand-total'>"+totalRow.map(x=>"<th>"+escapeHtml(x)+"</th>").join("")+"</tr></tbody></table>";
-  renderPivotChart(p);\n  renderPivotChartManager();
+  renderPivotChart(p);
+  renderPivotChartManager();
  }catch(e){output.textContent="Không thể làm mới Pivot: "+e.message;if(chartOutput)chartOutput.textContent="Biểu đồ chưa thể cập nhật: "+e.message;}
 }
 function renderPivotChart(p){
