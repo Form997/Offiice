@@ -177,7 +177,7 @@ Before registering a passkey, the account must already have TOTP MFA enabled. En
 
 Routes:
 - POST `/v1/auth/passkeys/register/options` and POST `/v1/auth/passkeys/register/verify`: authenticated, CSRF-protected enrollment.
-- GET `/v1/auth/passkeys`: list the current user's registered public credentials and metadata.
+- GET `/v1/auth/passkeys`: list the current user's registered public credentials and metadata. PATCH or DELETE `/v1/auth/passkeys/:credentialId`: rename a credential or revoke it. Revocation requires password re-entry and a fresh unused TOTP code; both operations are scoped to the authenticated account and audited.
 - POST `/v1/auth/mfa/passkey/options` and POST `/v1/auth/mfa/passkey/verify`: passkey as the second factor for an outstanding password-login MFA challenge.
 
-The database stores only credential public keys and metadata. Private keys remain with the authenticator. Challenge rows expire after five minutes and are consumed transactionally. TOTP/recovery-code login remains available. There is no unauthenticated passwordless login or credential deletion route in this stage.
+The database stores only credential public keys and metadata. Private keys remain with the authenticator. Challenge rows expire after five minutes and are consumed transactionally. TOTP/recovery-code login remains available. There is no unauthenticated passwordless login in this stage. Credential deletion is available only through the reauthenticated, account-scoped DELETE route.
