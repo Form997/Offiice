@@ -75,7 +75,7 @@ export class SghtAuthApiClient {
   async request(path, { method = "GET", body, csrf = false } = {}) {
     if (!allowedPath(path)) throw new AuthApiError("Đường dẫn API không nằm trong danh sách cho phép.");
     const upper = method.toUpperCase();
-    if (!["GET", "POST", "PATCH", "DELETE"].includes(upper) || (upper === "DELETE" && !/^\\/v1\\/auth\\/sessions\\/[0-9a-f-]{36}$/i.test(path))) throw new AuthApiError("Phương thức API không được hỗ trợ.");
+    if (!["GET", "POST", "PATCH", "DELETE"].includes(upper) || (upper === "DELETE" && !path.startsWith("/v1/auth/sessions/"))) throw new AuthApiError("Phương thức API không được hỗ trợ.");
     if (csrf && !["POST", "PATCH", "DELETE"].includes(upper)) throw new AuthApiError("CSRF chỉ dùng cho yêu cầu thay đổi dữ liệu.");
     let token = csrf ? await this.getCsrfToken() : null;
     try { return await this.send(path, { method: upper, body, csrfToken: token }); }
