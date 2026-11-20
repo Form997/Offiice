@@ -165,3 +165,17 @@ Before enabling MFA, provision a high-entropy secret manager value named `SGHT_M
 Apply the additive `schema.sql` migration. MFA uses RFC 6238 TOTP (SHA-1, six digits, 30-second period, ±1 step tolerance), AES-256-GCM encrypted seeds, one-time recovery-code digests, five-minute login challenges, and per-process throttling. Configure system time synchronization (NTP). Recovery codes are displayed once at enrollment; users must store them offline. No QR renderer is bundled; an authenticator app can be configured by entering the displayed secret manually or by using the otpauth URI with a trusted QR generator.
 
 MFA routes require the same exact Origin and CSRF controls as other authenticated mutations. The server issues no authenticated session until the second factor succeeds. TOTP steps are stored to prevent replay. Recovery codes are consumed transactionally. This implementation is not a substitute for independent security review, distributed rate limiting, operational monitoring, database backups, or a documented account recovery process. The API is still not deployed by GitHub Pages.
+
+
+## 18.49 — WebAuthn / Passkeys
+
+Install the backend dependencies from this directory with `npm install`. The server uses `@simplewebauthn/server` 14.1.x (Node.js 22+) for standards-based WebAuthn registration and assertion verification.
+
+Set `SGHT_WEBAUTHN_RP_ID` to exactly the hostname in `SGHT_ALLOWED_ORIGIN` (for example, if the origin is `https://auth.example.com`, use `auth.example.com`). The API rejects missing or mismatched RP IDs. Keep the API behind HTTPS; browser WebAuthn requires a secure context, with localhost allowed for local development.
+
+Routes:
+- POST `/v1/auth/passkeys/register/options` and POST `/v1/auth/passkeys/register/verify`: authenticated, CSRF-protected enrollment.
+- GET `/v1/auth/passkeys`: list the current user's registered public credentials and metadata.
+- POST `/v1/auth/mfa/passkey/options` and POST `/v1/auth/mfa/passkey/verify`: passkey as the second factor for an outstanding password-login MFA challenge.
+
+The database stores only credential public keys and metadata. Private keys remain with the authenticator. Challenge rows expire after five minutes and are consumed transactionally. TOTP/recovery-code login remains available. There is no unauthenticated passwordless login or credential deletion route in this stage.
