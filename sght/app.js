@@ -1014,7 +1014,7 @@ if(repairApplyButton)repairApplyButton.addEventListener("click",()=>{
  const approval=validateRepairApproval({currentFormula:raw(pendingFormulaRepair.address),expectedFormula:pendingFormulaRepair.original,candidateFormula:pendingFormulaRepair.candidate,previewSucceeded:true});
  if(!approval||pendingFormulaRepair.sheetId!==activeSheetId||pendingFormulaRepair.address!==selected){repairOutput.textContent="Không áp dụng: ô đã đổi hoặc đề xuất không còn khớp. Hãy phân tích lại.";clearFormulaRepair();return;}
  if(!confirm("Áp dụng công thức đã thử vào ô "+selected+"? Thao tác này tạo một mốc Undo."))return;
- const formula=pendingFormulaRepair.candidate;setValue(selected,formula);formulaInput.value=formula;repairOutput.textContent="Đã áp dụng công thức vào "+selected+". Có thể dùng Hoàn tác (Ctrl+Z) để quay lại công thức cũ.";clearFormulaRepair();calcStatus.textContent="Đã áp dụng sửa công thức tại "+selected;
+ const formula=pendingFormulaRepair.candidate;setValue(selected,formula);formulaInput.value=formula;clearFormulaRepair();repairOutput.textContent="Đã áp dụng công thức vào "+selected+". Có thể dùng Hoàn tác (Ctrl+Z) để quay lại công thức cũ.";calcStatus.textContent="Đã áp dụng sửa công thức tại "+selected;
 });
 
 const evaluateFormulaNode=key=>{const split=key.indexOf("!");if(split<1)throw new Error("Khóa ô không hợp lệ: "+key);return calculate(key.slice(split+1),new Set(),key.slice(0,split));};
