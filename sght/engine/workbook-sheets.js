@@ -8,7 +8,23 @@ export function removeWorkbookSheet(input,id){const sheets=normalizeWorkbookShee
 export function rewriteWorkbookSheetReferences(input,oldName,newName){
  const oldTitle=String(oldName??"").trim(),newTitle=String(newName??"").trim();
  if(!oldTitle||!newTitle||oldTitle===newTitle)return Array.isArray(input)?input:normalizeWorkbookSheets(input);
- const escape=value=>value.replace(/[.*+?^${}()|[\]\\]/g,"\\export function updateWorkbookSheet(input,id,patch){");
+ const escape=value=>Array.from(value,ch=>[46,42,43,63,94,36,123,125,40,41,124,91,93,92].includes(ch.charCodeAt(0))?"\\"+ch:ch).join("");
+ const quotedOld="'"+oldTitle.replace(/'/g,"''")+"'!";
+ const quotedNext="'"+newTitle.replace(/'/g,"''")+"'!";
+ const quotedPattern=new RegExp(escape(quotedOld),"giu");
+ const plainPattern=/^[\p{L}_][\p{L}\p{N}_.]*$/u.test(oldTitle)?new RegExp("(^|[^\\p{L}\\p{N}_.])"+escape(oldTitle)+"!","giu"):null;
+ return (Array.isArray(input)?input:normalizeWorkbookSheets(input)).map(sheet=>{
+  let changed=false;const cells={...(sheet.cells||{})};
+  for(const [address,value] of Object.entries(cells)){
+   if(typeof value!=="string"||!value.startsWith("="))continue;
+   let next=value.replace(quotedPattern,quotedNext);
+   if(plainPattern)next=next.replace(plainPattern,(_,prefix)=>prefix+quotedNext);
+   if(next!==value){cells[address]=next;changed=true;}
+  }
+  return changed?{...sheet,cells}:sheet;
+ });
+}
+export function updateWorkbookSheet(input,id,patch){");
  const quotedOld="'"+oldTitle.replace(/'/g,"''")+"'"+"!";
  const quotedNext="'"+newTitle.replace(/'/g,"''")+"'"+"!";
  const quotedPattern=new RegExp(escape(quotedOld),"giu");
