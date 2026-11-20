@@ -996,3 +996,14 @@ Bổ sung mô hình đáp ứng tăng dần, lợi ích biên giảm dần:
 - GitHub Pages deployment ngày 20/11/2026 thành công (run 44724574139). Đây chỉ là triển khai frontend tĩnh; backend Node/PostgreSQL vẫn chưa được triển khai.
 - Dung lượng snapshot của 6 tệp liên quan sau cập nhật: 196.775 byte UTF-8 (192,16 KiB; 1.574.200 bit). Đây là tổng dung lượng nội dung hiện tại của các tệp, không phải số byte tăng thêm của commit.
 - Bắt đầu và phát triển: 20/11/2026.
+
+
+## SGHT 19 — Gia cố quy trình khôi phục tài khoản — 2026-11-20
+
+- Sửa lỗi tuyến yêu cầu đặt lại mật khẩu: trước đây tuyến đọc biến `email` nhưng không tự đọc/chuẩn hóa nội dung JSON của yêu cầu. Nay máy chủ kiểm tra Origin/CSRF, đọc body, chuẩn hóa email và chỉ truy vấn theo email hợp lệ.
+- Áp dụng giới hạn 5 yêu cầu đặt lại mật khẩu mỗi email trong 60 giây (bộ đếm trong tiến trình). Phản hồi vẫn đồng nhất, không tiết lộ email có tài khoản hay không. Email xác minh cũng dùng chung hàm chuẩn hóa và giới hạn 5 yêu cầu/phút.
+- Khi đặt lại mật khẩu thành công, transaction thu hồi mọi phiên hiện hành, tiêu thụ các challenge MFA và WebAuthn còn mở, tiêu thụ các token đặt lại mật khẩu còn hiệu lực và ghi audit event. TOTP và Passkey đã đăng ký vẫn được giữ làm yếu tố xác thực; chỉ challenge đang chờ bị vô hiệu.
+- Thêm mô-đun chuẩn hóa email khôi phục và unit tests cho email hợp lệ, sai định dạng, sai kiểu và vượt độ dài; đưa bộ test vào `npm test` của backend.
+- Giới hạn: rate limiter hiện vẫn lưu trong bộ nhớ từng tiến trình, không chia sẻ giữa nhiều instance và có thể mất khi khởi động lại. Trước khi mở dịch vụ công khai cần rate limiter phân tán, giám sát, kiểm thử PostgreSQL end-to-end, kiểm tra gửi email thật và rà soát bảo mật độc lập.
+- Kiểm thử CI và Pages: chờ workflow của commit 19 xác nhận; không đánh dấu đạt trước khi có kết quả.
+- Bắt đầu: 20/11/2026.
