@@ -4,6 +4,7 @@ import { suggestFormulaRepairs, validateRepairApproval } from "./engine/formula-
 import { appendRepairAudit, exportRepairAudit } from "./engine/repair-audit.js";
 import { normalizeFormulaVersions, recordFormulaVersion, getFormulaCellVersions, compareFormulaVersions, exportFormulaVersions, groupFormulaVersionTransactions } from "./engine/formula-version-history.js";
 import { collectFormulaVersionChanges } from "./engine/history-version-sync.js";
+import { buildFormulaTransactionRestorePlan } from "./engine/formula-version-history.js";
 import { evaluateFormula, FormulaError, listFormulaFunctions } from "./engine/core.js";
 import { buildDependencyGraph, updateDependencyNode, planRecalculation } from "./engine/dependency-engine.js";
 import { CalculationScheduler } from "./engine/calculation-scheduler.js";
@@ -1002,6 +1003,52 @@ function recordFormulaCellVersion(cell,before,after,source="edit",sheetId=active
  if(next.length!==formulaVersionHistory.length||next[0]?.id!==formulaVersionHistory[0]?.id){formulaVersionHistory=next;saveFormulaVersions();}
 }
 function loadFormulaVersions(){try{const saved=JSON.parse(localStorage.getItem(FORMULA_VERSION_KEY)||"null");formulaVersionHistory=normalizeFormulaVersions(saved);}catch{formulaVersionHistory=[];}renderFormulaVersions();}
+function getFormulaVersionWorkbookCells(sheetId){const sheet=getWorkbookSheet(workbookSheets,sheetId);return sheet?.cells||{};}
+function refreshFormulaTransactionChoices(){
+ const select=document.querySelector("#formulaTransactionSelect");if(!select)return;
+ const prior=select.value;select.replaceChildren();
+ const groups=groupFormulaVersionTransactions(formulaVersionHistory);
+ for(const group of groups){const option=document.createElement("option");option.value=group.id;option.textContent=new Date(group.timestamp).toLocaleString("vi-VN")+" · "+group.source+" · "+group.cellCount+" ô · "+(group.sheetName||group.sheetId);select.append(option);}
+ if(groups.some(g=>g.id===prior))select.value=prior;
+ const preview=document.querySelector("#previewFormulaTransaction"),apply=document.querySelector("#restoreFormulaTransaction");
+ if(preview)preview.disabled=!groups.length;if(apply)apply.disabled=true;
+}
+function previewFormulaTransactionRestore(){
+ const output=document.querySelector("#formulaTransactionRestoreOutput"),select=document.querySelector("#formulaTransactionSelect"),applyButton=document.querySelector("#restoreFormulaTransaction");
+ if(!output||!select?.value)return;
+ try{
+  const group=groupFormulaVersionTransactions(formulaVersionHistory).find(x=>x.id===select.value);
+  if(!group)throw new Error("Giao dịch không còn trong lịch sử.");
+  const sheet=getWorkbookSheet(workbookSheets,group.sheetId);
+  if(!sheet)throw new Error("Trang tính nguồn không còn tồn tại.");
+  const plan=buildFormulaTransactionRestorePlan(formulaVersionHistory,group.id,sheet.cells);
+  window.sghtPendingFormulaRestore=plan;
+  const lines=["GIAO DỊCH: "+plan.transactionId,"TRANG TÍNH: "+(sheet.name||plan.sheetId),"THỜI ĐIỂM: "+plan.createdAt,"SỐ Ô SẼ ĐỔI: "+plan.changes.length,"Ô không cần đổi: "+plan.unchanged,"XUNG ĐỘT: "+plan.conflicts.length,""];
+  for(const c of plan.changes)lines.push(c.address+": "+(c.before||"∅")+"  →  "+(c.after||"∅"));
+  for(const c of plan.conflicts)lines.push("⚠ "+c.address+": "+c.reason+(c.expected!==undefined?" (mong đợi: "+(c.expected||"∅")+"; hiện tại: "+(c.current||"∅")+")":""));
+  lines.push("",plan.canRestore?"Bản xem trước hợp lệ. Chưa có dữ liệu nào bị thay đổi.":"Không thể khôi phục an toàn. Giao dịch không được áp dụng.");
+  output.textContent=lines.join("\n");if(applyButton)applyButton.disabled=!plan.canRestore;
+ }catch(error){output.textContent=error.message;if(applyButton)applyButton.disabled=true;window.sghtPendingFormulaRestore=null;}
+}
+function applyFormulaTransactionRestore(){
+ const plan=window.sghtPendingFormulaRestore,output=document.querySelector("#formulaTransactionRestoreOutput"),applyButton=document.querySelector("#restoreFormulaTransaction");
+ if(!plan?.canRestore||!output)return;
+ const sheet=getWorkbookSheet(workbookSheets,plan.sheetId);
+ if(!sheet){output.textContent="Trang tính nguồn không còn tồn tại. Hủy khôi phục.";return;}
+ const fresh=buildFormulaTransactionRestorePlan(formulaVersionHistory,plan.transactionId,sheet.cells);
+ if(!fresh.canRestore||fresh.changes.length!==plan.changes.length){output.textContent="Dữ liệu đã đổi sau bản xem trước. Hãy tạo bản xem trước mới; chưa ô nào bị thay đổi.";if(applyButton)applyButton.disabled=true;window.sghtPendingFormulaRestore=null;return;}
+ if(!confirm("Khôi phục toàn bộ "+fresh.changes.length+" ô của giao dịch này? SGHT sẽ tạo một mốc Undo duy nhất."))return;
+ if(sheet.id!==activeSheetId){output.textContent="Hãy chuyển sang trang tính "+sheet.name+" rồi xem trước lại.";return;}
+ snapshot();
+ const changed=[];
+ for(const c of fresh.changes){const prior=String(cells[c.address]??"");if(c.after==="")delete cells[c.address];else cells[c.address]=c.after;recordFormulaCellVersion(c.address,prior,c.after,"transaction-rollback",activeSheetId);changed.push(c.address);}
+ rebuildDependencyEngine();reconcileStructuredTables();searchDirty=true;updateHistoryControls();render();save();renderFormulaVersions();
+ output.textContent="Đã khôi phục trọn giao dịch "+fresh.transactionId+" · "+changed.length+" ô. Một mốc Undo đã được tạo; có thể hoàn tác toàn bộ lần khôi phục.";
+ window.sghtPendingFormulaRestore=null;if(applyButton)applyButton.disabled=true;refreshFormulaTransactionChoices();
+}
+document.querySelector("#previewFormulaTransaction")?.addEventListener("click",previewFormulaTransactionRestore);
+document.querySelector("#restoreFormulaTransaction")?.addEventListener("click",applyFormulaTransactionRestore);
+document.querySelector("#formulaTransactionSelect")?.addEventListener("change",()=>{window.sghtPendingFormulaRestore=null;const out=document.querySelector("#formulaTransactionRestoreOutput");if(out)out.textContent="Chọn giao dịch rồi bấm “Xem trước khôi phục”.";const b=document.querySelector("#restoreFormulaTransaction");if(b)b.disabled=true;});
 function renderFormulaVersions(){
  if(!formulaVersionOutput)return;
  const items=getFormulaCellVersions(formulaVersionHistory,activeSheetId,selected);
@@ -1010,6 +1057,7 @@ function renderFormulaVersions(){
  for(const select of [formulaVersionA,formulaVersionB]){if(!select)continue;const prior=select.value;select.replaceChildren();for(const item of items){const option=document.createElement("option");option.value=item.id;option.textContent=new Date(item.timestamp).toLocaleString("vi-VN")+" · "+(item.afterFormula||"(ô không còn là công thức)")+" · "+item.source;select.append(option);}if(items.some(x=>x.id===prior))select.value=prior;}
  formulaVersionOutput.textContent=items.length?transactions.map((g,i)=>(i+1)+". GIAO DỊCH "+g.id+" · "+new Date(g.timestamp).toLocaleString("vi-VN")+" · "+g.source+" · "+g.cellCount+" ô\n"+g.changes.map(x=>x.address+": "+(x.beforeFormula||"—")+" → "+(x.afterFormula||"—")).join("\n")).join("\n\n"):"Ô "+selected+" chưa có phiên bản công thức được ghi nhận.";
  if(formulaVersionCompare)formulaVersionCompare.disabled=items.length<2;
+ refreshFormulaTransactionChoices();
  if(formulaVersionRestore)formulaVersionRestore.disabled=!items.some(x=>x.id===formulaVersionA?.value&&x.afterFormula);
 }
 if(formulaVersionLoad)formulaVersionLoad.addEventListener("click",renderFormulaVersions);

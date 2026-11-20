@@ -791,3 +791,13 @@ Bổ sung mô hình đáp ứng tăng dần, lợi ích biên giảm dần:
 - Undo và Redo tạo mã giao dịch riêng, giữ lịch sử gốc và phân biệt nguồn thao tác.
 - Formula Version Control gom phiên bản theo giao dịch, hiển thị mã, thời điểm, nguồn, số ô và thay đổi trước/sau; bộ đếm phân biệt phiên bản với giao dịch.
 - Dữ liệu cũ không có mã giao dịch được giữ nguyên và xem như nhóm đơn lẻ. Giới hạn 50 mốc/ô, 5.000 mốc/workbook; nhóm chỉ gồm các mốc còn lưu. Dữ liệu localStorage, không đồng bộ đám mây, không chống sửa đổi. Một số luồng không gọi snapshot có thể tạo nhóm riêng cho từng mốc. Chưa kiểm thử thủ công trên thiết bị thật.
+
+
+## SGHT 18.35 — Transaction Restore & Rollback — 2026-11-20
+
+- Bổ sung danh sách giao dịch lịch sử trên toàn workbook; chọn một giao dịch để xem các ô bị ảnh hưởng và giá trị trước/sau.
+- Bản xem trước kiểm tra đồng thời từng ô với trạng thái sau giao dịch đã ghi. Nếu có xung đột, thiếu trang tính, địa chỉ trùng hoặc dữ liệu đã thay đổi, toàn bộ thao tác bị chặn; không khôi phục một phần.
+- Khi hợp lệ, người dùng xác nhận một lần; SGHT tạo đúng một snapshot Undo, đảo ngược các ô trong giao dịch, ghi các mốc phiên bản nguồn `transaction-rollback`, dựng lại dependency engine và lưu workbook.
+- Từ giai đoạn này, mỗi phiên bản mới lưu thêm giá trị thô trước/sau, kể cả khi một phía là hằng số hoặc ô trống. Nhờ đó rollback không nhầm hằng số cũ thành ô trống.
+- Các mốc lịch sử cũ vốn chỉ lưu công thức trước/sau không có đủ dữ liệu để phục hồi chính xác hằng số; giao dịch cũ chỉ được khôi phục nếu kiểm tra được trạng thái an toàn. Không tự suy đoán dữ liệu đã mất.
+- Giới hạn: rollback chỉ áp dụng cho giao dịch thuộc một trang tính và trang đó phải đang hoạt động; lịch sử vẫn lưu localStorage, không đồng bộ đám mây và không chống sửa đổi. Cần kiểm thử thủ công trên trình duyệt/điện thoại thật.

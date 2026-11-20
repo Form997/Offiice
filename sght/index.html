@@ -165,6 +165,12 @@
       <details class="formula-version-panel">
         <summary>Formula Version Control · Lịch sử phiên bản công thức <span id="formulaVersionCount">0 phiên bản</span></summary>
         <div class="formula-version-toolbar"><button id="loadFormulaVersions" type="button" class="quiet">Nạp lịch sử ô đang chọn</button><label>Bản A <select id="formulaVersionA"></select></label><label>Bản B <select id="formulaVersionB"></select></label><button id="compareFormulaVersions" type="button" class="quiet" disabled>So sánh A/B</button><button id="restoreFormulaVersion" type="button" class="primary" disabled>Khôi phục bản A</button><button id="exportFormulaVersions" type="button" class="quiet">Xuất JSON</button></div>
+        <div class="formula-transaction-restore">
+          <strong>Khôi phục nguyên giao dịch</strong>
+          <div class="formula-version-toolbar"><label>Giao dịch <select id="formulaTransactionSelect"></select></label><button id="previewFormulaTransaction" type="button" class="quiet" disabled>Xem trước khôi phục</button><button id="restoreFormulaTransaction" type="button" class="primary" disabled>Khôi phục toàn bộ giao dịch</button></div>
+          <pre id="formulaTransactionRestoreOutput" class="formula-version-output" aria-live="polite">Chọn giao dịch rồi xem trước. SGHT chỉ áp dụng khi mọi ô vẫn khớp trạng thái sau giao dịch.</pre>
+          <small>Khôi phục được ghi thành một mốc Undo duy nhất. Nếu một ô đã bị sửa sau giao dịch, toàn bộ lượt khôi phục sẽ bị chặn. Giá trị trước/sau chỉ được lưu đầy đủ từ phiên bản 18.35 trở đi; các mốc cũ thiếu dữ liệu gốc sẽ không được phép khôi phục nếu không xác minh được.</small>
+        </div>
         <pre id="formulaVersionOutput" class="formula-version-output" aria-live="polite">Lịch sử phiên bản được gom theo giao dịch thao tác. Chọn ô rồi nạp lịch sử để xem các thay đổi cùng một lần thao tác.</pre>
         <small>Chỉ khôi phục phiên bản có công thức; khôi phục tạo một phiên bản mới và mốc Undo. Tối đa 50 mốc/ô, 5.000 mốc toàn workbook. Dữ liệu lưu cục bộ, không chống sửa đổi và không đồng bộ đám mây.</small>
       </details>
