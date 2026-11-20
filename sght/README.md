@@ -838,3 +838,13 @@ Bổ sung mô hình đáp ứng tăng dần, lợi ích biên giảm dần:
 - Giới hạn: ECDSA/Web Crypto cần trình duyệt hỗ trợ; mất khóa riêng/mật khẩu không thể khôi phục. Chưa kiểm thử thủ công trên thiết bị thật.
 - Kiểm thử tự động: 307/307 đạt; GitHub Pages triển khai thành công (20/11/2026).
 - Commit hoàn tất: `9e2a3f908151e9bae025436a11345a30ad9f3984`. Mã nguồn, kiểm thử, giao diện và tài liệu: khoảng 365 KiB UTF-8 (ước tính; không phải RAM khi chạy).
+
+## SGHT 18.39 — Trusted Identity Registry & Key Lifecycle — 2026-11-20
+
+- Bổ sung `sght/engine/identity-registry.js`: sổ danh tính, khóa công khai, fingerprint SHA-256, trạng thái pending/active/rotated/revoked/expired và nhật ký sự kiện.
+- Danh tính mới mặc định pending; phê duyệt đòi hỏi mã người phê duyệt khác người được duyệt và ghi căn cứ xác minh. Chỉ danh tính active mới được đăng ký khóa.
+- Quản lý vòng đời khóa: đăng ký, đặt hạn, tự đánh dấu hết hạn, thay thế khóa (giữ khóa cũ ở trạng thái rotated), thu hồi và tra cứu hiệu lực.
+- Xuất/nhập sổ JSON có kiểm tra cấu trúc, mã trùng, fingerprint, tham chiếu danh tính và sự kiện.
+- Giao diện cho thao tác danh tính, phê duyệt, khóa, thay thế/thu hồi và kiểm tra fingerprint.
+- Giới hạn bảo mật: sổ hiện lưu localStorage, nhật ký append-only theo quy ước ứng dụng nhưng không chống sửa bởi người có quyền sửa localStorage. Mã người thao tác là nhãn khai báo, chưa được xác thực. Chưa có tài khoản, MFA, SSO, CA, máy chủ tập trung, chữ ký quản trị trên registry hay đồng bộ đa thiết bị. Chưa dùng sổ này để tự động phê duyệt chữ ký archive; bước tích hợp đó cần một trust store đã được xác thực.
+- Kiểm thử tự động và triển khai sẽ được ghi theo kết quả CI của commit.
