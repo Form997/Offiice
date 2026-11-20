@@ -146,8 +146,10 @@ export function createSghtAuthServer({pool,allowedOrigin,mailer=null,secureCooki
    if(method==="POST"&&path==="/v1/auth/passkeys/register/options"){
     await checkCsrf();const u=await requireUser();if(!rateLimit("passkey-register:"+u.user_id,5))return json(res,429,{code:"PASSKEY_RATE_LIMITED",message:"Too many passkey setup attempts."});
     const rpID=process.env.SGHT_WEBAUTHN_RP_ID;if(!rpID||rpID!==originUrl.hostname)return json(res,503,{code:"PASSKEY_NOT_CONFIGURED",message:"Set SGHT_WEBAUTHN_RP_ID to the exact hostname of SGHT_ALLOWED_ORIGIN."});
+    const mfaState=await pool.query("SELECT enabled_at FROM sght_user_mfa WHERE user_id=$1",[u.user_id]);if(!mfaState.rows[0]?.enabled_at)return json(res,409,{code:"MFA_REQUIRED",message:"Enable TOTP MFA before adding a passkey as a second factor."});
     const existing=await pool.query("SELECT credential_id,transports FROM sght_passkeys WHERE user_id=$1",[u.user_id]);
     const options=await generateRegistrationOptions({rpName:"HAI ĐẤT SGHT",rpID,userID:Buffer.from(String(u.user_id),"utf8"),userName:u.email,userDisplayName:u.display_name,attestationType:"none",authenticatorSelection:{residentKey:"preferred",userVerification:"required"},excludeCredentials:existing.rows.map(x=>({id:x.credential_id,transports:x.transports||[]})),supportedAlgorithmIDs:[-7,-257]});
+    await pool.query("UPDATE sght_webauthn_challenges SET consumed_at=now() WHERE user_id=$1 AND purpose='registration' AND consumed_at IS NULL",[u.user_id]);
     await pool.query("INSERT INTO sght_webauthn_challenges(challenge,user_id,purpose,expires_at) VALUES($1,$2,'registration',now()+interval '5 minutes')",[options.challenge,u.user_id]);
     return json(res,200,options);
    }
@@ -179,6 +181,7 @@ export function createSghtAuthServer({pool,allowedOrigin,mailer=null,secureCooki
     const passkeys=await pool.query("SELECT credential_id,transports FROM sght_passkeys WHERE user_id=$1",[pending.rows[0].user_id]);
     if(!passkeys.rowCount)return json(res,404,{code:"PASSKEY_NOT_FOUND",message:"No passkey is registered for this account."});
     const options=await generateAuthenticationOptions({rpID,userVerification:"required",allowCredentials:passkeys.rows.map(x=>({id:x.credential_id,transports:x.transports||[]}))});
+    await pool.query("UPDATE sght_webauthn_challenges SET consumed_at=now() WHERE user_id=$1 AND purpose='mfa_authentication' AND context_hash=$2 AND consumed_at IS NULL",[pending.rows[0].user_id,hash(loginChallenge)]);
     await pool.query("INSERT INTO sght_webauthn_challenges(challenge,user_id,purpose,context_hash,expires_at) VALUES($1,$2,'mfa_authentication',$3,now()+interval '5 minutes')",[options.challenge,pending.rows[0].user_id,hash(loginChallenge)]);
     return json(res,200,options);
    }
