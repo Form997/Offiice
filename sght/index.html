@@ -147,6 +147,12 @@
       <input id="formulaInput" autocomplete="off" spellcheck="false" placeholder="Nhập giá trị hoặc công thức, ví dụ =SUM(A1:A5)" aria-label="Nội dung ô đang chọn">
       <button id="applyFormula" class="apply">Áp dụng</button>
     </section>
+    <section class="formula-error-panel" aria-label="Trợ lý chẩn đoán lỗi công thức">
+      <div class="formula-error-heading"><b>Formula Error Intelligence · Trợ lý truy nguyên lỗi</b><span>Chỉ phân tích · không tự sửa</span></div>
+      <div class="formula-error-actions"><button id="analyzeFormulaError" class="quiet" type="button">Phân tích ô đang chọn</button><button id="scanFormulaErrors" class="quiet" type="button">Quét lỗi toàn workbook</button></div>
+      <pre id="formulaErrorOutput" class="formula-error-output" aria-live="polite">Chọn một ô công thức rồi phân tích để xem mã lỗi, đường phụ thuộc và nguyên nhân gốc. Quét toàn workbook giới hạn 5.000 công thức mỗi lượt.</pre>
+      <small>Gợi ý sửa lỗi chỉ để tham khảo. Không tự thay đổi công thức, giá trị hay định dạng ô.</small>
+    </section>
     <section class="search-panel" aria-label="Tìm kiếm trong bảng tính">
       <div class="search-main"><input id="searchQuery" type="search" placeholder="Tìm trong bảng tính… (Ctrl+F)" aria-label="Từ khóa tìm kiếm"><button id="searchRun" type="button" class="search-primary">Tìm</button><button id="searchPrevious" type="button" disabled aria-label="Kết quả trước">↑</button><button id="searchNext" type="button" disabled aria-label="Kết quả tiếp theo">↓</button><span id="searchCount" role="status">Chưa tìm kiếm</span><button id="searchClear" type="button" class="search-clear">Xóa</button></div>
       <div class="search-options"><label>Phạm vi <select id="searchMode"><option value="display">Giá trị hiển thị</option><option value="raw">Nội dung gốc / công thức</option><option value="both">Cả giá trị và công thức</option></select></label><label><input id="searchCase" type="checkbox"> Phân biệt hoa thường</label><label><input id="searchWhole" type="checkbox"> Khớp toàn ô</label><label><input id="searchSelectionOnly" type="checkbox"> Chỉ trong vùng đang chọn</label><small>Tìm trên các ô có dữ liệu; không quét lưới trống.</small></div>

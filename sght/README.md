@@ -722,3 +722,13 @@ Bổ sung mô hình đáp ứng tăng dần, lợi ích biên giảm dần:
 - Bộ benchmark tạo chuỗi công thức mô phỏng xác định, dùng callback số học đơn giản để đo pipeline đồ thị/lập lịch/cache. Đây chưa phải phép đo toàn bộ parser công thức, render giao diện hay tốc độ thiết bị thực tế; không dùng số đo tổng hợp để cam kết tốc độ workbook thực.
 - Dung lượng cache vẫn là ước tính của engine, không phải số byte heap trình duyệt. Chưa có profiler theo từng công thức, Web Worker hoặc benchmark đa trình duyệt/thiết bị.
 - Có kiểm thử xác định cho tạo dữ liệu mô phỏng, số liệu các giai đoạn, cache và snapshot chẩn đoán.
+
+
+## SGHT 18.28 — Formula Error Intelligence — 2026-11-20
+
+- Bổ sung bộ phân loại lỗi công thức: #DIV/0!, #VALUE!, #REF!, #NAME?, #NUM!, #PARSE!, #ARGS!, #CYCLE!, #OP! và #CALC!, kèm giải thích nguyên nhân thường gặp và các bước kiểm tra.
+- Phân tích ô đang chọn bằng đồ thị phụ thuộc workbook: lần theo các công thức nguồn, ghi nhận lỗi theo từng ô, xác định các nút lỗi gốc có thể quan sát được và đánh dấu thành viên chu trình khi bộ máy tính trả về #CYCLE!.
+- Có lệnh quét lỗi toàn workbook theo yêu cầu, giới hạn 5.000 công thức mỗi lượt; báo cáo tổng số lỗi, phân bố theo mã và danh sách tối đa 200 lỗi đầu tiên.
+- Các thao tác chỉ đọc nội dung workbook; không tự sửa công thức, giá trị hay định dạng. Việc đánh giá công thức có thể cập nhật cache kết quả nội bộ.
+- Truy nguyên là phân tích theo đồ thị tĩnh hiện có; tham chiếu động/chưa lập chỉ mục và lỗi phụ thuộc ngoài đồ thị có thể khiến đường nguyên nhân chưa đầy đủ. “Nguyên nhân gốc” là nút lỗi sâu nhất quan sát được, không phải kết luận chắc chắn về ý định nhập liệu.
+- Có giới hạn số nút truy vết và số công thức quét để tránh khóa giao diện trên workbook lớn; chưa có chạy nền Web Worker.
