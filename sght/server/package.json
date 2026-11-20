@@ -8,7 +8,7 @@
   "scripts": {
     "start": "node start.mjs",
     "bootstrap": "node bootstrap-admin.mjs",
-    "test": "node --check server.mjs && node --check start.mjs && node --check bootstrap-admin.mjs"
+    "test": "node --check server.mjs && node --check start.mjs && node --check bootstrap-admin.mjs && node --check mailer.mjs && node --test mailer.test.mjs"
   },
   "dependencies": {
     "pg": "^8.13.1",
