@@ -11,7 +11,7 @@ function reference(src,i){
  if(src[i]==="'"){const q=quoted(src,i);if(q){sheet=q.name;start=q.end;}}
  else{let j=i;while(j<src.length&&/[\p{L}\p{N}_.]/u.test(src[j]))j++;if(j>i&&src[j]==="!"){sheet=src.slice(i,j);start=j+1;}}
  const first=at(src,start);
- if(first){let end=first.end,ref=first.text.toUpperCase().replace(/\$/g,"");if(src[end]===":"){const second=at(src,end+1);if(second){ref+=":"+second.text.toUpperCase().replace(/\$/g,"");end=second.end;}}return {sheet,ref,end};}
+ if(first&&!(sheet===null&&src[first.end]==="(")){let end=first.end,ref=first.text.toUpperCase().replace(/\$/g,"");if(src[end]===":"){const second=at(src,end+1);if(second){ref+=":"+second.text.toUpperCase().replace(/\$/g,"");end=second.end;}}return {sheet,ref,end};}
  if(sheet!==null)return null;
  const local=at(src,i);if(!local||src[local.end]==="(")return null;
  let end=local.end,ref=local.text.toUpperCase().replace(/\$/g,"");if(src[end]===":"){const second=at(src,end+1);if(second){ref+=":"+second.text.toUpperCase().replace(/\$/g,"");end=second.end;}}return {sheet:null,ref,end};

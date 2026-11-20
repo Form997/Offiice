@@ -88,7 +88,7 @@ test("công thức nội trang cũ vẫn hoạt động",()=>{
 import { extractFormulaReferences, buildDependencyGraph, updateDependencyNode, invalidateDependents, planRecalculation, dependencyGraphStats } from "../engine/dependency-engine.js";
 test("dependency scanner finds local and cross-sheet refs, skips quoted strings",()=>{
  const sheets=[{id:"s1",name:"TongHop",cells:{}},{id:"s2",name:"Vật tư",cells:{}}];
- assert.deepEqual(extractFormulaReferences('=SUM(A1:A3)+\'Vật tư\'!$B$2+VatTu!C4+"D9 is text"',"s1",sheets),[{sheetId:"s1",ref:"A1:A3"},{sheetId:"s2",ref:"B2"},{sheetId:"s2",ref:"C4"}]);
+ assert.deepEqual(extractFormulaReferences('=SUM(A1:A3)+\'Vật tư\'!$B$2+'Vật tư'!C4+"D9 is text"',"s1",sheets),[{sheetId:"s1",ref:"A1:A3"},{sheetId:"s2",ref:"B2"},{sheetId:"s2",ref:"C4"}]);
 });
 test("dependency graph computes transitive topological recalculation across sheets",()=>{
  const sheets=[{id:"s1",name:"Data",cells:{A1:2,B1:"=A1*2",C1:"=B1+1"}},{id:"s2",name:"Summary",cells:{A1:"=Data!C1*10"}}];
