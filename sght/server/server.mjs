@@ -63,7 +63,7 @@ export function createSghtAuthServer({pool,allowedOrigin,mailer=null,secureCooki
    }
    if(method==="POST"&&path==="/v1/auth/email-verification/request"){
     await checkCsrf();const b=await body(req),email=String(b.email||"").trim().toLowerCase();
-    if(email.length<=254&&/^\S+@\S+\.\S+$/.test(email)&&rateLimit("verify:"+email)&&mailer){const q=await pool.query("SELECT id,email_normalized,display_name FROM sght_users WHERE email_normalized=$1 AND status='active' AND email_verified_at IS NOT NULL AND email_verified_at IS NULL",[email]);
+    if(email.length<=254&&/^\S+@\S+\.\S+$/.test(email)&&rateLimit("verify:"+email)&&mailer){const q=await pool.query("SELECT id,email_normalized,display_name FROM sght_users WHERE email_normalized=$1 AND status='active' AND email_verified_at IS NULL",[email]);
      if(q.rowCount){const rawToken=token(),verificationId=randomUUID();await pool.query("INSERT INTO sght_email_verifications(id,token_hash,user_id,expires_at) VALUES($1,$2,$3,now()+interval '30 minutes')",[verificationId,hash(rawToken),q.rows[0].id]);
       try{await mailer.sendEmailVerification({to:q.rows[0].email_normalized,displayName:q.rows[0].display_name,token:rawToken});}catch{await pool.query("DELETE FROM sght_email_verifications WHERE id=$1 AND consumed_at IS NULL",[verificationId]);}}}
     return json(res,200,{ok:true,message:"If the account needs verification, instructions will be sent."});
