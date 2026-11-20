@@ -1,0 +1,25 @@
+name: SGHT Formula Engine Tests
+
+on:
+  push:
+    branches: [v1-development]
+    paths:
+      - "sght/**"
+      - "package.json"
+      - ".github/workflows/sght-tests.yml"
+  pull_request:
+    paths:
+      - "sght/**"
+      - "package.json"
+
+jobs:
+  formula-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: node --check sght/app.js
+      - run: node --check sght/engine/cell-format.js
+      - run: npm test

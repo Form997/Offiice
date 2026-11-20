@@ -1,0 +1,8 @@
+const DEFAULT_COLORS=["#2563eb","#0f766e","#d97706","#9333ea","#dc2626","#0891b2","#65a30d","#be185d"];
+const FORMATS=["auto","integer","decimal1","decimal2","percent"];
+export function normalizePivotChartStudio(input={}){const s=input&&typeof input==="object"?input:{};const colors=Array.isArray(s.colors)?s.colors.filter(isHexColor).slice(0,8):[];return{type:["bar","line","donut"].includes(s.type)?s.type:"bar",measureIndex:Number.isInteger(s.measureIndex)&&s.measureIndex>=0?s.measureIndex:0,title:clean(s.title,100),xAxisTitle:clean(s.xAxisTitle,60),yAxisTitle:clean(s.yAxisTitle,60),showLegend:s.showLegend!==false,showLabels:s.showLabels===true,numberFormat:FORMATS.includes(s.numberFormat)?s.numberFormat:"auto",colors:colors.length?colors:DEFAULT_COLORS.slice()};}
+export function isHexColor(v){return typeof v==="string"&&/^#[0-9a-f]{6}$/i.test(v);}
+export function parsePivotChartColors(v){const c=String(v??"").split(/[;,\s]+/).map(x=>x.trim()).filter(Boolean);if(!c.length)throw new TypeError("Nhập ít nhất một mã màu HEX dạng #RRGGBB.");if(c.length>8)throw new RangeError("Tối đa 8 màu cho một biểu đồ.");if(c.some(x=>!isHexColor(x)))throw new TypeError("Mã màu phải có dạng #RRGGBB.");return c.map(x=>x.toLowerCase());}
+export function formatPivotChartNumber(v,f="auto"){const n=Number(v);if(!Number.isFinite(n))return"—";const d=f==="integer"?0:f==="decimal1"?1:f==="decimal2"||f==="percent"?2:3;return new Intl.NumberFormat("vi-VN",f==="percent"?{style:"percent",maximumFractionDigits:d}:{maximumFractionDigits:d}).format(n);}
+function clean(v,n){return typeof v==="string"?v.trim().slice(0,n):"";}
+export const DEFAULT_PIVOT_CHART_COLORS=DEFAULT_COLORS;
