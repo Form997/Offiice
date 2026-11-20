@@ -18,6 +18,7 @@ test("mailer sends invitation and reset messages without exposing tokens in API 
  await mailer.sendInvitation({to:"person@example.test",displayName:"A <B>",role:"viewer",token:"invite-secret"});
  await mailer.sendPasswordReset({to:"person@example.test",displayName:"A",token:"reset-secret"});
  await mailer.sendEmailVerification({to:"person@example.test",displayName:"A",token:"verify-secret"});
+ assert.equal(await mailer.verify(),true);
  assert.equal(sent.length,3);
  assert.equal(sent[0].to,"person@example.test");
  assert.match(sent[0].text,/#invite=invite-secret/);
