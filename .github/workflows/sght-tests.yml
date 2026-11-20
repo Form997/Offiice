@@ -21,5 +21,8 @@ jobs:
         with:
           node-version: 22
       - run: node --check sght/app.js
-      - run: node --check sght/engine/cell-format.js\n      - run: node --check sght/server/server.mjs\n      - run: node --check sght/server/start.mjs\n      - run: node --check sght/server/bootstrap-admin.mjs
+      - run: node --check sght/engine/cell-format.js
+      - run: node --check sght/server/server.mjs
+      - run: node --check sght/server/start.mjs
+      - run: node --check sght/server/bootstrap-admin.mjs
       - run: npm test
