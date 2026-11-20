@@ -185,6 +185,34 @@ export function createSghtAuthServer({pool,allowedOrigin,mailer=null,secureCooki
     const u=await requireUser();const q=await pool.query("SELECT credential_id,device_type,backed_up,created_at FROM sght_passkeys WHERE user_id=$1 ORDER BY created_at DESC",[u.user_id]);
     return json(res,200,{passkeys:q.rows.map(x=>({credentialId:x.credential_id,deviceType:x.device_type,backedUp:x.backed_up,createdAt:x.created_at}))});
    }
+   const passkeyMatch=path.match(/^\/v1\/auth\/passkeys\/([A-Za-z0-9_-]{16,1024})$/);
+   if(passkeyMatch&&method==="PATCH"){
+    await checkCsrf();const u=await requireUser(),b=await body(req),displayName=String(b.displayName||"").trim();
+    if(!displayName||displayName.length>48)return json(res,400,{code:"PASSKEY_NAME_INVALID",message:"Passkey name must contain 1–48 characters."});
+    const q=await pool.query("UPDATE sght_passkeys SET display_name=$3 WHERE user_id=$1 AND credential_id=$2 RETURNING credential_id",[u.user_id,passkeyMatch[1],displayName]);
+    if(!q.rowCount)return json(res,404,{code:"PASSKEY_NOT_FOUND",message:"Passkey not found."});
+    await pool.query("INSERT INTO sght_audit_events(actor_user_id,target_user_id,action,metadata_json,request_id) VALUES($1,$1,'auth.passkey_renamed',$2,$3)",[u.user_id,JSON.stringify({credentialId:passkeyMatch[1],displayName}),requestId]);
+    return json(res,200,{ok:true,credentialId:passkeyMatch[1],displayName});
+   }
+   if(passkeyMatch&&method==="DELETE"){
+    await checkCsrf();const u=await requireUser(),b=await body(req),password=String(b.password||""),code=String(b.code||"").trim();
+    if(!password||! /^\d{6}$/.test(code))return json(res,400,{code:"PASSKEY_REAUTH_REQUIRED",message:"Enter the account password and a fresh six-digit TOTP code to remove this passkey."});
+    if(!rateLimit("passkey-delete:"+u.user_id,5))return json(res,429,{code:"PASSKEY_RATE_LIMITED",message:"Too many passkey removal attempts."});
+    const masterKey=process.env.SGHT_MFA_ENCRYPTION_KEY;if(typeof masterKey!=="string"||Buffer.byteLength(masterKey,"utf8")<32)return json(res,503,{code:"MFA_NOT_CONFIGURED",message:"MFA encryption is not configured."});
+    const client=await pool.connect();try{await client.query("BEGIN");
+     const uq=await client.query("SELECT password_hash,password_salt FROM sght_users WHERE id=$1 AND status='active' FOR UPDATE",[u.user_id]);
+     if(!uq.rowCount||!same((await passwordHash(password,uq.rows[0].password_salt)).hash,uq.rows[0].password_hash)){await client.query("ROLLBACK");return json(res,401,{code:"PASSKEY_REAUTH_FAILED",message:"Password is incorrect."});}
+     const fq=await client.query("SELECT secret_ciphertext,last_used_step FROM sght_user_mfa WHERE user_id=$1 AND enabled_at IS NOT NULL FOR UPDATE",[u.user_id]);
+     if(!fq.rowCount){await client.query("ROLLBACK");return json(res,409,{code:"MFA_REQUIRED",message:"TOTP MFA must remain enabled while managing passkeys."});}
+     const secret=decryptTotpSecret(fq.rows[0].secret_ciphertext,masterKey),step=verifyTotp(secret,code,now());
+     if(step===null||step<=Number(fq.rows[0].last_used_step??-1)){await client.query("ROLLBACK");return json(res,401,{code:"PASSKEY_REAUTH_FAILED",message:"TOTP code is invalid, expired, or already used. Wait for a fresh code."});}
+     const removed=await client.query("DELETE FROM sght_passkeys WHERE user_id=$1 AND credential_id=$2 RETURNING credential_id",[u.user_id,passkeyMatch[1]]);
+     if(!removed.rowCount){await client.query("ROLLBACK");return json(res,404,{code:"PASSKEY_NOT_FOUND",message:"Passkey not found."});}
+     await client.query("UPDATE sght_user_mfa SET last_used_step=$2 WHERE user_id=$1",[u.user_id,step]);
+     await client.query("INSERT INTO sght_audit_events(actor_user_id,target_user_id,action,metadata_json,request_id) VALUES($1,$1,'auth.passkey_removed',$2,$3)",[u.user_id,JSON.stringify({credentialId:passkeyMatch[1]}),requestId]);
+     await client.query("COMMIT");return json(res,200,{ok:true,removed:true,credentialId:passkeyMatch[1]});
+    }catch(e){await client.query("ROLLBACK");throw e;}finally{client.release();}
+   }
    if(method==="POST"&&path==="/v1/auth/mfa/passkey/options"){
     await checkCsrf();const b=await body(req),loginChallenge=String(b.challengeToken||"");if(loginChallenge.length<32||loginChallenge.length>128)return json(res,400,{code:"MFA_INVALID_INPUT",message:"A valid MFA challenge is required."});
     if(!rateLimit("passkey-login:"+hash(loginChallenge),5))return json(res,429,{code:"PASSKEY_RATE_LIMITED",message:"Too many passkey attempts."});
