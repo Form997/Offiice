@@ -644,3 +644,15 @@ Bổ sung mô hình đáp ứng tăng dần, lợi ích biên giảm dần:
 - Kéo thả dùng chuột/trackpad; điện thoại dùng nút lên/xuống. Resize dựa vào tay nắm gốc của trình duyệt.
 - Lọc chéo nhận diện trường theo số cột (như 18.19), không sửa dữ liệu nguồn hay cấu hình Pivot gốc. PNG phụ thuộc hỗ trợ foreignObject/Canvas; PDF phụ thuộc hộp thoại in.
 - Cần kiểm thử thủ công trên các trình duyệt/thiết bị mục tiêu trước khi xác nhận UX.
+
+
+
+## SGHT Dashboard Studio chuyên nghiệp — Giai đoạn 18.21 · 2026-11-20
+
+- Mỗi thẻ biểu đồ chọn độc lập: cột, thanh ngang, đường, miền, tròn hoặc vành khuyên; giữ cấu hình khi lưu Dashboard/mẫu.
+- KPI có phép tổng hợp Pivot, trung bình theo nhóm, nhỏ nhất, lớn nhất và chênh lệch lớn nhất–nhỏ nhất; chọn chỉ tiêu và phép tính riêng từng thẻ.
+- Mỗi thẻ lưu chủ đề hiển thị sáng, xanh rừng hoặc tối; có bố cục trình chiếu toàn màn hình và nút thoát.
+- Nhiều thẻ nguồn có thể phát sinh bộ lọc chéo độc lập trên cùng một cột; không ghi đè lẫn nhau. Bộ lọc hiện vẫn dựa trên vị trí cột trong cùng trang tính, chưa phải định danh trường xuyên nhiều sheet.
+- Sửa hành vi ResizeObserver 18.20: không còn tự ghi kích thước nội dung sau mỗi lần quan sát gây vòng lặp lưu; kích thước tùy chỉnh đã lưu tiếp tục được khôi phục. Thay đổi kích thước thủ công cần kiểm tra lại trên trình duyệt mục tiêu.
+- Giới hạn: chưa có bộ lọc ngày chuyên biệt, nhóm thời gian tự động, kéo-thả căn lưới nâng cao, nhiều sheet/nguồn ngoài, lịch sử phiên bản Dashboard hoặc kiểm thử hiệu năng 100.000+ dòng.
+- Xuất PDF vẫn dùng hộp thoại in; PNG 2× vẫn tùy thuộc hỗ trợ SVG foreignObject/Canvas của trình duyệt.
