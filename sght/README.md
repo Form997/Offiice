@@ -827,3 +827,13 @@ Bổ sung mô hình đáp ứng tăng dần, lợi ích biên giảm dần:
 - Web Crypto yêu cầu môi trường hỗ trợ `crypto.subtle` (thông thường HTTPS/localhost); nếu không khả dụng, thao tác hash báo lỗi rõ ràng.
 - Kiểm thử tự động: 283/283 đạt; GitHub Pages triển khai thành công. Chưa tuyên bố kiểm thử thủ công trên thiết bị thật.
 - Bắt đầu phát triển và phát hành: 20/11/2026. Mã nguồn và tài liệu cập nhật trong giai đoạn: khoảng 350 KiB UTF-8 (ước tính theo 5 tệp chính; không phải mức RAM khi chạy).
+
+## SGHT 18.38 — Digital Signature & Trusted Anchor — 2026-11-20
+
+- Bổ sung `sght/engine/formula-audit-signature.js`: chữ ký số ECDSA P-256/SHA-256 cho hash đầu chuỗi archive, số checkpoint, thời điểm ký và fingerprint khóa công khai.
+- Tạo cặp khóa; xuất khóa riêng đã mã hóa bằng PBKDF2-SHA-256 (310.000 vòng) + AES-256-GCM; nạp lại khóa bằng mật khẩu. Khóa riêng chỉ nằm trong bộ nhớ phiên làm việc sau khi nạp, không ghi vào localStorage.
+- Gói chữ ký mang theo archive, khóa công khai, fingerprint và chữ ký; có thể xuất/nhập để xác minh độc lập.
+- Phân biệt rõ chữ ký hợp lệ với danh tính đã tin cậy. Nếu không cung cấp fingerprint đã xác minh qua kênh độc lập, kết quả là `valid-untrusted-key`; không tự tuyên bố người ký là ai.
+- Trust anchor hiện là fingerprint công khai được người dùng đối chiếu thủ công và lưu ngoài hệ thống. Chưa có máy chủ, tổ chức chứng thực, HSM, timestamp authority hay cơ chế thu hồi khóa.
+- Giới hạn: ECDSA/Web Crypto cần trình duyệt hỗ trợ; mất khóa riêng/mật khẩu không thể khôi phục. Chưa kiểm thử thủ công trên thiết bị thật.
+- Kiểm thử tự động và triển khai được cập nhật theo CI sau commit.
