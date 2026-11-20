@@ -992,5 +992,7 @@ Bổ sung mô hình đáp ứng tăng dần, lợi ích biên giảm dần:
 - Không đánh dấu bất thường khi bộ đếm cũ hoặc mới bằng 0; nhiều authenticator đồng bộ/passkey đa thiết bị không cung cấp bộ đếm có ý nghĩa. Đây là tín hiệu phát hiện rủi ro, không phải bằng chứng tuyệt đối rằng khóa đã bị sao chép.
 - Bổ sung kiểm thử cho bộ đếm bằng 0, bộ đếm tăng hợp lệ, bộ đếm không tăng/giảm và dữ liệu counter sai kiểu/ngoài miền. Đưa bộ kiểm thử mới vào lệnh `npm test` của backend.
 - Giới hạn: chưa chạy PostgreSQL end-to-end, chưa thử authenticator vật lý/đồng bộ đa thiết bị, chưa triển khai backend và chưa có kiểm toán bảo mật độc lập. Chính sách counter không thay thế rate limiting phân tán, quy trình khôi phục tài khoản hay giám sát vận hành.
-- Trạng thái kiểm thử: đã bổ sung test tự động vào workflow backend; chờ GitHub Actions xác nhận, không tự nhận đạt trước khi có kết quả.
+- Kiểm thử CI ngày 20/11/2026: workflow `SGHT authentication and spreadsheet QA` thành công, gồm `auth-api-package-check` và `browser-and-engine-tests`; workflow `SGHT Formula Engine Tests` thành công. Các bước cài dependency backend, `npm test`, kiểm tra cú pháp và test SGHT đều đạt.
+- GitHub Pages deployment ngày 20/11/2026 thành công (run 44724574139). Đây chỉ là triển khai frontend tĩnh; backend Node/PostgreSQL vẫn chưa được triển khai.
+- Dung lượng snapshot của 6 tệp liên quan sau cập nhật: 196.219 byte UTF-8 (191,62 KiB; 1.569.752 bit). Đây là tổng dung lượng nội dung hiện tại của các tệp, không phải số byte tăng thêm của commit.
 - Bắt đầu và phát triển: 20/11/2026.
