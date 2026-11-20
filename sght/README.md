@@ -763,3 +763,13 @@ Bổ sung mô hình đáp ứng tăng dần, lợi ích biên giảm dần:
 - Giới hạn 50 mốc/ô, 5.000 mốc toàn workbook; có xuất JSON để sao lưu. Lưu localStorage trên thiết bị, không đồng bộ đám mây, không chống sửa đổi; xóa dữ liệu trang web có thể làm mất lịch sử.
 - Chỉ ghi thay đổi đi qua `setValue`; các thao tác dán vùng, xóa vùng, điền chuỗi, sắp xếp và một số thao tác hàng loạt hiện chưa được ghi nhận đầy đủ như phiên bản từng ô. Đây là giới hạn cần mở rộng ở giai đoạn kế tiếp.
 - Chưa kiểm thử thủ công trên trình duyệt/điện thoại thật.
+
+
+## SGHT 18.32 — Formula Version Coverage & Integrity — 2026-11-20
+
+- Mở rộng ghi lịch sử phiên bản công thức ra khỏi thao tác sửa đơn ô: dán vùng (clipboard và TSV), điền chuỗi/kéo chốt, xóa vùng, cắt vùng, di chuyển vùng, thay thế một/tất cả, sắp xếp, loại bản ghi trùng và các lệnh SET/CLEAR trong Macro.
+- Mỗi thay đổi chỉ được ghi khi công thức trước hoặc sau có dạng công thức và nội dung thực sự thay đổi; công thức bị xóa/thay bằng hằng số vẫn giữ được mốc trước đó.
+- Phân loại nguồn thao tác riêng (`paste`, `fill`, `clear`, `cut`, `move`, `replace`, `replace-all`, `sort`, `remove-duplicates`, `macro`...) để thuận tiện truy vết.
+- Giữ nguyên cơ chế lưu phiên bản giới hạn 50 mốc/ô và 5.000 mốc/workbook; không sao chép toàn bộ workbook chỉ để tạo nhật ký thay đổi.
+- Kiểm thử CI: 239/239 bài hiện có đạt; `node --check sght/app.js` đạt; triển khai GitHub Pages thành công.
+- Giới hạn còn lại: lịch sử phiên bản được ghi theo các thao tác đã tích hợp tại giao diện; thao tác Undo/Redo khôi phục workbook chưa tự tạo sự kiện phiên bản ngược/tiến tương ứng. Macro ghi theo từng lệnh SET/CLEAR, vì vậy một phiên chạy có thể tạo nhiều mốc cho cùng ô. Chưa kiểm thử thủ công trên thiết bị thật.
