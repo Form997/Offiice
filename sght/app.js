@@ -2,6 +2,7 @@ import { runFormulaBenchmark, collectFormulaDiagnostics, formatFormulaDiagnostic
 import { analyzeFormulaError, scanWorkbookFormulaErrors, formatFormulaErrorReport } from "./engine/formula-error-intelligence.js";
 import { suggestFormulaRepairs, validateRepairApproval } from "./engine/formula-fix-suggestions.js";
 import { appendRepairAudit, exportRepairAudit } from "./engine/repair-audit.js";
+import { normalizeFormulaVersions, recordFormulaVersion, getFormulaCellVersions, compareFormulaVersions, exportFormulaVersions } from "./engine/formula-version-history.js";
 import { evaluateFormula, FormulaError, listFormulaFunctions } from "./engine/core.js";
 import { buildDependencyGraph, updateDependencyNode, planRecalculation } from "./engine/dependency-engine.js";
 import { CalculationScheduler } from "./engine/calculation-scheduler.js";
@@ -39,6 +40,7 @@ import { pearsonCorrelation, simpleLinearRegression, oneWayAnova, multipleLinear
 let COLS = 100, ROWS = 1000;
 const MAX_COLS = 16384, MAX_ROWS = 100000, STORAGE_KEY = "haidat-sght-workbook-v1";
 const REPAIR_AUDIT_KEY = "haidat-sght-repair-audit-v1";
+const FORMULA_VERSION_KEY = "haidat-sght-formula-versions-v1";
 const ROW_HEIGHT = 32, COLUMN_WIDTH = 108, OVERSCAN_ROWS = 5, OVERSCAN_COLUMNS = 2;
 const sheetScroll = document.querySelector("#sheetScroll");
 const splitScroll = document.querySelector("#splitScroll");
@@ -405,7 +407,7 @@ function endFillDrag(e){if(!fillDrag||e.pointerId!==fillDrag.pointerId)return;co
 window.addEventListener("pointermove",moveFillDrag,{passive:false});window.addEventListener("pointerup",endFillDrag);window.addEventListener("pointercancel",()=>{if(fillDrag){selectionRange={start:fillDrag.source.start,end:fillDrag.source.end};fillDrag=null;updateSelection();}});
 
 
-function setValue(a,v){const point=parseAddress(a);snapshot();if(v===""){delete cells[a];if(!macroExecution)try{macroRecorder.recordClear(a);}catch(e){calcStatus.textContent=e.message;}}else{cells[a]=v;if(!macroExecution)try{macroRecorder.recordSet(a,v);}catch(e){calcStatus.textContent=e.message;}}if(point)expandTablesAfterWrite(point.r,point.r,point.c,point.c);invalidateFormulaCells([a]);render();save();calcStatus.textContent="Đã tính lại các ô phụ thuộc";}
+function setValue(a,v){const point=parseAddress(a),before=raw(a),after=String(v??"");snapshot();if(before!==after)recordFormulaCellVersion(a,before,after,macroExecution?"macro":"edit");if(v===""){delete cells[a];if(!macroExecution)try{macroRecorder.recordClear(a);}catch(e){calcStatus.textContent=e.message;}}else{cells[a]=v;if(!macroExecution)try{macroRecorder.recordSet(a,v);}catch(e){calcStatus.textContent=e.message;}}if(point)expandTablesAfterWrite(point.r,point.r,point.c,point.c);invalidateFormulaCells([a]);render();save();calcStatus.textContent="Đã tính lại các ô phụ thuộc";}
 function apply(){const value=formulaInput.value;setValue(selected,value.trim()===""?"":value);updateSelection();}
 function exportCsv(){const used=Object.keys(cells).map(parseAddress).filter(Boolean);const maxR=Math.max(1,...used.map(x=>x.r)),maxC=Math.max(1,...used.map(x=>x.c));const lines=[];for(let r=1;r<=maxR;r++){const row=[];for(let c=1;c<=maxC;c++){const v=display(address(r,c));row.push('"'+v.replace(/"/g,'""')+'"');}lines.push(row.join(","));}const blob=new Blob(["\ufeff"+lines.join("\r\n")],{type:"text/csv;charset=utf-8"}),url=URL.createObjectURL(blob),link=document.createElement("a");link.href=url;link.download=(sheetTitle||"sght").replace(/[\\/:*?"<>|]/g,"_")+".csv";link.click();URL.revokeObjectURL(url);}
 function pasteRange(text,clipboardPayload=null){const start=parseAddress(selected);if(!start)return;const matrix=parseTSV(text);if(!matrix.length)return;const width=Math.max(...matrix.map(row=>row.length));const targetRow=start.r+matrix.length-1,targetColumn=start.c+width-1;if(targetRow>MAX_ROWS||targetColumn>MAX_COLS){calcStatus.textContent="Vùng dán vượt giới hạn an toàn hiện tại: "+MAX_ROWS.toLocaleString("vi-VN")+" hàng × "+MAX_COLS.toLocaleString("vi-VN")+" cột.";return;}growGridTo(targetRow,targetColumn);snapshot();if(clipboardPayload){const next=pasteCapturedRange(cells,cellFormats,start,clipboardPayload);cells=next.cells;cellFormats=next.formats;}else{matrix.forEach((row,ri)=>row.forEach((v,ci)=>{const a=address(start.r+ri,start.c+ci);if(v==="")delete cells[a];else cells[a]=v;}));}selectionRange={start:selected,end:address(start.r+matrix.length-1,start.c+width-1)};expandTablesAfterWrite(start.r,start.r+matrix.length-1,start.c,start.c+width-1);invalidateFormulaCells(matrix.flatMap((row,ri)=>row.map((_,ci)=>address(start.r+ri,start.c+ci))));render();save();calcStatus.textContent="Đã dán "+matrix.length+" hàng dữ liệu"+(clipboardPayload?" kèm định dạng":"");}
@@ -987,6 +989,29 @@ if(diagnosticsButton&&diagnosticsOutput){diagnosticsButton.addEventListener("cli
 const errorAnalyzeButton=document.querySelector("#analyzeFormulaError"),errorScanButton=document.querySelector("#scanFormulaErrors"),errorOutput=document.querySelector("#formulaErrorOutput");
 const repairPreviewButton=document.querySelector("#previewFormulaRepair"),repairApplyButton=document.querySelector("#applyFormulaRepair"),repairOutput=document.querySelector("#formulaRepairOutput");
 const repairAuditOutput=document.querySelector("#formulaRepairAuditOutput"),repairAuditExportButton=document.querySelector("#exportFormulaRepairAudit"),repairAuditCount=document.querySelector("#formulaRepairAuditCount");
+let formulaVersionHistory=[];
+const formulaVersionOutput=document.querySelector("#formulaVersionOutput"),formulaVersionCount=document.querySelector("#formulaVersionCount"),formulaVersionA=document.querySelector("#formulaVersionA"),formulaVersionB=document.querySelector("#formulaVersionB"),formulaVersionCompare=document.querySelector("#compareFormulaVersions"),formulaVersionRestore=document.querySelector("#restoreFormulaVersion"),formulaVersionLoad=document.querySelector("#loadFormulaVersions"),formulaVersionExport=document.querySelector("#exportFormulaVersions");
+function saveFormulaVersions(){try{localStorage.setItem(FORMULA_VERSION_KEY,JSON.stringify({version:1,versions:formulaVersionHistory}));return true;}catch(error){if(formulaVersionOutput)formulaVersionOutput.textContent="Không ghi được lịch sử phiên bản do giới hạn bộ nhớ. Hãy xuất bản sao JSON.";return false;}}
+function recordFormulaCellVersion(cell,before,after,source="edit"){
+ const sheet=getWorkbookSheet(workbookSheets,activeSheetId);
+ const next=recordFormulaVersion(formulaVersionHistory,{sheetId:activeSheetId,sheetName:sheet?.name||sheetTitle,address:cell,beforeFormula:before,afterFormula:after,source});
+ if(next.length!==formulaVersionHistory.length||next[0]?.timestamp){formulaVersionHistory=next;saveFormulaVersions();}
+}
+function loadFormulaVersions(){try{const saved=JSON.parse(localStorage.getItem(FORMULA_VERSION_KEY)||"null");formulaVersionHistory=normalizeFormulaVersions(saved);}catch{formulaVersionHistory=[];}renderFormulaVersions();}
+function renderFormulaVersions(){
+ if(!formulaVersionOutput)return;
+ const items=getFormulaCellVersions(formulaVersionHistory,activeSheetId,selected);
+ if(formulaVersionCount)formulaVersionCount.textContent=formulaVersionHistory.length.toLocaleString("vi-VN")+" phiên bản · "+items.length+" tại "+selected;
+ for(const select of [formulaVersionA,formulaVersionB]){if(!select)continue;const prior=select.value;select.replaceChildren();for(const item of items){const option=document.createElement("option");option.value=item.id;option.textContent=new Date(item.timestamp).toLocaleString("vi-VN")+" · "+(item.afterFormula||"(ô không còn là công thức)")+" · "+item.source;select.append(option);}if(items.some(x=>x.id===prior))select.value=prior;}
+ formulaVersionOutput.textContent=items.length?items.map((x,i)=>(i+1)+". "+new Date(x.timestamp).toLocaleString("vi-VN")+" · "+x.source+"\nTrước: "+(x.beforeFormula||"—")+"\nSau: "+(x.afterFormula||"—")+"\nMã: "+x.id).join("\n\n"):"Ô "+selected+" chưa có phiên bản công thức được ghi nhận.";
+ if(formulaVersionCompare)formulaVersionCompare.disabled=items.length<2;
+ if(formulaVersionRestore)formulaVersionRestore.disabled=!items.some(x=>x.id===formulaVersionA?.value&&x.afterFormula);
+}
+if(formulaVersionLoad)formulaVersionLoad.addEventListener("click",renderFormulaVersions);
+if(formulaVersionCompare)formulaVersionCompare.addEventListener("click",()=>{try{const diff=compareFormulaVersions(formulaVersionHistory,formulaVersionA.value,formulaVersionB.value);formulaVersionOutput.textContent="SO SÁNH "+diff.address+"\n\nBẢN A · "+diff.versionA.timestamp+"\n"+(diff.from||"(không còn công thức)")+"\n\nBẢN B · "+diff.versionB.timestamp+"\n"+(diff.to||"(không còn công thức)")+"\n\n"+(diff.equal?"Hai phiên bản giống nhau.":"Hai phiên bản khác nhau.");}catch(error){formulaVersionOutput.textContent=error.message;}});
+if(formulaVersionRestore)formulaVersionRestore.addEventListener("click",()=>{const item=formulaVersionHistory.find(x=>x.id===formulaVersionA.value);if(!item||!item.afterFormula)return;if(item.sheetId!==activeSheetId||item.address!==selected){formulaVersionOutput.textContent="Phiên bản không thuộc ô đang chọn.";return;}if(!confirm("Khôi phục công thức cũ vào "+selected+"? Thao tác sẽ tạo một phiên bản mới và một mốc Undo."))return;setValue(selected,item.afterFormula);formulaInput.value=item.afterFormula;renderFormulaVersions();formulaVersionOutput.textContent="Đã khôi phục phiên bản đã chọn vào "+selected+". Lịch sử cũ vẫn được giữ; có thể Undo thao tác vừa rồi.";});
+if(formulaVersionExport)formulaVersionExport.addEventListener("click",()=>{const blob=new Blob([exportFormulaVersions(formulaVersionHistory)],{type:"application/json;charset=utf-8"}),url=URL.createObjectURL(blob),link=document.createElement("a");link.href=url;link.download="SGHT-Formula-Versions-"+new Date().toISOString().slice(0,10)+".json";link.click();URL.revokeObjectURL(url);});
+loadFormulaVersions();
 let repairAuditEvents=[];
 function renderRepairAudit(){
  if(!repairAuditOutput)return;

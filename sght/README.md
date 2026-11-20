@@ -752,3 +752,14 @@ Bổ sung mô hình đáp ứng tăng dần, lợi ích biên giảm dần:
 - Khi áp dụng công thức, nhật ký ghi lại công thức trước/sau và kết quả preview. Thao tác sửa ô vẫn đi qua setValue và lịch sử Undo/Redo của workbook.
 - Giới hạn: nhật ký chỉ nằm trên trình duyệt/thiết bị hiện tại, không đồng bộ đám mây và có thể mất khi xóa dữ liệu trang web. Đây không phải nhật ký chống sửa đổi hay bằng chứng pháp lý; người có quyền truy cập trình duyệt có thể sửa/xóa localStorage. Nếu hết quota, ứng dụng cảnh báo và khuyến nghị xuất JSON. Undo/Redo vẫn được ghi trong lịch sử workbook hiện hữu; nhật ký này chưa đối chiếu tự động từng Undo/Redo với một bản sửa cụ thể.
 - Chưa kiểm thử thủ công trên trình duyệt/điện thoại thật.
+
+
+## SGHT 18.31 — Formula Version Control — 2026-11-20
+
+- Bổ sung lịch sử phiên bản công thức theo từng ô; ghi lại thay đổi khi giá trị trước hoặc sau là công thức, gồm công thức trước/sau, thời điểm, trang tính, địa chỉ và nguồn thao tác.
+- Ghi nhận cả trường hợp công thức bị thay bằng hằng số/xóa (mốc sau không còn công thức), nhưng chỉ cho khôi phục trực tiếp các mốc có công thức hợp lệ.
+- Xem lịch sử ô đang chọn, so sánh hai phiên bản cùng ô, khôi phục bản cũ qua `setValue`; việc khôi phục tạo mốc phiên bản mới và vẫn có thể Undo/Redo theo lịch sử workbook.
+- Lịch sử phiên bản tách riêng khỏi Undo/Redo và Formula Repair Audit; Undo/Redo không xóa các mốc phiên bản đã ghi.
+- Giới hạn 50 mốc/ô, 5.000 mốc toàn workbook; có xuất JSON để sao lưu. Lưu localStorage trên thiết bị, không đồng bộ đám mây, không chống sửa đổi; xóa dữ liệu trang web có thể làm mất lịch sử.
+- Chỉ ghi thay đổi đi qua `setValue`; các thao tác dán vùng, xóa vùng, điền chuỗi, sắp xếp và một số thao tác hàng loạt hiện chưa được ghi nhận đầy đủ như phiên bản từng ô. Đây là giới hạn cần mở rộng ở giai đoạn kế tiếp.
+- Chưa kiểm thử thủ công trên trình duyệt/điện thoại thật.

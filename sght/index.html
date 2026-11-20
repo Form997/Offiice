@@ -162,6 +162,12 @@
         <div class="formula-audit-actions"><span>Nhật ký lưu riêng trên thiết bị, không nằm trong nội dung workbook.</span><button id="exportFormulaRepairAudit" type="button" class="quiet">Xuất nhật ký JSON</button></div>
         <pre id="formulaRepairAuditOutput" class="formula-audit-output" aria-live="polite">Đang nạp lịch sử sửa công thức…</pre>
       </details>
+      <details class="formula-version-panel">
+        <summary>Formula Version Control · Lịch sử phiên bản công thức <span id="formulaVersionCount">0 phiên bản</span></summary>
+        <div class="formula-version-toolbar"><button id="loadFormulaVersions" type="button" class="quiet">Nạp lịch sử ô đang chọn</button><label>Bản A <select id="formulaVersionA"></select></label><label>Bản B <select id="formulaVersionB"></select></label><button id="compareFormulaVersions" type="button" class="quiet" disabled>So sánh A/B</button><button id="restoreFormulaVersion" type="button" class="primary" disabled>Khôi phục bản A</button><button id="exportFormulaVersions" type="button" class="quiet">Xuất JSON</button></div>
+        <pre id="formulaVersionOutput" class="formula-version-output" aria-live="polite">Lịch sử phiên bản được ghi khi công thức tại ô thay đổi. Chọn ô rồi nạp lịch sử.</pre>
+        <small>Chỉ khôi phục phiên bản có công thức; khôi phục tạo một phiên bản mới và mốc Undo. Tối đa 50 mốc/ô, 5.000 mốc toàn workbook. Dữ liệu lưu cục bộ, không chống sửa đổi và không đồng bộ đám mây.</small>
+      </details>
     </section>
     <section class="search-panel" aria-label="Tìm kiếm trong bảng tính">
       <div class="search-main"><input id="searchQuery" type="search" placeholder="Tìm trong bảng tính… (Ctrl+F)" aria-label="Từ khóa tìm kiếm"><button id="searchRun" type="button" class="search-primary">Tìm</button><button id="searchPrevious" type="button" disabled aria-label="Kết quả trước">↑</button><button id="searchNext" type="button" disabled aria-label="Kết quả tiếp theo">↓</button><span id="searchCount" role="status">Chưa tìm kiếm</span><button id="searchClear" type="button" class="search-clear">Xóa</button></div>
