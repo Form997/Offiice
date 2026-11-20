@@ -5,6 +5,7 @@ if(!DATABASE_URL||!SGHT_ALLOWED_ORIGIN)throw new Error("DATABASE_URL and SGHT_AL
 const pool=createPool(DATABASE_URL);
 await pool.query("SELECT 1");
 const mailer=await createSmtpMailer(process.env);
+if(mailer)await mailer.verify();
 const server=createSghtAuthServer({pool,allowedOrigin:SGHT_ALLOWED_ORIGIN,mailer,secureCookies:true});
 server.listen(Number(PORT),HOST,()=>process.stdout.write(`SGHT Auth API listening on ${HOST}:${PORT}\n`));
 for(const signal of ["SIGINT","SIGTERM"])process.on(signal,()=>server.close(async()=>{await pool.end();process.exit(0);}));
