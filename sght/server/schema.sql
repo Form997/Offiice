@@ -77,3 +77,28 @@ CREATE INDEX IF NOT EXISTS sght_email_verifications_user_active ON sght_email_ve
 
 -- 18.47 session device metadata; no raw IP address is retained.
 ALTER TABLE sght_sessions ADD COLUMN IF NOT EXISTS user_agent varchar(500);
+
+-- 18.48 TOTP MFA, short-lived login challenges, and one-time recovery codes.
+CREATE TABLE IF NOT EXISTS sght_user_mfa (
+ user_id uuid PRIMARY KEY REFERENCES sght_users(id) ON DELETE CASCADE,
+ secret_ciphertext text,
+ pending_secret_ciphertext text,
+ pending_expires_at timestamptz,
+ enabled_at timestamptz,
+ last_used_step bigint
+);
+CREATE TABLE IF NOT EXISTS sght_mfa_challenges (
+ id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+ token_hash char(64) NOT NULL UNIQUE,
+ user_id uuid NOT NULL REFERENCES sght_users(id) ON DELETE CASCADE,
+ expires_at timestamptz NOT NULL,
+ consumed_at timestamptz,
+ created_at timestamptz NOT NULL DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS sght_mfa_challenges_user_active ON sght_mfa_challenges(user_id,expires_at) WHERE consumed_at IS NULL;
+CREATE TABLE IF NOT EXISTS sght_mfa_recovery_codes (
+ user_id uuid NOT NULL REFERENCES sght_users(id) ON DELETE CASCADE,
+ code_hash char(64) NOT NULL,
+ created_at timestamptz NOT NULL DEFAULT now(),
+ PRIMARY KEY(user_id,code_hash)
+);
