@@ -6,9 +6,9 @@
     "node": ">=22"
   },
   "scripts": {
-    "start": "node server.mjs",
+    "start": "node start.mjs",
     "bootstrap": "node bootstrap-admin.mjs",
-    "test": "node --check server.mjs && node --check bootstrap-admin.mjs"
+    "test": "node --check server.mjs && node --check start.mjs && node --check bootstrap-admin.mjs"
   },
   "dependencies": {
     "pg": "^8.13.1"
