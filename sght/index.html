@@ -190,8 +190,9 @@
   </div>
   <div id="authSessionsList" class="account-sessions" aria-live="polite"><p class="account-empty">Đăng nhập để xem các phiên đang hoạt động.</p></div>
   <section class="account-mfa" aria-labelledby="mfaHeading">
-    <div class="account-lifecycle-heading"><b id="mfaHeading">MFA · Xác thực hai lớp</b><span>TOTP · ứng dụng xác thực</span></div>
+    <div class="account-lifecycle-heading"><b id="mfaHeading">MFA · Xác thực hai lớp</b><span>TOTP · Passkey / WebAuthn</span></div>
     <p class="account-empty">Dùng Google Authenticator, Microsoft Authenticator, 1Password hoặc ứng dụng TOTP tương thích.</p>
+    <div class="account-lifecycle-actions"><button id="passkeyRegister" type="button" class="quiet" disabled>Đăng ký Passkey trên thiết bị</button><button id="passkeyRefresh" type="button" class="quiet" disabled>Nạp danh sách Passkey</button></div><p id="passkeyStatus" class="account-empty" role="status">Chưa nạp danh sách Passkey.</p><div id="passkeyList" class="account-sessions" aria-live="polite"></div>
     <p id="mfaStatusLabel" class="account-empty" role="status">Trạng thái MFA: chưa xác định.</p>
     <div class="account-lifecycle-actions"><button id="mfaEnroll" type="button" class="quiet" disabled>Thiết lập MFA</button></div>
     <div id="mfaSetupBox" hidden>
@@ -209,7 +210,7 @@
     </div>
     <div id="mfaLoginBox" hidden>
       <label>Mã xác thực hoặc mã khôi phục <input id="mfaLoginCode" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="32"></label>
-      <button id="mfaLoginVerify" type="button" class="primary">Hoàn tất đăng nhập</button>
+      <button id="mfaLoginVerify" type="button" class="primary">Hoàn tất bằng TOTP / mã khôi phục</button><button id="mfaLoginPasskey" type="button" class="quiet">Dùng Passkey trên thiết bị</button>
       <button id="mfaLoginCancel" type="button" class="quiet">Hủy lần đăng nhập này</button>
     </div>
     <div id="mfaDisableBox" hidden>
