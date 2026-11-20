@@ -43,11 +43,11 @@ export function createSghtAuthServer({pool,allowedOrigin,mailer=null,secureCooki
    if(method==="POST"&&path==="/v1/auth/login"){
     await checkCsrf();const b=await body(req),email=String(b.email||"").trim().toLowerCase();
     if(email.length>254||!/^\S+@\S+\.\S+$/.test(email)||typeof b.password!=="string")return json(res,400,{code:"INVALID_INPUT",message:"Invalid login input."});
+    if(!rateLimit("login:"+email,8))return json(res,429,{code:"LOGIN_RATE_LIMITED",message:"Too many login attempts. Try again later."});
     const q=await pool.query("SELECT * FROM sght_users WHERE email_normalized=$1",[email]);const u=q.rows[0];
     const fallback=await passwordHash("not-a-real-password-value");const salt=u?.password_salt||fallback.salt;
     const candidate=(await passwordHash(b.password,salt)).hash;
     if(!u||u.status!=="active"||!u.email_verified_at||!same(candidate,u.password_hash))return json(res,401,{code:"INVALID_CREDENTIALS",message:"Email or password is incorrect."});
-    if(!rateLimit("login:"+email))return json(res,429,{code:"LOGIN_RATE_LIMITED",message:"Too many login attempts. Try again later."});
     const mfa=await pool.query("SELECT enabled_at FROM sght_user_mfa WHERE user_id=$1 AND enabled_at IS NOT NULL",[u.id]);
     if(mfa.rowCount){const challenge=token();await pool.query("INSERT INTO sght_mfa_challenges(token_hash,user_id,expires_at) VALUES($1,$2,now()+interval '5 minutes')",[hash(challenge),u.id]);return json(res,200,{mfaRequired:true,challengeToken:challenge,expiresInSeconds:300});}
     const sid=token(),csrf=issueCsrf();await pool.query("INSERT INTO sght_sessions(id_hash,user_id,csrf_hash,expires_at,user_agent) VALUES($1,$2,$3,now()+($4 * interval '1 millisecond'),$5)",[hash(sid),u.id,hash(csrf),SESSION_ABSOLUTE_TTL_MS,normalizeUserAgent(req.headers["user-agent"])]);
