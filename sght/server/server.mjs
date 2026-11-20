@@ -3,6 +3,7 @@ import { randomBytes, randomUUID, createHash, scrypt as scryptCb, timingSafeEqua
 import { promisify } from "node:util";
 import { Pool } from "pg";
 import { describeDevice, normalizeUserAgent, isSessionIdleExpired, hasUserAgentChanged, SESSION_IDLE_TTL_MS, SESSION_ABSOLUTE_TTL_MS } from "./session-security.js";
+import { generateTotpSecret, verifyTotp, encryptTotpSecret, decryptTotpSecret, makeRecoveryCode, normalizeRecoveryCode, buildOtpAuthUri } from "./mfa-totp.js";
 const scrypt = promisify(scryptCb);
 const ROLES = new Set(["admin","signer","auditor","viewer"]);
 const SESSION_TTL = 8 * 60 * 60 * 1000;
@@ -46,10 +47,99 @@ export function createSghtAuthServer({pool,allowedOrigin,mailer=null,secureCooki
     const fallback=await passwordHash("not-a-real-password-value");const salt=u?.password_salt||fallback.salt;
     const candidate=(await passwordHash(b.password,salt)).hash;
     if(!u||u.status!=="active"||!u.email_verified_at||!same(candidate,u.password_hash))return json(res,401,{code:"INVALID_CREDENTIALS",message:"Email or password is incorrect."});
+    if(!rateLimit("login:"+email))return json(res,429,{code:"LOGIN_RATE_LIMITED",message:"Too many login attempts. Try again later."});
+    const mfa=await pool.query("SELECT enabled_at FROM sght_user_mfa WHERE user_id=$1 AND enabled_at IS NOT NULL",[u.id]);
+    if(mfa.rowCount){const challenge=token();await pool.query("INSERT INTO sght_mfa_challenges(token_hash,user_id,expires_at) VALUES($1,$2,now()+interval '5 minutes')",[hash(challenge),u.id]);return json(res,200,{mfaRequired:true,challengeToken:challenge,expiresInSeconds:300});}
     const sid=token(),csrf=issueCsrf();await pool.query("INSERT INTO sght_sessions(id_hash,user_id,csrf_hash,expires_at,user_agent) VALUES($1,$2,$3,now()+($4 * interval '1 millisecond'),$5)",[hash(sid),u.id,hash(csrf),SESSION_ABSOLUTE_TTL_MS,normalizeUserAgent(req.headers["user-agent"])]);
     res.setHeader("Set-Cookie",[cookie("sght_session",sid,28800),`sght_csrf=${csrf}; Path=/; SameSite=Strict; Max-Age=1800${cookieOpts?"; Secure":""}`]);
     await pool.query("INSERT INTO sght_audit_events(actor_user_id,target_user_id,action,metadata_json,request_id) VALUES($1,$1,'auth.login','{}',$2)",[u.id,requestId]);
     return json(res,200,{user:safeUser(u)});
+   }
+
+   if(method==="POST"&&path==="/v1/auth/mfa/login/complete"){
+    await checkCsrf();const b=await body(req),challenge=String(b.challengeToken||""),code=String(b.code||"").trim();
+    if(challenge.length<32||challenge.length>128||code.length<6||code.length>32)return json(res,400,{code:"MFA_INVALID_INPUT",message:"A valid MFA challenge and code are required."});
+    if(!rateLimit("mfa-challenge:"+hash(challenge),6))return json(res,429,{code:"MFA_RATE_LIMITED",message:"Too many MFA attempts. Try again later."});
+    const masterKey=process.env.SGHT_MFA_ENCRYPTION_KEY;if(typeof masterKey!=="string"||Buffer.byteLength(masterKey,"utf8")<32)return json(res,503,{code:"MFA_NOT_CONFIGURED",message:"MFA encryption is not configured."});
+    const client=await pool.connect();
+    try{
+     await client.query("BEGIN");
+     const cq=await client.query("SELECT id,user_id FROM sght_mfa_challenges WHERE token_hash=$1 AND consumed_at IS NULL AND expires_at>now() FOR UPDATE",[hash(challenge)]);
+     if(!cq.rowCount){await client.query("ROLLBACK");return json(res,401,{code:"MFA_CHALLENGE_INVALID",message:"MFA challenge is invalid or expired."});}
+     const factor=await client.query("SELECT secret_ciphertext,last_used_step FROM sght_user_mfa WHERE user_id=$1 AND enabled_at IS NOT NULL FOR UPDATE",[cq.rows[0].user_id]);
+     if(!factor.rowCount){await client.query("ROLLBACK");return json(res,401,{code:"MFA_NOT_ENABLED",message:"MFA is not enabled for this account."});}
+     const secret=decryptTotpSecret(factor.rows[0].secret_ciphertext,masterKey),step=verifyTotp(secret,code,now());
+     if(step!==null&&step>Number(factor.rows[0].last_used_step??-1)){
+      await client.query("UPDATE sght_user_mfa SET last_used_step=$2 WHERE user_id=$1",[cq.rows[0].user_id,step]);
+     }else{
+      const recovery=normalizeRecoveryCode(code);
+      if(!/^[A-F0-9]{16}$/.test(recovery)){await client.query("ROLLBACK");return json(res,401,{code:"MFA_CODE_INVALID",message:"MFA code is invalid or already used."});}
+      const rq=await client.query("SELECT code_hash FROM sght_mfa_recovery_codes WHERE user_id=$1 AND code_hash=$2 FOR UPDATE",[cq.rows[0].user_id,hash(recovery)]);
+      if(!rq.rowCount){await client.query("ROLLBACK");return json(res,401,{code:"MFA_CODE_INVALID",message:"MFA code is invalid or already used."});}
+      await client.query("DELETE FROM sght_mfa_recovery_codes WHERE user_id=$1 AND code_hash=$2",[cq.rows[0].user_id,hash(recovery)]);
+     }
+     const uq=await client.query("SELECT id,email_normalized AS email,display_name,role,status FROM sght_users WHERE id=$1 AND status='active' AND email_verified_at IS NOT NULL",[cq.rows[0].user_id]);
+     if(!uq.rowCount){await client.query("ROLLBACK");return json(res,401,{code:"INVALID_CREDENTIALS",message:"Account is not eligible to sign in."});}
+     const user=uq.rows[0],sid=token(),csrf=token();
+     await client.query("INSERT INTO sght_sessions(id_hash,user_id,csrf_hash,expires_at,user_agent) VALUES($1,$2,$3,now()+($4 * interval '1 millisecond'),$5)",[hash(sid),user.id,hash(csrf),SESSION_ABSOLUTE_TTL_MS,normalizeUserAgent(req.headers["user-agent"])]);
+     await client.query("UPDATE sght_mfa_challenges SET consumed_at=now() WHERE id=$1",[cq.rows[0].id]);
+     await client.query("INSERT INTO sght_audit_events(actor_user_id,target_user_id,action,metadata_json,request_id) VALUES($1,$1,'auth.mfa_login','{}',$2)",[user.id,requestId]);
+     await client.query("COMMIT");
+     res.setHeader("Set-Cookie",[cookie("sght_session",sid,Math.floor(SESSION_ABSOLUTE_TTL_MS/1000)),'sght_csrf='+csrf+'; Path=/; SameSite=Strict; Max-Age=1800'+(cookieOpts?'; Secure':'')]);
+     return json(res,200,{user:safeUser(user)});
+    }catch(e){await client.query("ROLLBACK");throw e;}finally{client.release();}
+   }
+   if(method==="POST"&&path==="/v1/auth/mfa/enroll"){
+    await checkCsrf();const u=await requireUser();if(!rateLimit("mfa-enroll:"+u.user_id,4))return json(res,429,{code:"MFA_RATE_LIMITED",message:"Too many MFA setup attempts."});
+    const masterKey=process.env.SGHT_MFA_ENCRYPTION_KEY;if(typeof masterKey!=="string"||Buffer.byteLength(masterKey,"utf8")<32)return json(res,503,{code:"MFA_NOT_CONFIGURED",message:"MFA encryption is not configured."});
+    const secret=generateTotpSecret(),encrypted=encryptTotpSecret(secret,masterKey);
+    const q=await pool.query("INSERT INTO sght_user_mfa(user_id,pending_secret_ciphertext,pending_expires_at) VALUES($1,$2,now()+interval '10 minutes') ON CONFLICT(user_id) DO UPDATE SET pending_secret_ciphertext=EXCLUDED.pending_secret_ciphertext,pending_expires_at=EXCLUDED.pending_expires_at WHERE sght_user_mfa.enabled_at IS NULL RETURNING user_id",[u.user_id,encrypted]);
+    if(!q.rowCount)return json(res,409,{code:"MFA_ALREADY_ENABLED",message:"MFA is already enabled."});
+    return json(res,200,{secret,otpauthUri:buildOtpAuthUri(secret,u.email),expiresInSeconds:600});
+   }
+   if(method==="POST"&&path==="/v1/auth/mfa/enable"){
+    await checkCsrf();const u=await requireUser(),b=await body(req),code=String(b.code||"").trim();
+    if(!/^\d{6}$/.test(code))return json(res,400,{code:"MFA_INVALID_INPUT",message:"Enter the six-digit authenticator code."});
+    if(!rateLimit("mfa-enable:"+u.user_id,6))return json(res,429,{code:"MFA_RATE_LIMITED",message:"Too many MFA verification attempts."});
+    const masterKey=process.env.SGHT_MFA_ENCRYPTION_KEY;if(typeof masterKey!=="string"||Buffer.byteLength(masterKey,"utf8")<32)return json(res,503,{code:"MFA_NOT_CONFIGURED",message:"MFA encryption is not configured."});
+    const client=await pool.connect();try{
+     await client.query("BEGIN");
+     const q=await client.query("SELECT pending_secret_ciphertext,pending_expires_at,enabled_at FROM sght_user_mfa WHERE user_id=$1 FOR UPDATE",[u.user_id]);
+     if(!q.rowCount||q.rows[0].enabled_at||!q.rows[0].pending_secret_ciphertext||new Date(q.rows[0].pending_expires_at).getTime()<=now()){await client.query("ROLLBACK");return json(res,400,{code:"MFA_SETUP_EXPIRED",message:"Start MFA setup again; the pending setup has expired."});}
+     const secret=decryptTotpSecret(q.rows[0].pending_secret_ciphertext,masterKey),step=verifyTotp(secret,code,now());
+     if(step===null){await client.query("ROLLBACK");return json(res,400,{code:"MFA_CODE_INVALID",message:"Authenticator code is invalid."});}
+     await client.query("UPDATE sght_user_mfa SET secret_ciphertext=pending_secret_ciphertext,pending_secret_ciphertext=NULL,pending_expires_at=NULL,enabled_at=now(),last_used_step=$2 WHERE user_id=$1",[u.user_id,step]);
+     const recoveryCodes=Array.from({length:10},makeRecoveryCode);
+     for(const recovery of recoveryCodes)await client.query("INSERT INTO sght_mfa_recovery_codes(user_id,code_hash) VALUES($1,$2)",[u.user_id,hash(normalizeRecoveryCode(recovery))]);
+     await client.query("INSERT INTO sght_audit_events(actor_user_id,target_user_id,action,metadata_json,request_id) VALUES($1,$1,'auth.mfa_enabled',$2,$3)",[u.user_id,JSON.stringify({recoveryCodeCount:recoveryCodes.length}),requestId]);
+     await client.query("COMMIT");return json(res,200,{ok:true,recoveryCodes});
+    }catch(e){await client.query("ROLLBACK");throw e;}finally{client.release();}
+   }
+   if(method==="POST"&&path==="/v1/auth/mfa/disable"){
+    await checkCsrf();const u=await requireUser(),b=await body(req),password=String(b.password||""),code=String(b.code||"").trim();
+    if(!password||code.length<6||code.length>32)return json(res,400,{code:"MFA_INVALID_INPUT",message:"Password and MFA code are required."});
+    if(!rateLimit("mfa-disable:"+u.user_id,5))return json(res,429,{code:"MFA_RATE_LIMITED",message:"Too many MFA disable attempts."});
+    const masterKey=process.env.SGHT_MFA_ENCRYPTION_KEY;if(typeof masterKey!=="string"||Buffer.byteLength(masterKey,"utf8")<32)return json(res,503,{code:"MFA_NOT_CONFIGURED",message:"MFA encryption is not configured."});
+    const client=await pool.connect();try{
+     await client.query("BEGIN");
+     const uq=await client.query("SELECT password_hash,password_salt FROM sght_users WHERE id=$1 AND status='active' FOR UPDATE",[u.user_id]);
+     if(!uq.rowCount||!same((await passwordHash(password,uq.rows[0].password_salt)).hash,uq.rows[0].password_hash)){await client.query("ROLLBACK");return json(res,401,{code:"MFA_REAUTH_REQUIRED",message:"Password is incorrect."});}
+     const fq=await client.query("SELECT secret_ciphertext,last_used_step FROM sght_user_mfa WHERE user_id=$1 AND enabled_at IS NOT NULL FOR UPDATE",[u.user_id]);
+     if(!fq.rowCount){await client.query("ROLLBACK");return json(res,409,{code:"MFA_NOT_ENABLED",message:"MFA is not enabled."});}
+     const secret=decryptTotpSecret(fq.rows[0].secret_ciphertext,masterKey),step=verifyTotp(secret,code,now());
+     if(step!==null&&step>Number(fq.rows[0].last_used_step??-1))await client.query("UPDATE sght_user_mfa SET last_used_step=$2 WHERE user_id=$1",[u.user_id,step]);
+     else{
+      const recovery=normalizeRecoveryCode(code);
+      if(!/^[A-F0-9]{16}$/.test(recovery)){await client.query("ROLLBACK");return json(res,401,{code:"MFA_CODE_INVALID",message:"MFA code is invalid or already used."});}
+      const rq=await client.query("SELECT code_hash FROM sght_mfa_recovery_codes WHERE user_id=$1 AND code_hash=$2 FOR UPDATE",[u.user_id,hash(recovery)]);
+      if(!rq.rowCount){await client.query("ROLLBACK");return json(res,401,{code:"MFA_CODE_INVALID",message:"MFA code is invalid or already used."});}
+     }
+     await client.query("DELETE FROM sght_mfa_recovery_codes WHERE user_id=$1",[u.user_id]);
+     await client.query("DELETE FROM sght_user_mfa WHERE user_id=$1",[u.user_id]);
+     await client.query("UPDATE sght_mfa_challenges SET consumed_at=now() WHERE user_id=$1 AND consumed_at IS NULL",[u.user_id]);
+     await client.query("INSERT INTO sght_audit_events(actor_user_id,target_user_id,action,metadata_json,request_id) VALUES($1,$1,'auth.mfa_disabled','{}',$2)",[u.user_id,requestId]);
+     await client.query("COMMIT");return json(res,200,{ok:true});
+    }catch(e){await client.query("ROLLBACK");throw e;}finally{client.release();}
    }
    if(method==="GET"&&path==="/v1/auth/me"){const u=await requireUser();return json(res,200,{user:safeUser(u)});}
    if(method==="POST"&&path==="/v1/auth/logout"){await checkCsrf();const raw=jar.sght_session;if(raw)await pool.query("UPDATE sght_sessions SET revoked_at=now() WHERE id_hash=$1 AND revoked_at IS NULL",[hash(raw)]);res.setHeader("Set-Cookie",[clearCookie("sght_session"),clearCookie("sght_csrf")]);return json(res,200,{ok:true});}
