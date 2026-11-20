@@ -13,7 +13,7 @@ export function normalizeFormulaVersions(input,limits={}){
 }
 export function recordFormulaVersion(history,change,limits={}){
  const items=normalizeFormulaVersions(history,{maxTotal:limits.maxTotal||MAX_TOTAL});
- const before=change?.beforeFormula??null,after=change?.afterFormula??null;
+ const before=change?.beforeValue??change?.beforeFormula??null,after=change?.afterValue??change?.afterFormula??null;
  if(before===after||(!isFormula(before)&&!isFormula(after)))return items;
  const entry={id:clean(change.id||"fv-"+Date.now().toString(36)+"-"+Math.random().toString(36).slice(2,8),120),timestamp:clean(change.timestamp||new Date().toISOString(),40),sheetId:clean(change.sheetId,120),sheetName:clean(change.sheetName,160),address:clean(change.address,32),beforeFormula:isFormula(before)?clean(before):null,afterFormula:isFormula(after)?clean(after):null,beforeValue:clean(before),afterValue:clean(after),source:clean(change.source||"edit",40),transactionId:clean(change.transactionId||change.id||("tx-"+Date.now().toString(36)+"-"+Math.random().toString(36).slice(2,7)),160)};
  if(!entry.sheetId||!entry.address)return items;
