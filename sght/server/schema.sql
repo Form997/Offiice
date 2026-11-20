@@ -102,3 +102,30 @@ CREATE TABLE IF NOT EXISTS sght_mfa_recovery_codes (
  created_at timestamptz NOT NULL DEFAULT now(),
  PRIMARY KEY(user_id,code_hash)
 );
+
+ 
+-- 18.49 WebAuthn passkeys. Public keys are stored as bytes; no private key is held by SGHT.
+CREATE TABLE IF NOT EXISTS sght_passkeys (
+ id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+ user_id uuid NOT NULL REFERENCES sght_users(id) ON DELETE CASCADE,
+ credential_id text NOT NULL UNIQUE,
+ public_key bytea NOT NULL,
+ counter bigint NOT NULL DEFAULT 0,
+ transports text[] NOT NULL DEFAULT ARRAY[]::text[],
+ device_type varchar(32) NOT NULL,
+ backed_up boolean NOT NULL DEFAULT false,
+ created_at timestamptz NOT NULL DEFAULT now(),
+ last_used_at timestamptz
+);
+CREATE INDEX IF NOT EXISTS sght_passkeys_user ON sght_passkeys(user_id);
+CREATE TABLE IF NOT EXISTS sght_webauthn_challenges (
+ id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+ challenge text NOT NULL,
+ user_id uuid NOT NULL REFERENCES sght_users(id) ON DELETE CASCADE,
+ purpose varchar(32) NOT NULL CHECK(purpose IN ('registration','mfa_authentication')),
+ context_hash char(64),
+ expires_at timestamptz NOT NULL,
+ consumed_at timestamptz,
+ created_at timestamptz NOT NULL DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS sght_webauthn_challenges_active ON sght_webauthn_challenges(user_id,purpose,expires_at) WHERE consumed_at IS NULL;
