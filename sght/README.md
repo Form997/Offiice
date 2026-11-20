@@ -783,3 +783,11 @@ Bổ sung mô hình đáp ứng tăng dần, lợi ích biên giảm dần:
 - Bổ sung kiểm thử cho hoàn tác công thức, làm lại công thức, xóa/khôi phục công thức, bỏ qua giá trị thường và dữ liệu đầu vào không hợp lệ.
 - So sánh được thực hiện trên các ô đã lưu (sparse map), không quét toàn bộ lưới 100.000 × 16.384; chi phí tỷ lệ theo số ô có dữ liệu của trang tính.
 - Giới hạn: chỉ đồng bộ các ô của trang tính đang hoạt động trong giao dịch Undo/Redo hiện hữu; lịch sử vẫn lưu localStorage và không chống sửa đổi. Chưa kiểm thử thủ công trên trình duyệt/điện thoại thật.
+
+
+## SGHT 18.34 — Formula Transaction Grouping — 2026-11-20
+
+- Mỗi mốc Undo của thao tác chỉnh sửa tạo mã giao dịch; các thay đổi công thức được ghi sau mốc đó nhận chung mã.
+- Undo và Redo tạo mã giao dịch riêng, giữ lịch sử gốc và phân biệt nguồn thao tác.
+- Formula Version Control gom phiên bản theo giao dịch, hiển thị mã, thời điểm, nguồn, số ô và thay đổi trước/sau; bộ đếm phân biệt phiên bản với giao dịch.
+- Dữ liệu cũ không có mã giao dịch được giữ nguyên và xem như nhóm đơn lẻ. Giới hạn 50 mốc/ô, 5.000 mốc/workbook; nhóm chỉ gồm các mốc còn lưu. Dữ liệu localStorage, không đồng bộ đám mây, không chống sửa đổi. Một số luồng không gọi snapshot có thể tạo nhóm riêng cho từng mốc. Chưa kiểm thử thủ công trên thiết bị thật.
