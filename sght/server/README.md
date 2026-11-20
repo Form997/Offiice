@@ -93,3 +93,33 @@ The bootstrap password is derived with Node scrypt and a random salt. Session ID
 - No live PostgreSQL, reverse-proxy, browser, or mobile integration test has been run in this repository environment. GitHub Pages remains static and does not host this API.
 
 Do not expose this service publicly or set the frontend API meta tag until the missing controls are completed, dependencies audited, migrations tested, and the full security gate signed off.
+
+
+## 18.44 — Account lifecycle endpoints
+
+The backend reference implementation now includes:
+
+- Invitation acceptance: a one-time random token is stored only as SHA-256, expires after 24 hours, is consumed transactionally, and creates the account only once. Password length is checked (12–256 characters); the password is scrypt-hashed with a random salt. Duplicate accounts and invalid/expired/replayed tokens are rejected.
+- Password reset: generic request response to avoid account enumeration; one-time token expires after 30 minutes. Successful reset updates the password and revokes all active sessions and outstanding reset tokens in one transaction.
+- Session management: authenticated users can list only their own active sessions and revoke a selected session by its public UUID. Raw session cookie IDs and stored SHA-256 digests are never returned.
+- Audit events are written for invitation acceptance and password reset.
+
+### Token delivery gate — important
+
+No email provider is configured in this repository. To prevent unusable invitations, POST /v1/admin/users returns 503 TOKEN_DELIVERY_NOT_CONFIGURED unless SGHT_TOKEN_DELIVERY_MODE=development is set. In development mode only, the response includes developmentToken; never enable this mode on a public/production service. Password-reset requests always return the same public response; a development token is included only for an existing active account when the same development mode is enabled. Production email/SMS delivery, verified callback handling, and secret management remain unimplemented. The server does not log raw tokens.
+
+### Database migration
+
+Reapply schema.sql to an existing 18.43 database. Additive ALTER TABLE ... ADD COLUMN IF NOT EXISTS statements create the session public ID and invitation token hash without dropping existing data. The script also creates sght_password_resets.
+
+### API routes added
+
+- POST /v1/auth/invitations/accept + CSRF: { token, password }.
+- POST /v1/auth/password-reset/request + CSRF: { email }; generic response.
+- POST /v1/auth/password-reset/complete + CSRF: { token, password }.
+- GET /v1/auth/sessions: current user's active sessions only.
+- DELETE /v1/auth/sessions/{publicSessionId} + CSRF: revokes only a session owned by the caller.
+
+### Remaining security limitations
+
+The existing scrypt password verifier is retained; Argon2id migration is still required before production. Rate limiting remains in-memory/per-process and is not distributed. No email provider, MFA, email verification, password-change notification, idle timeout, session device fingerprint, or live PostgreSQL integration tests are included. The development token mode is for local testing only. The backend remains undeployed; GitHub Pages remains static; workbook, formula, macro, signature, and export data routes are not yet protected by server authorization. Obtain an independent security review before exposing this API.
