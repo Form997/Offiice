@@ -712,3 +712,13 @@ Bổ sung mô hình đáp ứng tăng dần, lợi ích biên giảm dần:
 - Thu thập số lượt trúng/trượt, ghi cache, eviction, invalidation, mục bị bỏ qua do quá lớn, số mục hiện giữ, dung lượng ước tính và tỷ lệ hit.
 - Thanh trạng thái sau đợt tính hiển thị dung lượng cache và tỷ lệ hit để hỗ trợ chẩn đoán hiệu năng.
 - Dung lượng là ước tính có tính bảo thủ theo kiểu dữ liệu, không phải số byte heap thực tế do trình duyệt cấp phát; chưa phải profiler bộ nhớ hoặc benchmark hiệu năng đa thiết bị.
+
+
+## SGHT 18.27 — Formula Diagnostics & Benchmark — 2026-11-20
+
+- Bổ sung bảng chẩn đoán có nút chạy chủ động, chọn quy mô mô phỏng 250 / 1.000 / 2.000 công thức; không tự khởi chạy khi mở workbook.
+- Báo cáo tách thời gian dựng Dependency Graph, lập kế hoạch topo, thực thi Calculation Scheduler theo từng đợt và kiểm tra cache LRU; kèm số công thức, cạnh phụ thuộc, số nút bị ảnh hưởng, chu trình, nút bị chặn, lỗi và tỷ lệ cache hit.
+- Báo cáo bổ sung ảnh chụp trạng thái workbook đang mở: số trang, công thức, phụ thuộc, vùng chưa lập chỉ mục, kế hoạch gần nhất, scheduler và cache; thao tác chẩn đoán không sửa dữ liệu workbook.
+- Bộ benchmark tạo chuỗi công thức mô phỏng xác định, dùng callback số học đơn giản để đo pipeline đồ thị/lập lịch/cache. Đây chưa phải phép đo toàn bộ parser công thức, render giao diện hay tốc độ thiết bị thực tế; không dùng số đo tổng hợp để cam kết tốc độ workbook thực.
+- Dung lượng cache vẫn là ước tính của engine, không phải số byte heap trình duyệt. Chưa có profiler theo từng công thức, Web Worker hoặc benchmark đa trình duyệt/thiết bị.
+- Có kiểm thử xác định cho tạo dữ liệu mô phỏng, số liệu các giai đoạn, cache và snapshot chẩn đoán.

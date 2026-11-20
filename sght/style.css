@@ -267,3 +267,8 @@
 .sheet-tab{flex:0 0 auto;max-width:220px;border:1px solid #cbd8cf;border-radius:7px 7px 0 0;background:#f7faf7;color:#40564b;padding:8px 14px;font-size:12px;white-space:nowrap}
 .sheet-tab.active{background:#fff;color:#173b32;border-bottom-color:#fff;font-weight:700;box-shadow:inset 0 2px #39866a}
 .sheet-tab-add{min-width:36px;font-size:18px;font-weight:700;padding:5px}
+
+/* SGHT 18.27 — formula diagnostics */
+.diagnostics-panel{display:grid;gap:10px;margin:14px 0;padding:14px;border:1px solid var(--line,#d8dee8);border-radius:12px;background:var(--panel,#fff)}
+.diagnostics-heading,.diagnostics-actions{display:flex;align-items:center;gap:10px;flex-wrap:wrap}.diagnostics-heading{justify-content:space-between}.diagnostics-heading span,.diagnostics-panel small{color:var(--muted,#667085);font-size:12px}.diagnostics-actions label{font-size:13px}.diagnostics-actions select{min-height:36px;max-width:180px}.diagnostics-output{white-space:pre-wrap;overflow-wrap:anywhere;max-height:360px;overflow:auto;margin:0;padding:12px;border-radius:8px;background:var(--surface,#f5f7fa);font:12px/1.6 ui-monospace,SFMono-Regular,Consolas,monospace;color:var(--text,#202938)}
+@media(max-width:640px){.diagnostics-actions>*{flex:1 1 100%;max-width:none}.diagnostics-actions button{min-height:42px}}

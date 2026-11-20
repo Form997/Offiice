@@ -1,3 +1,4 @@
+import { runFormulaBenchmark, collectFormulaDiagnostics, formatFormulaDiagnostics } from "./engine/formula-diagnostics.js";
 import { evaluateFormula, FormulaError } from "./engine/core.js";
 import { buildDependencyGraph, updateDependencyNode, planRecalculation } from "./engine/dependency-engine.js";
 import { CalculationScheduler } from "./engine/calculation-scheduler.js";
@@ -969,3 +970,11 @@ function deleteWorkbookSheetUI(id){if(workbookSheets.length<=1){calcStatus.textC
 document.querySelector("#sheetName").addEventListener("change",e=>{try{const previousName=sheetTitle,nextName=e.target.value.trim()||"Bảng tính chưa đặt tên";storeActiveSheet();workbookSheets=renameWorkbookSheet(workbookSheets,activeSheetId,nextName);workbookSheets=rewriteWorkbookSheetReferences(workbookSheets,previousName,nextName);sheetTitle=nextName;cells=getWorkbookSheet(workbookSheets,activeSheetId).cells;rebuildDependencyEngine();e.target.value=sheetTitle;renderSheetTabs();save();}catch(err){e.target.value=sheetTitle;calcStatus.textContent=err.message;}});
 
 load();rebuildDependencyEngine();render();renderDataTables();renderSecurity();
+// SGHT 18.27: explicit, non-invasive formula diagnostics.
+const diagnosticsButton=document.querySelector("#runFormulaDiagnostics"),diagnosticsSize=document.querySelector("#diagnosticsSize"),diagnosticsOutput=document.querySelector("#formulaDiagnosticsOutput");
+if(diagnosticsButton&&diagnosticsOutput){diagnosticsButton.addEventListener("click",async()=>{
+ diagnosticsButton.disabled=true;diagnosticsOutput.textContent="Đang dựng workbook mô phỏng và đo các giai đoạn…";
+ try{const size=Math.max(50,Math.min(2000,Number(diagnosticsSize?.value)||1000));const report=await runFormulaBenchmark({size,chunkSize:64});const live=collectFormulaDiagnostics({sheets:workbookSheets,graph:dependencyGraph,plan:lastRecalculationPlan,scheduler:calculationScheduler,cache:formulaValueCache});diagnosticsOutput.textContent=formatFormulaDiagnostics(report,live);calcStatus.textContent="Benchmark mô phỏng hoàn tất · "+report.formulaCount.toLocaleString("vi-VN")+" công thức · "+report.totalElapsedMs+" ms";}
+ catch(error){diagnosticsOutput.textContent="Không thể hoàn tất benchmark: "+(error?.message||String(error));calcStatus.textContent="Benchmark gặp lỗi";}
+ finally{diagnosticsButton.disabled=false;}
+});}
