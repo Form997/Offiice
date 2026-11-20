@@ -850,3 +850,12 @@ Bổ sung mô hình đáp ứng tăng dần, lợi ích biên giảm dần:
 - Khi phát hiện sổ localStorage sai cấu trúc/JSON hỏng, giao diện khóa thao tác ghi để tránh vô tình ghi đè; người dùng phải nhập bản sao hợp lệ.
 - Kiểm thử tự động: 312/312 đạt; GitHub Pages triển khai thành công. Chưa kiểm thử thủ công trên thiết bị thật.
 - Commit triển khai chức năng: `4b11754a9ee8fbc4447a2ee8021c34cc4ab07466`. Cập nhật mã nguồn, giao diện, kiểm thử và tài liệu khoảng 390 KiB UTF-8 (ước tính).
+
+## SGHT 18.40 — Multi-user Authentication & RBAC Foundation — 2026-11-20
+
+- Bổ sung `sght/engine/auth-rbac.js`: mô hình vai trò admin, signer, auditor, viewer và quyền tách nhỏ cho workbook, công thức, macro, ký số, kiểm toán, quản lý danh tính/tài khoản.
+- Tạo tài khoản đầu tiên theo quy trình bootstrap quản trị; tài khoản tiếp theo cần phiên quản trị có quyền `users.manage`. Có đăng nhập/đăng xuất, đổi vai trò, khóa/mở tài khoản và xuất nhật ký.
+- Mật khẩu không lưu dạng rõ: dùng PBKDF2-SHA-256, salt ngẫu nhiên 16 byte, 310.000 vòng, kết quả 256 bit.
+- Bổ sung giao diện thử nghiệm tài khoản và phân quyền trong khu vực quản trị SGHT.
+- Giới hạn bắt buộc: đây là prototype chạy hoàn toàn trong trình duyệt, tài khoản và verifier nằm trong localStorage; người dùng có quyền sửa dữ liệu phía máy khách có thể giả mạo role/session hoặc gọi trực tiếp hàm giao diện. Session không được máy chủ ký/xác thực. Chưa có backend, rate limit, MFA, xác minh email, phục hồi mật khẩu, SSO, đồng bộ thiết bị hay kiểm soát truy cập phía máy chủ. Không được dùng làm ranh giới bảo mật production. Các hàm nghiệp vụ của workbook chưa được khóa toàn diện theo phiên đăng nhập; engine cung cấp policy core để tích hợp ở các giai đoạn kế tiếp.
+- Chưa được tuyên bố là bảo vệ workbook thật hoặc chữ ký có giá trị pháp lý.
