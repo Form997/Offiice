@@ -173,7 +173,7 @@ Install the backend dependencies from this directory with `npm install`. The ser
 
 Set `SGHT_WEBAUTHN_RP_ID` to exactly the hostname in `SGHT_ALLOWED_ORIGIN` (for example, if the origin is `https://auth.example.com`, use `auth.example.com`). The API rejects missing or mismatched RP IDs. Keep the API behind HTTPS; browser WebAuthn requires a secure context, with localhost allowed for local development.
 
-Before registering a passkey, the account must already have TOTP MFA enabled. This stage deliberately treats passkeys as a second factor, not a replacement for password or TOTP recovery.
+Before registering a passkey, the account must already have TOTP MFA enabled. Enrollment also requires password re-entry and a fresh, unused TOTP code; the code step is consumed transactionally. Disabling TOTP invalidates outstanding WebAuthn challenges. This stage deliberately treats passkeys as a second factor, not a replacement for password or TOTP recovery.
 
 Routes:
 - POST `/v1/auth/passkeys/register/options` and POST `/v1/auth/passkeys/register/verify`: authenticated, CSRF-protected enrollment.
