@@ -52,3 +52,11 @@ CREATE TABLE IF NOT EXISTS sght_password_resets (
  created_at timestamptz NOT NULL DEFAULT now()
 );
 CREATE INDEX IF NOT EXISTS sght_password_resets_user_active ON sght_password_resets(user_id) WHERE consumed_at IS NULL;
+
+-- Safe additive migration for databases created by the 18.43 schema.
+ALTER TABLE sght_sessions ADD COLUMN IF NOT EXISTS public_id uuid DEFAULT gen_random_uuid();
+UPDATE sght_sessions SET public_id=gen_random_uuid() WHERE public_id IS NULL;
+ALTER TABLE sght_sessions ALTER COLUMN public_id SET NOT NULL;
+CREATE UNIQUE INDEX IF NOT EXISTS sght_sessions_public_id ON sght_sessions(public_id);
+ALTER TABLE sght_invitations ADD COLUMN IF NOT EXISTS token_hash char(64);
+CREATE UNIQUE INDEX IF NOT EXISTS sght_invitations_token_hash ON sght_invitations(token_hash) WHERE token_hash IS NOT NULL;
