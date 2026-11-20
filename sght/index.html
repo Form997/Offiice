@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="vi">
-<head>
+<head>\n    <!-- Configure only after deploying the trusted HTTPS authentication API. -->\n    <meta name="sght-auth-api" content="">
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <meta name="theme-color" content="#173b32">
@@ -173,7 +173,7 @@
 <div class="formula-version-toolbar"><select id="sghtAuthRole"><option value="admin">Quản trị viên</option><option value="signer">Người ký</option><option value="auditor">Kiểm toán</option><option value="viewer" selected>Người xem</option></select><button id="sghtAuthCreate" type="button" class="quiet">Tạo tài khoản / quản trị đầu tiên</button><button id="sghtAuthLogin" type="button" class="primary">Đăng nhập</button><button id="sghtAuthLogout" type="button" class="quiet">Đăng xuất</button></div>
 <div class="formula-version-toolbar"><select id="sghtAuthUserSelect"><option value="">Chọn tài khoản</option></select><button id="sghtAuthAssign" type="button" class="quiet">Gán vai trò đã chọn</button><select id="sghtAuthStatusSelect"><option value="active">Kích hoạt</option><option value="disabled">Khóa tài khoản</option></select><button id="sghtAuthSetStatus" type="button" class="quiet">Cập nhật trạng thái</button><button id="sghtAuthAuditExport" type="button" class="quiet">Xuất nhật ký tài khoản</button></div>
 <pre id="sghtAuthOutput" class="formula-version-output" aria-live="polite">Chưa khởi tạo.</pre>
-<small>Vai trò: quản trị viên, người ký, kiểm toán, người xem. Mật khẩu được dẫn xuất PBKDF2-SHA-256 (310.000 vòng) với salt ngẫu nhiên. Đây là bản thử nghiệm chỉ lưu trên trình duyệt: không có máy chủ xác thực, chống brute-force, MFA, session server-side hay đồng bộ đa thiết bị. Không dùng để bảo vệ dữ liệu thật hoặc cấp quyền ký pháp lý. Tài khoản đầu tiên tạo vai trò quản trị; những tài khoản sau cần quản trị viên đang đăng nhập.</small>
+<small>Giao diện chỉ kết nối máy chủ xác thực qua HTTPS. Cookie phiên phải do máy chủ phát hành với HttpOnly, Secure, SameSite; CSRF token lấy từ API. Không có API được cấu hình thì toàn bộ đăng nhập và quản trị bị khóa, không quay về xác thực localStorage. Chưa kết nối máy chủ thật trong bản GitHub Pages hiện tại.</small>
 </div>\n          <strong>Sổ danh tính & vòng đời khóa</strong>
           <div class="formula-version-toolbar"><label>Mã người thao tác <input id="identityActorId" type="text" placeholder="Mã người phê duyệt / quản trị"></label><label>Tên hiển thị <input id="identityDisplayName" type="text" placeholder="Tên cá nhân hoặc tổ chức"></label><label>Tổ chức <input id="identityOrganization" type="text" placeholder="Đơn vị (không bắt buộc)"></label></div>
           <div class="formula-version-toolbar"><button id="registerIdentity" type="button" class="quiet">Đăng ký danh tính chờ duyệt</button><select id="identitySelect"><option value="">Chọn danh tính</option></select><input id="identityVerificationNote" type="text" placeholder="Căn cứ xác minh / hồ sơ đã đối chiếu"><button id="approveIdentity" type="button" class="quiet">Phê duyệt danh tính</button></div>

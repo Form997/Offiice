@@ -859,3 +859,11 @@ Bổ sung mô hình đáp ứng tăng dần, lợi ích biên giảm dần:
 - Bổ sung giao diện thử nghiệm tài khoản và phân quyền trong khu vực quản trị SGHT.
 - Giới hạn bắt buộc: đây là prototype chạy hoàn toàn trong trình duyệt, tài khoản và verifier nằm trong localStorage; người dùng có quyền sửa dữ liệu phía máy khách có thể giả mạo role/session hoặc gọi trực tiếp hàm giao diện. Session không được máy chủ ký/xác thực. Chưa có backend, rate limit, MFA, xác minh email, phục hồi mật khẩu, SSO, đồng bộ thiết bị hay kiểm soát truy cập phía máy chủ. Không được dùng làm ranh giới bảo mật production. Các hàm nghiệp vụ của workbook chưa được khóa toàn diện theo phiên đăng nhập; engine cung cấp policy core để tích hợp ở các giai đoạn kế tiếp.
 - Chưa được tuyên bố là bảo vệ workbook thật hoặc chữ ký có giá trị pháp lý.
+
+## SGHT 18.41 — Server-Side Authorization & Secure Session API Contract — 2026-11-20
+
+- Added `sght/engine/auth-api-client.js`: HTTPS-only production endpoint validation, cookie-based requests with `credentials: include`, CSRF token acquisition/header, session lookup, login/logout, admin user management and audit API calls. No bearer token or role is persisted in localStorage.
+- Replaced the 18.40 localStorage-based login UI path with a server API client. With no configured API URL, sign-in and account management fail closed and display that the backend is not configured. The browser no longer treats its locally stored role as an authenticated session.
+- Added `sght/server/README.md` specifying endpoints, server-side RBAC matrix, HttpOnly/Secure/SameSite cookie expectations, CSRF, CORS, rate limits, session revocation, persistence model, first-admin bootstrap and security integration test gate.
+- Important: GitHub Pages is static hosting. No backend, database, real server session, or server-enforced workbook authorization is deployed by this release. The API URL remains intentionally empty. This release is a secure client/contract foundation only; it must not be represented as production authentication. Existing 18.40 local account records are not migrated or trusted.
+- Automated tests validate client fail-closed behavior, HTTPS URL policy, CSRF flow, cookie credentials, malformed sessions and API errors. No manual browser/device test or live backend integration test is claimed.
