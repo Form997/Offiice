@@ -58,7 +58,7 @@ New API-client tests cover route/method allowlisting, CSRF refresh, no retry on 
 
 ### Remaining deployment blockers
 
-18.42 does not create or deploy the authentication server. GitHub Pages remains static, the API URL meta tag remains blank, and login stays disabled until a separately deployed and reviewed HTTPS backend exists. No production database, session store, password hashing service, MFA, email invitation delivery, or live API integration test is included. Do not treat client-side checks as a security boundary.
+18.42 does not create or deploy the authentication server. GitHub Pages remains static, the API URL meta tag remains blank, and login stays disabled until a separately deployed and reviewed HTTPS backend exists. No production database, hosted session service, Argon2id password hashing, email provider deployment, or live API integration test is included. MFA routes and TOTP logic are implemented in stage 18.48 but remain unavailable until the API is deployed with the required encryption key. Do not treat client-side checks as a security boundary.
 
 
 ## 18.43 — Backend API foundation (Node.js + PostgreSQL)
