@@ -59,3 +59,37 @@ New API-client tests cover route/method allowlisting, CSRF refresh, no retry on 
 ### Remaining deployment blockers
 
 18.42 does not create or deploy the authentication server. GitHub Pages remains static, the API URL meta tag remains blank, and login stays disabled until a separately deployed and reviewed HTTPS backend exists. No production database, session store, password hashing service, MFA, email invitation delivery, or live API integration test is included. Do not treat client-side checks as a security boundary.
+
+
+## 18.43 — Backend API foundation (Node.js + PostgreSQL)
+
+This stage adds a runnable backend reference implementation under this directory:
+
+- `server.mjs`: HTTP API for CSRF, login, current session, logout, invitations, admin user listing/update, and audit listing.
+- `schema.sql`: PostgreSQL tables and indexes for users, hashed sessions, invitations, and audit events.
+- `bootstrap-admin.mjs`: one-time administrator bootstrap from private environment variables; it refuses to create another active administrator.
+- `start.mjs`: runtime entry point; requires a database URL and the exact frontend origin.
+- `package.json`: isolated server package using Node.js 22+ and the `pg` driver.
+
+### Local setup
+
+1. Provision PostgreSQL and apply `schema.sql` using a database migration/operator account.
+2. In a private server environment set `DATABASE_URL`, `SGHT_ALLOWED_ORIGIN` (the exact HTTPS frontend origin, no path), `SGHT_ADMIN_EMAIL`, and `SGHT_ADMIN_PASSWORD` (at least 16 characters for the initial bootstrap).
+3. From this directory run `npm install`, then `npm run bootstrap` exactly once, remove bootstrap credentials from the environment, and run `npm start`.
+4. Put the service behind a TLS-terminating reverse proxy with request-size limits, connection limits, monitoring, backups, and network-level rate limiting. Configure the frontend API URL only after a security review and integration tests.
+
+The bootstrap password is derived with Node scrypt and a random salt. Session IDs are random opaque values; only SHA-256 digests are stored. Session cookies are HttpOnly, Secure, SameSite=Lax; CSRF uses a separate SameSite=Strict cookie plus a required header and exact Origin check. Login has a basic per-process throttle. Admin role/status changes revoke the target's active sessions and are recorded in the audit table; a transaction prevents demoting/disabling the last active administrator.
+
+### Important security and completeness limits
+
+**This is a development foundation, not yet a production-certified identity service.** The current implementation still needs independent security review and integration testing. In particular:
+
+- Login throttling is in-memory and per process; use a shared gateway/WAF or distributed limiter before production. Account-level lockout, MFA, email verification, password reset and invitation redemption are not implemented. Invitation creation is persisted, but no email delivery or consume endpoint exists yet.
+- Password hashing currently uses Node scrypt, not Argon2id. Evaluate a maintained Argon2id implementation or a managed identity provider before production.
+- CSRF uses a double-submit cookie plus exact Origin checking. The schema has a CSRF digest field reserved for stronger session-bound validation; that binding is not yet enforced.
+- Session expiry is fixed at eight hours; there is no refresh/idle timeout, device/session management UI, or periodic cleanup job.
+- The API currently implements admin endpoints and authentication only. SGHT workbook reads/writes, formula operations, macros, signatures and exports are **not** routed through a server-side authorization service. Client role checks remain presentation only.
+- CORS requires an exact Origin when one is supplied; mutation routes require the exact Origin header. Deploy only same-site or carefully configured cross-origin cookie environments.
+- No live PostgreSQL, reverse-proxy, browser, or mobile integration test has been run in this repository environment. GitHub Pages remains static and does not host this API.
+
+Do not expose this service publicly or set the frontend API meta tag until the missing controls are completed, dependencies audited, migrations tested, and the full security gate signed off.
