@@ -3,6 +3,7 @@ import { analyzeFormulaError, scanWorkbookFormulaErrors, formatFormulaErrorRepor
 import { suggestFormulaRepairs, validateRepairApproval } from "./engine/formula-fix-suggestions.js";
 import { appendRepairAudit, exportRepairAudit } from "./engine/repair-audit.js";
 import { normalizeFormulaVersions, recordFormulaVersion, getFormulaCellVersions, compareFormulaVersions, exportFormulaVersions } from "./engine/formula-version-history.js";
+import { collectFormulaVersionChanges } from "./engine/history-version-sync.js";
 import { evaluateFormula, FormulaError, listFormulaFunctions } from "./engine/core.js";
 import { buildDependencyGraph, updateDependencyNode, planRecalculation } from "./engine/dependency-engine.js";
 import { CalculationScheduler } from "./engine/calculation-scheduler.js";
@@ -70,7 +71,7 @@ function load(){try{const saved=JSON.parse(localStorage.getItem(STORAGE_KEY)||"n
 function save(){try{storeActiveSheet();localStorage.setItem(STORAGE_KEY,JSON.stringify({version:2,sheets:workbookSheets,activeSheetId,dashboard,dashboardTemplates,updatedAt:new Date().toISOString()}));saveStatus.textContent="Đã lưu trên thiết bị";}catch{saveStatus.textContent="Không đủ dung lượng lưu · lịch sử có thể chưa được ghi";}}
 function updateHistoryControls(){document.querySelector("#undoAction").disabled=undoStack.length===0;document.querySelector("#redoAction").disabled=redoStack.length===0;}
 function snapshot(){const current=serializeWorkbook(cells,cellFormats);historyCaptureAvailable=pushHistoryEntry(undoStack,current);redoStack=[];searchDirty=true;updateHistoryControls();save();return historyCaptureAvailable;}
-function historyMove(from,to){if(!from.length)return;const state=moveHistory(from,to,serializeWorkbook(cells,cellFormats));if(!state)return;cells=state.cells;cellFormats=state.formats;rebuildDependencyEngine();reconcileStructuredTables();searchDirty=true;updateHistoryControls();render();save();calcStatus.textContent="Đã khôi phục dữ liệu và định dạng ô";}
+function historyMove(from,to){if(!from.length)return;const source=from===undoStack?"undo":"redo";const beforeCells={...cells};const state=moveHistory(from,to,serializeWorkbook(cells,cellFormats));if(!state)return;cells=state.cells;cellFormats=state.formats;for(const change of collectFormulaVersionChanges(beforeCells,cells)){recordFormulaCellVersion(change.address,change.before,change.after,source,activeSheetId);}rebuildDependencyEngine();reconcileStructuredTables();searchDirty=true;updateHistoryControls();render();save();if(typeof renderFormulaVersions==="function")renderFormulaVersions();calcStatus.textContent=source==="undo"?"Đã hoàn tác dữ liệu, định dạng và đồng bộ lịch sử công thức":"Đã làm lại dữ liệu, định dạng và đồng bộ lịch sử công thức";}
 
 
 function reconcileStructuredTables(){

@@ -773,3 +773,13 @@ Bổ sung mô hình đáp ứng tăng dần, lợi ích biên giảm dần:
 - Giữ nguyên cơ chế lưu phiên bản giới hạn 50 mốc/ô và 5.000 mốc/workbook; không sao chép toàn bộ workbook chỉ để tạo nhật ký thay đổi.
 - Kiểm thử CI: 239/239 bài hiện có đạt; `node --check sght/app.js` đạt; triển khai GitHub Pages thành công.
 - Giới hạn còn lại: lịch sử phiên bản được ghi theo các thao tác đã tích hợp tại giao diện; thao tác Undo/Redo khôi phục workbook chưa tự tạo sự kiện phiên bản ngược/tiến tương ứng. Macro ghi theo từng lệnh SET/CLEAR, vì vậy một phiên chạy có thể tạo nhiều mốc cho cùng ô. Chưa kiểm thử thủ công trên thiết bị thật.
+
+
+## SGHT 18.33 — Undo/Redo Version Synchronization — 2026-11-20
+
+- Đồng bộ lịch sử phiên bản công thức với cả hai chiều Hoàn tác và Làm lại: sau khi workbook được khôi phục, SGHT so sánh bản đồ ô trước/sau trên trang tính hiện hành.
+- Chỉ tạo mốc cho ô có công thức ở ít nhất một phía và nội dung thực sự thay đổi; thay đổi dữ liệu thường không sinh mốc công thức.
+- Công thức được khôi phục, bị gỡ hoặc thay đổi do Undo/Redo đều có bản ghi riêng với nguồn `undo` hoặc `redo`; lịch sử cũ không bị viết ngược hay xóa.
+- Bổ sung kiểm thử cho hoàn tác công thức, làm lại công thức, xóa/khôi phục công thức, bỏ qua giá trị thường và dữ liệu đầu vào không hợp lệ.
+- So sánh được thực hiện trên các ô đã lưu (sparse map), không quét toàn bộ lưới 100.000 × 16.384; chi phí tỷ lệ theo số ô có dữ liệu của trang tính.
+- Giới hạn: chỉ đồng bộ các ô của trang tính đang hoạt động trong giao dịch Undo/Redo hiện hữu; lịch sử vẫn lưu localStorage và không chống sửa đổi. Chưa kiểm thử thủ công trên trình duyệt/điện thoại thật.
