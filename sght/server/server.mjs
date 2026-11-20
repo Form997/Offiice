@@ -196,7 +196,7 @@ export function createSghtAuthServer({pool,allowedOrigin,mailer=null,secureCooki
    }
    if(passkeyMatch&&method==="DELETE"){
     await checkCsrf();const u=await requireUser(),b=await body(req),password=String(b.password||""),code=String(b.code||"").trim();
-    if(!password||! /^\d{6}$/.test(code))return json(res,400,{code:"PASSKEY_REAUTH_REQUIRED",message:"Enter the account password and a fresh six-digit TOTP code to remove this passkey."});
+    if(!passwordValid(password)||! /^\d{6}$/.test(code))return json(res,400,{code:"PASSKEY_REAUTH_REQUIRED",message:"Enter the account password and a fresh six-digit TOTP code to remove this passkey."});
     if(!rateLimit("passkey-delete:"+u.user_id,5))return json(res,429,{code:"PASSKEY_RATE_LIMITED",message:"Too many passkey removal attempts."});
     const masterKey=process.env.SGHT_MFA_ENCRYPTION_KEY;if(typeof masterKey!=="string"||Buffer.byteLength(masterKey,"utf8")<32)return json(res,503,{code:"MFA_NOT_CONFIGURED",message:"MFA encryption is not configured."});
     const client=await pool.connect();try{await client.query("BEGIN");
