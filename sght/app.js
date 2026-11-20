@@ -118,7 +118,7 @@ function replaceCurrent(){
   if(!searchResults.length)return;
   const item=searchResults[Math.max(0,searchIndex)],result=replaceCells(cells,searchInput.value,replaceInput.value,{...replaceOptions(),onlyAddress:item.address});
   if(!result.changed){replaceStatus.textContent="Ô hiện hành không có nội dung gốc phù hợp để thay thế.";return;}
-  snapshot();cells=result.cells;render();save();replaceStatus.textContent="Đã thay thế ô "+item.address+".";
+  snapshot();cells=result.cells;invalidateFormulaCells([item.address]);render();save();replaceStatus.textContent="Đã thay thế ô "+item.address+".";
   searchDirty=true;runSearch(false);
 }
 function replaceAllMatches(){
@@ -128,7 +128,7 @@ function replaceAllMatches(){
   const result=replaceCells(cells,query,replaceInput.value,replaceOptions());
   if(!result.changed){replaceStatus.textContent="Không có ô nào cần thay thế trong phạm vi đã chọn.";return;}
   if(!confirm("Thay thế "+result.changed.toLocaleString("vi-VN")+" ô? Toàn bộ thay đổi sẽ là một giao dịch có thể hoàn tác."))return;
-  snapshot();cells=result.cells;render();save();searchDirty=true;runSearch(true);
+  snapshot();const changedAddresses=Object.keys(result.cells).filter(a=>cells[a]!==result.cells[a]);cells=result.cells;invalidateFormulaCells(changedAddresses);render();save();searchDirty=true;runSearch(true);
   replaceStatus.textContent="Đã thay thế "+result.changed.toLocaleString("vi-VN")+" ô trong một giao dịch. Có thể Hoàn tác một lần.";
 }
 replaceOneButton.addEventListener("click",replaceCurrent);
@@ -459,7 +459,7 @@ document.querySelector("#dataSortApply").addEventListener("click",()=>{
   if(!keyCol||keyCol<bounds.startCol||keyCol>bounds.endCol)throw new Error("Cột sắp xếp phải nằm trong vùng đang chọn.");
   const result=sortRangeRows(cells,cellFormats,bounds,{keyColumn:keyCol,direction:dataSortOrder.value,type:dataSortType.value});
   if(!result.changed){dataStatus.textContent="Vùng không có hàng cần sắp xếp.";return;}
-  snapshot();cells=result.cells;cellFormats=result.formats;render();save();dataStatus.textContent="Đã sắp xếp "+result.rowCount+" hàng theo cột "+dataSortColumn.value.toUpperCase()+". Có thể Hoàn tác.";
+  snapshot();cells=result.cells;cellFormats=result.formats;invalidateFormulaCells(expandRange(address(bounds.startRow,bounds.startCol),address(bounds.endRow,bounds.endCol)));render();save();dataStatus.textContent="Đã sắp xếp "+result.rowCount+" hàng theo cột "+dataSortColumn.value.toUpperCase()+". Có thể Hoàn tác.";
  }catch(e){dataStatus.textContent=e.message;}
 });
 document.querySelector("#dataFilterApply").addEventListener("click",()=>{
@@ -621,7 +621,7 @@ document.querySelector("#dataRemoveDuplicates").addEventListener("click",()=>{
   const bounds=selectedBounds(),result=removeDuplicateRows(cells,cellFormats,bounds);
   if(!result.removed){dataStatus.textContent="Không tìm thấy hàng trùng lặp trong vùng chọn.";return;}
   if(!confirm("Xóa "+result.removed+" hàng trùng lặp trong vùng chọn? Hàng giữ lại là lần xuất hiện đầu tiên. Có thể hoàn tác."))return;
-  snapshot();cells=result.cells;cellFormats=result.formats;filteredRows.clear();activeFilter=null;render();save();dataStatus.textContent="Đã loại "+result.removed+" hàng trùng lặp. Có thể Hoàn tác.";
+  snapshot();cells=result.cells;cellFormats=result.formats;invalidateFormulaCells(expandRange(address(bounds.startRow,bounds.startCol),address(bounds.endRow,bounds.endCol)));filteredRows.clear();activeFilter=null;render();save();dataStatus.textContent="Đã loại "+result.removed+" hàng trùng lặp. Có thể Hoàn tác.";
  }catch(e){dataStatus.textContent=e.message;}
 });
 document.querySelector("#dataDefineTable").addEventListener("click",()=>{
