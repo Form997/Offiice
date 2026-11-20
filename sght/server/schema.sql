@@ -64,3 +64,13 @@ CREATE UNIQUE INDEX IF NOT EXISTS sght_invitations_token_hash ON sght_invitation
 
 -- 18.45 additive email-verification migration.
 ALTER TABLE sght_users ADD COLUMN IF NOT EXISTS email_verified_at timestamptz;
+
+CREATE TABLE IF NOT EXISTS sght_email_verifications (
+ id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+ token_hash char(64) NOT NULL UNIQUE,
+ user_id uuid NOT NULL REFERENCES sght_users(id) ON DELETE CASCADE,
+ expires_at timestamptz NOT NULL,
+ consumed_at timestamptz,
+ created_at timestamptz NOT NULL DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS sght_email_verifications_user_active ON sght_email_verifications(user_id) WHERE consumed_at IS NULL;
