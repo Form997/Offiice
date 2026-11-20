@@ -23,7 +23,7 @@ export function describeDevice(value) {
   return browser + " · " + platform;
 }
 export function isSessionIdleExpired(lastSeenAt, now = Date.now(), idleMs = SESSION_IDLE_TTL_MS) {
-  const last = lastSeenAt instanceof Date ? lastSeenAt.getTime() : Date.parse(lastSeenAt);
+  const last = lastSeenAt instanceof Date ? lastSeenAt.getTime() : typeof lastSeenAt === "number" ? lastSeenAt : Date.parse(lastSeenAt);
   return !Number.isFinite(last) || !Number.isFinite(now) || now - last >= idleMs;
 }
 export function hasUserAgentChanged(original, current) {
