@@ -2,7 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { describeDevice, normalizeUserAgent, isSessionIdleExpired, hasUserAgentChanged, SESSION_IDLE_TTL_MS, SESSION_ABSOLUTE_TTL_MS } from "../server/session-security.js";
 test("normalizes untrusted user-agent text and bounds its length",()=>{
-  assert.equal(normalizeUserAgent("  Mozilla\\n/5.0  "), "Mozilla /5.0");
+  assert.equal(normalizeUserAgent("  Mozilla" + String.fromCharCode(10) + "/5.0  "), "Mozilla /5.0");
   assert.equal(normalizeUserAgent("x".repeat(700)).length,500);
   assert.equal(normalizeUserAgent(null),"");
 });
