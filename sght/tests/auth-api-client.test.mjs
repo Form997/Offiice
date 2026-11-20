@@ -27,3 +27,16 @@ test("account lifecycle and session revocation routes are allowlisted",async()=>
  assert.equal(calls.at(-1).opts.headers["X-CSRF-Token"],"csrf-token-value-123");
  await assert.rejects(()=>c.revokeSession("../bad"),/Mã phiên/);
 });
+
+test("MFA login challenge is returned without creating a local session",async()=>{
+ const fetchImpl=async(url)=>url.endsWith("/csrf")?new Response(JSON.stringify({csrfToken:"csrf-token-value-123"}),{status:200}):new Response(JSON.stringify({mfaRequired:true,challengeToken:"x".repeat(48),expiresInSeconds:300}),{status:200});
+ const c=new SghtAuthApiClient({baseUrl:"https://auth.example.com",fetchImpl}),result=await c.login({email:"a@b.test",password:"password"});
+ assert.equal(result.mfaRequired,true);assert.equal(result.challengeToken.length,48);assert.equal("role" in result,false);
+});
+test("MFA methods use allowlisted routes and CSRF headers",async()=>{
+ const calls=[],fetchImpl=async(url,opts)=>{calls.push({url,opts});return url.endsWith("/csrf")?new Response(JSON.stringify({csrfToken:"csrf-token-value-123"}),{status:200}):new Response(JSON.stringify({user:{id:"user_123456",email:"a@b.test",role:"viewer"}}),{status:200});};
+ const c=new SghtAuthApiClient({baseUrl:"https://auth.example.com",fetchImpl});
+ await c.completeMfaLogin("x".repeat(48),"123456");await c.enrollMfa();await c.enableMfa("123456");await c.disableMfa("password","123456");
+ assert.deepEqual(calls.filter(x=>!x.url.endsWith("/csrf")).map(x=>new URL(x.url).pathname),["/v1/auth/mfa/login/complete","/v1/auth/mfa/enroll","/v1/auth/mfa/enable","/v1/auth/mfa/disable"]);
+ assert.ok(calls.filter(x=>!x.url.endsWith("/csrf")).every(x=>x.opts.headers["X-CSRF-Token"]==="csrf-token-value-123"));
+});
