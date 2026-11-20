@@ -847,4 +847,6 @@ Bổ sung mô hình đáp ứng tăng dần, lợi ích biên giảm dần:
 - Xuất/nhập sổ JSON có kiểm tra cấu trúc, mã trùng, fingerprint, tham chiếu danh tính và sự kiện.
 - Giao diện cho thao tác danh tính, phê duyệt, khóa, thay thế/thu hồi và kiểm tra fingerprint.
 - Giới hạn bảo mật: sổ hiện lưu localStorage, nhật ký append-only theo quy ước ứng dụng nhưng không chống sửa bởi người có quyền sửa localStorage. Mã người thao tác là nhãn khai báo, chưa được xác thực. Chưa có tài khoản, MFA, SSO, CA, máy chủ tập trung, chữ ký quản trị trên registry hay đồng bộ đa thiết bị. Chưa dùng sổ này để tự động phê duyệt chữ ký archive; bước tích hợp đó cần một trust store đã được xác thực.
-- Kiểm thử tự động và triển khai sẽ được ghi theo kết quả CI của commit.
+- Khi phát hiện sổ localStorage sai cấu trúc/JSON hỏng, giao diện khóa thao tác ghi để tránh vô tình ghi đè; người dùng phải nhập bản sao hợp lệ.
+- Kiểm thử tự động: 312/312 đạt; GitHub Pages triển khai thành công. Chưa kiểm thử thủ công trên thiết bị thật.
+- Commit triển khai chức năng: `4b11754a9ee8fbc4447a2ee8021c34cc4ab07466`. Cập nhật mã nguồn, giao diện, kiểm thử và tài liệu khoảng 390 KiB UTF-8 (ước tính).
