@@ -20,7 +20,7 @@ export function resolveAuthApiBase(value, origin = globalThis.location?.origin |
 const SAFE_PATHS = new Set([
   "/v1/auth/csrf", "/v1/auth/login", "/v1/auth/me", "/v1/auth/logout",
   "/v1/auth/email-verification/request", "/v1/auth/email-verification/complete",
-  "/v1/auth/mfa/login/complete", "/v1/auth/mfa/status", "/v1/auth/mfa/enroll", "/v1/auth/mfa/enable", "/v1/auth/mfa/disable",
+  "/v1/auth/mfa/login/complete", "/v1/auth/passkeys", "/v1/auth/passkeys/register/options", "/v1/auth/passkeys/register/verify", "/v1/auth/mfa/passkey/options", "/v1/auth/mfa/passkey/verify", "/v1/auth/mfa/status", "/v1/auth/mfa/enroll", "/v1/auth/mfa/enable", "/v1/auth/mfa/disable",
   "/v1/auth/invitations/accept", "/v1/auth/password-reset/request", "/v1/auth/password-reset/complete",
   "/v1/admin/users", "/v1/admin/audit", "/v1/auth/sessions"
 ]);
@@ -95,6 +95,11 @@ export class SghtAuthApiClient {
     return safeSession(data);
   }
   async completeMfaLogin(challengeToken,code){if(typeof challengeToken!=="string"||challengeToken.length<32||typeof code!=="string")throw new AuthApiError("Thử thách hoặc mã MFA không hợp lệ.");return safeSession(await this.request("/v1/auth/mfa/login/complete",{method:"POST",body:{challengeToken,code},csrf:true}));}
+  async registerPasskeyOptions(){return this.request("/v1/auth/passkeys/register/options",{method:"POST",body:{},csrf:true});}
+  async verifyPasskeyRegistration(response){return this.request("/v1/auth/passkeys/register/verify",{method:"POST",body:{response},csrf:true});}
+  async listPasskeys(){return this.request("/v1/auth/passkeys");}
+  async passkeyLoginOptions(challengeToken){return this.request("/v1/auth/mfa/passkey/options",{method:"POST",body:{challengeToken},csrf:true});}
+  async completePasskeyLogin(challengeToken,response){return safeSession(await this.request("/v1/auth/mfa/passkey/verify",{method:"POST",body:{challengeToken,response},csrf:true}));}
   async mfaStatus(){return this.request("/v1/auth/mfa/status");}
   async enrollMfa(){return this.request("/v1/auth/mfa/enroll",{method:"POST",body:{},csrf:true});}
   async enableMfa(code){return this.request("/v1/auth/mfa/enable",{method:"POST",body:{code},csrf:true});}
