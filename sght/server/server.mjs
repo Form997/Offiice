@@ -3,6 +3,7 @@ import { randomBytes, randomUUID, createHash, scrypt as scryptCb, timingSafeEqua
 import { promisify } from "node:util";
 import { Pool } from "pg";
 import { describeDevice, normalizeUserAgent, isSessionIdleExpired, hasUserAgentChanged, SESSION_IDLE_TTL_MS, SESSION_ABSOLUTE_TTL_MS } from "./session-security.js";
+import { generateRegistrationOptions, verifyRegistrationResponse, generateAuthenticationOptions, verifyAuthenticationResponse } from "@simplewebauthn/server";
 import { generateTotpSecret, verifyTotp, encryptTotpSecret, decryptTotpSecret, makeRecoveryCode, normalizeRecoveryCode, buildOtpAuthUri } from "./mfa-totp.js";
 const scrypt = promisify(scryptCb);
 const ROLES = new Set(["admin","signer","auditor","viewer"]);
@@ -140,6 +141,70 @@ export function createSghtAuthServer({pool,allowedOrigin,mailer=null,secureCooki
      await client.query("UPDATE sght_mfa_challenges SET consumed_at=now() WHERE user_id=$1 AND consumed_at IS NULL",[u.user_id]);
      await client.query("INSERT INTO sght_audit_events(actor_user_id,target_user_id,action,metadata_json,request_id) VALUES($1,$1,'auth.mfa_disabled','{}',$2)",[u.user_id,requestId]);
      await client.query("COMMIT");return json(res,200,{ok:true});
+    }catch(e){await client.query("ROLLBACK");throw e;}finally{client.release();}
+   }
+   if(method==="POST"&&path==="/v1/auth/passkeys/register/options"){
+    await checkCsrf();const u=await requireUser();if(!rateLimit("passkey-register:"+u.user_id,5))return json(res,429,{code:"PASSKEY_RATE_LIMITED",message:"Too many passkey setup attempts."});
+    const rpID=process.env.SGHT_WEBAUTHN_RP_ID;if(!rpID||rpID!==originUrl.hostname)return json(res,503,{code:"PASSKEY_NOT_CONFIGURED",message:"Set SGHT_WEBAUTHN_RP_ID to the exact hostname of SGHT_ALLOWED_ORIGIN."});
+    const existing=await pool.query("SELECT credential_id,transports FROM sght_passkeys WHERE user_id=$1",[u.user_id]);
+    const options=await generateRegistrationOptions({rpName:"HAI ĐẤT SGHT",rpID,userID:Buffer.from(String(u.user_id),"utf8"),userName:u.email,userDisplayName:u.display_name,attestationType:"none",authenticatorSelection:{residentKey:"preferred",userVerification:"required"},excludeCredentials:existing.rows.map(x=>({id:x.credential_id,transports:x.transports||[]})),supportedAlgorithmIDs:[-7,-257]});
+    await pool.query("INSERT INTO sght_webauthn_challenges(challenge,user_id,purpose,expires_at) VALUES($1,$2,'registration',now()+interval '5 minutes')",[options.challenge,u.user_id]);
+    return json(res,200,options);
+   }
+   if(method==="POST"&&path==="/v1/auth/passkeys/register/verify"){
+    await checkCsrf();const u=await requireUser(),b=await body(req);if(!b.response||typeof b.response!=="object")return json(res,400,{code:"PASSKEY_INVALID_INPUT",message:"Passkey response is required."});
+    const rpID=process.env.SGHT_WEBAUTHN_RP_ID;if(!rpID||rpID!==originUrl.hostname)return json(res,503,{code:"PASSKEY_NOT_CONFIGURED",message:"Passkey RP ID is not configured."});
+    const client=await pool.connect();try{await client.query("BEGIN");
+     const pending=await client.query("SELECT id,challenge FROM sght_webauthn_challenges WHERE user_id=$1 AND purpose='registration' AND consumed_at IS NULL AND expires_at>now() ORDER BY created_at DESC LIMIT 1 FOR UPDATE",[u.user_id]);
+     if(!pending.rowCount){await client.query("ROLLBACK");return json(res,401,{code:"PASSKEY_CHALLENGE_INVALID",message:"Passkey setup challenge expired or was already used."});}
+     const verification=await verifyRegistrationResponse({response:b.response,expectedChallenge:pending.rows[0].challenge,expectedOrigin:allowedOrigin,expectedRPID:rpID,requireUserVerification:true});
+     if(!verification.verified||!verification.registrationInfo){await client.query("ROLLBACK");return json(res,400,{code:"PASSKEY_VERIFICATION_FAILED",message:"Passkey registration could not be verified."});}
+     const info=verification.registrationInfo,cred=info.credential;
+     await client.query("INSERT INTO sght_passkeys(user_id,credential_id,public_key,counter,transports,device_type,backed_up) VALUES($1,$2,$3,$4,$5,$6,$7)",[u.user_id,cred.id,Buffer.from(cred.publicKey),cred.counter,cred.transports||[],info.credentialDeviceType,info.credentialBackedUp]);
+     await client.query("UPDATE sght_webauthn_challenges SET consumed_at=now() WHERE id=$1",[pending.rows[0].id]);
+     await client.query("INSERT INTO sght_audit_events(actor_user_id,target_user_id,action,metadata_json,request_id) VALUES($1,$1,'auth.passkey_registered',$2,$3)",[u.user_id,JSON.stringify({deviceType:info.credentialDeviceType,backedUp:info.credentialBackedUp}),requestId]);
+     await client.query("COMMIT");return json(res,201,{ok:true,credentialId:cred.id,deviceType:info.credentialDeviceType,backedUp:info.credentialBackedUp});
+    }catch(e){await client.query("ROLLBACK");if(e?.code==="23505")return json(res,409,{code:"PASSKEY_ALREADY_REGISTERED",message:"This passkey is already registered."});throw e;}finally{client.release();}
+   }
+   if(method==="GET"&&path==="/v1/auth/passkeys"){
+    const u=await requireUser();const q=await pool.query("SELECT credential_id,device_type,backed_up,created_at FROM sght_passkeys WHERE user_id=$1 ORDER BY created_at DESC",[u.user_id]);
+    return json(res,200,{passkeys:q.rows.map(x=>({credentialId:x.credential_id,deviceType:x.device_type,backedUp:x.backed_up,createdAt:x.created_at}))});
+   }
+   if(method==="POST"&&path==="/v1/auth/mfa/passkey/options"){
+    await checkCsrf();const b=await body(req),loginChallenge=String(b.challengeToken||"");if(loginChallenge.length<32||loginChallenge.length>128)return json(res,400,{code:"MFA_INVALID_INPUT",message:"A valid MFA challenge is required."});
+    if(!rateLimit("passkey-login:"+hash(loginChallenge),5))return json(res,429,{code:"PASSKEY_RATE_LIMITED",message:"Too many passkey attempts."});
+    const rpID=process.env.SGHT_WEBAUTHN_RP_ID;if(!rpID||rpID!==originUrl.hostname)return json(res,503,{code:"PASSKEY_NOT_CONFIGURED",message:"Passkey RP ID is not configured."});
+    const pending=await pool.query("SELECT user_id FROM sght_mfa_challenges WHERE token_hash=$1 AND consumed_at IS NULL AND expires_at>now()",[hash(loginChallenge)]);
+    if(!pending.rowCount)return json(res,401,{code:"MFA_CHALLENGE_INVALID",message:"MFA challenge is invalid or expired."});
+    const passkeys=await pool.query("SELECT credential_id,transports FROM sght_passkeys WHERE user_id=$1",[pending.rows[0].user_id]);
+    if(!passkeys.rowCount)return json(res,404,{code:"PASSKEY_NOT_FOUND",message:"No passkey is registered for this account."});
+    const options=await generateAuthenticationOptions({rpID,userVerification:"required",allowCredentials:passkeys.rows.map(x=>({id:x.credential_id,transports:x.transports||[]}))});
+    await pool.query("INSERT INTO sght_webauthn_challenges(challenge,user_id,purpose,context_hash,expires_at) VALUES($1,$2,'mfa_authentication',$3,now()+interval '5 minutes')",[options.challenge,pending.rows[0].user_id,hash(loginChallenge)]);
+    return json(res,200,options);
+   }
+   if(method==="POST"&&path==="/v1/auth/mfa/passkey/verify"){
+    await checkCsrf();const b=await body(req),loginChallenge=String(b.challengeToken||"");if(loginChallenge.length<32||loginChallenge.length>128||!b.response||typeof b.response!=="object")return json(res,400,{code:"MFA_INVALID_INPUT",message:"A valid challenge and passkey response are required."});
+    const rpID=process.env.SGHT_WEBAUTHN_RP_ID;if(!rpID||rpID!==originUrl.hostname)return json(res,503,{code:"PASSKEY_NOT_CONFIGURED",message:"Passkey RP ID is not configured."});
+    const client=await pool.connect();try{await client.query("BEGIN");
+     const mfa=await client.query("SELECT id,user_id FROM sght_mfa_challenges WHERE token_hash=$1 AND consumed_at IS NULL AND expires_at>now() FOR UPDATE",[hash(loginChallenge)]);
+     if(!mfa.rowCount){await client.query("ROLLBACK");return json(res,401,{code:"MFA_CHALLENGE_INVALID",message:"MFA challenge is invalid or expired."});}
+     const wc=await client.query("SELECT id,challenge FROM sght_webauthn_challenges WHERE user_id=$1 AND purpose='mfa_authentication' AND context_hash=$2 AND consumed_at IS NULL AND expires_at>now() ORDER BY created_at DESC LIMIT 1 FOR UPDATE",[mfa.rows[0].user_id,hash(loginChallenge)]);
+     if(!wc.rowCount){await client.query("ROLLBACK");return json(res,401,{code:"PASSKEY_CHALLENGE_INVALID",message:"Passkey challenge is invalid or expired."});}
+     const pq=await client.query("SELECT credential_id,public_key,counter,transports FROM sght_passkeys WHERE user_id=$1 AND credential_id=$2 FOR UPDATE",[mfa.rows[0].user_id,String(b.response.id||"")]);
+     if(!pq.rowCount){await client.query("ROLLBACK");return json(res,401,{code:"PASSKEY_NOT_FOUND",message:"Passkey is not registered for this account."});}
+     const p=pq.rows[0],verification=await verifyAuthenticationResponse({response:b.response,expectedChallenge:wc.rows[0].challenge,expectedOrigin:allowedOrigin,expectedRPID:rpID,requireUserVerification:true,credential:{id:p.credential_id,publicKey:new Uint8Array(p.public_key),counter:Number(p.counter),transports:p.transports||[]}});
+     if(!verification.verified){await client.query("ROLLBACK");return json(res,401,{code:"PASSKEY_VERIFICATION_FAILED",message:"Passkey proof was rejected."});}
+     const uq=await client.query("SELECT id,email_normalized AS email,display_name,role,status FROM sght_users WHERE id=$1 AND status='active' AND email_verified_at IS NOT NULL",[mfa.rows[0].user_id]);
+     if(!uq.rowCount){await client.query("ROLLBACK");return json(res,401,{code:"INVALID_CREDENTIALS",message:"Account is not eligible to sign in."});}
+     await client.query("UPDATE sght_passkeys SET counter=$2,last_used_at=now() WHERE credential_id=$1",[p.credential_id,verification.authenticationInfo.newCounter]);
+     const user=uq.rows[0],sid=token(),csrf=token();
+     await client.query("INSERT INTO sght_sessions(id_hash,user_id,csrf_hash,expires_at,user_agent) VALUES($1,$2,$3,now()+($4 * interval '1 millisecond'),$5)",[hash(sid),user.id,hash(csrf),SESSION_ABSOLUTE_TTL_MS,normalizeUserAgent(req.headers["user-agent"])]);
+     await client.query("UPDATE sght_mfa_challenges SET consumed_at=now() WHERE id=$1",[mfa.rows[0].id]);
+     await client.query("UPDATE sght_webauthn_challenges SET consumed_at=now() WHERE id=$1",[wc.rows[0].id]);
+     await client.query("INSERT INTO sght_audit_events(actor_user_id,target_user_id,action,metadata_json,request_id) VALUES($1,$1,'auth.passkey_login','{}',$2)",[user.id,requestId]);
+     await client.query("COMMIT");
+     res.setHeader("Set-Cookie",[cookie("sght_session",sid,Math.floor(SESSION_ABSOLUTE_TTL_MS/1000)),'sght_csrf='+csrf+'; Path=/; SameSite=Strict; Max-Age=1800'+(cookieOpts?'; Secure':'')]);
+     return json(res,200,{user:safeUser(user)});
     }catch(e){await client.query("ROLLBACK");throw e;}finally{client.release();}
    }
    if(method==="GET"&&path==="/v1/auth/me"){const u=await requireUser();return json(res,200,{user:safeUser(u)});}
