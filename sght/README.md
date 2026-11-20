@@ -949,3 +949,15 @@ Bổ sung mô hình đáp ứng tăng dần, lợi ích biên giảm dần:
 - Giới hạn: User-Agent có thể giả mạo, không xác định chắc chắn thiết bị vật lý hoặc danh tính người dùng. Chưa có MFA, quản lý thiết bị tin cậy, thông báo đăng nhập qua email, phát hiện vị trí/IP bất thường, giới hạn tốc độ phân tán, Argon2id hoặc kiểm thử PostgreSQL end-to-end. Chính sách idle cần được kiểm chứng cùng môi trường triển khai; không tuyên bố dịch vụ xác thực production-ready.
 - Kiểm thử tự động: chờ GitHub Actions xác nhận sau commit. Chưa kiểm thử thủ công trên trình duyệt/điện thoại thật hoặc tích hợp PostgreSQL thật.
 - Bắt đầu và phát triển: 20/11/2026.
+
+## SGHT 18.48 — MFA / TOTP và mã khôi phục — 2026-11-20
+
+- Bổ sung TOTP theo RFC 6238 (HMAC-SHA1, 6 chữ số, chu kỳ 30 giây, cửa sổ lệch đồng hồ ±1 bước) tương thích ứng dụng xác thực phổ biến. Người dùng đăng nhập bằng mật khẩu trước; tài khoản đã bật MFA phải hoàn tất bước mã thứ hai mới được phát cookie phiên.
+- Luồng thiết lập yêu cầu phiên đã xác thực + CSRF, tạo bí mật chờ xác minh có hạn 10 phút. Bí mật được mã hóa AES-256-GCM trước khi ghi PostgreSQL; API chỉ trả khóa và URI otpauth trong phản hồi thiết lập, không ghi khóa vào nhật ký ứng dụng.
+- Chống phát lại TOTP bằng last_used_step được khóa/đọc-cập nhật trong transaction. Challenge đăng nhập ngẫu nhiên, chỉ lưu SHA-256 digest, hết hạn sau 5 phút, chỉ dùng một lần; thử mã được giới hạn tốc độ trong tiến trình.
+- Tạo 10 mã khôi phục ngẫu nhiên khi bật MFA; database chỉ lưu digest, mỗi mã chỉ dùng một lần. Cho phép dùng mã khôi phục để đăng nhập hoặc tắt MFA sau khi nhập lại mật khẩu. Việc tắt MFA thu hồi mã khôi phục và challenge còn hiệu lực.
+- Giao diện có thiết lập MFA, nhập mã xác nhận, hiển thị mã khôi phục đúng một lần, bước xác minh bổ sung khi đăng nhập và luồng tắt MFA có xác minh lại.
+- Migration cộng thêm ba bảng: sght_user_mfa, sght_mfa_challenges, sght_mfa_recovery_codes; không xóa bảng/dữ liệu hiện có. Cần đặt bí mật môi trường SGHT_MFA_ENCRYPTION_KEY tối thiểu 32 byte ngẫu nhiên trong secret manager backend. Mất khóa này sẽ khiến bí mật MFA hiện hữu không giải mã được; phải sao lưu và luân chuyển khóa theo quy trình quản trị được kiểm soát.
+- Giới hạn: chưa có QR code hiển thị trong giao diện, MFA chưa được áp dụng bắt buộc mặc định cho mọi tài khoản, chưa có WebAuthn/passkeys, thiết bị tin cậy hoặc rate limiter phân tán. TOTP phụ thuộc đồng hồ hệ thống; cần NTP. Chưa có PostgreSQL end-to-end, SMTP hoặc kiểm thử trình duyệt/điện thoại thật.
+- Backend vẫn chưa được triển khai; GitHub Pages chỉ lưu giao diện tĩnh. MFA chỉ hoạt động sau khi triển khai API HTTPS, chạy schema.sql và cấu hình SGHT_MFA_ENCRYPTION_KEY. Không coi tính năng đã sẵn sàng production trước kiểm thử bảo mật độc lập.
+- Bắt đầu và phát triển: 20/11/2026.
