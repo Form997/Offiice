@@ -95,7 +95,7 @@ export class SghtAuthApiClient {
     return safeSession(data);
   }
   async completeMfaLogin(challengeToken,code){if(typeof challengeToken!=="string"||challengeToken.length<32||typeof code!=="string")throw new AuthApiError("Thử thách hoặc mã MFA không hợp lệ.");return safeSession(await this.request("/v1/auth/mfa/login/complete",{method:"POST",body:{challengeToken,code},csrf:true}));}
-  async registerPasskeyOptions(){return this.request("/v1/auth/passkeys/register/options",{method:"POST",body:{},csrf:true});}
+  async registerPasskeyOptions(password,code){return this.request("/v1/auth/passkeys/register/options",{method:"POST",body:{password,code},csrf:true});}
   async verifyPasskeyRegistration(response){return this.request("/v1/auth/passkeys/register/verify",{method:"POST",body:{response},csrf:true});}
   async listPasskeys(){return this.request("/v1/auth/passkeys");}
   async passkeyLoginOptions(challengeToken){return this.request("/v1/auth/mfa/passkey/options",{method:"POST",body:{challengeToken},csrf:true});}
