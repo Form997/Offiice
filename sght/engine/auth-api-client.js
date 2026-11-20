@@ -19,7 +19,9 @@ export function resolveAuthApiBase(value, origin = globalThis.location?.origin |
 }
 const SAFE_PATHS = new Set([
   "/v1/auth/csrf", "/v1/auth/login", "/v1/auth/me", "/v1/auth/logout",
-  "/v1/admin/users", "/v1/admin/audit"
+  "/v1/auth/email-verification/request", "/v1/auth/email-verification/complete",
+  "/v1/auth/invitations/accept", "/v1/auth/password-reset/request", "/v1/auth/password-reset/complete",
+  "/v1/admin/users", "/v1/admin/audit", "/v1/auth/sessions"
 ]);
 function allowedPath(path) {
   return SAFE_PATHS.has(path) || /^\/v1\/admin\/users\/[A-Za-z0-9_-]{8,128}$/.test(path);
@@ -98,6 +100,13 @@ export class SghtAuthApiClient {
     return this.request("/v1/admin/users/" + encodeURIComponent(userId), { method: "PATCH", body: { role, status }, csrf: true });
   }
   async audit() { return this.request("/v1/admin/audit"); }
+  async requestEmailVerification(email) { return this.request("/v1/auth/email-verification/request", { method: "POST", body: { email }, csrf: true }); }
+  async completeEmailVerification(token) { return this.request("/v1/auth/email-verification/complete", { method: "POST", body: { token }, csrf: true }); }
+  async acceptInvitation(token, password) { return this.request("/v1/auth/invitations/accept", { method: "POST", body: { token, password }, csrf: true }); }
+  async requestPasswordReset(email) { return this.request("/v1/auth/password-reset/request", { method: "POST", body: { email }, csrf: true }); }
+  async completePasswordReset(token, password) { return this.request("/v1/auth/password-reset/complete", { method: "POST", body: { token, password }, csrf: true }); }
+  async listSessions() { return this.request("/v1/auth/sessions"); }
+  async revokeSession(sessionId) { if (!/^[0-9a-f-]{36}$/i.test(sessionId || "")) throw new AuthApiError("Mã phiên không hợp lệ."); return this.request("/v1/auth/sessions/" + encodeURIComponent(sessionId), { method: "DELETE", csrf: true }); }
 }
 function safeSession(data) {
   const u = data.user || data;
