@@ -84,3 +84,35 @@ test("công thức nội trang cũ vẫn hoạt động",()=>{
  const ctx={getCell:r=>({A1:4,A2:6}[r]),getRange:r=>[4,6]};
  assert.equal(evaluateFormula("=SUM(A1:A2)+A1",ctx),14);
 });
+
+import { extractFormulaReferences, buildDependencyGraph, updateDependencyNode, invalidateDependents, planRecalculation, dependencyGraphStats } from "../engine/dependency-engine.js";
+test("dependency scanner finds local and cross-sheet refs, skips quoted strings",()=>{
+ const sheets=[{id:"s1",name:"TongHop",cells:{}},{id:"s2",name:"Vật tư",cells:{}}];
+ assert.deepEqual(extractFormulaReferences('=SUM(A1:A3)+\'Vật tư\'!$B$2+VatTu!C4+"D9 is text"',"s1",sheets),[{sheetId:"s1",ref:"A1:A3"},{sheetId:"s2",ref:"B2"},{sheetId:"s2",ref:"C4"}]);
+});
+test("dependency graph computes transitive topological recalculation across sheets",()=>{
+ const sheets=[{id:"s1",name:"Data",cells:{A1:2,B1:"=A1*2",C1:"=B1+1"}},{id:"s2",name:"Summary",cells:{A1:"=Data!C1*10"}}];
+ const p=planRecalculation(buildDependencyGraph(sheets),["s1!A1"]);
+ assert.deepEqual(p.order,["s1!A1","s1!B1","s1!C1","s2!A1"]);assert.equal(p.cycles.length,0);
+});
+test("dependency graph distinguishes cycle members from downstream blocked cells",()=>{
+ const g=buildDependencyGraph([{id:"s1",name:"Data",cells:{A1:"=B1+1",B1:"=A1+1",C1:"=A1+2"}}]),p=planRecalculation(g,["s1!A1"]);
+ assert.deepEqual(p.cycles,["s1!A1","s1!B1"]);assert.deepEqual(p.blocked,["s1!C1"]);
+});
+test("incremental dependency update removes old edges and installs new edges",()=>{
+ const sheets=[{id:"s1",name:"Data",cells:{A1:"=B1+1",B1:2,C1:"=A1*2"}}],g=buildDependencyGraph(sheets);
+ sheets[0].cells.A1="=B1+C1";updateDependencyNode(g,sheets,"s1","A1");
+ assert.deepEqual([...invalidateDependents(g,["s1!B1"])].sort(),["s1!A1","s1!B1","s1!C1"].sort());assert.equal(dependencyGraphStats(g).formulaCount,2);
+});
+test("dependency scanner handles Vietnamese sheet names with apostrophes",()=>{
+ const sheets=[{id:"s1",name:"Tong hop",cells:{}},{id:"s2",name:"Vật tư O'Brien",cells:{}}];
+ assert.deepEqual(extractFormulaReferences("='Vật tư O''Brien'!C3","s1",sheets),[{sheetId:"s2",ref:"C3"}]);
+});
+test("dependency scanner ignores LOG10 function name as a cell",()=>{
+ const sheets=[{id:"s1",name:"Data",cells:{}}];
+ assert.deepEqual(extractFormulaReferences("=LOG10(A1)+ROUND(B2,0)","s1",sheets),[{sheetId:"s1",ref:"A1"},{sheetId:"s1",ref:"B2"}]);
+});
+test("dependency graph does not expand oversized ranges",()=>{
+ const g=buildDependencyGraph([{id:"s1",name:"Data",cells:{A1:"=SUM(A1:XFD1048576)"}}]);
+ assert.equal(g.dependencies.get("s1!A1").size,0);assert.equal(g.unresolved[0].reason,"range-limit-or-invalid");
+});

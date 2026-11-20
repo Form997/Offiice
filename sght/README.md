@@ -677,3 +677,15 @@ Bổ sung mô hình đáp ứng tăng dần, lợi ích biên giảm dần:
 - Công thức đọc trực tiếp dữ liệu nguồn hiện hành; phát hiện vòng tham chiếu xuyên trang bằng khóa trang + địa chỉ ô. Giới hạn vùng 100.000 ô mỗi lần đọc.
 - Chưa có đồ thị phụ thuộc gia tăng, nên kết quả ở trang đang mở chưa tự làm mới tức thời khi trang nguồn khác thay đổi; chưa hỗ trợ tham chiếu có cấu trúc xuyên trang.
 - Kiểm thử parser tham chiếu đơn/vùng, tiếng Việt, dấu nháy đơn, địa chỉ tuyệt đối, lỗi #REF! và tương thích công thức nội trang.
+
+
+## SGHT 18.24 — Dependency Engine (bộ quản lý phụ thuộc công thức) — 2026-11-20
+
+- Xây dựng đồ thị phụ thuộc công thức toàn workbook, gồm tham chiếu cùng trang, chéo trang và vùng ô.
+- Bộ quét bỏ qua chuỗi văn bản; hỗ trợ tên trang tiếng Việt, khoảng trắng, dấu nháy đơn và địa chỉ tuyệt đối.
+- Khi sửa, dán, điền, xóa, cắt, di chuyển hoặc chạy macro thay đổi ô, SGHT cập nhật cạnh phụ thuộc của ô bị tác động, tìm toàn bộ phụ thuộc bắc cầu và xóa cache đúng phạm vi.
+- Bộ lập lịch Kahn xác định thứ tự topo nguồn → phụ thuộc; Tarjan tách thành viên chu trình thực khỏi các ô phía sau bị chặn.
+- Cache kết quả theo khóa trang tính + địa chỉ; kiểm tra vòng lặp trước khi đọc cache.
+- Đổi tên, thêm, xóa trang và Undo/Redo dựng lại đồ thị để tránh cạnh cũ.
+- Vùng trên 100.000 ô không bị bung thành hàng triệu nút; được ghi nhận là vùng chưa lập chỉ mục.
+- Bộ lập lịch hiện cung cấp thứ tự và phạm vi invalidation; chưa triển khai worker nền song song.
