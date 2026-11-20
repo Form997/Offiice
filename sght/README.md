@@ -867,3 +867,14 @@ Bổ sung mô hình đáp ứng tăng dần, lợi ích biên giảm dần:
 - Added `sght/server/README.md` specifying endpoints, server-side RBAC matrix, HttpOnly/Secure/SameSite cookie expectations, CSRF, CORS, rate limits, session revocation, persistence model, first-admin bootstrap and security integration test gate.
 - Important: GitHub Pages is static hosting. No backend, database, real server session, or server-enforced workbook authorization is deployed by this release. The API URL remains intentionally empty. This release is a secure client/contract foundation only; it must not be represented as production authentication. Existing 18.40 local account records are not migrated or trusted.
 - Automated tests validate client fail-closed behavior, HTTPS URL policy, CSRF flow, cookie credentials, malformed sessions and API errors. No manual browser/device test or live backend integration test is claimed.
+
+
+## SGHT 18.42 — Gia cố vòng đời phiên API — 2026-11-20
+
+- Gia cố `engine/auth-api-client.js`: allowlist tuyến API/phương thức HTTP, thời hạn yêu cầu mặc định 15 giây (có thể cấu hình 1–60 giây), AbortSignal, không cache, không theo redirect.
+- Gom các yêu cầu lấy CSRF đồng thời; token chỉ tồn tại trong bộ nhớ và bị xóa khi gặp 401 hoặc đăng xuất.
+- Chỉ thử lại đúng một lần khi máy chủ trả 403 với mã `CSRF_INVALID` hoặc `CSRF_EXPIRED`. Hợp đồng máy chủ bắt buộc xác thực CSRF trước khi thực hiện thay đổi; tuyệt đối không thử lại lỗi 403 chung.
+- Kiểm tra vai trò trả về thuộc danh mục SGHT và từ chối tài khoản đã khóa. Đây chỉ là kiểm tra cấu trúc/giao diện, không thay thế phân quyền phía máy chủ.
+- Chuẩn hóa lỗi mạng/hết thời gian, không đưa chi tiết lỗi vận chuyển thô ra giao diện.
+- Bổ sung kiểm thử cho allowlist, CSRF refresh, 401, 403, tài khoản khóa, phản hồi sai cấu trúc và lỗi mạng.
+- **Giới hạn:** chưa có backend thật, database, session store hoặc kiểm thử tích hợp trực tiếp. GitHub Pages vẫn là frontend tĩnh; URL API vẫn để trống và đăng nhập vẫn khóa. Chưa được xem là xác thực đa người dùng dùng trong sản xuất.
