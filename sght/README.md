@@ -901,3 +901,14 @@ Bổ sung mô hình đáp ứng tăng dần, lợi ích biên giảm dần:
 - Bổ sung kiểm tra Origin cho yêu cầu thay đổi và giới hạn đăng nhập cơ bản theo tiến trình; CI kiểm tra cú pháp các entrypoint backend.
 - **Chưa triển khai:** GitHub Pages vẫn chỉ phục vụ frontend; chưa có dịch vụ API công khai, database production hay cấu hình URL API. Chưa có kiểm thử tích hợp PostgreSQL.
 - **Giới hạn an ninh:** chưa phải dịch vụ danh tính production. Còn thiếu Argon2id, MFA, xác minh email, đặt lại mật khẩu, hoàn tất lời mời, giới hạn tốc độ phân tán, CSRF gắn phiên, quản lý phiên/refresh, và phân quyền server-side cho dữ liệu workbook, macro, công thức, chữ ký, xuất tệp. Phải qua kiểm tra bảo mật độc lập trước khi mở truy cập.
+
+
+## SGHT 18.44 — Account Lifecycle & Session Management — 2026-11-20
+
+- Hoàn thiện các tuyến backend cho nhận lời mời, đặt lại mật khẩu và quản lý phiên: token ngẫu nhiên dùng một lần, chỉ lưu SHA-256, có hạn dùng và tiêu thụ trong transaction; đổi mật khẩu thu hồi toàn bộ phiên đang hoạt động.
+- Người dùng chỉ xem và thu hồi phiên thuộc chính tài khoản của mình; API dùng UUID công khai riêng, không trả session cookie ID hoặc digest nội bộ.
+- Ghi audit cho chấp nhận lời mời và đặt lại mật khẩu; phản hồi yêu cầu reset dùng thông điệp chung để tránh dò tài khoản.
+- Bổ sung migration SQL tương thích cơ sở dữ liệu đã tạo theo schema 18.43; thêm bảng reset token và mã phiên công khai.
+- **Cổng gửi token:** chưa tích hợp email/SMS. Lời mời bị chặn bằng 503 trong cấu hình thường; chỉ môi trường phát triển có thể bật SGHT_TOKEN_DELIVERY_MODE=development để nhận token thử nghiệm. Tuyệt đối không bật chế độ này trên máy chủ công khai. Yêu cầu reset production chưa gửi thư nên chưa thể tự phục vụ người dùng.
+- **Giới hạn:** backend chưa triển khai, chưa có kiểm thử PostgreSQL end-to-end; còn scrypt thay vì Argon2id, rate limit chỉ trong tiến trình, chưa MFA/email verification. Chưa bảo vệ dữ liệu workbook, công thức, macro, chữ ký hoặc export bằng authorization phía máy chủ. Không tuyên bố production-ready.
+- Kiểm thử CI và triển khai sẽ được ghi nhận sau khi GitHub Actions hoàn tất; chưa kiểm thử thủ công trên trình duyệt/điện thoại thật.
