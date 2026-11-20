@@ -44,3 +44,18 @@ Before enabling the meta tag, deploy and independently security-review the API, 
 ## Honest status
 
 18.41 delivers the browser API client, fail-closed UI wiring, tests, and server contract. It does **not** deploy or claim a functioning authentication server, production sessions, or server-enforced workbook permissions.
+
+
+## Client session hardening — 18.42
+
+The browser API client now applies a 15-second default request deadline (configurable from 1–60 seconds), sends an AbortSignal, disables HTTP caching, rejects redirects, and maps network/timeout failures to bounded user-facing errors without exposing raw transport details. API paths and HTTP methods are allowlisted; the client accepts only the documented authentication/admin routes.
+
+CSRF tokens are held in memory only. Concurrent token acquisition is coalesced. A mutation is retried exactly once only when the server returns HTTP 403 with `CSRF_INVALID` or `CSRF_EXPIRED`; the server MUST validate CSRF before executing any mutation and MUST use those codes only for rejected, unapplied requests. Generic 403 responses are never retried. HTTP 401 clears the cached CSRF token. Logout always clears the client-side token hint.
+
+The client validates the returned role against the four known roles and rejects disabled accounts. This validation is a user-interface safeguard, **not authorization**. The server must still validate the session, user status, role, and permission on every request and in the workbook service layer.
+
+New API-client tests cover route/method allowlisting, CSRF refresh, no retry on generic 403, 401 invalidation, disabled/unknown-role responses, malformed CSRF, and safe network errors.
+
+### Remaining deployment blockers
+
+18.42 does not create or deploy the authentication server. GitHub Pages remains static, the API URL meta tag remains blank, and login stays disabled until a separately deployed and reviewed HTTPS backend exists. No production database, session store, password hashing service, MFA, email invitation delivery, or live API integration test is included. Do not treat client-side checks as a security boundary.
