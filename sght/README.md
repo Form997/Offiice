@@ -913,3 +913,14 @@ Bổ sung mô hình đáp ứng tăng dần, lợi ích biên giảm dần:
 - **Giới hạn:** backend chưa triển khai, chưa có kiểm thử PostgreSQL end-to-end; còn scrypt thay vì Argon2id, rate limit chỉ trong tiến trình, chưa MFA/email verification. Chưa bảo vệ dữ liệu workbook, công thức, macro, chữ ký hoặc export bằng authorization phía máy chủ. Không tuyên bố production-ready.
 - Kiểm thử tự động GitHub Actions: 330/330 đạt, 0 lỗi (run 44683437824); triển khai GitHub Pages: thành công (run 44683437891). Đây là kiểm thử tự động của bộ SGHT hiện có, chưa phải kiểm thử tích hợp PostgreSQL cho các endpoint lifecycle.
 - Chưa kiểm thử thủ công trên trình duyệt/điện thoại thật.
+
+
+## SGHT 18.45 — Email Verification & Secure Token Delivery — 2026-11-20
+
+- Bổ sung sght/server/mailer.mjs dùng Nodemailer, SMTP TLS/STARTTLS, giới hạn TLS 1.2; xác minh kết nối SMTP lúc khởi động. Không lưu thông tin SMTP trong mã nguồn; cấu hình bằng biến môi trường và secret manager.
+- Lời mời tài khoản và liên kết đặt lại mật khẩu được gửi qua email. API không còn trả token thô; chỉ lưu SHA-256, token ngẫu nhiên dùng một lần và có hạn 24 giờ (lời mời) hoặc 30 phút (xác minh/reset).
+- Bổ sung xác minh email: tài khoản mời được xác minh khi người nhận hoàn tất lời mời; tài khoản cũ chưa xác minh có thể yêu cầu thư xác minh. Đăng nhập bị từ chối đến khi email được xác minh. Tài khoản quản trị bootstrap được đánh dấu đã xác minh do tạo qua quy trình vận hành riêng.
+- Liên kết email mang token trong URL fragment (#invite=, #verify=, #reset=), tránh đưa token vào query, HTTP request ban đầu hoặc Referer. Client API có các phương thức cho lời mời, xác minh email, reset mật khẩu và thu hồi phiên.
+- Thêm bảng sght_email_verifications, migration cột email_verified_at, kiểm thử mailer và CI.
+- Giới hạn: backend/API/SMTP chưa được triển khai; chưa gửi email thật, chưa kiểm thử PostgreSQL end-to-end. UI SGHT chưa có màn hình xử lý đầy đủ các fragment invitation/verification/reset. Cần cấu hình SMTP, SPF/DKIM/DMARC, HTTPS, secrets manager và đánh giá an ninh độc lập. Rate limit vẫn theo tiến trình; scrypt chưa thay bằng Argon2id. Không tuyên bố production-ready.
+- Bắt đầu và phát triển: 20/11/2026. Chưa kiểm thử thủ công trên trình duyệt/điện thoại thật.
