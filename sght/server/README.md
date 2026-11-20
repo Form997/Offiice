@@ -181,3 +181,10 @@ Routes:
 - POST `/v1/auth/mfa/passkey/options` and POST `/v1/auth/mfa/passkey/verify`: passkey as the second factor for an outstanding password-login MFA challenge.
 
 The database stores only credential public keys and metadata. Private keys remain with the authenticator. Challenge rows expire after five minutes and are consumed transactionally. TOTP/recovery-code login remains available. There is no unauthenticated passwordless login in this stage. Credential deletion is available only through the reauthenticated, account-scoped DELETE route.
+
+
+## 18.50 — WebAuthn signature-counter anomaly handling
+
+The authentication flow checks the authenticator's signature counter after cryptographic assertion verification. If both the stored and returned counters are non-zero and the returned value is not strictly greater, the server consumes the MFA and WebAuthn challenges, writes an `auth.passkey_counter_anomaly` audit event, and refuses to issue a session. The user can authenticate with TOTP or a recovery code while reviewing the affected authenticator.
+
+A zero counter is not treated as an anomaly because some synced and multi-device passkeys do not expose a meaningful monotonic counter. A counter anomaly is a risk signal, not conclusive proof of credential cloning. Unit tests cover zero, increasing, repeated, decreasing, and invalid counters. PostgreSQL integration, real authenticator testing, backend deployment, and independent security review remain outstanding.
