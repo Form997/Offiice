@@ -978,3 +978,6 @@ Bổ sung mô hình đáp ứng tăng dần, lợi ích biên giảm dần:
 - Giới hạn: chưa có xóa/đổi tên Passkey trong giao diện, chưa có passwordless/discoverable login, chưa có kiểm thử PostgreSQL end-to-end hoặc thiết bị sinh trắc học thật. Backend vẫn chưa triển khai; GitHub Pages chỉ là frontend tĩnh. Chưa tuyên bố production-ready.
 - Kiểm thử mới kiểm tra chuyển đổi dữ liệu WebAuthn phía trình duyệt; kiểm tra xác minh thực tế phụ thuộc backend có cài thư viện, PostgreSQL, HTTPS và cấu hình RP ID. Không coi kiểm tra cú pháp là kiểm thử xác thực Passkey thật.
 - Bắt đầu và phát triển: 20/11/2026.
+
+- Tiếp nối 18.49: quản trị danh sách Passkey — đặt tên/đổi tên và thu hồi từng khóa. Thu hồi yêu cầu nhập lại mật khẩu cùng mã TOTP mới chưa sử dụng; mọi thay đổi có audit event. CSDL có cột `display_name` kèm ALTER TABLE idempotent để nâng cấp cơ sở dữ liệu đã có bảng Passkey.
+- Đăng nhập passwordless chưa bật: giai đoạn này giữ Passkey là yếu tố thứ hai sau mật khẩu, tránh thay đổi mô hình xác thực khi chưa có quy trình discoverable-credential, account recovery và chống dò tài khoản được kiểm định.
