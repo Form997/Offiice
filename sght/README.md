@@ -836,4 +836,4 @@ Bổ sung mô hình đáp ứng tăng dần, lợi ích biên giảm dần:
 - Phân biệt rõ chữ ký hợp lệ với danh tính đã tin cậy. Nếu không cung cấp fingerprint đã xác minh qua kênh độc lập, kết quả là `valid-untrusted-key`; không tự tuyên bố người ký là ai.
 - Trust anchor hiện là fingerprint công khai được người dùng đối chiếu thủ công và lưu ngoài hệ thống. Chưa có máy chủ, tổ chức chứng thực, HSM, timestamp authority hay cơ chế thu hồi khóa.
 - Giới hạn: ECDSA/Web Crypto cần trình duyệt hỗ trợ; mất khóa riêng/mật khẩu không thể khôi phục. Chưa kiểm thử thủ công trên thiết bị thật.
-- Kiểm thử tự động: 306/306 đạt; GitHub Pages triển khai thành công.
+- Kiểm thử tự động và triển khai được cập nhật theo CI sau commit; số liệu cuối sẽ ghi theo kết quả workflow mới nhất.

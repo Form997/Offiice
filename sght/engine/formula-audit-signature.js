@@ -31,6 +31,9 @@ export async function importEncryptedFormulaAuditPrivateKey(bundle,password,cryp
  const publicKey=await cryptoImpl.subtle.importKey("spki",base64ToBytes(bundle.publicKeySpki),{name:"ECDSA",namedCurve:"P-256"},true,["verify"]);
  const fp=await fingerprint(base64ToBytes(bundle.publicKeySpki),cryptoImpl);
  if(fp!==bundle.keyFingerprint)throw new Error("Fingerprint khóa công khai không khớp.");
+ const challenge=enc.encode("SGHT signing-key-pair-check-v1");
+ const proof=await cryptoImpl.subtle.sign({name:"ECDSA",hash:"SHA-256"},privateKey,challenge);
+ if(!await cryptoImpl.subtle.verify({name:"ECDSA",hash:"SHA-256"},publicKey,proof,challenge))throw new Error("Khóa riêng và khóa công khai trong tệp không thuộc cùng một cặp.");
  return {privateKey,publicKey,keyFingerprint:fp};
 }
 export async function signFormulaAuditArchive(chain,privateKey,publicKey,options={}){
