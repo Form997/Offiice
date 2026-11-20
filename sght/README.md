@@ -974,7 +974,7 @@ Bổ sung mô hình đáp ứng tăng dần, lợi ích biên giảm dần:
 - Thêm giao diện đăng ký Passkey trên thiết bị và dùng Passkey ở bước MFA đăng nhập; TOTP/mã khôi phục vẫn là đường dự phòng.
 - Migration bổ sung `sght_passkeys` và `sght_webauthn_challenges`, không xóa dữ liệu cũ.
 - Cấu hình backend bắt buộc: `SGHT_WEBAUTHN_RP_ID` phải trùng hostname của `SGHT_ALLOWED_ORIGIN`; chỉ triển khai trên HTTPS (ngoại lệ secure context localhost khi phát triển). Trình duyệt/thiết bị phải hỗ trợ WebAuthn và có authenticator phù hợp.
-- Việc đăng ký Passkey bị khóa nếu tài khoản chưa bật TOTP MFA; điều này giữ đúng vai trò Passkey là yếu tố thứ hai trong giai đoạn này. Challenge cũ được vô hiệu khi tạo challenge mới cùng mục đích.
+- Việc đăng ký Passkey yêu cầu nhập lại mật khẩu và một mã TOTP mới chưa dùng; máy chủ cập nhật bộ đếm TOTP trong cùng transaction. Đăng ký bị khóa nếu tài khoản chưa bật TOTP MFA; điều này giữ đúng vai trò Passkey là yếu tố thứ hai trong giai đoạn này. Challenge cũ được vô hiệu khi tạo challenge mới cùng mục đích.
 - Giới hạn: chưa có xóa/đổi tên Passkey trong giao diện, chưa có passwordless/discoverable login, chưa có kiểm thử PostgreSQL end-to-end hoặc thiết bị sinh trắc học thật. Backend vẫn chưa triển khai; GitHub Pages chỉ là frontend tĩnh. Chưa tuyên bố production-ready.
 - Kiểm thử mới kiểm tra chuyển đổi dữ liệu WebAuthn phía trình duyệt; kiểm tra xác minh thực tế phụ thuộc backend có cài thư viện, PostgreSQL, HTTPS và cấu hình RP ID. Không coi kiểm tra cú pháp là kiểm thử xác thực Passkey thật.
 - Bắt đầu và phát triển: 20/11/2026.
