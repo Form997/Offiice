@@ -4,6 +4,7 @@ import { promisify } from "node:util";
 import { Pool } from "pg";
 import { describeDevice, normalizeUserAgent, isSessionIdleExpired, hasUserAgentChanged, SESSION_IDLE_TTL_MS, SESSION_ABSOLUTE_TTL_MS } from "./session-security.js";
 import { generateRegistrationOptions, verifyRegistrationResponse, generateAuthenticationOptions, verifyAuthenticationResponse } from "@simplewebauthn/server";
+import { hasSignatureCounterAnomaly } from "./passkey-security.js";
 import { generateTotpSecret, verifyTotp, encryptTotpSecret, decryptTotpSecret, makeRecoveryCode, normalizeRecoveryCode, buildOtpAuthUri } from "./mfa-totp.js";
 const scrypt = promisify(scryptCb);
 const ROLES = new Set(["admin","signer","auditor","viewer"]);
@@ -240,9 +241,17 @@ export function createSghtAuthServer({pool,allowedOrigin,mailer=null,secureCooki
      if(!pq.rowCount){await client.query("ROLLBACK");return json(res,401,{code:"PASSKEY_NOT_FOUND",message:"Passkey is not registered for this account."});}
      const p=pq.rows[0],verification=await verifyAuthenticationResponse({response:b.response,expectedChallenge:wc.rows[0].challenge,expectedOrigin:allowedOrigin,expectedRPID:rpID,requireUserVerification:true,credential:{id:p.credential_id,publicKey:new Uint8Array(p.public_key),counter:Number(p.counter),transports:p.transports||[]}});
      if(!verification.verified){await client.query("ROLLBACK");return json(res,401,{code:"PASSKEY_VERIFICATION_FAILED",message:"Passkey proof was rejected."});}
+     const nextCounter=Number(verification.authenticationInfo.newCounter);
+     if(hasSignatureCounterAnomaly(Number(p.counter),nextCounter)){
+      await client.query("UPDATE sght_mfa_challenges SET consumed_at=now() WHERE id=$1",[mfa.rows[0].id]);
+      await client.query("UPDATE sght_webauthn_challenges SET consumed_at=now() WHERE id=$1",[wc.rows[0].id]);
+      await client.query("INSERT INTO sght_audit_events(actor_user_id,target_user_id,action,metadata_json,request_id) VALUES($1,$1,'auth.passkey_counter_anomaly',$2,$3)",[mfa.rows[0].user_id,JSON.stringify({credentialId:p.credential_id,storedCounter:Number(p.counter),receivedCounter:nextCounter}),requestId]);
+      await client.query("COMMIT");
+      return json(res,401,{code:"PASSKEY_COUNTER_ANOMALY",message:"Passkey signature counter did not increase. The sign-in was blocked; use TOTP or a recovery code and review this authenticator."});
+     }
      const uq=await client.query("SELECT id,email_normalized AS email,display_name,role,status FROM sght_users WHERE id=$1 AND status='active' AND email_verified_at IS NOT NULL",[mfa.rows[0].user_id]);
      if(!uq.rowCount){await client.query("ROLLBACK");return json(res,401,{code:"INVALID_CREDENTIALS",message:"Account is not eligible to sign in."});}
-     await client.query("UPDATE sght_passkeys SET counter=$2,last_used_at=now() WHERE credential_id=$1",[p.credential_id,verification.authenticationInfo.newCounter]);
+     await client.query("UPDATE sght_passkeys SET counter=$2,last_used_at=now() WHERE credential_id=$1",[p.credential_id,nextCounter]);
      const user=uq.rows[0],sid=token(),csrf=token();
      await client.query("INSERT INTO sght_sessions(id_hash,user_id,csrf_hash,expires_at,user_agent) VALUES($1,$2,$3,now()+($4 * interval '1 millisecond'),$5)",[hash(sid),user.id,hash(csrf),SESSION_ABSOLUTE_TTL_MS,normalizeUserAgent(req.headers["user-agent"])]);
      await client.query("UPDATE sght_mfa_challenges SET consumed_at=now() WHERE id=$1",[mfa.rows[0].id]);
