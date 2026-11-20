@@ -25,4 +25,6 @@ jobs:
       - run: node --check sght/server/server.mjs
       - run: node --check sght/server/start.mjs
       - run: node --check sght/server/bootstrap-admin.mjs
+      - run: node --check sght/server/mailer.mjs
+      - run: node --test sght/server/mailer.test.mjs
       - run: npm test
