@@ -8,7 +8,8 @@ CREATE TABLE IF NOT EXISTS sght_users (
  role varchar(16) NOT NULL CHECK(role IN ('admin','signer','auditor','viewer')),
  status varchar(16) NOT NULL DEFAULT 'active' CHECK(status IN ('active','disabled')),
  created_at timestamptz NOT NULL DEFAULT now(),
- updated_at timestamptz NOT NULL DEFAULT now()
+ updated_at timestamptz NOT NULL DEFAULT now(),
+ email_verified_at timestamptz
 );
 CREATE TABLE IF NOT EXISTS sght_sessions (
  id_hash char(64) PRIMARY KEY,
@@ -60,3 +61,6 @@ ALTER TABLE sght_sessions ALTER COLUMN public_id SET NOT NULL;
 CREATE UNIQUE INDEX IF NOT EXISTS sght_sessions_public_id ON sght_sessions(public_id);
 ALTER TABLE sght_invitations ADD COLUMN IF NOT EXISTS token_hash char(64);
 CREATE UNIQUE INDEX IF NOT EXISTS sght_invitations_token_hash ON sght_invitations(token_hash) WHERE token_hash IS NOT NULL;
+
+-- 18.45 additive email-verification migration.
+ALTER TABLE sght_users ADD COLUMN IF NOT EXISTS email_verified_at timestamptz;
