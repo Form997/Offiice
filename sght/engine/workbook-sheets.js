@@ -5,6 +5,25 @@ export function normalizeWorkbookSheets(input){const source=Array.isArray(input)
 export function addWorkbookSheet(input,name="Trang tính mới"){const sheets=normalizeWorkbookSheets(input);if(sheets.length>=100)throw new RangeError("Một workbook tối đa 100 trang tính.");let n=sheets.length+1,id="sheet-"+n;while(sheets.some(x=>x.id===id))id="sheet-"+(++n);return [...sheets,safeSheet({id,name},sheets.length)];}
 export function renameWorkbookSheet(input,id,name){const title=cleanName(name);if(!title)throw new TypeError("Tên trang tính không được để trống.");const sheets=Array.isArray(input)?input:normalizeWorkbookSheets(input);if(sheets.some(x=>x.id!==id&&x.name.toLocaleLowerCase()===title.toLocaleLowerCase()))throw new RangeError("Tên trang tính đã được dùng.");return sheets.map(x=>x.id===id?{...x,name:title}:x);}
 export function removeWorkbookSheet(input,id){const sheets=normalizeWorkbookSheets(input);if(sheets.length<=1)throw new RangeError("Workbook phải còn ít nhất một trang tính.");if(!sheets.some(x=>x.id===id))return sheets;return sheets.filter(x=>x.id!==id);}
+export function rewriteWorkbookSheetReferences(input,oldName,newName){
+ const oldTitle=String(oldName??"").trim(),newTitle=String(newName??"").trim();
+ if(!oldTitle||!newTitle||oldTitle===newTitle)return Array.isArray(input)?input:normalizeWorkbookSheets(input);
+ const escape=value=>value.replace(/[.*+?^${}()|[\]\\]/g,"\\export function updateWorkbookSheet(input,id,patch){");
+ const quotedOld="'"+oldTitle.replace(/'/g,"''")+"'"+"!";
+ const quotedNext="'"+newTitle.replace(/'/g,"''")+"'"+"!";
+ const quotedPattern=new RegExp(escape(quotedOld),"giu");
+ const plainPattern=/^[\p{L}_][\p{L}\p{N}_.]*$/u.test(oldTitle)?new RegExp("(^|[^\\p{L}\\p{N}_.])"+escape(oldTitle)+"!","giu"):null;
+ return (Array.isArray(input)?input:normalizeWorkbookSheets(input)).map(sheet=>{
+  let changed=false;const cells={...(sheet.cells||{})};
+  for(const [address,value] of Object.entries(cells)){
+   if(typeof value!=="string"||!value.startsWith("="))continue;
+   let next=value.replace(quotedPattern,quotedNext);
+   if(plainPattern)next=next.replace(plainPattern,(_,prefix)=>prefix+quotedNext);
+   if(next!==value){cells[address]=next;changed=true;}
+  }
+  return changed?{...sheet,cells}:sheet;
+ });
+}
 export function updateWorkbookSheet(input,id,patch){const sheets=Array.isArray(input)?input:normalizeWorkbookSheets(input);return sheets.map(x=>x.id===id?{...x,...patch,id}:x);}
 export function getWorkbookSheet(input,id){return(Array.isArray(input)?input:[]).find(x=>x.id===id)||null;}
 export function workbookFieldKey(header,occurrence=1){const label=String(header??"").trim().normalize("NFKC").toLocaleLowerCase().replace(/\s+/g," ");return "field:"+encodeURIComponent(label||"(blank)")+":"+occurrence;}

@@ -673,7 +673,7 @@ Bổ sung mô hình đáp ứng tăng dần, lợi ích biên giảm dần:
 - Nhận diện tham chiếu ô/vùng ở trang khác: `=VatTu!A1`, `=SUM(VatTu!B2:B20)`.
 - Hỗ trợ tên trang có dấu, khoảng trắng và dấu nháy đơn: `='Vật tư'!B2`, `='Vật tư O''Brien'!C3`.
 - Hỗ trợ địa chỉ tuyệt đối trong tham chiếu chéo; ký hiệu `$` được chuẩn hóa về địa chỉ ô.
-- Ứng dụng tra cứu tên trang theo chuẩn hóa NFKC, không phân biệt hoa/thường. Đổi tên trang được phân giải theo tên mới khi tính lại; trang bị xóa/đổi tên không còn khớp trả `#REF!`.
+- Ứng dụng tra cứu tên trang theo chuẩn hóa NFKC, không phân biệt hoa/thường. Khi đổi tên trang, công thức tham chiếu trong workbook được viết lại sang tên mới; xóa trang nguồn để lại tham chiếu không tồn tại và trả `#REF!`.
 - Công thức đọc trực tiếp dữ liệu nguồn hiện hành; phát hiện vòng tham chiếu xuyên trang bằng khóa trang + địa chỉ ô. Giới hạn vùng 100.000 ô mỗi lần đọc.
 - Chưa có đồ thị phụ thuộc gia tăng, nên kết quả ở trang đang mở chưa tự làm mới tức thời khi trang nguồn khác thay đổi; chưa hỗ trợ tham chiếu có cấu trúc xuyên trang.
 - Kiểm thử parser tham chiếu đơn/vùng, tiếng Việt, dấu nháy đơn, địa chỉ tuyệt đối, lỗi #REF! và tương thích công thức nội trang.
