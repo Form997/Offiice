@@ -616,3 +616,11 @@ Bổ sung mô hình đáp ứng tăng dần, lợi ích biên giảm dần:
 - Lưu danh sách biểu đồ và lựa chọn hiện hành cùng workbook trong localStorage. Workbook 18.15/18.16 cũ tự chuyển cấu hình biểu đồ đơn thành biểu đồ đầu tiên, không xóa cấu hình cũ.
 - Xóa hoặc nhân bản cấu hình biểu đồ không sửa dữ liệu ô, công thức, định dạng, Undo/Redo hoặc vùng nguồn.
 - Giới hạn: các biểu đồ dùng chung một Pivot nguồn; mỗi lần chỉ hiển thị và xuất biểu đồ đang chọn, chưa có bảng điều khiển nhiều biểu đồ cùng lúc hoặc bố cục dashboard kéo-thả. Tối đa 20 biểu đồ trên một Pivot. Chưa kiểm thử thủ công trên thiết bị thật.
+
+
+## SGHT Dashboard Studio — Giai đoạn 18.18 · 2026-11-20
+
+- Dashboard gồm nhiều thẻ biểu đồ Pivot và KPI; tối đa 24 thẻ. Mỗi thẻ có thể sắp xếp lên/xuống, đổi độ rộng hoặc xóa.
+- Biểu đồ hiển thị bản sao SVG của Pivot Chart đang hoạt động; KPI đọc tổng cộng từ chỉ tiêu Pivot. Dashboard làm mới cùng chu kỳ Pivot.
+- Lưu/nạp mẫu theo tên, tối đa 30 mẫu; bố cục và mẫu lưu cùng workbook trong localStorage. Workbook cũ được khởi tạo dashboard rỗng.
+- Mọi thẻ dùng chung một Pivot nguồn; chưa có nhiều Pivot độc lập, bộ lọc chéo, kéo-thả tự do, resize kéo góc hoặc xuất toàn dashboard PDF/PNG. Chưa kiểm thử thủ công trên trình duyệt/thiết bị thật.

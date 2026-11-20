@@ -21,7 +21,7 @@
       <button class="ribbon-tab active" data-tab="home">Trang chủ</button>
       <button class="ribbon-tab" data-tab="insert">Chèn</button>
       <button class="ribbon-tab" data-tab="formulas">Công thức</button>
-      <button class="ribbon-tab" data-tab="data">Dữ liệu</button>
+      <button class="ribbon-tab" data-tab="data">Dữ liệu</button><button class="ribbon-tab" id="openDashboard" type="button">Dashboard</button>
       <button class="ribbon-tab" data-tab="view">Xem</button>
       <button class="ribbon-tab" data-tab="file">Tệp</button><button class="ribbon-tab" id="openAI" data-tab="ai">AI Intelligence</button><button class="ribbon-tab" id="openDataScience" data-tab="data-science">Data Science</button><button class="ribbon-tab" id="openMacro" data-tab="macro">Macro Studio</button>
     </nav>
@@ -43,6 +43,7 @@
         <fieldset><legend>Vùng dữ liệu có cấu trúc</legend><label>Tên vùng <input id="dataTableName" value="BangDuLieu1" maxlength="60"></label><button id="dataDefineTable" type="button">Tạo vùng có tiêu đề</button><button id="dataClearTables" type="button" class="quiet">Xóa định nghĩa vùng</button><ul id="dataTableList"><li>Chưa có vùng dữ liệu có cấu trúc.</li></ul></fieldset>
       </div>
     </section>
+<section id="dashboardPanel" class="dashboard-panel" hidden><div class="macro-head"><div><b>SGHT Dashboard Studio · 18.18</b><small>Nhiều thẻ biểu đồ và KPI · bố cục đáp ứng</small></div><button id="closeDashboard" class="quiet" type="button">Đóng</button></div><p class="macro-help">Dùng nút lên/xuống để sắp xếp, Mở rộng để đổi độ rộng. Biểu đồ và KPI cùng dùng Pivot hiện hành.</p><div class="dashboard-toolbar"><button id="dashboardAddChart" class="primary" type="button">＋ Thêm biểu đồ</button><button id="dashboardAddKpi" type="button">＋ Thêm KPI</button><button id="dashboardSaveTemplate" type="button">Lưu mẫu</button><button id="dashboardLoadTemplate" type="button">Nạp mẫu</button></div><p id="dashboardStatus" class="dashboard-status" role="status">Dashboard chưa có thẻ.</p><div id="dashboardGrid" class="dashboard-grid"></div></section>
     <section id="dataSciencePanel" class="data-science-panel" hidden aria-label="SGHT Data Science">
       <div class="macro-head"><div><b>SGHT Data Science · Giai đoạn 9</b><small>Hồi quy đa biến, ANOVA, LSD và chẩn đoán ngoại tuyến</small></div><button id="closeDataScience" class="quiet" type="button">Đóng</button></div>
       <p class="macro-help">Nhập vùng dữ liệu đã có trong bảng tính. Hồi quy dùng hai vùng số X/Y cùng độ dài. ANOVA dùng một cột mã nghiệm thức và một cột kết quả, mỗi nhóm cần ít nhất hai lần lặp.</p>
