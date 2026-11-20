@@ -24,6 +24,7 @@ export function createSghtMailer({ transport, from, publicAppUrl }) {
     await transport.sendMail({ from, to, subject, text, html });
   };
   return Object.freeze({
+    async verify() { return typeof transport.verify === "function" ? transport.verify() : true; },
     async sendInvitation({ to, displayName, role, token }) {
       const link = buildAccountLink(publicAppUrl, "invite", token);
       const name = String(displayName || "bạn");
