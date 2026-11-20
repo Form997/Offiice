@@ -189,6 +189,34 @@
     <span class="account-session-policy">Tự hết phiên sau 30 phút không hoạt động · tối đa 8 giờ mỗi lần đăng nhập</span>
   </div>
   <div id="authSessionsList" class="account-sessions" aria-live="polite"><p class="account-empty">Đăng nhập để xem các phiên đang hoạt động.</p></div>
+  <section class="account-mfa" aria-labelledby="mfaHeading">
+    <div class="account-lifecycle-heading"><b id="mfaHeading">MFA · Xác thực hai lớp</b><span>TOTP · ứng dụng xác thực</span></div>
+    <p class="account-empty">Dùng Google Authenticator, Microsoft Authenticator, 1Password hoặc ứng dụng TOTP tương thích.</p>
+    <div class="account-lifecycle-actions"><button id="mfaEnroll" type="button" class="quiet" disabled>Thiết lập MFA</button></div>
+    <div id="mfaSetupBox" hidden>
+      <p>Thêm tài khoản SGHT vào ứng dụng xác thực bằng khóa bí mật bên dưới hoặc URI otpauth. Khóa chỉ hiển thị trong phiên thiết lập này.</p>
+      <label>Khóa bí mật TOTP <input id="mfaSetupSecret" type="text" readonly spellcheck="false"></label>
+      <button id="mfaCopySecret" type="button" class="quiet">Sao chép khóa</button>
+      <pre id="mfaOtpAuthUri" class="mfa-secret-uri"></pre>
+      <label>Mã 6 chữ số từ ứng dụng <input id="mfaSetupCode" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="6" pattern="[0-9]{6}"></label>
+      <button id="mfaEnable" type="button" class="primary">Xác nhận và bật MFA</button>
+    </div>
+    <div id="mfaRecoveryBox" hidden>
+      <strong>Mã khôi phục — chỉ hiển thị một lần</strong>
+      <p>Lưu ngoại tuyến ở nơi an toàn. Mỗi mã chỉ dùng được một lần. Không gửi mã cho người khác.</p>
+      <pre id="mfaRecoveryCodes" class="mfa-recovery-codes"></pre>
+    </div>
+    <div id="mfaLoginBox" hidden>
+      <label>Mã xác thực hoặc mã khôi phục <input id="mfaLoginCode" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="32"></label>
+      <button id="mfaLoginVerify" type="button" class="primary">Hoàn tất đăng nhập</button>
+      <button id="mfaLoginCancel" type="button" class="quiet">Hủy lần đăng nhập này</button>
+    </div>
+    <div id="mfaDisableBox" hidden>
+      <label>Nhập lại mật khẩu <input id="mfaDisablePassword" type="password" autocomplete="current-password"></label>
+      <label>Mã xác thực hoặc mã khôi phục <input id="mfaDisableCode" type="text" autocomplete="one-time-code" maxlength="32"></label>
+      <button id="mfaDisable" type="button" class="quiet">Tắt MFA (cần xác minh lại)</button>
+    </div>
+  </section>
 </div>
 <small>Giao diện chỉ kết nối máy chủ xác thực qua HTTPS. Cookie phiên phải do máy chủ phát hành với HttpOnly, Secure, SameSite; CSRF token lấy từ API. Không có API được cấu hình thì toàn bộ đăng nhập và quản trị bị khóa, không quay về xác thực localStorage. Chưa kết nối máy chủ thật trong bản GitHub Pages hiện tại.</small>
 </div>\n          <strong>Sổ danh tính & vòng đời khóa</strong>
