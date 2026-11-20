@@ -1,5 +1,3 @@
-import { createTransport } from "nodemailer";
-
 const escapeHtml = value => String(value ?? "").replace(/[&<>"']/g, ch => ({
   "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
 }[ch]));
@@ -11,7 +9,8 @@ export function buildAccountLink(publicAppUrl, kind, rawToken) {
   if (url.protocol !== "https:" || url.username || url.password || url.search || url.hash)
     throw new Error("SGHT_PUBLIC_APP_URL must be HTTPS and contain no credentials, query, or fragment.");
   const fragment = new URLSearchParams({ [kind]: rawToken }).toString();
-  url.pathname = url.pathname.replace(/\/$/, "") + "/sght/";
+  const path = url.pathname.replace(/\/$/, "");
+  url.pathname = path.endsWith("/sght") ? path + "/" : path + "/sght/";
   url.hash = fragment;
   return url.href;
 }
@@ -52,7 +51,9 @@ export async function createSmtpMailer(env = process.env) {
   const secure = String(env.SMTP_SECURE || "").toLowerCase() === "true" || port === 465;
   const auth = env.SMTP_USER || env.SMTP_PASSWORD ? { user: env.SMTP_USER || "", pass: env.SMTP_PASSWORD || "" } : undefined;
   if (auth && (!auth.user || !auth.pass)) throw new Error("Both SMTP_USER and SMTP_PASSWORD are required when SMTP authentication is enabled.");
-  const transport = createTransport({
+  const nodemailerModule = await import("nodemailer");
+  const nodemailer = nodemailerModule.default || nodemailerModule;
+  const transport = nodemailer.createTransport({
     host: env.SMTP_HOST, port, secure, auth,
     requireTLS: !secure, tls: { minVersion: "TLSv1.2" },
     connectionTimeout: 10000, greetingTimeout: 10000, socketTimeout: 20000,
