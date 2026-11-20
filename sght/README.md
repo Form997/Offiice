@@ -925,3 +925,15 @@ Bổ sung mô hình đáp ứng tăng dần, lợi ích biên giảm dần:
 - Giới hạn: backend/API/SMTP chưa được triển khai; chưa gửi email thật, chưa kiểm thử PostgreSQL end-to-end. UI SGHT chưa có màn hình xử lý đầy đủ các fragment invitation/verification/reset. Cần cấu hình SMTP, SPF/DKIM/DMARC, HTTPS, secrets manager và đánh giá an ninh độc lập. Rate limit vẫn theo tiến trình; scrypt chưa thay bằng Argon2id. Không tuyên bố production-ready.
 - Kiểm thử GitHub Actions: 331/331 bài SGHT đạt; 3/3 kiểm thử mailer đạt; 0 lỗi (run 44684329701). GitHub Pages triển khai thành công (run 44684329678).
 - Bắt đầu và phát triển: 20/11/2026. Chưa kiểm thử thủ công trên trình duyệt/điện thoại thật.
+
+## SGHT 18.46 — Account Lifecycle UI & Secure Email Landing — 2026-11-20
+
+- Nối giao diện SGHT với các API lifecycle đã có ở 18.45: hoàn tất lời mời, xác minh email, yêu cầu gửi lại thư xác minh, yêu cầu đặt lại mật khẩu và hoàn tất đặt lại mật khẩu.
+- Đọc đúng fragment `#invite=`, `#verify=`, `#reset=`; chỉ chấp nhận một khóa hành động và token URL-safe có độ dài hợp lệ. Sau khi đọc, giao diện lập tức xóa fragment bằng `history.replaceState`, giữ nguyên đường dẫn/query; token chỉ nằm trong bộ nhớ trang, không đưa vào localStorage, sessionStorage hoặc nội dung DOM.
+- Màn hình thiết lập mật khẩu có xác nhận hai lần nhập và kiểm tra độ dài 12–256 ký tự phù hợp với API hiện tại. Lời mời hoàn tất sẽ yêu cầu người dùng đăng nhập; đặt lại mật khẩu thông báo các phiên cũ đã bị máy chủ thu hồi.
+- Bổ sung xem các phiên đang hoạt động và thu hồi từng phiên; thu hồi phiên hiện tại yêu cầu xác nhận và làm mới trạng thái đăng nhập.
+- Giao diện co giãn cho điện thoại, dùng textContent/DOM API để hiển thị dữ liệu phiên, không nội suy HTML từ phản hồi máy chủ.
+- Bổ sung kiểm thử độc lập cho fragment parsing, xóa URL, loại token sai/đa khóa và quy tắc độ dài mật khẩu.
+- Giới hạn: GitHub Pages vẫn là frontend tĩnh. Chưa cấu hình URL API, chưa triển khai PostgreSQL/SMTP, chưa thể gửi email hoặc xác nhận quy trình end-to-end thật. CORS, cookie cross-site, HTTPS, SMTP, SPF/DKIM/DMARC và bảo vệ dữ liệu workbook vẫn phải được cấu hình/kiểm định trước khi mở cho người dùng.
+- Kiểm thử và triển khai sẽ được cập nhật sau khi GitHub Actions hoàn tất; chưa tuyên bố đã kiểm thử thủ công trên điện thoại hoặc trình duyệt thật.
+- Bắt đầu và phát triển: 20/11/2026.
