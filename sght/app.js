@@ -26,6 +26,7 @@ import { sortRangeRows, filterRangeRows, removeDuplicateRows, defineStructuredRa
 import { getVirtualWindow } from "./engine/sparse-grid.js";
 import { GRID_GEOMETRY_DEFAULTS, createGridGeometry, getAxisOffset, getAxisSize, findAxisIndexAtOffset, setAxisSize, setAxisSizes, setAxisSizeMap, resetAxisSize, serializeGridGeometry } from "./engine/grid-geometry.js";
 import { copyAxisDimension, applyCopiedAxisDimension } from "./engine/axis-dimension-clipboard.js";
+import { calculateAxisResizeGuidePosition } from "./engine/axis-resize-guide.js";
 import { expandGridCapacity } from "./engine/grid-capacity.js";
 import { buildFreezeLayout, normalizeFreezeSettings } from "./engine/freeze-panes.js";
 import { normalizeSplitSettings, synchronizedAxis, splitRatioFromPointer, normalizeQuadrantPositions, synchronizeQuadrantPositions, quadrantScrollTargets } from "./engine/split-panes.js";
@@ -376,7 +377,8 @@ function updateResizeGuide(event){
  const drag=axisResizeDrag,rect=sheetPanesElement.getBoundingClientRect();
  const pointerCoordinate=drag.axis==="column"?event.clientX:event.clientY;
  const origin=drag.axis==="column"?rect.left:rect.top;
- const position=Math.max(0,drag.startGuideCoordinate+(pointerCoordinate-drag.startCoordinate)-origin);
+ const extent=drag.axis==="column"?rect.width:rect.height;
+ const position=calculateAxisResizeGuidePosition({axis:drag.axis,startGuideCoordinate:drag.startGuideCoordinate,pointerCoordinate,startCoordinate:drag.startCoordinate,origin,extent});
  resizeGuide.hidden=false;
  resizeGuide.className="axis-resize-guide "+(drag.axis==="column"?"is-column":"is-row");
  if(drag.axis==="column"){resizeGuide.style.left=position+"px";resizeGuide.style.top="0";resizeGuide.style.height="100%";resizeGuide.style.width="2px";}
