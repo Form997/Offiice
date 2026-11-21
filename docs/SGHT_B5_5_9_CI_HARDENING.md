@@ -34,3 +34,40 @@ Workflow `SGHT authentication and spreadsheet QA` chạy trên commit `16f3c5596
 - Đã sửa assertion tĩnh bị lỗi theo cấu trúc mã nguồn hiện tại.
 - Chờ kết quả workflow chạy trên commit B5.5.9; không tự suy diễn rằng test đã đạt.
 - Không sửa hoặc hợp nhất vào `main`.
+
+
+# SGHT B5.5.10 — Gia cố vòng đời thao tác resize
+
+Ngày: 2026-11-21  
+Nhánh: `v1-development`
+
+## Phạm vi
+
+B5.5.10 tập trung vào tình huống thao tác kéo đổi kích thước bị gián đoạn; không mở rộng chức năng bảng tính.
+
+## Thay đổi
+
+- Thêm `cancelAxisResize()`: xóa trạng thái kéo đang hoạt động, ẩn đường căn và chủ động nhả pointer capture nếu phần tử còn giữ capture.
+- Khi chuyển trạng thái sang sheet khác, hủy phiên kéo trước khi đổi `activeSheetId`; thao tác chưa thả sẽ không được ghi vào sheet mới.
+- Khi cửa sổ mất focus, trang bị pagehide hoặc tài liệu chuyển sang hidden, hủy thao tác đang kéo thay vì chờ pointerup có thể không đến.
+- Chặn pointer thứ hai ghi đè trạng thái của phiên resize đầu tiên; ngăn thao tác đa điểm chạm làm mất dấu pointer đang điều khiển.
+- Bổ sung regression contract cho các nhánh hủy, đổi sheet, blur, pagehide, visibilitychange và release pointer capture.
+
+## Bảo toàn
+
+Không thay đổi công thức, dependency engine, sparse cell storage, giá trị ô, định dạng, clipboard ô, dữ liệu workbook hoặc schema hình học. Không thay đổi giới hạn kích thước hàng/cột và giới hạn 5.000 trục mỗi thao tác.
+
+## Kiểm thử và giới hạn
+
+- Bộ test Node được bổ sung kiểm tra hợp đồng mã nguồn; đây không phải mô phỏng Pointer Events trên trình duyệt.
+- Chờ GitHub Actions chạy trên commit B5.5.10.
+- Vẫn cần thử thao tác chuột, bút, cảm ứng; đổi sheet giữa lúc kéo; chuyển tab ứng dụng; freeze/split; lưu–mở workbook trên Chrome desktop và Android.
+- Không tuyên bố kiểm thử vật lý trên Samsung A05 hoặc đo RAM nếu chưa thực hiện.
+
+## Tiêu chí nghiệm thu
+
+1. CI xanh toàn bộ.
+2. Kéo rồi thả: chỉ ghi một giao dịch kích thước.
+3. Kéo rồi pointercancel/blur/pagehide/đổi sheet: không ghi thay đổi dở dang.
+4. Pointer thứ hai không làm thay đổi phiên kéo hiện tại.
+5. Sau hủy, có thể bắt đầu thao tác resize mới bình thường.
