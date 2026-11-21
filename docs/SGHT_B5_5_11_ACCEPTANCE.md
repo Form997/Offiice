@@ -155,3 +155,27 @@ B5.5.5 đã cho phép kéo tay nắm để đổi kích thước đồng loạt 
 - Bổ sung kiểm thử tọa độ NaN/Infinity, mép pane lỗi, vùng pane hẹp, điều kiện pane/handle bị tháo khỏi DOM và dừng vòng lặp tại biên cuộn.
 - Unit/source-contract tests không thay thế mô phỏng DOM/Pointer Events thật. Vẫn cần nghiệm thu Chrome desktop, Freeze/Split/Quadrant và Android/Samsung A05; chưa có đo RAM hay hiệu năng thiết bị thật.
 - Không sửa engine công thức, dữ liệu ô, định dạng, clipboard, workbook schema hoặc nhánh `main`. Nhánh phát triển: `v1-development`.
+
+## B5.5.17 — Kiểm thử tích hợp toàn tuyến resize — 2026-11-21
+
+### Mục tiêu
+
+Khép vòng kiểm thử tự động cho các mô-đun đã hình thành trong B5.5.1–B5.5.16, tập trung vào đường đi chung giữa hình học hàng/cột, virtual scrolling, Freeze Panes, Split/Quadrant và lưu–mở workbook. Bước này không bổ sung hành vi giao diện mới và không thay thế nghiệm thu thủ công trên thiết bị.
+
+### Thay đổi
+
+- Thêm `sght/tests/axis-resize-integration.test.mjs` để kiểm tra geometry tùy chỉnh đi xuyên suốt virtual window và Freeze Panes, bao gồm offset, hàng/cột ghim và phần vùng cuộn còn lại.
+- Kiểm tra round-trip workbook giữ nguyên geometry, Freeze, Split, giá trị ô, công thức và định dạng.
+- Kiểm tra đồng bộ vị trí Quadrant theo trục liên kết, không làm đột biến trạng thái đầu vào.
+- Kiểm tra phối hợp phép tính đường căn và edge auto-scroll, gồm trường hợp tọa độ lỗi.
+- Kiểm tra metadata hình học vẫn thưa ở lưới 100.000 hàng và giới hạn cập nhật theo lô 5.000 trục.
+
+### Phạm vi bảo toàn
+
+Không sửa runtime `app.js`, engine công thức, sparse cell storage, clipboard nội dung, dữ liệu workbook hoặc schema. Không thêm dependency; test được thu nhận tự động bởi glob `sght/tests/*.test.mjs` trong `npm test`.
+
+### Giới hạn nghiệm thu
+
+Đây là kiểm thử tích hợp cấp module bằng Node.js, chưa phải browser E2E. Chỉ xác nhận CI sau khi workflow trên commit mới hoàn tất. Vẫn cần thao tác thật trên Chrome desktop và Android/Samsung A05: resize bằng chuột/cảm ứng, bàn phím, AutoFit, nhiều hàng/cột, Undo/Redo, tự cuộn, Freeze, Split từng chế độ, đổi sheet giữa lúc kéo và lưu–mở workbook. Chưa có số đo RAM hoặc hiệu năng thiết bị thật.
+
+Nhánh `v1-development`; không sửa hoặc hợp nhất vào `main`. Ngày: 21/11/2026.
