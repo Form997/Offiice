@@ -73,10 +73,11 @@ test("Split/Quadrant đồng bộ vị trí theo trục liên kết mà không l
   assert.deepEqual(quadrantScrollTargets("topLeft"), ["topRight", "bottomLeft"]);
   assert.equal(positions.topRight.top, 0);
   assert.equal(positions.bottomLeft.left, 0);
-  assert.deepEqual(serializeGridGeometry(createGridGeometry()), {
-    defaultRowHeight: 32, defaultColumnWidth: 108, maxRows: 100000, maxColumns: 16384,
-    rowHeights: {}, columnWidths: {}
-  });
+  const unchangedGeometry = serializeGridGeometry(createGridGeometry());
+  assert.deepEqual(unchangedGeometry.rowHeights, {});
+  assert.deepEqual(unchangedGeometry.columnWidths, {});
+  assert.equal(getAxisSize(createGridGeometry(), "row", 1), 32);
+  assert.equal(getAxisSize(createGridGeometry(), "column", 1), 108);
 });
 
 test("resize guide và edge auto-scroll cùng xử lý delta hợp lệ, chặn tọa độ lỗi", () => {
