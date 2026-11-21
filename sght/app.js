@@ -24,7 +24,7 @@ import { serializeWorkbook, restoreWorkbook, pushHistoryEntry, moveHistory } fro
 import { searchCells, replaceCells } from "./engine/search.js";
 import { sortRangeRows, filterRangeRows, removeDuplicateRows, defineStructuredRange, uniqueColumnValues, summarizeByGroup, summarizeByGroups, buildPivotTable, expandStructuredRange, structuredColumnRange, expandStructuredReferences } from "./engine/data-tools.js";
 import { getVirtualWindow } from "./engine/sparse-grid.js";
-import { GRID_GEOMETRY_DEFAULTS, createGridGeometry, getAxisOffset, getAxisSize, findAxisIndexAtOffset, setAxisSize, resetAxisSize, serializeGridGeometry } from "./engine/grid-geometry.js";
+import { GRID_GEOMETRY_DEFAULTS, createGridGeometry, getAxisOffset, getAxisSize, findAxisIndexAtOffset, setAxisSize, setAxisSizes, resetAxisSize, serializeGridGeometry } from "./engine/grid-geometry.js";
 import { expandGridCapacity } from "./engine/grid-capacity.js";
 import { buildFreezeLayout, normalizeFreezeSettings } from "./engine/freeze-panes.js";
 import { normalizeSplitSettings, synchronizedAxis, splitRatioFromPointer, normalizeQuadrantPositions, synchronizeQuadrantPositions, quadrantScrollTargets } from "./engine/split-panes.js";
@@ -301,12 +301,22 @@ function moveGeometryHistory(from,to){
 }
 function undoGeometry(){moveGeometryHistory(geometryUndoStack,geometryRedoStack);}
 function redoGeometry(){moveGeometryHistory(geometryRedoStack,geometryUndoStack);}
+function axisResizeTargets(axis,index){
+ const bounds=getRangeBounds(selectionRange.start,selectionRange.end);
+ const start=axis==="row"?bounds.startRow:bounds.startCol,end=axis==="row"?bounds.endRow:bounds.endCol;
+ if(index<start||index>end||start===end)return [index];
+ const count=end-start+1;
+ if(count>5000)throw new RangeError("Vùng chọn vượt giới hạn 5.000 "+(axis==="row"?"hàng":"cột")+" cho một lần đổi kích thước.");
+ return Array.from({length:count},(_,offset)=>start+offset);
+}
 function applyAxisSize(axis,index,size,label){
- const before=geometrySnapshot();
- gridGeometry=setAxisSize(gridGeometry,axis,index,size);
- const after=geometrySnapshot();
- recordGeometryChange(before,after,label||((axis==="column"?"Độ rộng cột ":"Chiều cao hàng ")+(axis==="column"?letters(index):index)));
+ const targets=axisResizeTargets(axis,index),before=geometrySnapshot();
+ gridGeometry=targets.length===1?setAxisSize(gridGeometry,axis,index,size):setAxisSizes(gridGeometry,axis,targets,size);
+ const after=geometrySnapshot(),axisName=axis==="column"?"cột":"hàng";
+ const rangeLabel=targets.length===1?(axis==="column"?letters(index):String(index)):(axis==="column"?letters(targets[0])+":"+letters(targets.at(-1)):"Hàng "+targets[0]+":"+targets.at(-1));
+ recordGeometryChange(before,after,label||("Đổi kích thước "+targets.length+" "+axisName+" · "+rangeLabel));
  render();save();
+ if(targets.length>1)calcStatus.textContent="Đã đổi đồng loạt "+targets.length+" "+axisName+" thành "+size+" px.";
 }
 function resetAxisDimension(axis,index){
  const before=geometrySnapshot();
@@ -329,7 +339,7 @@ function updateResizeGuide(event){
  resizeGuide.className="axis-resize-guide "+(drag.axis==="column"?"is-column":"is-row");
  if(drag.axis==="column"){resizeGuide.style.left=position+"px";resizeGuide.style.top="0";resizeGuide.style.height="100%";resizeGuide.style.width="2px";}
  else{resizeGuide.style.top=position+"px";resizeGuide.style.left="0";resizeGuide.style.width="100%";resizeGuide.style.height="2px";}
- resizeGuideLabel.textContent=(drag.axis==="column"?letters(drag.index):"Hàng "+drag.index)+" · "+drag.previewSize+" px";
+ const targets=axisResizeTargets(drag.axis,drag.index);resizeGuideLabel.textContent=(targets.length>1?targets.length+" "+(drag.axis==="column"?"cột":"hàng"):drag.axis==="column"?letters(drag.index):"Hàng "+drag.index)+" · "+drag.previewSize+" px";
 }
 function beginAxisResize(event){
  const handle=event.target.closest?.("[data-resize-axis][data-resize-index]");
