@@ -1228,3 +1228,26 @@ if(repairApplyButton)repairApplyButton.addEventListener("click",()=>{
 const evaluateFormulaNode=key=>{const split=key.indexOf("!");if(split<1)throw new Error("Khóa ô không hợp lệ: "+key);return calculate(key.slice(split+1),new Set(),key.slice(0,split));};
 if(errorAnalyzeButton&&errorOutput)errorAnalyzeButton.addEventListener("click",()=>{try{const report=analyzeFormulaError({cellKey:activeSheetId+"!"+selected,graph:dependencyGraph,sheets:workbookSheets,evaluateNode:evaluateFormulaNode});errorOutput.textContent=report.found?formatFormulaErrorReport(report):"Ô "+selected+" hiện không có lỗi công thức. Nếu ô chứa công thức, hãy kiểm tra lại sau khi cập nhật dữ liệu.";showFormulaRepair(report);calcStatus.textContent=report.found?"Đã truy vết lỗi tại "+selected:"Không phát hiện lỗi tại "+selected;}catch(error){errorOutput.textContent="Không thể phân tích: "+(error?.message||String(error));}});
 if(errorScanButton&&errorOutput)errorScanButton.addEventListener("click",()=>{errorScanButton.disabled=true;errorOutput.textContent="Đang quét tối đa 5.000 công thức…";try{const report=scanWorkbookFormulaErrors({graph:dependencyGraph,sheets:workbookSheets,evaluateNode:evaluateFormulaNode,maxFormulas:5000});const lines=["KẾT QUẢ QUÉT LỖI WORKBOOK","Đã kiểm tra "+report.checked.toLocaleString("vi-VN")+"/"+report.totalFormulas.toLocaleString("vi-VN")+" công thức","Số công thức lỗi: "+report.errors.length,...Object.entries(report.byCode).map(([code,count])=>code+": "+count),"",...report.errors.slice(0,200).map(item=>item.cellKey+" · "+item.code+" · "+item.title+" · "+item.message)];if(report.errors.length>200)lines.push("… còn "+(report.errors.length-200)+" lỗi không hiển thị trong danh sách.");if(report.truncated)lines.push("Đã dừng ở giới hạn 5.000 công thức; cần chia nhỏ workbook để quét tiếp.");lines.push("","Không có công thức hay dữ liệu nào bị tự động sửa.");errorOutput.textContent=lines.join("\n");calcStatus.textContent="Quét hoàn tất · "+report.errors.length+" công thức lỗi";}catch(error){errorOutput.textContent="Không thể quét workbook: "+(error?.message||String(error));}finally{errorScanButton.disabled=false;}});
+
+
+// SGHT B5.2 — điều hướng Ribbon theo không gian công cụ thực có.
+(()=>{
+ const tabs=[...document.querySelectorAll('.ribbon-tab')];
+ const panels={data:document.querySelector('#dataToolsPanel'),dashboard:document.querySelector('#dashboardPanel'),'data-science':document.querySelector('#dataSciencePanel'),ai:document.querySelector('#aiPanel'),macro:document.querySelector('#macroPanel')};
+ const homeOnly=new Set(['home','insert','formulas','view','file']);
+ function activate(tab){
+  const key=tab.dataset.tab || (tab.id==='openDashboard'?'dashboard':'');
+  const panelKey=panels[key]?key:'';
+  Object.entries(panels).forEach(([name,panel])=>{if(panel)panel.hidden=name!==panelKey;});
+  tabs.forEach(item=>item.classList.toggle('active',item===tab));
+  if(key==='data'){renderDataTables();renderPivotBuilder();renderPivotReport();calcStatus.textContent='Dữ liệu · công cụ thao tác vùng và Pivot';}
+  else if(key==='dashboard')calcStatus.textContent='Dashboard Studio · bố cục báo cáo';
+  else if(key==='data-science')calcStatus.textContent='Data Science · phân tích thống kê';
+  else if(key==='ai')calcStatus.textContent='AI Intelligence · trợ lý phân tích workbook';
+  else if(key==='macro')calcStatus.textContent='Macro Studio · tự động hóa';
+  else if(homeOnly.has(key))calcStatus.textContent=key==='home'?'Trang chủ · công cụ ô và định dạng':'Nhóm '+tab.textContent+' · chưa có bảng lệnh riêng';
+ }
+ tabs.forEach(tab=>tab.addEventListener('click',()=>activate(tab)));
+ ['closeDashboard','closeDataScience','closeAI'].forEach(id=>document.querySelector('#'+id)?.addEventListener('click',()=>{Object.values(panels).forEach(panel=>{if(panel)panel.hidden=true;});const home=tabs.find(tab=>tab.dataset.tab==='home');if(home)activate(home);}));
+ const initial=tabs.find(tab=>tab.dataset.tab==='home');if(initial)activate(initial);
+})();
