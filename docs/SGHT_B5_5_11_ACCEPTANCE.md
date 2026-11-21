@@ -123,3 +123,20 @@ B5.5.5 đã cho phép kéo tay nắm để đổi kích thước đồng loạt 
 - Bổ sung unit test cho đặt lại nhiều hàng/cột về mặc định, giữ nguyên geometry nguồn và loại bỏ override mặc định khỏi metadata thưa.
 - Chờ workflow CI chạy trên commit B5.5.14. Các unit/source-contract tests không thay thế thao tác bàn phím thật trên Chrome/Android; chưa xác nhận Samsung A05 hoặc hiệu năng thiết bị.
 - Không sửa engine công thức, giá trị ô, định dạng, clipboard, workbook schema, Freeze/Split hoặc nhánh `main`. Nhánh phát triển: `v1-development`.
+
+
+## B5.5.15 — Tự cuộn vùng bảng khi resize sát mép — 2026-11-21
+
+### Thay đổi
+
+- Khi đang kéo tay nắm đổi kích thước hàng/cột, nếu con trỏ áp sát mép trái/phải hoặc trên/dưới của pane chứa tay nắm, pane đó tự cuộn theo đúng trục đang resize.
+- Tốc độ cuộn tăng dần theo khoảng cách con trỏ tới mép, giới hạn tối đa 16 px mỗi khung hình; vùng kích hoạt mép là 44 px và tự thu hẹp với pane hẹp.
+- Chỉ tác động pane chứa tay nắm hiện hành (.sheet-scroll), nhờ vậy luồng cuộn đồng bộ sẵn có của Freeze/Split/Quadrant tiếp tục nhận sự kiện scroll gốc.
+- Dừng vòng lặp requestAnimationFrame khi rời vùng kích hoạt, hết biên cuộn, thả pointer, pointercancel, mất focus, đổi sheet hoặc hủy resize. Không tạo timer nền và không chạy khi không có phiên kéo.
+- Không tự thay đổi kích thước chỉ vì pane đang cuộn; kích thước vẫn tính theo delta con trỏ như trước. Người dùng tiếp tục rê con trỏ để điều chỉnh kích thước.
+
+### Kiểm thử và giới hạn
+
+- Thêm helper thuần axis-resize-autoscroll.js và unit/source-contract tests cho mép đầu/cuối, vùng giữa, tốc độ giới hạn, pane hẹp, dữ liệu tọa độ không hợp lệ và đường dừng vòng lặp.
+- Các test tự động không mô phỏng cuộn DOM/Pointer Events thật. Cần nghiệm thu Chrome desktop, Freeze Panes, Split dọc/ngang, Quadrant và Android/Samsung A05; chưa có đo RAM hoặc hiệu năng thiết bị thật.
+- Không sửa engine công thức, cell data, định dạng, clipboard, workbook schema hoặc nhánh main. Nhánh phát triển: v1-development.
