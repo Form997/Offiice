@@ -497,3 +497,8 @@ main{max-width:1920px;margin:0 auto;padding:0 0 24px}
 
 /* SGHT B5.5.6 — AutoFit theo nội dung, hỗ trợ chữ xuống dòng trong hàng đã căn. */
 .sheet-grid .cell{height:auto!important;min-height:31px;white-space:normal;overflow-wrap:anywhere;overflow:visible;line-height:16px;vertical-align:middle}
+
+
+/* SGHT B5.5.7 — nhóm thao tác sao chép / áp dụng kích thước trục. */
+.top-actions .geometry-history-action{white-space:nowrap}
+@media(max-width:760px){.top-actions .geometry-history-action{min-height:36px;padding:7px 9px;font-size:12px}}
