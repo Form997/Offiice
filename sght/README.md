@@ -1079,3 +1079,15 @@ Bổ sung mô hình đáp ứng tăng dần, lợi ích biên giảm dần:
 - Kiểm tra hiện tại: đã rà soát lại nội dung các tệp và blob SHA sau ghi; đã bổ sung test nhưng chưa chạy `npm test` trong môi trường Node và chưa có CI status xác nhận cho commit này. Chưa kiểm thử Chrome/Android, thao tác split/freeze thực tế, hiệu năng trên thiết bị 4 GB RAM hoặc GitHub Pages deployment.
 - Nhánh phát triển: `v1-development`. Không sửa hoặc hợp nhất vào `main`.
 - Bắt đầu và phát triển: 21/11/2026.
+
+
+## SGHT B5.5.3 — Tay nắm kéo đổi kích thước hàng và cột — 2026-11-21
+
+- Thêm tay nắm kéo ở mép phải tiêu đề cột và mép dưới tiêu đề hàng; thao tác hoạt động trong các pane chính, Split và bốn góc phần tư.
+- Trong lúc kéo, hiển thị đường căn và nhãn kích thước dự kiến theo pixel; chỉ ghi kích thước mới khi thả chuột/bút/ngón tay. Hủy pointer không ghi thay đổi.
+- Hỗ trợ chuột, bút, cảm ứng qua Pointer Events; vùng chạm được nới rộng trên thiết bị không có hover.
+- Hỗ trợ bàn phím: mũi tên thay đổi 5 px, Shift + mũi tên thay đổi 20 px; Home khôi phục kích thước mặc định. Tay nắm có nhãn truy cập và trạng thái focus.
+- Kích thước bị giới hạn theo quy chuẩn B5.5.1: hàng 20–240 px, cột 40–500 px. Thay đổi chỉ cập nhật metadata hình học của sheet, lưu cục bộ qua workbook; không chạm dữ liệu ô hay công thức.
+- Chưa có Undo/Redo cho thay đổi kích thước; chưa có chọn nhiều hàng/cột để đổi đồng loạt; chưa có nhập kích thước chính xác bằng hộp thoại. Các mục này cần bước riêng.
+- Kiểm tra trong lượt này: kiểm tra cấu trúc và nội dung mã sau khi ghi GitHub; chưa chạy Node/npm test, chưa chạy trình duyệt, chưa thử Android hoặc đo hiệu năng thiết bị thực. Không tuyên bố triển khai GitHub Pages đã hoàn tất.
+- Nhánh: `v1-development`; không sửa `main`.
