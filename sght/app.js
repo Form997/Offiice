@@ -1248,6 +1248,6 @@ if(errorScanButton&&errorOutput)errorScanButton.addEventListener("click",()=>{er
   else if(homeOnly.has(key))calcStatus.textContent=key==='home'?'Trang chủ · công cụ ô và định dạng':'Nhóm '+tab.textContent+' · chưa có bảng lệnh riêng';
  }
  tabs.forEach(tab=>tab.addEventListener('click',()=>activate(tab)));
- ['closeDashboard','closeDataScience','closeAI'].forEach(id=>document.querySelector('#'+id)?.addEventListener('click',()=>{Object.values(panels).forEach(panel=>{if(panel)panel.hidden=true;});const home=tabs.find(tab=>tab.dataset.tab==='home');if(home)activate(home);}));
+ ['closeDashboard','closeDataScience','closeAI','closeMacro'].forEach(id=>document.querySelector('#'+id)?.addEventListener('click',()=>{Object.values(panels).forEach(panel=>{if(panel)panel.hidden=true;});const home=tabs.find(tab=>tab.dataset.tab==='home');if(home)activate(home);}));
  const initial=tabs.find(tab=>tab.dataset.tab==='home');if(initial)activate(initial);
 })();
