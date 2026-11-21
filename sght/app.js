@@ -309,6 +309,50 @@ function axisResizeTargets(axis,index){
  if(count>5000)throw new RangeError("Vùng chọn vượt giới hạn 5.000 "+(axis==="row"?"hàng":"cột")+" cho một lần đổi kích thước.");
  return Array.from({length:count},(_,offset)=>start+offset);
 }
+const autoFitCanvas=document.createElement("canvas"),autoFitContext=autoFitCanvas.getContext("2d");
+function measureAutoFitText(value){
+ const text=String(value??"");
+ if(autoFitContext){autoFitContext.font="12px Arial";return autoFitContext.measureText(text).width;}
+ return text.length*7;
+}
+function autoFitSelection(axis){
+ const bounds=getRangeBounds(selectionRange.start,selectionRange.end);
+ const first=axis==="column"?bounds.startCol:bounds.startRow,last=axis==="column"?bounds.endCol:bounds.endRow;
+ const count=last-first+1;
+ if(count>5000)throw new RangeError("AutoFit chỉ xử lý tối đa 5.000 "+(axis==="column"?"cột":"hàng")+" trong một lần.");
+ const area=(bounds.endRow-bounds.startRow+1)*(bounds.endCol-bounds.startCol+1);
+ if(area>100000)throw new RangeError("Vùng AutoFit vượt giới hạn 100.000 ô. Hãy thu nhỏ vùng chọn.");
+ const sizes=new Map();
+ for(const key of Object.keys(cells)){
+  const point=parseAddress(key);
+  if(!point||point.r<bounds.startRow||point.r>bounds.endRow||point.c<bounds.startCol||point.c>bounds.endCol)continue;
+  const index=axis==="column"?point.c:point.r;
+  const text=display(key);
+  if(!text)continue;
+  const width=measureAutoFitText(text);
+  sizes.set(index,Math.max(sizes.get(index)||0,width));
+ }
+ const indices=Array.from({length:count},(_,offset)=>first+offset);
+ const updates=[];
+ for(const index of indices){
+  let size;
+  if(axis==="column"){
+   size=Math.max(GRID_GEOMETRY_DEFAULTS.minColumnWidth,Math.min(GRID_GEOMETRY_DEFAULTS.maxColumnWidth,Math.ceil((sizes.get(index)||0)+20)));
+  }else{
+   const available=Math.max(24,getAxisSize(gridGeometry,"column",bounds.startCol)-16);
+   const longest=sizes.get(index)||0;
+   const lines=Math.max(1,Math.ceil(longest/available));
+   size=Math.max(GRID_GEOMETRY_DEFAULTS.minRowHeight,Math.min(GRID_GEOMETRY_DEFAULTS.maxRowHeight,Math.ceil(lines*16+8)));
+  }
+  updates.push({index,size});
+ }
+ const before=geometrySnapshot();
+ for(const item of updates)gridGeometry=setAxisSize(gridGeometry,axis,item.index,item.size);
+ const after=geometrySnapshot();
+ recordGeometryChange(before,after,"AutoFit "+(axis==="column"?"cột ":"hàng ")+first+":"+last);
+ render();save();
+ calcStatus.textContent="Đã AutoFit "+count+" "+(axis==="column"?"cột":"hàng")+" trong vùng chọn. Có thể hoàn tác bằng lịch sử kích thước.";
+}
 function applyAxisSize(axis,index,size,label,targetsOverride=null){
  const targets=targetsOverride||axisResizeTargets(axis,index),before=geometrySnapshot();
  gridGeometry=targets.length===1?setAxisSize(gridGeometry,axis,index,size):setAxisSizes(gridGeometry,axis,targets,size);
@@ -405,6 +449,8 @@ function installAxisResize(gridElement){
   }catch(error){calcStatus.textContent="Không thể đổi kích thước: "+(error?.message||String(error));}
  });
 }
+document.querySelector("#autoFitColumns")?.addEventListener("click",()=>{try{autoFitSelection("column");}catch(error){calcStatus.textContent="Không thể AutoFit cột: "+(error?.message||String(error));}});
+document.querySelector("#autoFitRows")?.addEventListener("click",()=>{try{autoFitSelection("row");}catch(error){calcStatus.textContent="Không thể AutoFit hàng: "+(error?.message||String(error));}});
 [grid,splitGrid,quadrantPanes.topRight.grid,quadrantPanes.bottomLeft.grid].forEach(installAxisResize);
 window.addEventListener("pointermove",moveAxisResize,{passive:false});
 window.addEventListener("pointerup",event=>finishAxisResize(event,true));
