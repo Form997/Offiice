@@ -99,3 +99,13 @@ test("drag resize cài đặt trên các pane lưới đang hiển thị", () =>
   assert.match(appSource, /function finishAxisResize\(event,commit=true\)/);
   assert.match(appSource, /if\(!commit\|\|drag\.sheetId!==activeSheetId/);
 });
+
+test("resize đang diễn ra được hủy an toàn khi đổi sheet, mất focus hoặc có pointer thứ hai", () => {
+  assert.match(appSource, /function cancelAxisResize\(\)/);
+  assert.match(appSource, /function applySheetState\(sheet\)\{if\(!sheet\)return;cancelAxisResize\(\);activeSheetId=sheet.id/);
+  assert.match(appSource, /if\(axisResizeDrag\)\{event.preventDefault\(\);event.stopPropagation\(\);return true;\}/);
+  assert.match(appSource, /window\.addEventListener\("blur",cancelAxisResize\)/);
+  assert.match(appSource, /window\.addEventListener\("pagehide",cancelAxisResize\)/);
+  assert.match(appSource, /document\.addEventListener\("visibilitychange",\(\)=>\{if\(document.hidden\)cancelAxisResize\(\);\}\)/);
+  assert.match(appSource, /releasePointerCapture\(drag\.pointerId\)/);
+});
