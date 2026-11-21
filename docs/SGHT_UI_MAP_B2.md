@@ -36,23 +36,23 @@ Lưu ý: 137 là số thẻ biểu mẫu được quét trong toàn bộ tệp H
 
 Trạng thái trong bảng là mức độ đối chiếu mã nguồn, không phải chứng nhận đã chạy thành công.
 
-| Nhóm | ID / dải điều khiển | Số nút | Kết quả đối chiếu |
+| Nhóm | ID / dải điều khiển | Kết quả đối chiếu |
 |---|---|---:|---|
-| Tệp và workbook | `saveAction`, `newSheet`, `downloadCsv`, `undoAction`, `redoAction` | 5 | Có tham chiếu JS; cần test lưu/tải và lịch sử |
-| Ribbon | 10 mục tab, gồm `openDashboard` | 10 | Các tab thường dùng có xử lý chuyển tab; Dashboard chưa có xử lý mở panel tìm thấy |
-| Clipboard và định dạng | `cutAction` đến `clearFormatAction`, `sumAction`, `averageAction`, `countAction` | 9 | Có tham chiếu JS; cần kiểm thử clipboard, định dạng và công thức nhanh |
-| Thu phóng, ghim, chia vùng | `zoomOut`, `zoomIn`, `zoomReset`, `applyFreeze`, `clearFreeze`, `applySplit`, `clearSplit` | 7 | Có tham chiếu JS; ưu tiên kiểm thử touch/scroll |
-| Công cụ dữ liệu | `dataSortApply`, `dataFilter*`, `dataSubtotalApply`, `dataRemoveDuplicates`, `dataDefineTable`, `dataClearTables` | 10 | Có tham chiếu JS; một số thao tác cần vùng dữ liệu hợp lệ |
-| Pivot và biểu đồ Pivot | `pivotLoadFields`, `pivotBuild`, `pivotChartCreate`, `pivotChartDuplicate`, `pivotChartRename`, `pivotChartDelete`, `pivotChartUp/Down`, `pivotChartApply`, `pivotChartExport/Png/Pdf` | 11 | Có tham chiếu JS; phụ thuộc Pivot đã tạo và biểu đồ đang chọn |
-| Dashboard | `openDashboard`, `dashboardAddChart`, `dashboardAddKpi`, `dashboardSaveTemplate`, `dashboardLoadTemplate`, `dashboardExportPng/Pdf`, `dashboardPresent`, `closeDashboard` | 9 | 5 ID đầu không có tham chiếu trong JS; 3 thao tác xuất/trình chiếu và đóng có tham chiếu. Không được coi Dashboard hoàn chỉnh |
-| Data Science | `dsRegression`, `dsAnova`, `dsMultiple`, `dsTukey`, `dsGamesHowell`, `dsVif`, `dsAncova`, `dsKruskal`, `dsDunn`, `dsEffectSizes`, `dsPower`, `dsSampleSize`, `dsLsd`, `dsLevene`, `dsBrownForsythe`, `dsTwoWay`, các nút mô hình liều–đáp ứng, mô tả, dự báo, biểu đồ và xuất báo cáo | 30 | Các ID có tham chiếu JS; cần kiểm thử từng phân tích bằng bộ dữ liệu chuẩn và đối chiếu kết quả thống kê |
-| AI | `aiAnalyze`, `aiSuggestFormula`, `aiDraftMacro`, `closeAI` | 4 | Có tham chiếu JS; cần xác minh cấu hình dịch vụ và xử lý khi offline |
-| Macro Studio | ghi/dừng, nhập/xuất thư viện, lưu macro, lịch sử, preview, debugger, security | 18 | Có tham chiếu JS; một số nút chỉ hợp lệ theo trạng thái ghi/chạy/duyệt |
-| Công thức và chẩn đoán | `applyFormula`, `analyzeFormulaError`, `scanFormulaErrors`, repair, versions, diagnostics | 14 | Có tham chiếu JS; nút disabled phần lớn là thao tác phụ thuộc kết quả nạp/preview |
-| Tài khoản, MFA, Passkey, danh tính và kho kiểm toán | nhóm `sghtAuth*`, `accountActionSubmit`, `passkey*`, `mfa*`, `identity*`, `formulaAudit*` | 34 | Có tham chiếu JS; nhiều nút phụ thuộc backend, phiên đăng nhập, quyền và dữ liệu được nạp |
-| Tìm kiếm và thay thế | `searchRun`, `searchPrevious`, `searchNext`, `searchClear`, `replaceOne`, `replaceAll` | 6 | Có tham chiếu JS; điều hướng/thay thế phụ thuộc kết quả tìm |
-| Tạo trang phụ và kiểm thử | `addSheet`, `runFormulaDiagnostics` | 2 | `addSheet` disabled và chỉ có thông báo placeholder; diagnostics có tham chiếu JS |
-| **Tổng số nút** |  | **177** | Phân loại sơ bộ theo vị trí và chức năng trong HTML; nhóm ribbon và nhóm nút điều khiển có thể giao nhau về mặt ngữ nghĩa |
+| Tệp và workbook | `saveAction`, `newSheet`, `downloadCsv`, `undoAction`, `redoAction` | Có tham chiếu JS; cần test lưu/tải và lịch sử |
+| Ribbon | 10 mục tab, gồm `openDashboard` | Các tab thường dùng có xử lý chuyển tab; Dashboard chưa có xử lý mở panel tìm thấy |
+| Clipboard và định dạng | `cutAction` đến `clearFormatAction`, `sumAction`, `averageAction`, `countAction` | Có tham chiếu JS; cần kiểm thử clipboard, định dạng và công thức nhanh |
+| Thu phóng, ghim, chia vùng | `zoomOut`, `zoomIn`, `zoomReset`, `applyFreeze`, `clearFreeze`, `applySplit`, `clearSplit` | Có tham chiếu JS; ưu tiên kiểm thử touch/scroll |
+| Công cụ dữ liệu | `dataSortApply`, `dataFilter*`, `dataSubtotalApply`, `dataRemoveDuplicates`, `dataDefineTable`, `dataClearTables` | Có tham chiếu JS; một số thao tác cần vùng dữ liệu hợp lệ |
+| Pivot và biểu đồ Pivot | `pivotLoadFields`, `pivotBuild`, `pivotChartCreate`, `pivotChartDuplicate`, `pivotChartRename`, `pivotChartDelete`, `pivotChartUp/Down`, `pivotChartApply`, `pivotChartExport/Png/Pdf` | Có tham chiếu JS; phụ thuộc Pivot đã tạo và biểu đồ đang chọn |
+| Dashboard | `openDashboard`, `dashboardAddChart`, `dashboardAddKpi`, `dashboardSaveTemplate`, `dashboardLoadTemplate`, `dashboardExportPng/Pdf`, `dashboardPresent`, `closeDashboard` | 5 ID đầu không có tham chiếu trong JS; 3 thao tác xuất/trình chiếu và đóng có tham chiếu. Không được coi Dashboard hoàn chỉnh |
+| Data Science | `dsRegression`, `dsAnova`, `dsMultiple`, `dsTukey`, `dsGamesHowell`, `dsVif`, `dsAncova`, `dsKruskal`, `dsDunn`, `dsEffectSizes`, `dsPower`, `dsSampleSize`, `dsLsd`, `dsLevene`, `dsBrownForsythe`, `dsTwoWay`, các nút mô hình liều–đáp ứng, mô tả, dự báo, biểu đồ và xuất báo cáo | Các ID có tham chiếu JS; cần kiểm thử từng phân tích bằng bộ dữ liệu chuẩn và đối chiếu kết quả thống kê |
+| AI | `aiAnalyze`, `aiSuggestFormula`, `aiDraftMacro`, `closeAI` | Có tham chiếu JS; cần xác minh cấu hình dịch vụ và xử lý khi offline |
+| Macro Studio | ghi/dừng, nhập/xuất thư viện, lưu macro, lịch sử, preview, debugger, security | Có tham chiếu JS; một số nút chỉ hợp lệ theo trạng thái ghi/chạy/duyệt |
+| Công thức và chẩn đoán | `applyFormula`, `analyzeFormulaError`, `scanFormulaErrors`, repair, versions, diagnostics | Có tham chiếu JS; nút disabled phần lớn là thao tác phụ thuộc kết quả nạp/preview |
+| Tài khoản, MFA, Passkey, danh tính và kho kiểm toán | nhóm `sghtAuth*`, `accountActionSubmit`, `passkey*`, `mfa*`, `identity*`, `formulaAudit*` | Có tham chiếu JS; nhiều nút phụ thuộc backend, phiên đăng nhập, quyền và dữ liệu được nạp |
+| Tìm kiếm và thay thế | `searchRun`, `searchPrevious`, `searchNext`, `searchClear`, `replaceOne`, `replaceAll` | Có tham chiếu JS; điều hướng/thay thế phụ thuộc kết quả tìm |
+| Tạo trang phụ và kiểm thử | `addSheet`, `runFormulaDiagnostics` | `addSheet` disabled và chỉ có thông báo placeholder; diagnostics có tham chiếu JS |
+| **Tổng số nút HTML** |  | **177** | Tổng số thẻ button được quét trực tiếp trong HTML; bảng nhóm bên trên là bản đồ tra cứu chức năng, không phải phép cộng phân nhóm độc lập |
 
 Ghi chú: bảng nhóm dùng dải ID đại diện để người phát triển tra cứu; số đếm là phân nhóm kiểm kê theo vị trí/nhãn và không thay thế danh sách DOM runtime. Không kết luận chức năng đúng chỉ vì ID xuất hiện trong JavaScript: cần xác minh listener, nhánh điều kiện, đầu ra và lỗi khi chạy.
 
