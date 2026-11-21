@@ -24,7 +24,7 @@ import { serializeWorkbook, restoreWorkbook, pushHistoryEntry, moveHistory } fro
 import { searchCells, replaceCells } from "./engine/search.js";
 import { sortRangeRows, filterRangeRows, removeDuplicateRows, defineStructuredRange, uniqueColumnValues, summarizeByGroup, summarizeByGroups, buildPivotTable, expandStructuredRange, structuredColumnRange, expandStructuredReferences } from "./engine/data-tools.js";
 import { getVirtualWindow } from "./engine/sparse-grid.js";
-import { GRID_GEOMETRY_DEFAULTS, createGridGeometry, getAxisOffset, getAxisSize, findAxisIndexAtOffset, setAxisSize, setAxisSizes, resetAxisSize, serializeGridGeometry } from "./engine/grid-geometry.js";
+import { GRID_GEOMETRY_DEFAULTS, createGridGeometry, getAxisOffset, getAxisSize, findAxisIndexAtOffset, setAxisSize, setAxisSizes, setAxisSizeMap, resetAxisSize, serializeGridGeometry } from "./engine/grid-geometry.js";
 import { expandGridCapacity } from "./engine/grid-capacity.js";
 import { buildFreezeLayout, normalizeFreezeSettings } from "./engine/freeze-panes.js";
 import { normalizeSplitSettings, synchronizedAxis, splitRatioFromPointer, normalizeQuadrantPositions, synchronizeQuadrantPositions, quadrantScrollTargets } from "./engine/split-panes.js";
@@ -326,28 +326,24 @@ function autoFitSelection(axis){
  for(const key of Object.keys(cells)){
   const point=parseAddress(key);
   if(!point||point.r<bounds.startRow||point.r>bounds.endRow||point.c<bounds.startCol||point.c>bounds.endCol)continue;
-  const index=axis==="column"?point.c:point.r;
   const text=display(key);
   if(!text)continue;
-  const width=measureAutoFitText(text);
-  sizes.set(index,Math.max(sizes.get(index)||0,width));
- }
- const indices=Array.from({length:count},(_,offset)=>first+offset);
- const updates=[];
- for(const index of indices){
-  let size;
   if(axis==="column"){
-   size=Math.max(GRID_GEOMETRY_DEFAULTS.minColumnWidth,Math.min(GRID_GEOMETRY_DEFAULTS.maxColumnWidth,Math.ceil((sizes.get(index)||0)+20)));
+   const width=measureAutoFitText(text);
+   sizes.set(point.c,Math.max(sizes.get(point.c)||0,width));
   }else{
-   const available=Math.max(24,getAxisSize(gridGeometry,"column",bounds.startCol)-16);
-   const longest=sizes.get(index)||0;
-   const lines=Math.max(1,Math.ceil(longest/available));
-   size=Math.max(GRID_GEOMETRY_DEFAULTS.minRowHeight,Math.min(GRID_GEOMETRY_DEFAULTS.maxRowHeight,Math.ceil(lines*16+8)));
+   const available=Math.max(24,getAxisSize(gridGeometry,"column",point.c)-16);
+   const lines=Math.max(1,Math.ceil(measureAutoFitText(text)/available));
+   sizes.set(point.r,Math.max(sizes.get(point.r)||1,lines));
   }
-  updates.push({index,size});
+ }
+ const updates={};
+ for(let index=first;index<=last;index++){
+  if(axis==="column")updates[index]=Math.max(GRID_GEOMETRY_DEFAULTS.minColumnWidth,Math.min(GRID_GEOMETRY_DEFAULTS.maxColumnWidth,Math.ceil((sizes.get(index)||0)+20)));
+  else updates[index]=Math.max(GRID_GEOMETRY_DEFAULTS.minRowHeight,Math.min(GRID_GEOMETRY_DEFAULTS.maxRowHeight,Math.ceil((sizes.get(index)||1)*16+8)));
  }
  const before=geometrySnapshot();
- for(const item of updates)gridGeometry=setAxisSize(gridGeometry,axis,item.index,item.size);
+ gridGeometry=setAxisSizeMap(gridGeometry,axis,updates);
  const after=geometrySnapshot();
  recordGeometryChange(before,after,"AutoFit "+(axis==="column"?"cột ":"hàng ")+first+":"+last);
  render();save();
