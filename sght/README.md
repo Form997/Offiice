@@ -1200,3 +1200,14 @@ Bổ sung mô hình đáp ứng tăng dần, lợi ích biên giảm dần:
 - Không đổi engine công thức, dữ liệu ô, định dạng, clipboard, workbook schema, hình học hàng/cột hoặc quy tắc đồng bộ cuộn.
 - Kiểm thử Node không thay thế thao tác Pointer Events trên Chrome/Android thật; vẫn cần nghiệm thu cuộn, Freeze/Split và Samsung A05.
 - Nhánh v1-development; không sửa main. Ngày 21/11/2026.
+
+
+
+## SGHT B5.5.14 — Đồng nhất resize bằng bàn phím với vùng chọn — 2026-11-21
+
+- Phím mũi tên trên tay nắm resize nay đổi kích thước toàn bộ hàng/cột đang chọn nếu tay nắm thuộc vùng chọn; ngoài vùng chọn thì chỉ đổi một trục.
+- Shift + mũi tên vẫn tăng/giảm 20 px; mũi tên thường vẫn 5 px; kích thước tiếp tục tuân giới hạn hàng 20–240 px và cột 40–500 px.
+- Home khôi phục kích thước mặc định cho toàn bộ hàng/cột đang chọn; thao tác theo lô dùng API hình học thưa và được ghi thành một giao dịch Undo/Redo.
+- Giữ nguyên dữ liệu ô, công thức, định dạng, clipboard, workbook schema, Freeze/Split và các giới hạn hiện có.
+- Bổ sung kiểm thử hợp đồng giao diện và unit test đặt lại nhiều trục; chờ CI xác nhận. Chưa nghiệm thu bàn phím trên Chrome/Android hoặc Samsung A05.
+- Nhánh `v1-development`; không sửa `main`. Ngày 21/11/2026.
