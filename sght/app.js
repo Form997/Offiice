@@ -360,12 +360,15 @@ function applyAxisSize(axis,index,size,label,targetsOverride=null){
  render();save();
  if(targets.length>1)calcStatus.textContent="Đã đổi đồng loạt "+targets.length+" "+axisName+" thành "+size+" px.";
 }
-function resetAxisDimension(axis,index){
- const before=geometrySnapshot();
- gridGeometry=resetAxisSize(gridGeometry,axis,index);
- const after=geometrySnapshot();
- recordGeometryChange(before,after,"Khôi phục kích thước "+(axis==="column"?"cột "+letters(index):"hàng "+index));
+function resetAxisDimension(axis,index,targetsOverride=null){
+ const targets=targetsOverride||[index],before=geometrySnapshot();
+ if(targets.length===1)gridGeometry=resetAxisSize(gridGeometry,axis,index);
+ else gridGeometry=setAxisSizes(gridGeometry,axis,targets,axis==="column"?GRID_GEOMETRY_DEFAULTS.columnWidth:GRID_GEOMETRY_DEFAULTS.rowHeight);
+ const after=geometrySnapshot(),axisName=axis==="column"?"cột":"hàng";
+ const rangeLabel=targets.length===1?(axis==="column"?letters(index):String(index)):(axis==="column"?letters(targets[0])+":"+letters(targets.at(-1)):"Hàng "+targets[0]+":"+targets.at(-1));
+ recordGeometryChange(before,after,"Khôi phục kích thước "+targets.length+" "+axisName+" · "+rangeLabel);
  render();save();
+ if(targets.length>1)calcStatus.textContent="Đã khôi phục mặc định cho "+targets.length+" "+axisName+".";
 }
 function clampAxisSize(axis,value){
  const min=axis==="row"?GRID_GEOMETRY_DEFAULTS.minRowHeight:GRID_GEOMETRY_DEFAULTS.minColumnWidth;
@@ -448,13 +451,18 @@ function installAxisResize(gridElement){
   else if(axis==="row"&&event.key==="ArrowDown")next=getAxisSize(gridGeometry,axis,index)+step;
   else if(axis==="row"&&event.key==="ArrowUp")next=getAxisSize(gridGeometry,axis,index)-step;
   else if(event.key==="Home"){
-   event.preventDefault();resetAxisDimension(axis,index);
-   calcStatus.textContent="Đã khôi phục kích thước mặc định cho "+(axis==="column"?"cột "+letters(index):"hàng "+index)+".";
+   event.preventDefault();
+   try{
+    const targets=axisResizeTargets(axis,index);
+    resetAxisDimension(axis,index,targets);
+    if(targets.length===1)calcStatus.textContent="Đã khôi phục kích thước mặc định cho "+(axis==="column"?"cột "+letters(index):"hàng "+index)+".";
+   }catch(error){calcStatus.textContent="Không thể khôi phục kích thước: "+(error?.message||String(error));}
    requestAnimationFrame(()=>document.querySelector('[data-resize-axis="'+axis+'"][data-resize-index="'+index+'"]')?.focus());return;
   }else return;
   event.preventDefault();
   try{
-   applyAxisSize(axis,index,clampAxisSize(axis,next));
+   const targets=axisResizeTargets(axis,index);
+   applyAxisSize(axis,index,clampAxisSize(axis,next),null,targets);
    requestAnimationFrame(()=>document.querySelector('[data-resize-axis="'+axis+'"][data-resize-index="'+index+'"]')?.focus());
   }catch(error){calcStatus.textContent="Không thể đổi kích thước: "+(error?.message||String(error));}
  });
