@@ -170,6 +170,24 @@ export function setAxisSizes(geometry, axis, indices, size) {
   return createGridGeometry({ ...g, [axis === "row" ? "rowHeights" : "columnWidths"]: map });
 }
 
+/** Apply distinct dimensions in one sparse-map clone and normalization pass. */
+export function setAxisSizeMap(geometry, axis, updates) {
+  const g = createGridGeometry(geometry);
+  const config = axisConfig(g, axis);
+  if (!updates || typeof updates !== "object" || Array.isArray(updates)) throw new TypeError("Bản đồ kích thước cần áp dụng không hợp lệ.");
+  const entries = Object.entries(updates);
+  if (!entries.length || entries.length > 5000) throw new RangeError("Một lần chỉ cập nhật từ 1 đến 5.000 hàng hoặc cột.");
+  const map = { ...config.map };
+  for (const [rawIndex, rawSize] of entries) {
+    const index = Number(rawIndex);
+    validIndex(index, config.count);
+    const size = finiteInRange(rawSize, config.min, config.max, axis === "row" ? "Chiều cao hàng" : "Độ rộng cột");
+    if (size === config.base) delete map[String(index)];
+    else map[String(index)] = size;
+  }
+  return createGridGeometry({ ...g, [axis === "row" ? "rowHeights" : "columnWidths"]: map });
+}
+
 /** Remove a custom size and restore the axis default. */
 export function resetAxisSize(geometry, axis, index) {
   const g = createGridGeometry(geometry);
