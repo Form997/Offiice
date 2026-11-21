@@ -2,7 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import {
   createGridGeometry, getAxisSize, getAxisOffset, getAxisRangeSize,
-  findAxisIndexAtOffset, setAxisSize, setAxisSizes, resetAxisSize, serializeGridGeometry
+  findAxisIndexAtOffset, setAxisSize, setAxisSizes, setAxisSizeMap, resetAxisSize, serializeGridGeometry
 } from "../engine/grid-geometry.js";
 
 test("kích thước mặc định và offset tương thích lưới hiện tại", () => {
@@ -85,4 +85,15 @@ test("đổi đồng loạt nhiều hàng/cột trong một thao tác thưa", ()
   assert.deepEqual(Object.keys(serializeGridGeometry(g).rowHeights), ["2", "3", "4"]);
   assert.throws(() => setAxisSizes(g, "row", Array.from({length: 5001}, (_, i) => i + 1), 40), RangeError);
   assert.throws(() => setAxisSizes(g, "column", [1, 0], 120), RangeError);
+});
+
+test("cập nhật bản đồ kích thước khác nhau trong một lượt", () => {
+  let g = createGridGeometry();
+  g = setAxisSizeMap(g, "row", { "2": 48, "5": 64, "8": 32 });
+  assert.equal(getAxisSize(g, "row", 2), 48);
+  assert.equal(getAxisSize(g, "row", 5), 64);
+  assert.equal(getAxisSize(g, "row", 8), 32);
+  assert.equal(getAxisSize(g, "row", 9), 32);
+  assert.throws(() => setAxisSizeMap(g, "column", { "0": 120 }), RangeError);
+  assert.throws(() => setAxisSizeMap(g, "column", Object.fromEntries(Array.from({length: 5001}, (_, i) => [String(i + 1), 120]))), RangeError);
 });
