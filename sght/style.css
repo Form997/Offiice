@@ -456,3 +456,13 @@ main{max-width:1920px;margin:0 auto;padding:0 0 24px}
  .sheet-tab{min-height:38px;padding:7px 11px}
  .sheet-footer{padding:7px 9px;gap:6px;line-height:1.4}
 }
+
+
+/* SGHT B5.4 — tương tác chọn vùng bằng chuột, bút và cảm ứng. */
+.sheet-grid .cell{user-select:none;-webkit-user-select:none;-webkit-tap-highlight-color:transparent;touch-action:pan-x pan-y;cursor:cell}
+.sheet-grid .cell:focus-visible{outline:2px solid #176b43;outline-offset:-3px;z-index:5}
+.sheet-grid .cell.selected{box-shadow:inset 0 0 0 1px #176b43}
+.sheet-grid .row-head,.sheet-grid thead th{user-select:none;-webkit-user-select:none}
+.sheet-grid .fill-handle{touch-action:none;cursor:crosshair}
+.sheet-grid .cell:active{background:#e3f1e7}
+@media(hover:none){.sheet-grid .cell{min-height:34px}.sheet-grid .fill-handle{width:12px;height:12px;right:-2px;bottom:-2px}}
