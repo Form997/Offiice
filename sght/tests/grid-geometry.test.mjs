@@ -2,7 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import {
   createGridGeometry, getAxisSize, getAxisOffset, getAxisRangeSize,
-  findAxisIndexAtOffset, setAxisSize, resetAxisSize, serializeGridGeometry
+  findAxisIndexAtOffset, setAxisSize, setAxisSizes, resetAxisSize, serializeGridGeometry
 } from "../engine/grid-geometry.js";
 
 test("kích thước mặc định và offset tương thích lưới hiện tại", () => {
