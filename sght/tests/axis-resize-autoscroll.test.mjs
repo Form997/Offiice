@@ -29,7 +29,7 @@ test("giới hạn tốc độ và xử lý pane rất hẹp hoặc tọa độ 
 
 test("ứng dụng chọn đúng trục cuộn và chỉ cuộn trong pane chứa tay nắm", () => {
   assert.match(appSource, /drag\.handle\?\.closest\?\.\("\.sheet-scroll"\)/);
-  assert.match(appSource, /const horizontal=drag\.axis===\"column\"/);
+  assert.match(appSource, /horizontal=drag\.axis===\"column\"/);
   assert.match(appSource, /scroll\.scrollLeft=next;else scroll\.scrollTop=next/);
   assert.match(appSource, /calculateAxisResizeAutoScrollDelta\(\{coordinate,start,end,edgeSize:44,maxSpeed:16\}\)/);
 });
