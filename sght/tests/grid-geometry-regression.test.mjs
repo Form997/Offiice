@@ -113,7 +113,7 @@ test("resize đang diễn ra được hủy an toàn khi đổi sheet, mất foc
 
 test("resize guide bám theo mép tay nắm và có thể hủy bằng Escape", () => {
   assert.match(appSource, /startGuideCoordinate=axis===\"column\"\?\(handleRect\.left\+handleRect\.right\)\/2:\(handleRect\.top\+handleRect\.bottom\)\/2/);
-  assert.match(appSource, /drag\.startGuideCoordinate\+\(pointerCoordinate-drag\.startCoordinate\)-origin/);
+  assert.match(appSource, /calculateAxisResizeGuidePosition\(\{axis:drag\.axis/);
   assert.match(appSource, /event\.key!==\"Escape\"\|\|!axisResizeDrag/);
   assert.match(appSource, /calcStatus\.textContent=\"Đã hủy thao tác thay đổi kích thước hàng\/cột\.\"/);
 });
@@ -127,7 +127,7 @@ import { calculateAxisResizeGuidePosition } from "../engine/axis-resize-guide.js
 test("tọa độ đường căn resize được quy đổi theo viewport và giới hạn trong vùng bảng", () => {
   assert.equal(calculateAxisResizeGuidePosition({axis:"column",startGuideCoordinate:420,pointerCoordinate:530,startCoordinate:500,origin:100,extent:900}),350);
   assert.equal(calculateAxisResizeGuidePosition({axis:"row",startGuideCoordinate:260,pointerCoordinate:300,startCoordinate:280,origin:80,extent:600}),200);
-  assert.equal(calculateAxisResizeGuidePosition({axis:"column",startGuideCoordinate:110,pointerCoordinate:20,startCoordinate:100,origin:100,extent:500}),20);
+  assert.equal(calculateAxisResizeGuidePosition({axis:"column",startGuideCoordinate:110,pointerCoordinate:20,startCoordinate:100,origin:100,extent:500}),0);
 });
 
 test("đường căn không tràn khỏi sheetPanes khi kéo qua mép vùng nhìn", () => {
