@@ -12,7 +12,7 @@ test("tọa độ biên của hàng/cột thay đổi trả đúng chỉ số ch
     rowHeights: { "2": 48, "5": 20, "8": 60 },
     columnWidths: { "1": 140, "3": 72, "6": 200 }
   });
-  const rowEdges = [0, 32, 80, 112, 144, 164, 196, 228, 260];
+  const rowEdges = [0, 32, 80, 112, 144, 164, 196, 228, 288];
   for (let i = 0; i < rowEdges.length - 1; i++) {
     assert.equal(findAxisIndexAtOffset(geometry, "row", rowEdges[i]), i + 1);
     assert.equal(findAxisIndexAtOffset(geometry, "row", rowEdges[i + 1] - 0.001), i + 1);
@@ -22,7 +22,7 @@ test("tọa độ biên của hàng/cột thay đổi trả đúng chỉ số ch
     assert.equal(findAxisIndexAtOffset(geometry, "column", colEdges[i]), i + 1);
     assert.equal(findAxisIndexAtOffset(geometry, "column", colEdges[i + 1] - 0.001), i + 1);
   }
-  assert.equal(findAxisIndexAtOffset(geometry, "row", 260), 8);
+  assert.equal(findAxisIndexAtOffset(geometry, "row", 280), 8);
   assert.equal(findAxisIndexAtOffset(geometry, "column", 736), 6);
 });
 
@@ -34,10 +34,10 @@ test("offset, tổng vùng và tổng trục nhất quán với kích thước t
   });
   assert.equal(getAxisOffset(geometry, "row", 1), 0);
   assert.equal(getAxisOffset(geometry, "row", 3), 80);
-  assert.equal(getAxisRangeSize(geometry, "row", 2, 7), 32 + 32 + 32 + 32 + 32 + 60);
+  assert.equal(getAxisRangeSize(geometry, "row", 2, 7), 48 + 32 + 32 + 20 + 32 + 32);
   assert.equal(getAxisOffset(geometry, "row", 11), 32 * 10 + 16 + 28);
   assert.equal(getAxisRangeSize(geometry, "column", 2, 4), 108 + 160 + 108);
-  assert.equal(getAxisOffset(geometry, "column", 9), 108 * 8 + 92);
+  assert.equal(getAxisOffset(geometry, "column", 9), 108 * 8 + 52 + 92);
 });
 
 test("đổi kích thước đơn, theo lô và theo bản đồ không làm đột biến geometry nguồn", () => {
