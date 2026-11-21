@@ -62,6 +62,7 @@ export function createGridGeometry(input = {}) {
   };
 }
 
+const offsetCache = new WeakMap();
 function axisConfig(geometry, axis) {
   const g = geometry?.rowHeights && geometry?.columnWidths ? geometry : createGridGeometry(geometry);
   if (axis === "row") return { map: g.rowHeights, base: g.rowHeight, min: g.minRowHeight, max: g.maxRowHeight, count: g.maxRows };
@@ -85,12 +86,31 @@ export function getAxisSize(geometry, axis, index) {
 export function getAxisOffset(geometry, axis, index) {
   const config = axisConfig(geometry, axis);
   if (!Number.isSafeInteger(index) || index < 1 || index > config.count + 1) throw new RangeError("Mốc hàng/cột nằm ngoài giới hạn lưới.");
-  let offset = (index - 1) * config.base;
-  for (const [key, value] of Object.entries(config.map)) {
-    const changedIndex = Number(key);
-    if (changedIndex < index) offset += value - config.base;
+  let cache = offsetCache.get(geometry);
+  if (!cache) {
+    const entries = Object.entries(config.map).map(([key, value]) => [Number(key), value - config.base]).sort((a, b) => a[0] - b[0]);
+    const prefix = new Array(entries.length + 1);
+    prefix[0] = 0;
+    for (let i = 0; i < entries.length; i++) prefix[i + 1] = prefix[i] + entries[i][1];
+    cache = { row: null, column: null };
+    offsetCache.set(geometry, cache);
+    cache[axis] = { entries, prefix };
   }
-  return offset;
+  if (!cache[axis]) {
+    const entries = Object.entries(config.map).map(([key, value]) => [Number(key), value - config.base]).sort((a, b) => a[0] - b[0]);
+    const prefix = new Array(entries.length + 1);
+    prefix[0] = 0;
+    for (let i = 0; i < entries.length; i++) prefix[i + 1] = prefix[i] + entries[i][1];
+    cache[axis] = { entries, prefix };
+  }
+  const indexData = cache[axis];
+  let low = 0, high = indexData.entries.length;
+  while (low < high) {
+    const middle = (low + high) >>> 1;
+    if (indexData.entries[middle][0] < index) low = middle + 1;
+    else high = middle;
+  }
+  return (index - 1) * config.base + indexData.prefix[low];
 }
 
 /** Return total pixel size of an inclusive 1-based range. */
