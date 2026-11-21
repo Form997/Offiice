@@ -1020,3 +1020,13 @@ Bổ sung mô hình đáp ứng tăng dần, lợi ích biên giảm dần:
 - Trạng thái triển khai: chưa xác nhận Pages deployment cho commit B5. `main` không được sửa hoặc hợp nhất.
 - Bắt đầu và phát triển: 21/11/2026.
 
+
+## SGHT B5.2 — Tổ chức lại Ribbon và điều hướng công cụ — 2026-11-21
+
+- Điều chỉnh thanh Ribbon theo nhóm công cụ: vùng bảng tạm, định dạng, hàm nhanh, thu phóng, ghim và chia vùng có ranh giới thị giác rõ hơn; cuộn ngang có kiểm soát trên màn hình hẹp.
+- Điều hướng tab được nối với các không gian công cụ hiện có: Dữ liệu, Dashboard, Data Science, AI Intelligence và Macro Studio. Khi chuyển tab, các bảng công cụ khác được ẩn để tránh chồng lấp; nút đóng đưa người dùng về Trang chủ.
+- Các tab Chèn, Công thức, Xem và Tệp vẫn là nhóm điều hướng/nhãn trạng thái; chưa tuyên bố có bảng lệnh riêng vì HTML hiện tại chưa có các panel tương ứng. Không tạo nút giả hoặc hành vi giả.
+- Giữ nguyên ID của các nút và vùng giao diện; không thay đổi công thức, dữ liệu workbook, lưu trữ, API hay schema. Đây là tái tổ chức điều hướng và trình bày, chưa phải nghiệm thu toàn bộ tính năng.
+- Kiểm tra tĩnh: cập nhật app.js và style.css; cần chạy trình duyệt để xác nhận tương tác thực tế, đặc biệt chuyển tab, đóng panel, cuộn Ribbon, bố cục tablet/điện thoại. Chưa chạy Chrome/Android, kiểm thử hồi quy hoặc đo RAM; chưa xác nhận triển khai Pages.
+- Không sửa hoặc hợp nhất vào main.
+- Bắt đầu: 21/11/2026.
