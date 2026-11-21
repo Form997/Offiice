@@ -1041,3 +1041,14 @@ Bổ sung mô hình đáp ứng tăng dần, lợi ích biên giảm dần:
 - Kiểm tra tĩnh sau ghi: xác minh HTML/JS/CSS và README trên nhánh phát triển; chưa chạy trình duyệt, thao tác chuột/chạm thực tế, kiểm thử hồi quy hoặc đo RAM. Chưa xác nhận triển khai GitHub Pages.
 - Không sửa hoặc hợp nhất vào main.
 - Bắt đầu: 21/11/2026.
+
+## SGHT B5.4 — Đại tu thao tác tương tác trên lưới — 2026-11-21
+
+- Cải thiện chọn vùng bằng cảm ứng và bút: khi kéo qua các ô, ứng dụng nhận diện ô dưới tọa độ con trỏ và mở rộng vùng chọn; thao tác chuột kéo vùng đã chọn vẫn giữ đường đi riêng để không phá hành vi di chuyển vùng hiện có.
+- Bổ sung điều hướng bàn phím: Home/End tới đầu/cuối hàng, Ctrl/Cmd+Home về A1, Ctrl/Cmd+End tới vùng dữ liệu cuối, PageUp/PageDown theo chiều cao vùng nhìn thấy; giữ Shift để mở rộng vùng chọn.
+- Điều chỉnh focus: chọn ô không tự đẩy con trỏ vào thanh công thức nữa; sau khi lưới cập nhật, focus quay về ô đang chọn để phím điều hướng tiếp tục hoạt động tự nhiên.
+- Cải thiện vùng chạm, trạng thái focus, ngăn bôi đen văn bản ngoài ý muốn và giữ tay nắm điền có vùng tương tác riêng.
+- Giữ nguyên engine, dữ liệu, cấu trúc workbook, cơ chế lưu, clipboard, fill-series, lưới thưa, cuộn ảo, freeze/split và tính năng B5.1–B5.3.
+- Kiểm tra tĩnh sau ghi: cần xác minh lại các tệp, cú pháp JS và các đường xử lý gốc; chưa chạy Chrome/Android hoặc kiểm thử tương tác thật. Chưa xác nhận triển khai GitHub Pages.
+- Không sửa hoặc hợp nhất vào main.
+- Bắt đầu: 21/11/2026.
