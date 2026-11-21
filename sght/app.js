@@ -374,8 +374,9 @@ function clampAxisSize(axis,value){
 function updateResizeGuide(event){
  if(!axisResizeDrag)return;
  const drag=axisResizeDrag,rect=sheetPanesElement.getBoundingClientRect();
- const coordinate=drag.axis==="column"?event.clientX-rect.left:event.clientY-rect.top;
- const position=Math.max(0,coordinate);
+ const pointerCoordinate=drag.axis==="column"?event.clientX:event.clientY;
+ const origin=drag.axis==="column"?rect.left:rect.top;
+ const position=Math.max(0,drag.startGuideCoordinate+(pointerCoordinate-drag.startCoordinate)-origin);
  resizeGuide.hidden=false;
  resizeGuide.className="axis-resize-guide "+(drag.axis==="column"?"is-column":"is-row");
  if(drag.axis==="column"){resizeGuide.style.left=position+"px";resizeGuide.style.top="0";resizeGuide.style.height="100%";resizeGuide.style.width="2px";}
@@ -386,13 +387,17 @@ function beginAxisResize(event){
  const handle=event.target.closest?.("[data-resize-axis][data-resize-index]");
  if(!handle)return false;
  if(axisResizeDrag){event.preventDefault();event.stopPropagation();return true;}
+ if(event.isPrimary===false){event.preventDefault();event.stopPropagation();return true;}
  if(event.button!==undefined&&event.button!==0)return false;
  const axis=handle.dataset.resizeAxis,index=Number(handle.dataset.resizeIndex);
  if(!["row","column"].includes(axis)||!Number.isSafeInteger(index)||index<1)return false;
  event.preventDefault();event.stopPropagation();
  let targets;try{targets=axisResizeTargets(axis,index);}catch(error){calcStatus.textContent=error?.message||String(error);return true;}
  const startSize=getAxisSize(gridGeometry,axis,index);
- axisResizeDrag={pointerId:event.pointerId,axis,index,targets,startSize,previewSize:startSize,startCoordinate:axis==="column"?event.clientX:event.clientY,sheetId:activeSheetId,handle};
+ const handleRect=handle.getBoundingClientRect();
+ const startCoordinate=axis==="column"?event.clientX:event.clientY;
+ const startGuideCoordinate=axis==="column"?(handleRect.left+handleRect.right)/2:(handleRect.top+handleRect.bottom)/2;
+ axisResizeDrag={pointerId:event.pointerId,axis,index,targets,startSize,previewSize:startSize,startCoordinate,startGuideCoordinate,sheetId:activeSheetId,handle};
  try{handle.setPointerCapture(event.pointerId);}catch{}
  updateResizeGuide(event);
  return true;
@@ -494,6 +499,11 @@ window.addEventListener("pointerup",event=>finishAxisResize(event,true));
 window.addEventListener("pointercancel",event=>finishAxisResize(event,false));
 window.addEventListener("blur",cancelAxisResize);
 window.addEventListener("pagehide",cancelAxisResize);
+window.addEventListener("keydown",event=>{
+ if(event.key!=="Escape"||!axisResizeDrag)return;
+ event.preventDefault();cancelAxisResize();
+ calcStatus.textContent="Đã hủy thao tác thay đổi kích thước hàng/cột.";
+});
 document.addEventListener("visibilitychange",()=>{if(document.hidden)cancelAxisResize();});
 
 function escapeHtml(v){return String(v).replace(/[&<>"']/g,ch=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[ch]));}
