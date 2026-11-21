@@ -466,3 +466,21 @@ main{max-width:1920px;margin:0 auto;padding:0 0 24px}
 .sheet-grid .fill-handle{touch-action:none;cursor:crosshair}
 .sheet-grid .cell:active{background:#e3f1e7}
 @media(hover:none){.sheet-grid .cell{min-height:34px}.sheet-grid .fill-handle{width:12px;height:12px;right:-2px;bottom:-2px}}
+
+
+/* SGHT B5.5.3 — tay nắm thay đổi kích thước trục hàng/cột. */
+.sheet-panes{position:relative}
+.sheet-grid thead th[data-column],.sheet-grid .row-head{position:relative}
+.sheet-grid .axis-resize-handle{position:absolute;z-index:18;display:block;margin:0;padding:0;border:0;border-radius:0;background:transparent;opacity:.24;touch-action:none;cursor:col-resize}
+.sheet-grid .axis-resize-column{top:0;right:-5px;bottom:0;width:11px;min-width:11px}
+.sheet-grid .axis-resize-row{right:0;bottom:-5px;left:0;width:100%;height:11px;min-width:0;cursor:row-resize}
+.sheet-grid .axis-resize-handle::after{content:"";position:absolute;display:block;background:#397b54;border-radius:3px;opacity:0;transition:opacity .12s ease}
+.sheet-grid .axis-resize-column::after{top:5px;right:4px;bottom:5px;width:2px}
+.sheet-grid .axis-resize-row::after{right:5px;bottom:4px;left:5px;height:2px}
+.sheet-grid .axis-resize-handle:hover,.sheet-grid .axis-resize-handle:focus-visible{opacity:1;background:rgba(48,119,75,.12);outline:2px solid #347b50;outline-offset:-2px}
+.sheet-grid .axis-resize-handle:hover::after,.sheet-grid .axis-resize-handle:focus-visible::after{opacity:1}
+.axis-resize-guide{position:absolute;z-index:60;pointer-events:none;background:#18764a;box-shadow:0 0 0 1px rgba(255,255,255,.8)}
+.axis-resize-guide[hidden]{display:none}
+.axis-resize-guide-label{position:absolute;display:block;padding:4px 7px;border-radius:5px;background:#174b36;color:#fff;font:700 11px/1.2 ui-monospace,monospace;white-space:nowrap;box-shadow:0 2px 8px rgba(0,0,0,.18)}
+.axis-resize-guide.is-column .axis-resize-guide-label,.axis-resize-guide.is-row .axis-resize-guide-label{top:7px;left:7px}
+@media(hover:none){.sheet-grid .axis-resize-column{right:-7px;width:16px;min-width:16px;opacity:.5}.sheet-grid .axis-resize-row{bottom:-7px;height:16px;opacity:.5}.sheet-grid .axis-resize-handle::after{opacity:.7}}
