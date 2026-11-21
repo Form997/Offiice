@@ -1303,8 +1303,8 @@ if(errorScanButton&&errorOutput)errorScanButton.addEventListener("click",()=>{er
    target=address(row,col);
   }else if(event.key==="Home")target=address(point.r,1);
   else if(event.key==="End")target=address(point.r,COLS);
-  else if(event.key==="PageDown")target=address(Math.min(MAX_ROWS,point.r+findAxisIndexAtOffset(gridGeometry,"row",Math.max(0,getAxisOffset(gridGeometry,"row",point.r)-sheetScroll.clientHeight+1))),point.c);
-  else if(event.key==="PageUp")target=address(findAxisIndexAtOffset(gridGeometry,"row",Math.max(0,getAxisOffset(gridGeometry,"row",point.r)-sheetScroll.clientHeight+1)),point.c);
+  else if(event.key==="PageDown")target=address(findAxisIndexAtOffset(gridGeometry,"row",getAxisOffset(gridGeometry,"row",point.r)+Math.max(1,sheetScroll.clientHeight)),point.c);
+  else if(event.key==="PageUp")target=address(findAxisIndexAtOffset(gridGeometry,"row",Math.max(0,getAxisOffset(gridGeometry,"row",point.r)-Math.max(1,sheetScroll.clientHeight))),point.c);
   if(!target)return;
   event.preventDefault();choose(target,event.shiftKey);
  });
