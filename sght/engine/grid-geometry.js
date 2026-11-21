@@ -84,16 +84,17 @@ export function getAxisSize(geometry, axis, index) {
 
 /** Return the pixel offset before a 1-based row/column. Index count+1 is allowed for total size. */
 export function getAxisOffset(geometry, axis, index) {
-  const config = axisConfig(geometry, axis);
+  const normalized = geometry?.rowHeights && geometry?.columnWidths ? geometry : createGridGeometry(geometry);
+  const config = axisConfig(normalized, axis);
   if (!Number.isSafeInteger(index) || index < 1 || index > config.count + 1) throw new RangeError("Mốc hàng/cột nằm ngoài giới hạn lưới.");
-  let cache = offsetCache.get(geometry);
+  let cache = offsetCache.get(normalized);
   if (!cache) {
     const entries = Object.entries(config.map).map(([key, value]) => [Number(key), value - config.base]).sort((a, b) => a[0] - b[0]);
     const prefix = new Array(entries.length + 1);
     prefix[0] = 0;
     for (let i = 0; i < entries.length; i++) prefix[i + 1] = prefix[i] + entries[i][1];
     cache = { row: null, column: null };
-    offsetCache.set(geometry, cache);
+    offsetCache.set(normalized, cache);
     cache[axis] = { entries, prefix };
   }
   if (!cache[axis]) {
