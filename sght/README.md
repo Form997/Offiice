@@ -1128,3 +1128,12 @@ Bổ sung mô hình đáp ứng tăng dần, lợi ích biên giảm dần:
 - AutoFit hàng ước lượng số dòng riêng theo độ rộng thực tế của từng cột trong vùng chọn và lấy số dòng lớn nhất trên mỗi hàng. Không xử lý ô gộp; đây là phép đo xấp xỉ dựa trên độ rộng chữ.
 - Đã cập nhật mã nguồn và tài liệu; chưa chạy npm test, chưa kiểm thử Chrome/Android, chưa đo hiệu năng workbook lớn, chưa xác nhận CI/deployment.
 - Nhánh v1-development; không sửa main. Ngày: 21/11/2026.
+
+
+## SGHT B5.5.7 — Sao chép và áp dụng kích thước hàng/cột — 2026-11-21
+
+- Thêm bộ nhớ kích thước riêng, độc lập với clipboard nội dung ô: chép chiều cao hàng hoặc độ rộng cột tại ô đang chọn; sau đó áp dụng cho toàn bộ hàng/cột tương ứng trong vùng chọn.
+- Bộ nhớ kích thước tồn tại khi chuyển trang tính trong cùng phiên làm việc, nên có thể chép ở sheet nguồn rồi áp dụng ở sheet đích. Bộ nhớ này chỉ giữ một loại kích thước gần nhất (hàng hoặc cột), không chứa giá trị ô, công thức hay định dạng.
+- Áp dụng theo lô tối đa 5.000 hàng/cột, ghi thành một giao dịch hình học; dùng Undo/Redo kích thước hiện có. Khi áp dụng không ghi đè dữ liệu, công thức, định dạng hoặc clipboard ô.
+- Bổ sung mô-đun độc lập và unit test cho sao chép hàng, sao chép cột liên sheet và kiểm tra giới hạn. Test đã được thêm nhưng chưa chạy trong môi trường này.
+- Đã rà soát và cập nhật trên nhánh `v1-development`; chưa chạy trình duyệt/Android, chưa đo hiệu năng workbook lớn, chưa xác nhận CI hoặc GitHub Pages deployment.
