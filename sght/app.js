@@ -24,7 +24,7 @@ import { serializeWorkbook, restoreWorkbook, pushHistoryEntry, moveHistory } fro
 import { searchCells, replaceCells } from "./engine/search.js";
 import { sortRangeRows, filterRangeRows, removeDuplicateRows, defineStructuredRange, uniqueColumnValues, summarizeByGroup, summarizeByGroups, buildPivotTable, expandStructuredRange, structuredColumnRange, expandStructuredReferences } from "./engine/data-tools.js";
 import { getVirtualWindow } from "./engine/sparse-grid.js";
-import { createGridGeometry, getAxisOffset, getAxisSize, findAxisIndexAtOffset, serializeGridGeometry } from "./engine/grid-geometry.js";
+import { GRID_GEOMETRY_DEFAULTS, createGridGeometry, getAxisOffset, getAxisSize, findAxisIndexAtOffset, setAxisSize, resetAxisSize, serializeGridGeometry } from "./engine/grid-geometry.js";
 import { expandGridCapacity } from "./engine/grid-capacity.js";
 import { buildFreezeLayout, normalizeFreezeSettings } from "./engine/freeze-panes.js";
 import { normalizeSplitSettings, synchronizedAxis, splitRatioFromPointer, normalizeQuadrantPositions, synchronizeQuadrantPositions, quadrantScrollTargets } from "./engine/split-panes.js";
@@ -241,8 +241,8 @@ function renderGrid(targetGrid,targetScroll){
   const w=getVirtualWindow({scrollTop:targetScroll.scrollTop,scrollLeft:targetScroll.scrollLeft,viewportHeight:targetScroll.clientHeight||480,viewportWidth:targetScroll.clientWidth||900,rowHeight:ROW_HEIGHT,columnWidth:COLUMN_WIDTH,overscanRows:OVERSCAN_ROWS,overscanColumns:OVERSCAN_COLUMNS,maxRow:ROWS,maxColumn:COLS,geometry:gridGeometry});
   const layout=buildFreezeLayout(w,{rows:frozenRows,columns:frozenColumns,rowHeight:ROW_HEIGHT,columnWidth:COLUMN_WIDTH,rowHeaderWidth:48,gridGeometry});
   const pinnedColumns=layout.pinnedColumns,pinnedRows=layout.pinnedRows;
-  const colHeaders=pinnedColumns.map(c=>"<th data-column='"+c+"' class='freeze-col freeze-col-head' style='left:"+(48+getAxisOffset(gridGeometry,"column",c))+"px;width:"+getAxisSize(gridGeometry,"column",c)+"px;min-width:"+getAxisSize(gridGeometry,"column",c)+"px'>"+letters(c)+"</th>").join("");
-  const visibleHeaders=Array.from({length:w.renderedColumns},(_,i)=>{const c=w.columnStart+i,size=getAxisSize(gridGeometry,"column",c);return "<th data-column='"+c+"' style='width:"+size+"px;min-width:"+size+"px'>"+letters(c)+"</th>";}).join("");
+  const colHeaders=pinnedColumns.map(c=>"<th data-column='"+c+"' class='freeze-col freeze-col-head' style='left:"+(48+getAxisOffset(gridGeometry,"column",c))+"px;width:"+getAxisSize(gridGeometry,"column",c)+"px;min-width:"+getAxisSize(gridGeometry,"column",c)+"px'>"+letters(c)+"<button type='button' class='axis-resize-handle axis-resize-column' data-resize-axis='column' data-resize-index='"+c+"' aria-label='Thay đổi độ rộng cột "+letters(c)+"' title='Kéo để đổi độ rộng cột'></button></th>").join("");
+  const visibleHeaders=Array.from({length:w.renderedColumns},(_,i)=>{const c=w.columnStart+i,size=getAxisSize(gridGeometry,"column",c);return "<th data-column='"+c+"' style='width:"+size+"px;min-width:"+size+"px'>"+letters(c)+"<button type='button' class='axis-resize-handle axis-resize-column' data-resize-axis='column' data-resize-index='"+c+"' aria-label='Thay đổi độ rộng cột "+letters(c)+"' title='Kéo để đổi độ rộng cột'></button></th>";}).join("");
   const leftGap=layout.leftGap? "<th class='virtual-spacer' style='width:"+layout.leftGap+"px;min-width:"+layout.leftGap+"px'></th>":"";
   const rightGap=w.rightOffset?"<th class='virtual-spacer' style='width:"+w.rightOffset+"px;min-width:"+w.rightOffset+"px'></th>":"";
   thead.innerHTML="<tr><th class='corner'></th>"+colHeaders+leftGap+visibleHeaders+rightGap+"</tr>";
@@ -251,12 +251,12 @@ function renderGrid(targetGrid,targetScroll){
   const activeBounds=getRangeBounds(selectionRange.start,selectionRange.end),fillAt=address(activeBounds.endRow,activeBounds.endCol);
   const renderRow=(r,isFrozen)=>{
     const rowHeight=getAxisSize(gridGeometry,"row",r),rowTop=32+getAxisOffset(gridGeometry,"row",r);
-    let rowHtml="<th data-row='"+r+"' class='row-head"+(isFrozen?" freeze-row-head":"")+"' aria-label='Hàng "+r+"' style='height:"+rowHeight+"px;"+(isFrozen?"top:"+rowTop+"px;":"")+"'>"+r+"</th>";
+    let rowHtml="<th data-row='"+r+"' class='row-head"+(isFrozen?" freeze-row-head":"")+"' aria-label='Hàng "+r+"' style='height:"+rowHeight+"px;"+(isFrozen?"top:"+rowTop+"px;":"")+"'>"+r+"<button type='button' class='axis-resize-handle axis-resize-row' data-resize-axis='row' data-resize-index='"+r+"' aria-label='Thay đổi chiều cao hàng "+r+"' title='Kéo để đổi chiều cao hàng'></button></th>";
     for(const c of pinnedColumns){const a=address(r,c),width=getAxisSize(gridGeometry,"column",c);rowHtml+="<td class='freeze-col"+(isFrozen?" freeze-intersection":"")+"' style='left:"+(48+getAxisOffset(gridGeometry,"column",c))+"px;width:"+width+"px;min-width:"+width+"px;height:"+rowHeight+"px;"+(isFrozen?"top:"+rowTop+"px;":"")+"'><button type='button' class='cell' draggable='true' data-cell='"+a+"' style='height:"+(rowHeight-1)+"px' aria-label='Ô "+a+"'>"+escapeHtml(display(a))+(a===fillAt?"<span class='fill-handle' data-fill-handle='"+a+"' title='Kéo để điền dữ liệu' aria-label='Kéo để điền dữ liệu'></span>":"")+"</button></td>";}
     if(layout.leftGap)rowHtml+="<td class='virtual-spacer' style='width:"+layout.leftGap+"px;min-width:"+layout.leftGap+"px'></td>";
     for(let c=w.columnStart;c<=w.columnEnd;c++){const a=address(r,c),width=getAxisSize(gridGeometry,"column",c);rowHtml+="<td"+(isFrozen?" class='freeze-row-cell'":"")+" style='width:"+width+"px;min-width:"+width+"px;height:"+rowHeight+"px;"+(isFrozen?"top:"+rowTop+"px;":"")+"'><button type='button' class='cell' draggable='true' data-cell='"+a+"' style='height:"+(rowHeight-1)+"px' aria-label='Ô "+a+"'>"+escapeHtml(display(a))+"</button></td>";}
     if(w.rightOffset)rowHtml+="<td class='virtual-spacer' style='width:"+w.rightOffset+"px;min-width:"+w.rightOffset+"px'></td>";
-    return "<tr"+(isFrozen?" class='freeze-row'":"")+" style='height:"+rowHeight+"px'>"+rowHtml+"</tr>";
+    return "<tr"+(isFrozen?" class='freeze-row'":"")+" data-grid-row='"+r+"' style='height:"+rowHeight+"px'>"+rowHtml+"</tr>";
   };
   for(const r of pinnedRows)rows.push(renderRow(r,true));
   if(layout.activeRows)rows.push("<tr class='virtual-gap freeze-gap'><td colspan='"+span+"' style='height:"+layout.topGap+"px'></td></tr>");
@@ -266,6 +266,93 @@ function renderGrid(targetGrid,targetScroll){
   for(const b of tbody.querySelectorAll("[data-cell]"))for(const [k,v] of Object.entries(cellFormatStyle(cellFormats[b.dataset.cell]||{})))b.style[k]=v;
   updateSelection();
 }
+ 
+// SGHT B5.5.3 — kéo đổi kích thước hàng/cột, dùng chung cho mọi pane.
+const sheetPanesElement=document.querySelector("#sheetPanes");
+const resizeGuide=document.createElement("div");
+resizeGuide.className="axis-resize-guide";
+resizeGuide.hidden=true;
+const resizeGuideLabel=document.createElement("span");
+resizeGuideLabel.className="axis-resize-guide-label";
+resizeGuide.append(resizeGuideLabel);
+sheetPanesElement.append(resizeGuide);
+let axisResizeDrag=null;
+
+function clampAxisSize(axis,value){
+ const min=axis==="row"?GRID_GEOMETRY_DEFAULTS.minRowHeight:GRID_GEOMETRY_DEFAULTS.minColumnWidth;
+ const max=axis==="row"?GRID_GEOMETRY_DEFAULTS.maxRowHeight:GRID_GEOMETRY_DEFAULTS.maxColumnWidth;
+ return Math.max(min,Math.min(max,value));
+}
+function updateResizeGuide(event){
+ if(!axisResizeDrag)return;
+ const drag=axisResizeDrag,rect=sheetPanesElement.getBoundingClientRect();
+ const coordinate=drag.axis==="column"?event.clientX-rect.left:event.clientY-rect.top;
+ const position=Math.max(0,coordinate);
+ resizeGuide.hidden=false;
+ resizeGuide.className="axis-resize-guide "+(drag.axis==="column"?"is-column":"is-row");
+ if(drag.axis==="column"){resizeGuide.style.left=position+"px";resizeGuide.style.top="0";resizeGuide.style.height="100%";resizeGuide.style.width="2px";}
+ else{resizeGuide.style.top=position+"px";resizeGuide.style.left="0";resizeGuide.style.width="100%";resizeGuide.style.height="2px";}
+ resizeGuideLabel.textContent=(drag.axis==="column"?letters(drag.index):"Hàng "+drag.index)+" · "+drag.previewSize+" px";
+}
+function beginAxisResize(event){
+ const handle=event.target.closest?.("[data-resize-axis][data-resize-index]");
+ if(!handle)return false;
+ if(event.button!==undefined&&event.button!==0)return false;
+ const axis=handle.dataset.resizeAxis,index=Number(handle.dataset.resizeIndex);
+ if(!["row","column"].includes(axis)||!Number.isSafeInteger(index)||index<1)return false;
+ event.preventDefault();event.stopPropagation();
+ const startSize=getAxisSize(gridGeometry,axis,index);
+ axisResizeDrag={pointerId:event.pointerId,axis,index,startSize,previewSize:startSize,startCoordinate:axis==="column"?event.clientX:event.clientY,sheetId:activeSheetId,handle};
+ try{handle.setPointerCapture(event.pointerId);}catch{}
+ updateResizeGuide(event);
+ return true;
+}
+function moveAxisResize(event){
+ const drag=axisResizeDrag;if(!drag||event.pointerId!==drag.pointerId)return;
+ event.preventDefault();
+ const coordinate=drag.axis==="column"?event.clientX:event.clientY;
+ drag.previewSize=clampAxisSize(drag.axis,Math.round(drag.startSize+coordinate-drag.startCoordinate));
+ updateResizeGuide(event);
+}
+function finishAxisResize(event,commit=true){
+ const drag=axisResizeDrag;if(!drag||event.pointerId!==drag.pointerId)return;
+ axisResizeDrag=null;resizeGuide.hidden=true;
+ if(!commit||drag.sheetId!==activeSheetId||drag.previewSize===drag.startSize)return;
+ try{
+  gridGeometry=setAxisSize(gridGeometry,drag.axis,drag.index,drag.previewSize);
+  render();save();
+  calcStatus.textContent=(drag.axis==="column"?"Độ rộng cột ":"Chiều cao hàng ")+(drag.axis==="column"?letters(drag.index):drag.index)+" đã đổi thành "+drag.previewSize+" px.";
+ }catch(error){calcStatus.textContent="Không thể đổi kích thước: "+(error?.message||String(error));}
+}
+function installAxisResize(gridElement){
+ gridElement.addEventListener("pointerdown",beginAxisResize);
+ gridElement.addEventListener("keydown",event=>{
+  const handle=event.target.closest?.("[data-resize-axis][data-resize-index]");
+  if(!handle)return;
+  const axis=handle.dataset.resizeAxis,index=Number(handle.dataset.resizeIndex);
+  let next=null;
+  const step=event.shiftKey?20:5;
+  if(axis==="column"&&event.key==="ArrowRight")next=getAxisSize(gridGeometry,axis,index)+step;
+  else if(axis==="column"&&event.key==="ArrowLeft")next=getAxisSize(gridGeometry,axis,index)-step;
+  else if(axis==="row"&&event.key==="ArrowDown")next=getAxisSize(gridGeometry,axis,index)+step;
+  else if(axis==="row"&&event.key==="ArrowUp")next=getAxisSize(gridGeometry,axis,index)-step;
+  else if(event.key==="Home"){
+   event.preventDefault();gridGeometry=resetAxisSize(gridGeometry,axis,index);render();save();
+   calcStatus.textContent="Đã khôi phục kích thước mặc định cho "+(axis==="column"?"cột "+letters(index):"hàng "+index)+".";
+   requestAnimationFrame(()=>document.querySelector('[data-resize-axis="'+axis+'"][data-resize-index="'+index+'"]')?.focus());return;
+  }else return;
+  event.preventDefault();
+  try{
+   gridGeometry=setAxisSize(gridGeometry,axis,index,clampAxisSize(axis,next));render();save();
+   requestAnimationFrame(()=>document.querySelector('[data-resize-axis="'+axis+'"][data-resize-index="'+index+'"]')?.focus());
+  }catch(error){calcStatus.textContent="Không thể đổi kích thước: "+(error?.message||String(error));}
+ });
+}
+[grid,splitGrid,quadrantPanes.topRight.grid,quadrantPanes.bottomLeft.grid].forEach(installAxisResize);
+window.addEventListener("pointermove",moveAxisResize,{passive:false});
+window.addEventListener("pointerup",event=>finishAxisResize(event,true));
+window.addEventListener("pointercancel",event=>finishAxisResize(event,false));
+
 function escapeHtml(v){return String(v).replace(/[&<>"']/g,ch=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[ch]));}
 function updateSelection(){
   cellAddress.value=selected;formulaInput.value=raw(selected);
