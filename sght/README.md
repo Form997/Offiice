@@ -1221,3 +1221,12 @@ Bổ sung mô hình đáp ứng tăng dần, lợi ích biên giảm dần:
 - Không tự tăng/giảm kích thước chỉ do cuộn; kích thước vẫn theo delta con trỏ. Không đổi dữ liệu ô, công thức, định dạng, clipboard hoặc workbook schema.
 - Bổ sung helper và test cho mép pane, tốc độ, pane hẹp, tọa độ bất thường và vòng đời dừng. Chờ CI; chưa thay thế kiểm thử Chrome/Android/Samsung A05 hoặc đo hiệu năng thiết bị.
 - Nhánh v1-development; không sửa main. Ngày 21/11/2026.
+
+## SGHT B5.5.16 — Gia cố vòng đời tự cuộn khi resize — 2026-11-21
+
+- Từ chối tọa độ không hợp lệ (NaN/Infinity), tránh kích hoạt cuộn sai khi dữ liệu pointer hoặc hình học pane không hợp lệ.
+- Kiểm tra trang tính hiện hành, tay nắm và pane còn gắn trong DOM, pane vẫn chứa đúng tay nắm; tự hủy resize an toàn nếu pane bị thay thế.
+- Dừng vòng lặp khi con trỏ rời vùng kích hoạt hoặc đã chạm biên cuộn; có thể khởi động lại ở pointermove kế tiếp.
+- Giữ nguyên ngưỡng 44 px, tốc độ tối đa 16 px/khung hình và không đổi dữ liệu ô, công thức, định dạng hoặc workbook schema.
+- Bổ sung kiểm thử unit/source-contract; chưa thay thế kiểm thử DOM/Pointer Events thực tế trên Chrome/Android/Samsung A05.
+- Nhánh `v1-development`; không sửa `main`. Ngày 21/11/2026.
