@@ -1030,3 +1030,14 @@ Bổ sung mô hình đáp ứng tăng dần, lợi ích biên giảm dần:
 - Kiểm tra tĩnh: cập nhật app.js và style.css; cần chạy trình duyệt để xác nhận tương tác thực tế, đặc biệt chuyển tab, đóng panel, cuộn Ribbon, bố cục tablet/điện thoại. Chưa chạy Chrome/Android, kiểm thử hồi quy hoặc đo RAM; chưa xác nhận triển khai Pages.
 - Không sửa hoặc hợp nhất vào main.
 - Bắt đầu: 21/11/2026.
+
+## SGHT B5.3 — Đại tu vùng bảng tính và vùng chọn — 2026-11-21
+
+- Thanh địa chỉ ô được chuyển thành ô nhập thực sự: nhập địa chỉ như D25, nhấn Enter để điều hướng; Escape khôi phục địa chỉ đang chọn. Địa chỉ sai hoặc vượt giới hạn sẽ bị từ chối, không sửa dữ liệu.
+- Thanh công thức được phân cấp rõ: hộp địa chỉ, ký hiệu fx, vùng nhập công thức và nút áp dụng; tối ưu kích thước chạm trên điện thoại.
+- Tiêu đề hàng/cột được gắn chỉ dấu vùng đang chọn; làm rõ hàng/cột hiện hành, ô đơn và vùng nhiều ô. Tinh chỉnh lưới, đường viền, vùng chọn, kết quả tìm kiếm và tay nắm điền dữ liệu.
+- Tinh chỉnh khung bảng, thanh trang tính và thanh trạng thái; giữ cơ chế cuộn ảo, lưới thưa, ghim/chia khung hiện có.
+- Không thay đổi công thức, lưu trữ, cấu trúc workbook, dữ liệu, clipboard engine, sparse-grid engine hoặc fill-series engine. Không chuyển đổi dữ liệu cũ.
+- Kiểm tra tĩnh sau ghi: xác minh HTML/JS/CSS và README trên nhánh phát triển; chưa chạy trình duyệt, thao tác chuột/chạm thực tế, kiểm thử hồi quy hoặc đo RAM. Chưa xác nhận triển khai GitHub Pages.
+- Không sửa hoặc hợp nhất vào main.
+- Bắt đầu: 21/11/2026.
