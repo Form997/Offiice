@@ -73,3 +73,16 @@ test("không cấp phát mảng theo tổng số hàng hoặc cột", () => {
   assert.equal(Object.keys(g.rowHeights).length, 0);
   assert.equal(Object.keys(g.columnWidths).length, 0);
 });
+
+test("đổi đồng loạt nhiều hàng/cột trong một thao tác thưa", () => {
+  let g = createGridGeometry();
+  g = setAxisSizes(g, "row", [2, 3, 4, 4], 44);
+  g = setAxisSizes(g, "column", [1, 5, 8], 150);
+  assert.equal(getAxisSize(g, "row", 2), 44);
+  assert.equal(getAxisSize(g, "row", 4), 44);
+  assert.equal(getAxisSize(g, "row", 5), 32);
+  assert.equal(getAxisSize(g, "column", 8), 150);
+  assert.deepEqual(Object.keys(serializeGridGeometry(g).rowHeights), ["2", "3", "4"]);
+  assert.throws(() => setAxisSizes(g, "row", Array.from({length: 5001}, (_, i) => i + 1), 40), RangeError);
+  assert.throws(() => setAxisSizes(g, "column", [1, 0], 120), RangeError);
+});
