@@ -1091,3 +1091,15 @@ Bổ sung mô hình đáp ứng tăng dần, lợi ích biên giảm dần:
 - Chưa có Undo/Redo cho thay đổi kích thước; chưa có chọn nhiều hàng/cột để đổi đồng loạt; chưa có nhập kích thước chính xác bằng hộp thoại. Các mục này cần bước riêng.
 - Kiểm tra trong lượt này: kiểm tra cấu trúc và nội dung mã sau khi ghi GitHub; chưa chạy Node/npm test, chưa chạy trình duyệt, chưa thử Android hoặc đo hiệu năng thiết bị thực. Không tuyên bố triển khai GitHub Pages đã hoàn tất.
 - Nhánh: `v1-development`; không sửa `main`.
+
+
+## SGHT B5.5.4 — Lịch sử kích thước và nhập số pixel chính xác — 2026-11-21
+
+- Bổ sung hai lệnh riêng Hoàn tác kích thước và Làm lại kích thước. Mỗi lần kéo, dùng bàn phím hoặc nhập số pixel được ghi thành một giao dịch; lịch sử giới hạn 40 bước cho từng trang tính và được lưu cùng metadata workbook.
+- Hai lệnh lịch sử kích thước hoạt động độc lập với lịch sử nội dung/định dạng ô hiện có. Không ghi snapshot dữ liệu ô, không thay đổi công thức, không làm xáo trộn lịch sử sửa ô và lịch sử phiên bản công thức.
+- Nhấp đúp vào tay nắm mép tiêu đề hàng/cột để nhập kích thước pixel chính xác. Hệ thống làm tròn về số nguyên và giới hạn hàng 20–240 px, cột 40–500 px; hủy hộp nhập thì không thay đổi.
+- Lịch sử được tách riêng có chủ ý: Hoàn tác/Làm lại kích thước chỉ tác động hình học lưới, còn Hoàn tác/Làm lại hiện hành tiếp tục dành cho dữ liệu và định dạng. Đây là cơ chế tương thích, không phải một timeline hợp nhất giữa mọi loại thao tác.
+- Giữ nguyên lưu trữ ô thưa, engine công thức, clipboard, fill-series, virtual scrolling, freeze/split và metadata hình học từng sheet. Không cấp phát mảng theo tổng số hàng/cột.
+- Chưa triển khai đổi kích thước đồng loạt cho nhiều hàng/cột, AutoFit nội dung hoặc sao chép kích thước giữa các trục. Chưa chạy trình duyệt/Android; chưa thực thi npm test trong môi trường này; chưa có xác nhận CI hoặc Pages deployment cho commit này.
+- Nhánh: v1-development; không sửa hoặc hợp nhất vào main.
+- Bắt đầu và phát triển: 21/11/2026.
