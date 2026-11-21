@@ -42,10 +42,10 @@ function normalizeOverrides(input, limit, min, max, label) {
 /** Create a normalized geometry value with sparse row/column overrides. */
 export function createGridGeometry(input = {}) {
   const options = input && typeof input === "object" ? input : {};
-  const maxRows = Number.isSafeInteger(options.maxRows) && options.maxRows > 0
-    ? options.maxRows : GRID_GEOMETRY_DEFAULTS.maxRows;
-  const maxColumns = Number.isSafeInteger(options.maxColumns) && options.maxColumns > 0
-    ? options.maxColumns : GRID_GEOMETRY_DEFAULTS.maxColumns;
+  const maxRows = options.maxRows === undefined ? GRID_GEOMETRY_DEFAULTS.maxRows : Number(options.maxRows);
+  const maxColumns = options.maxColumns === undefined ? GRID_GEOMETRY_DEFAULTS.maxColumns : Number(options.maxColumns);
+  if (!Number.isSafeInteger(maxRows) || maxRows < 1 || maxRows > GRID_GEOMETRY_DEFAULTS.maxRows) throw new RangeError("Giới hạn số hàng không hợp lệ.");
+  if (!Number.isSafeInteger(maxColumns) || maxColumns < 1 || maxColumns > GRID_GEOMETRY_DEFAULTS.maxColumns) throw new RangeError("Giới hạn số cột không hợp lệ.");
   const rowHeight = finiteInRange(options.rowHeight ?? GRID_GEOMETRY_DEFAULTS.rowHeight, 1, 1000, "Chiều cao hàng mặc định");
   const columnWidth = finiteInRange(options.columnWidth ?? GRID_GEOMETRY_DEFAULTS.columnWidth, 1, 2000, "Độ rộng cột mặc định");
   const minRowHeight = finiteInRange(options.minRowHeight ?? GRID_GEOMETRY_DEFAULTS.minRowHeight, 1, 1000, "Chiều cao hàng tối thiểu");
