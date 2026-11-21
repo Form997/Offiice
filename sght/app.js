@@ -24,7 +24,7 @@ import { serializeWorkbook, restoreWorkbook, pushHistoryEntry, moveHistory } fro
 import { searchCells, replaceCells } from "./engine/search.js";
 import { sortRangeRows, filterRangeRows, removeDuplicateRows, defineStructuredRange, uniqueColumnValues, summarizeByGroup, summarizeByGroups, buildPivotTable, expandStructuredRange, structuredColumnRange, expandStructuredReferences } from "./engine/data-tools.js";
 import { getVirtualWindow } from "./engine/sparse-grid.js";
-import { createGridGeometry, getAxisOffset, getAxisSize, serializeGridGeometry } from "./engine/grid-geometry.js";
+import { createGridGeometry, getAxisOffset, getAxisSize, findAxisIndexAtOffset, serializeGridGeometry } from "./engine/grid-geometry.js";
 import { expandGridCapacity } from "./engine/grid-capacity.js";
 import { buildFreezeLayout, normalizeFreezeSettings } from "./engine/freeze-panes.js";
 import { normalizeSplitSettings, synchronizedAxis, splitRatioFromPointer, normalizeQuadrantPositions, synchronizeQuadrantPositions, quadrantScrollTargets } from "./engine/split-panes.js";
@@ -336,8 +336,8 @@ function handlePaneScroll(source,peer){
   if(source===sheetScroll){splitPositions.primary={top:source.scrollTop,left:source.scrollLeft};if(splitMode!=="none")splitPositions.secondary={top:splitScroll.scrollTop,left:splitScroll.scrollLeft};}
   else{splitPositions.secondary={top:source.scrollTop,left:source.scrollLeft};splitPositions.primary={top:sheetScroll.scrollTop,left:sheetScroll.scrollLeft};}
   scheduleSplitSave();
-  const nearBottom=source.scrollTop+source.clientHeight>=source.scrollHeight-Math.max(ROW_HEIGHT*24,source.clientHeight*2);
-  const nearRight=source.scrollLeft+source.clientWidth>=source.scrollWidth-Math.max(COLUMN_WIDTH*8,source.clientWidth*2);
+  const nearBottom=source.scrollTop+source.clientHeight>=source.scrollHeight-Math.max(getAxisSize(gridGeometry,"row",1)*24,source.clientHeight*2);
+  const nearRight=source.scrollLeft+source.clientWidth>=source.scrollWidth-Math.max(getAxisSize(gridGeometry,"column",1)*8,source.clientWidth*2);
   let grew=false;
   if(nearBottom&&ROWS<MAX_ROWS){const next=expandGridCapacity({rows:ROWS,columns:COLS},{row:ROWS+1,column:1},{maxRows:MAX_ROWS,maxColumns:MAX_COLS});ROWS=next.rows;grew=true;}
   if(nearRight&&COLS<MAX_COLS){const next=expandGridCapacity({rows:ROWS,columns:COLS},{row:1,column:COLS+1},{maxRows:MAX_ROWS,maxColumns:MAX_COLS});COLS=next.columns;grew=true;}
@@ -1303,8 +1303,8 @@ if(errorScanButton&&errorOutput)errorScanButton.addEventListener("click",()=>{er
    target=address(row,col);
   }else if(event.key==="Home")target=address(point.r,1);
   else if(event.key==="End")target=address(point.r,COLS);
-  else if(event.key==="PageDown")target=address(Math.min(MAX_ROWS,point.r+Math.max(1,Math.floor(sheetScroll.clientHeight/ROW_HEIGHT)-1)),point.c);
-  else if(event.key==="PageUp")target=address(Math.max(1,point.r-Math.max(1,Math.floor(sheetScroll.clientHeight/ROW_HEIGHT)-1)),point.c);
+  else if(event.key==="PageDown")target=address(Math.min(MAX_ROWS,point.r+findAxisIndexAtOffset(gridGeometry,"row",Math.max(0,getAxisOffset(gridGeometry,"row",point.r)-sheetScroll.clientHeight+1))),point.c);
+  else if(event.key==="PageUp")target=address(findAxisIndexAtOffset(gridGeometry,"row",Math.max(0,getAxisOffset(gridGeometry,"row",point.r)-sheetScroll.clientHeight+1)),point.c);
   if(!target)return;
   event.preventDefault();choose(target,event.shiftKey);
  });
