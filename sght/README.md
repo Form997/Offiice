@@ -1189,3 +1189,14 @@ Bổ sung mô hình đáp ứng tăng dần, lợi ích biên giảm dần:
 - Bổ sung kiểm thử hợp đồng cho căn đường biên, Escape và pointer identity.
 - Không đổi engine, dữ liệu ô, công thức, định dạng hoặc schema workbook. Kiểm thử tự động không thay thế nghiệm thu Pointer Events trên Chrome/Android thật.
 - Nhánh `v1-development`; không sửa `main`. Ngày 21/11/2026.
+
+
+## SGHT B5.5.13 — Chuẩn hóa tọa độ đường căn khi cuộn, Freeze và Split — 2026-11-21
+
+- Tách phép quy đổi tọa độ con trỏ từ viewport sang lớp phủ sheetPanes thành hàm thuần calculateAxisResizeGuidePosition.
+- Giữ phép dịch chuyển theo delta của con trỏ, đồng thời giới hạn đường căn trong chiều rộng/chiều cao thực tế của vùng bảng; tránh đường căn chạy ra ngoài khi kéo qua mép.
+- Áp dụng chung cho cột và hàng, không phụ thuộc pane nguồn là vùng thường, Freeze Panes, Split Panes hay Quadrant.
+- Bổ sung kiểm thử module cho quy đổi tọa độ, hai mép giới hạn, vùng có kích thước bằng 0 và trục không hợp lệ.
+- Không đổi engine công thức, dữ liệu ô, định dạng, clipboard, workbook schema, hình học hàng/cột hoặc quy tắc đồng bộ cuộn.
+- Kiểm thử Node không thay thế thao tác Pointer Events trên Chrome/Android thật; vẫn cần nghiệm thu cuộn, Freeze/Split và Samsung A05.
+- Nhánh v1-development; không sửa main. Ngày 21/11/2026.
