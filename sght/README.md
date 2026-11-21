@@ -1179,3 +1179,13 @@ Bổ sung mô hình đáp ứng tăng dần, lợi ích biên giảm dần:
 - Không thay đổi runtime app, engine công thức, dữ liệu ô, định dạng hoặc schema workbook. Không thêm dependency; test mới được thu nhận qua glob hiện hữu của `npm test`.
 - Các test Node không phải browser E2E. Chrome, Android/Samsung A05 và đo hiệu năng vẫn chờ thực hiện trực tiếp.
 - Nhánh `v1-development`; không sửa hoặc hợp nhất vào `main`. Ngày: 21/11/2026.
+
+
+## SGHT B5.5.12 — Gia cố tương tác resize — 2026-11-21
+
+- Đường căn resize nay neo theo tâm tay nắm lúc bắt đầu và di chuyển theo đúng delta của con trỏ, tránh lệch thị giác khi chạm/kéo lệch tâm.
+- Nhấn Escape để hủy phiên resize đang hoạt động; ẩn đường căn và giải phóng pointer capture.
+- Từ chối pointer phụ không phải pointer chính để tránh ngón tay thứ hai khởi tạo nhầm thao tác.
+- Bổ sung kiểm thử hợp đồng cho căn đường biên, Escape và pointer identity.
+- Không đổi engine, dữ liệu ô, công thức, định dạng hoặc schema workbook. Kiểm thử tự động không thay thế nghiệm thu Pointer Events trên Chrome/Android thật.
+- Nhánh `v1-development`; không sửa `main`. Ngày 21/11/2026.
