@@ -1230,3 +1230,12 @@ Bổ sung mô hình đáp ứng tăng dần, lợi ích biên giảm dần:
 - Giữ nguyên ngưỡng 44 px, tốc độ tối đa 16 px/khung hình và không đổi dữ liệu ô, công thức, định dạng hoặc workbook schema.
 - Bổ sung kiểm thử unit/source-contract; chưa thay thế kiểm thử DOM/Pointer Events thực tế trên Chrome/Android/Samsung A05.
 - Nhánh `v1-development`; không sửa `main`. Ngày 21/11/2026.
+
+## SGHT B5.5.17 — Kiểm thử tích hợp toàn tuyến resize — 2026-11-21
+
+- Bổ sung test tích hợp nối geometry hàng/cột với virtual window và Freeze Panes; kiểm tra offset, vùng ghim và vùng cuộn còn lại.
+- Kiểm tra lưu–mở workbook bảo toàn geometry, Freeze, Split, dữ liệu ô, công thức và định dạng.
+- Kiểm tra đồng bộ vị trí Quadrant, phối hợp resize guide/auto-scroll, metadata sparse ở 100.000 hàng và giới hạn lô 5.000 trục.
+- Không sửa runtime app, engine công thức, dữ liệu workbook hoặc schema; không thêm dependency. Test tự chạy qua glob hiện hữu của `npm test`.
+- Đây là kiểm thử tích hợp module Node.js, không phải browser E2E. Chrome desktop, Android/Samsung A05, thao tác cảm ứng, Freeze/Split thực tế và đo hiệu năng vẫn cần nghiệm thu thủ công.
+- Nhánh `v1-development`; không sửa `main`. Ngày: 21/11/2026.
