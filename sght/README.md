@@ -1137,3 +1137,14 @@ Bổ sung mô hình đáp ứng tăng dần, lợi ích biên giảm dần:
 - Áp dụng theo lô tối đa 5.000 hàng/cột, ghi thành một giao dịch hình học; dùng Undo/Redo kích thước hiện có. Khi áp dụng không ghi đè dữ liệu, công thức, định dạng hoặc clipboard ô.
 - Bổ sung mô-đun độc lập và unit test cho sao chép hàng, sao chép cột liên sheet và kiểm tra giới hạn. Test đã được thêm nhưng chưa chạy trong môi trường này.
 - Đã rà soát và cập nhật trên nhánh `v1-development`; chưa chạy trình duyệt/Android, chưa đo hiệu năng workbook lớn, chưa xác nhận CI hoặc GitHub Pages deployment.
+
+
+## SGHT B5.5.8 — Kiểm thử hồi quy hệ thống kích thước hàng/cột — 2026-11-21
+
+- Bổ sung `tests/grid-geometry-regression.test.mjs`: kiểm tra tích hợp geometry biến thiên với virtual window, freeze panes, metadata workbook theo từng sheet, bảo toàn cells/formats/formulas, clipboard kích thước liên sheet, giới hạn lô và snapshot hình học.
+- Bổ sung kiểm tra hợp đồng nối giao diện (static wiring contract) cho kéo thả, pointercancel, pane lưới, AutoFit, lịch sử geometry và các nút sao chép/áp dụng kích thước. Đây là kiểm tra mã nguồn, không phải mô phỏng trình duyệt.
+- Tạo ma trận kiểm thử và danh sách nghiệm thu thủ công tại `docs/SGHT_B5_5_8_REGRESSION.md`; nêu rõ các ca còn cần Chrome/Android và đo hiệu năng.
+- Lệnh `npm test` hiện đã tự thu nhận file test mới qua glob `sght/tests/*.test.mjs`; không cần thêm dependency hoặc sửa package script.
+- Chưa chạy npm test trong môi trường này; chưa có CI status xác nhận, chưa chạy browser E2E/Android, chưa đo RAM và chưa xác nhận Pages deployment. Không tuyên bố toàn bộ B5.5 đã nghiệm thu.
+- Không sửa engine công thức, cells, formats, clipboard nội dung, hoặc nhánh `main`. Nhánh: `v1-development`.
+- Ngày: 21/11/2026.
