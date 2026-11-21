@@ -1,4 +1,4 @@
-import { getAxisOffset, getAxisSize, findAxisIndexAtOffset } from "./grid-geometry.js";
+import { getAxisOffset, findAxisIndexAtOffset } from "./grid-geometry.js";
 /**
  * HAI ĐẤT SGHT — Sparse Grid Core (Stage 18.1)
  * Logical address and viewport primitives for a resource-aware virtual grid.
