@@ -19,19 +19,32 @@ test("tự cuộn về cuối pane khi con trỏ áp sát mép cuối", () => {
   assert.equal(calculateAxisResizeAutoScrollDelta({coordinate:878,start:100,end:900}),8);
 });
 
-test("giới hạn tốc độ và xử lý pane rất hẹp hoặc tọa độ không hữu hạn", () => {
+test("giới hạn tốc độ và xử lý pane rất hẹp", () => {
   assert.equal(calculateAxisResizeAutoScrollDelta({coordinate:10,start:10,end:30,edgeSize:44,maxSpeed:12}),-12);
   assert.equal(calculateAxisResizeAutoScrollDelta({coordinate:20,start:10,end:30,edgeSize:44,maxSpeed:12}),0);
-  assert.equal(calculateAxisResizeAutoScrollDelta({coordinate:NaN,start:0,end:100}),-16);
   assert.equal(calculateAxisResizeAutoScrollDelta({coordinate:0,start:10,end:10}),0);
   assert.equal(calculateAxisResizeAutoScrollDelta({coordinate:0,start:0,end:100,maxSpeed:0}),0);
 });
 
-test("ứng dụng chọn đúng trục cuộn và chỉ cuộn trong pane chứa tay nắm", () => {
+test("tọa độ không hợp lệ không được kích hoạt cuộn nhầm", () => {
+  assert.equal(calculateAxisResizeAutoScrollDelta({coordinate:NaN,start:0,end:100}),0);
+  assert.equal(calculateAxisResizeAutoScrollDelta({coordinate:Infinity,start:0,end:100}),0);
+  assert.equal(calculateAxisResizeAutoScrollDelta({coordinate:0,start:NaN,end:100}),0);
+  assert.equal(calculateAxisResizeAutoScrollDelta({coordinate:0,start:0,end:Infinity}),0);
+});
+
+test("ứng dụng chọn đúng trục cuộn và chỉ cuộn pane chứa tay nắm", () => {
   assert.match(appSource, /drag\.handle\?\.closest\?\.\("\.sheet-scroll"\)/);
-  assert.match(appSource, /horizontal=drag\.axis===\"column\"/);
+  assert.match(appSource, /horizontal=drag\.axis==="column"/);
   assert.match(appSource, /scroll\.scrollLeft=next;else scroll\.scrollTop=next/);
   assert.match(appSource, /calculateAxisResizeAutoScrollDelta\(\{coordinate,start,end,edgeSize:44,maxSpeed:16\}\)/);
+});
+
+test("vòng lặp tự cuộn kiểm tra sheet và pane còn gắn vào tài liệu", () => {
+  assert.match(appSource, /drag\.sheetId!==activeSheetId\|\|!drag\.handle\?\.isConnected/);
+  assert.match(appSource, /!scroll\|\|!scroll\.isConnected\|\|!scroll\.contains\(drag\.handle\)/);
+  assert.match(appSource, /if\(!delta\)\{axisResizeLastPointer=null;return;\}/);
+  assert.match(appSource, /if\(next===current\)\{axisResizeLastPointer=null;return;\}/);
 });
 
 test("vòng lặp tự cuộn được dừng khi kết thúc hoặc hủy resize", () => {
