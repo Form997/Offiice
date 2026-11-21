@@ -484,3 +484,8 @@ main{max-width:1920px;margin:0 auto;padding:0 0 24px}
 .axis-resize-guide-label{position:absolute;display:block;padding:4px 7px;border-radius:5px;background:#174b36;color:#fff;font:700 11px/1.2 ui-monospace,monospace;white-space:nowrap;box-shadow:0 2px 8px rgba(0,0,0,.18)}
 .axis-resize-guide.is-column .axis-resize-guide-label,.axis-resize-guide.is-row .axis-resize-guide-label{top:7px;left:7px}
 @media(hover:none){.sheet-grid .axis-resize-column{right:-7px;width:16px;min-width:16px;opacity:.5}.sheet-grid .axis-resize-row{bottom:-7px;height:16px;opacity:.5}.sheet-grid .axis-resize-handle::after{opacity:.7}}
+
+/* SGHT B5.5.4 — lịch sử kích thước riêng và thao tác nhập chính xác. */
+.geometry-history-action{min-height:32px;padding:5px 8px;font-size:11px;white-space:nowrap}
+.geometry-history-action:disabled{opacity:.42;cursor:not-allowed}
+@media(max-width:680px){.geometry-history-action{min-height:36px;padding:6px 7px}}
