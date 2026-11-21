@@ -1049,6 +1049,6 @@ Bổ sung mô hình đáp ứng tăng dần, lợi ích biên giảm dần:
 - Điều chỉnh focus: chọn ô không tự đẩy con trỏ vào thanh công thức nữa; sau khi lưới cập nhật, focus quay về ô đang chọn để phím điều hướng tiếp tục hoạt động tự nhiên.
 - Cải thiện vùng chạm, trạng thái focus, ngăn bôi đen văn bản ngoài ý muốn và giữ tay nắm điền có vùng tương tác riêng.
 - Giữ nguyên engine, dữ liệu, cấu trúc workbook, cơ chế lưu, clipboard, fill-series, lưới thưa, cuộn ảo, freeze/split và tính năng B5.1–B5.3.
-- Kiểm tra tĩnh sau ghi: cần xác minh lại các tệp, cú pháp JS và các đường xử lý gốc; chưa chạy Chrome/Android hoặc kiểm thử tương tác thật. Chưa xác nhận triển khai GitHub Pages.
+- Kiểm tra tĩnh sau ghi: tải lại các tệp để xác minh; phân tích cú pháp JavaScript thành công sau khi tách các dòng import ES module; xác nhận các đường xử lý gốc và các engine không đổi. Chưa chạy Chrome/Android hoặc kiểm thử tương tác thật. Chưa xác nhận triển khai GitHub Pages.
 - Không sửa hoặc hợp nhất vào main.
 - Bắt đầu: 21/11/2026.
