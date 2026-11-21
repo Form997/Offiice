@@ -1158,3 +1158,14 @@ Bổ sung mô hình đáp ứng tăng dần, lợi ích biên giảm dần:
 - Ghi nhận nguyên nhân, thay đổi và tiêu chí nghiệm thu tại `docs/SGHT_B5_5_9_CI_HARDENING.md`.
 - Workflow hiện hữu sẽ tự chạy lại trên commit mới. Chỉ đánh dấu kiểm thử Node đạt sau khi xem kết quả Actions thực tế; Chrome/Android, touch, lưu–mở workbook và hiệu năng vẫn cần nghiệm thu riêng.
 - Nhánh `v1-development`; không sửa hoặc hợp nhất vào `main`. Ngày: 21/11/2026.
+
+
+## SGHT B5.5.10 — Gia cố vòng đời thao tác kéo đổi kích thước — 2026-11-21
+
+- Hủy phiên resize đang diễn ra khi đổi trang tính, cửa sổ mất focus, trang bị pagehide hoặc tài liệu chuyển sang hidden; không ghi kích thước dở dang.
+- Chủ động nhả pointer capture khi hủy; ẩn đường căn và xóa trạng thái kéo để thao tác sau có thể bắt đầu sạch.
+- Chặn pointer thứ hai ghi đè trạng thái phiên kéo đầu tiên, giảm lỗi đa điểm chạm.
+- Bổ sung regression contract cho các đường hủy và chuyển sheet. Test mã nguồn không thay thế kiểm thử Pointer Events thật.
+- Không sửa engine công thức, dữ liệu ô, định dạng, clipboard, cấu trúc workbook hoặc giới hạn hình học.
+- Chờ CI trên commit mới; Chrome/Android, cảm ứng, freeze/split và lưu–mở workbook vẫn cần nghiệm thu thực tế.
+- Nhánh `v1-development`; không sửa hoặc hợp nhất vào `main`. Ngày: 21/11/2026.
