@@ -1169,3 +1169,13 @@ Bổ sung mô hình đáp ứng tăng dần, lợi ích biên giảm dần:
 - Không sửa engine công thức, dữ liệu ô, định dạng, clipboard, cấu trúc workbook hoặc giới hạn hình học.
 - Chờ CI trên commit mới; Chrome/Android, cảm ứng, freeze/split và lưu–mở workbook vẫn cần nghiệm thu thực tế.
 - Nhánh `v1-development`; không sửa hoặc hợp nhất vào `main`. Ngày: 21/11/2026.
+
+
+## SGHT B5.5.11 — Kiểm định hình học và quy trình nghiệm thu resize — 2026-11-21
+
+- Bổ sung kiểm thử hình học ở mức module: tọa độ biên hàng/cột, offset, tổng vùng, cập nhật đơn/theo lô, reset, serialize/restore và giới hạn dữ liệu.
+- Kiểm tra tính bất biến của geometry nguồn và xác nhận 100.000 hàng vẫn dùng sparse overrides, không tạo mảng kích thước dày.
+- Bổ sung checklist nghiệm thu Chrome desktop và Android: kéo resize, AutoFit, nhiều hàng/cột, clipboard kích thước, undo/redo, freeze/split, đổi sheet, mất focus và lưu–mở workbook.
+- Không thay đổi runtime app, engine công thức, dữ liệu ô, định dạng hoặc schema workbook. Không thêm dependency; test mới được thu nhận qua glob hiện hữu của `npm test`.
+- Các test Node không phải browser E2E. Chrome, Android/Samsung A05 và đo hiệu năng vẫn chờ thực hiện trực tiếp.
+- Nhánh `v1-development`; không sửa hoặc hợp nhất vào `main`. Ngày: 21/11/2026.
