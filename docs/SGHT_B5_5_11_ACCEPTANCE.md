@@ -57,3 +57,25 @@ Các test này chạy bằng Node.js và kiểm tra module hình học thật. C
 ## Kết luận trạng thái
 
 B5.5.11 bổ sung lớp kiểm định tự động cho hình học và một biên bản nghiệm thu thao tác thực tế. Các mục checklist chưa được chạy phải tiếp tục ở trạng thái chờ; CI xanh không thay thế thử nghiệm thiết bị.
+
+
+## B5.5.12 — Gia cố tương tác con trỏ và hủy thao tác — 2026-11-21
+
+Đợt kiểm tra mã nguồn phát hiện ba tình huống cần xử lý trước nghiệm thu thiết bị:
+
+1. Đường căn resize trước đây bám theo vị trí con trỏ, không bám chính xác đường biên của tay nắm tại thời điểm bắt đầu. Khi người dùng chạm lệch tâm tay nắm, đường căn có thể lệch vài pixel dù kích thước cuối cùng vẫn tính theo delta con trỏ.
+2. Chưa có phím Escape để hủy chủ động phiên resize đang giữ pointer capture.
+3. Một pointer phụ (ví dụ ngón tay thứ hai trong khi pointer chính đang hoạt động ở nơi khác) có thể khởi tạo phiên resize nếu chưa có phiên resize nào được mở.
+
+### Thay đổi
+
+- Ghi nhận tâm hình học tay nắm lúc bắt đầu kéo; đường căn di chuyển theo cùng delta với phép tính kích thước, giúp đường căn bám đúng mép trục.
+- Escape hủy phiên resize, ẩn đường căn và giải phóng pointer capture qua hàm hủy an toàn hiện có.
+- Từ chối pointer có `isPrimary === false`; vẫn giữ khóa phiên khi đã có resize đang hoạt động.
+- Bổ sung kiểm thử hợp đồng mã nguồn cho ba trường hợp trên.
+
+### Phạm vi xác nhận
+
+- Đây là sửa lỗi và kiểm thử hợp đồng mã nguồn; không thay đổi engine hình học, công thức, dữ liệu ô, định dạng, lưu trữ workbook hay schema.
+- CI Node kiểm tra cú pháp và các hợp đồng; không phải mô phỏng Pointer Events trong trình duyệt.
+- Cần nghiệm thu Chrome và Android thật cho Escape, pointer phụ, căn đường biên, cuộn, Freeze/Split và lưu–mở workbook.
