@@ -489,3 +489,7 @@ main{max-width:1920px;margin:0 auto;padding:0 0 24px}
 .geometry-history-action{min-height:32px;padding:5px 8px;font-size:11px;white-space:nowrap}
 .geometry-history-action:disabled{opacity:.42;cursor:not-allowed}
 @media(max-width:680px){.geometry-history-action{min-height:36px;padding:6px 7px}}
+
+
+/* SGHT B5.5.5 — phản hồi trực quan khi đổi đồng loạt trục đã chọn. */
+.sheet-grid .axis-resize-handle:active{background:rgba(57,123,84,.16);opacity:1}
