@@ -18,3 +18,11 @@ test("rewrites quoted and unquoted formula references when a source sheet is ren
  assert.equal(rewritten[0].cells.A3,"=Other!A1");
  assert.equal(rewritten[1].id,"s2");
 });
+
+
+test("giữ metadata hình học lưới riêng theo từng trang tính",()=>{
+ const sheets=normalizeWorkbookSheets([{id:"a",geometry:{rowHeights:{"8":48},columnWidths:{"3":160}}},{id:"b"}]);
+ assert.equal(sheets[0].geometry.rowHeights["8"],48);
+ assert.equal(sheets[0].geometry.columnWidths["3"],160);
+ assert.deepEqual(sheets[1].geometry,{});
+});
