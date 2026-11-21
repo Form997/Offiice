@@ -1211,3 +1211,13 @@ Bổ sung mô hình đáp ứng tăng dần, lợi ích biên giảm dần:
 - Giữ nguyên dữ liệu ô, công thức, định dạng, clipboard, workbook schema, Freeze/Split và các giới hạn hiện có.
 - Bổ sung kiểm thử hợp đồng giao diện và unit test đặt lại nhiều trục; chờ CI xác nhận. Chưa nghiệm thu bàn phím trên Chrome/Android hoặc Samsung A05.
 - Nhánh `v1-development`; không sửa `main`. Ngày 21/11/2026.
+
+
+## SGHT B5.5.15 — Tự cuộn vùng bảng khi resize sát mép — 2026-11-21
+
+- Khi kéo đổi kích thước hàng/cột và rê con trỏ sát mép pane, bảng tự cuộn theo trục đang thao tác để tiếp cận vùng lưới xa hơn.
+- Tốc độ tăng theo độ gần mép; giới hạn 16 px/khung hình, vùng kích hoạt 44 px. Chỉ cuộn pane chứa tay nắm; các listener đồng bộ scroll hiện hữu tiếp tục xử lý Freeze/Split/Quadrant.
+- Vòng lặp requestAnimationFrame dừng khi rời vùng kích hoạt, chạm giới hạn cuộn, thả/hủy pointer, mất focus hoặc đổi trang tính.
+- Không tự tăng/giảm kích thước chỉ do cuộn; kích thước vẫn theo delta con trỏ. Không đổi dữ liệu ô, công thức, định dạng, clipboard hoặc workbook schema.
+- Bổ sung helper và test cho mép pane, tốc độ, pane hẹp, tọa độ bất thường và vòng đời dừng. Chờ CI; chưa thay thế kiểm thử Chrome/Android/Samsung A05 hoặc đo hiệu năng thiết bị.
+- Nhánh v1-development; không sửa main. Ngày 21/11/2026.
