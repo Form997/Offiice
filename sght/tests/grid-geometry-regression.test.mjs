@@ -109,3 +109,15 @@ test("resize đang diễn ra được hủy an toàn khi đổi sheet, mất foc
   assert.match(appSource, /document\.addEventListener\("visibilitychange",\(\)=>\{if\(document.hidden\)cancelAxisResize\(\);\}\)/);
   assert.match(appSource, /releasePointerCapture\(drag\.pointerId\)/);
 });
+
+
+test("resize guide bám theo mép tay nắm và có thể hủy bằng Escape", () => {
+  assert.match(appSource, /startGuideCoordinate=axis===\"column\"\?\(handleRect\.left\+handleRect\.right\)\/2:\(handleRect\.top\+handleRect\.bottom\)\/2/);
+  assert.match(appSource, /drag\.startGuideCoordinate\+\(pointerCoordinate-drag\.startCoordinate\)-origin/);
+  assert.match(appSource, /event\.key!==\"Escape\"\|\|!axisResizeDrag/);
+  assert.match(appSource, /calcStatus\.textContent=\"Đã hủy thao tác thay đổi kích thước hàng\/cột\.\"/);
+});
+
+test("pointer phụ không được tự khởi tạo phiên resize", () => {
+  assert.match(appSource, /if\(event\.isPrimary===false\)\{event\.preventDefault\(\);event\.stopPropagation\(\);return true;\}/);
+});
