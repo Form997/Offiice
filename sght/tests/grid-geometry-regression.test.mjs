@@ -80,7 +80,7 @@ test("AutoFit theo lô giữ giới hạn trục và lịch sử hình học có
 
 test("mã giao diện nối drag, cancel, AutoFit, clipboard và lịch sử hình học", () => {
   assert.match(appSource, /function beginAxisResize\(event\)/);
-  assert.match(appSource, /targets, startSize, previewSize:startSize/);
+  assert.match(appSource, /axisResizeDrag=\{pointerId:event\.pointerId,axis,index,targets,startSize,previewSize:startSize/);
   assert.match(appSource, /window\.addEventListener\("pointerup",event=>finishAxisResize\(event,true\)\)/);
   assert.match(appSource, /window\.addEventListener\("pointercancel",event=>finishAxisResize\(event,false\)\)/);
   assert.match(appSource, /drag\.sheetId!==activeSheetId/);
