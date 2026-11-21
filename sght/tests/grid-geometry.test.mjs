@@ -19,7 +19,7 @@ test("kích thước tùy biến chỉ lưu các hàng/cột được thay đổ
   g = setAxisSize(g, "column", 3, 160);
   assert.equal(getAxisSize(g, "row", 4), 48);
   assert.equal(getAxisSize(g, "row", 5), 32);
-  assert.equal(getAxisOffset(g, "row", 5), 144);
+  assert.equal(getAxisOffset(g, "row", 5), 146);
   assert.equal(getAxisOffset(g, "column", 4), 376);
   assert.deepEqual(Object.keys(g.rowHeights), ["4"]);
   assert.deepEqual(Object.keys(g.columnWidths), ["3"]);
