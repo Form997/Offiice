@@ -102,3 +102,24 @@ Lớp phủ resize dùng chung được đặt trong #sheetPanes, trong khi sự
 ### Giới hạn nghiệm thu
 
 Các kiểm tra trên là unit/source-contract tests bằng Node.js. Chúng không mô phỏng DOM layout, cuộn thật hoặc Pointer Events đa pane. Vẫn phải chạy checklist Chrome desktop và Android/Samsung A05 trong B5.5.11, đặc biệt: cuộn tới vị trí xa rồi resize, bật Freeze, Split dọc/ngang và Quadrant, kéo ở từng pane, kéo vượt mép bảng, sau đó lưu–mở workbook. Không tuyên bố đã nghiệm thu thiết bị khi chưa chạy các bước đó.
+
+
+
+## B5.5.14 — Đồng nhất resize bằng bàn phím với vùng chọn — 2026-11-21
+
+### Phát hiện và xử lý
+
+B5.5.5 đã cho phép kéo tay nắm để đổi kích thước đồng loạt các hàng/cột trong vùng chọn. Tuy nhiên, phím mũi tên và Home trên tay nắm vẫn chỉ tác động một hàng/cột, tạo ra hai quy tắc khác nhau cho cùng một thao tác.
+
+- Phím mũi tên nay gọi chung `axisResizeTargets(axis,index)`, nên áp dụng cho toàn bộ hàng/cột đang chọn khi tay nắm nằm trong vùng chọn; nếu tay nắm nằm ngoài vùng chọn thì chỉ tác động trục đó.
+- Giữ nguyên bước 5 px, Shift + mũi tên 20 px và giới hạn kích thước của B5.5.1.
+- Phím Home khôi phục mặc định cho toàn bộ trục đang chọn, không chỉ trục có tay nắm đang focus.
+- Lệnh đặt lại theo lô dùng `setAxisSizes`, giới hạn 5.000 trục qua hàm xác định mục tiêu hiện hữu và giữ metadata hình học dạng thưa.
+- Mỗi lần thao tác vẫn là một giao dịch hình học riêng, có thể Undo/Redo bằng lịch sử kích thước; không ghi snapshot dữ liệu ô.
+
+### Kiểm thử và giới hạn
+
+- Bổ sung source-contract test xác nhận đường bàn phím dùng cùng bộ chọn mục tiêu và đường đặt lại theo lô.
+- Bổ sung unit test cho đặt lại nhiều hàng/cột về mặc định, giữ nguyên geometry nguồn và loại bỏ override mặc định khỏi metadata thưa.
+- Chờ workflow CI chạy trên commit B5.5.14. Các unit/source-contract tests không thay thế thao tác bàn phím thật trên Chrome/Android; chưa xác nhận Samsung A05 hoặc hiệu năng thiết bị.
+- Không sửa engine công thức, giá trị ô, định dạng, clipboard, workbook schema, Freeze/Split hoặc nhánh `main`. Nhánh phát triển: `v1-development`.
