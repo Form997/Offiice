@@ -27,6 +27,7 @@ import { getVirtualWindow } from "./engine/sparse-grid.js";
 import { GRID_GEOMETRY_DEFAULTS, createGridGeometry, getAxisOffset, getAxisSize, findAxisIndexAtOffset, setAxisSize, setAxisSizes, setAxisSizeMap, resetAxisSize, serializeGridGeometry } from "./engine/grid-geometry.js";
 import { copyAxisDimension, applyCopiedAxisDimension } from "./engine/axis-dimension-clipboard.js";
 import { calculateAxisResizeGuidePosition } from "./engine/axis-resize-guide.js";
+import { calculateAxisResizeAutoScrollDelta } from "./engine/axis-resize-autoscroll.js";
 import { expandGridCapacity } from "./engine/grid-capacity.js";
 import { buildFreezeLayout, normalizeFreezeSettings } from "./engine/freeze-panes.js";
 import { normalizeSplitSettings, synchronizedAxis, splitRatioFromPointer, normalizeQuadrantPositions, synchronizeQuadrantPositions, quadrantScrollTargets } from "./engine/split-panes.js";
@@ -279,7 +280,7 @@ const resizeGuideLabel=document.createElement("span");
 resizeGuideLabel.className="axis-resize-guide-label";
 resizeGuide.append(resizeGuideLabel);
 sheetPanesElement.append(resizeGuide);
-let axisResizeDrag=null;
+let axisResizeDrag=null,axisResizeAutoScrollFrame=null,axisResizeLastPointer=null;
 
 function geometrySnapshot(){return serializeGridGeometry(gridGeometry);}
 function recordGeometryChange(before,after,label){
@@ -407,16 +408,42 @@ function beginAxisResize(event){
  updateResizeGuide(event);
  return true;
 }
+function stopAxisResizeAutoScroll(){
+ if(axisResizeAutoScrollFrame!==null)cancelAnimationFrame(axisResizeAutoScrollFrame);
+ axisResizeAutoScrollFrame=null;axisResizeLastPointer=null;
+}
+function axisResizeAutoScrollTick(){
+ axisResizeAutoScrollFrame=null;
+ const drag=axisResizeDrag,pointer=axisResizeLastPointer;
+ if(!drag||!pointer)return;
+ const scroll=drag.handle?.closest?.(".sheet-scroll");
+ if(!scroll)return;
+ const rect=scroll.getBoundingClientRect(),horizontal=drag.axis==="column";
+ const coordinate=horizontal?pointer.clientX:pointer.clientY,start=horizontal?rect.left:rect.top,end=horizontal?rect.right:rect.bottom;
+ const delta=calculateAxisResizeAutoScrollDelta({coordinate,start,end,edgeSize:44,maxSpeed:16});
+ if(!delta)return;
+ const current=horizontal?scroll.scrollLeft:scroll.scrollTop;
+ const maximum=Math.max(0,(horizontal?scroll.scrollWidth-scroll.clientWidth:scroll.scrollHeight-scroll.clientHeight));
+ const next=Math.max(0,Math.min(maximum,current+delta));
+ if(next===current)return;
+ if(horizontal)scroll.scrollLeft=next;else scroll.scrollTop=next;
+ axisResizeAutoScrollFrame=requestAnimationFrame(axisResizeAutoScrollTick);
+}
+function scheduleAxisResizeAutoScroll(event){
+ axisResizeLastPointer={clientX:event.clientX,clientY:event.clientY};
+ if(axisResizeAutoScrollFrame===null)axisResizeAutoScrollFrame=requestAnimationFrame(axisResizeAutoScrollTick);
+}
 function moveAxisResize(event){
  const drag=axisResizeDrag;if(!drag||event.pointerId!==drag.pointerId)return;
  event.preventDefault();
  const coordinate=drag.axis==="column"?event.clientX:event.clientY;
  drag.previewSize=clampAxisSize(drag.axis,Math.round(drag.startSize+coordinate-drag.startCoordinate));
  updateResizeGuide(event);
+ scheduleAxisResizeAutoScroll(event);
 }
 function finishAxisResize(event,commit=true){
  const drag=axisResizeDrag;if(!drag||event.pointerId!==drag.pointerId)return;
- axisResizeDrag=null;resizeGuide.hidden=true;
+ stopAxisResizeAutoScroll();axisResizeDrag=null;resizeGuide.hidden=true;
  if(!commit||drag.sheetId!==activeSheetId||drag.previewSize===drag.startSize)return;
  try{
   applyAxisSize(drag.axis,drag.index,drag.previewSize,null,drag.targets);
@@ -424,8 +451,8 @@ function finishAxisResize(event,commit=true){
  }catch(error){calcStatus.textContent="Không thể đổi kích thước: "+(error?.message||String(error));}
 }
 function cancelAxisResize(){
- const drag=axisResizeDrag;if(!drag)return;
- axisResizeDrag=null;resizeGuide.hidden=true;
+ const drag=axisResizeDrag;if(!drag){stopAxisResizeAutoScroll();return;}
+ stopAxisResizeAutoScroll();axisResizeDrag=null;resizeGuide.hidden=true;
  try{if(drag.handle?.hasPointerCapture?.(drag.pointerId))drag.handle.releasePointerCapture(drag.pointerId);}catch{}
 }
 function installAxisResize(gridElement){
