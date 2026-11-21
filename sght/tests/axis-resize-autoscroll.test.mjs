@@ -34,7 +34,7 @@ test("tọa độ không hợp lệ không được kích hoạt cuộn nhầm",
 });
 
 test("ứng dụng chọn đúng trục cuộn và chỉ cuộn pane chứa tay nắm", () => {
-  assert.match(appSource, /drag\.handle\?\.closest\?\.\("\.sheet-scroll"\)/);
+  assert.match(appSource, /drag\.handle\.closest\?\.\("\.sheet-scroll"\)/);
   assert.match(appSource, /horizontal=drag\.axis==="column"/);
   assert.match(appSource, /scroll\.scrollLeft=next;else scroll\.scrollTop=next/);
   assert.match(appSource, /calculateAxisResizeAutoScrollDelta\(\{coordinate,start,end,edgeSize:44,maxSpeed:16\}\)/);
