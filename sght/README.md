@@ -1064,3 +1064,18 @@ Bổ sung mô hình đáp ứng tăng dần, lợi ích biên giảm dần:
 - Không sửa engine công thức, sparse cell storage, dữ liệu ô, công thức, clipboard hoặc lịch sử workbook hiện hành. Không sửa `main`.
 - Kiểm thử: đã bổ sung bộ test nhưng chưa chạy Node/npm trong môi trường thực thi; cần CI xác nhận. Chưa kiểm thử trình duyệt/Android, hiệu năng trên thiết bị 4 GB RAM hoặc triển khai GitHub Pages.
 - Bắt đầu và phát triển: 21/11/2026.
+
+
+## SGHT B5.5.2 — Tích hợp hình học biến thiên vào lưới ảo và khung ghim — 2026-11-21
+
+- Nối mô-đun `grid-geometry.js` vào bộ tính cửa sổ ảo: vùng nhìn thấy, overscan, offset đầu/cuối và khoảng đệm bên phải/bên dưới nay được tính theo kích thước từng hàng/cột, không còn giả định mọi trục đều có cùng số pixel.
+- Tích hợp vào bộ dựng lưới: tiêu đề cột, ô dữ liệu, hàng ghim và cột ghim dùng đúng độ rộng/chiều cao riêng; tọa độ điều hướng tới ô cũng quy đổi theo hình học thực tế.
+- Freeze panes tính tổng kích thước vùng ghim theo từng hàng/cột. Split dọc/ngang và bốn góc tiếp tục dùng chung tọa độ cuộn; các ngưỡng mở rộng vùng lưới dùng kích thước cơ sở thay vì số pixel cố định.
+- Lưu metadata hình học theo từng trang tính trong workbook. Workbook cũ không có trường này được chuẩn hóa thành hình học mặc định; dữ liệu ô, định dạng, công thức và lịch sử hiện hữu không bị chuyển đổi.
+- Bổ sung chỉ mục tiền tố thưa cho offset để truy vấn tổng kích thước không phải quét lại toàn bộ override ở mỗi bước tìm kiếm. Không tạo mảng theo số hàng/cột; chỉ mục chỉ tỷ lệ theo số hàng/cột có tùy chỉnh.
+- Bổ sung kiểm thử cho virtual window với kích thước không đồng đều, freeze panes có hàng/cột tùy chỉnh và metadata hình học riêng theo sheet.
+- Phạm vi chưa làm trong B5.5.2: chưa có tay nắm kéo đổi cỡ ở tiêu đề hàng/cột, chưa có hộp thoại nhập kích thước, chưa có kéo chọn nhiều hàng/cột để đổi cỡ, chưa có Undo/Redo cho thao tác đổi cỡ. Những phần đó thuộc các bước B5.5 tiếp theo.
+- Bảo toàn engine công thức, sparse cell storage, clipboard, fill-series, dữ liệu và định dạng workbook; thay đổi ở lớp bố cục lưới, virtual scrolling, freeze/split và metadata hình học.
+- Kiểm tra hiện tại: đã rà soát lại nội dung các tệp và blob SHA sau ghi; đã bổ sung test nhưng chưa chạy `npm test` trong môi trường Node và chưa có CI status xác nhận cho commit này. Chưa kiểm thử Chrome/Android, thao tác split/freeze thực tế, hiệu năng trên thiết bị 4 GB RAM hoặc GitHub Pages deployment.
+- Nhánh phát triển: `v1-development`. Không sửa hoặc hợp nhất vào `main`.
+- Bắt đầu và phát triển: 21/11/2026.
