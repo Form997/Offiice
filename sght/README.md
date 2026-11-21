@@ -1052,3 +1052,15 @@ Bổ sung mô hình đáp ứng tăng dần, lợi ích biên giảm dần:
 - Kiểm tra tĩnh sau ghi: tải lại các tệp để xác minh; phân tích cú pháp JavaScript thành công sau khi tách các dòng import ES module; xác nhận các đường xử lý gốc và các engine không đổi. Chưa chạy Chrome/Android hoặc kiểm thử tương tác thật. Chưa xác nhận triển khai GitHub Pages.
 - Không sửa hoặc hợp nhất vào main.
 - Bắt đầu: 21/11/2026.
+
+
+## SGHT B5.5.1 — Nền tảng hình học lưới biến thiên — 2026-11-21
+
+- Thêm mô-đun độc lập `engine/grid-geometry.js` để tính chiều cao từng hàng và độ rộng từng cột theo chỉ số 1-based; mặc định vẫn là 32 px/hàng và 108 px/cột, giữ nguyên hình học hiện hành khi chưa có tùy chỉnh.
+- Lưu ngoại lệ theo bản đồ thưa `rowHeights` và `columnWidths`, không cấp phát mảng cho 100.000 hàng hoặc 16.384 cột. Có hàm lấy kích thước, tính offset, tính tổng vùng, tìm hàng/cột từ tọa độ pixel, đặt lại kích thước mặc định và tuần tự hóa metadata gọn.
+- Giới hạn kích thước: hàng 20–240 px, cột 40–500 px; trục lưới tối đa 100.000 hàng và 16.384 cột. Dữ liệu override sai định dạng/vượt giới hạn bị bỏ qua khi chuẩn hóa; yêu cầu resize trực tiếp ngoài giới hạn bị từ chối.
+- Thêm kiểm thử đơn vị cho kích thước mặc định, offset biến thiên, tổng vùng, tra ngược tọa độ, reset, giới hạn và lưu trữ thưa. Đưa kiểm tra cú pháp mô-đun mới vào script `npm test`; test file mới tự được nhận bởi glob `sght/tests/*.test.mjs`.
+- Đây mới là nền tảng tính toán độc lập. Chưa nối vào `app.js`, dựng DOM, virtual scrolling, freeze/split, workbook persistence hoặc undo/redo; chưa có tay nắm kéo trong giao diện. Không tuyên bố resize đã hoạt động ở giao diện.
+- Không sửa engine công thức, sparse cell storage, dữ liệu ô, công thức, clipboard hoặc lịch sử workbook hiện hành. Không sửa `main`.
+- Kiểm thử: đã bổ sung bộ test nhưng chưa chạy Node/npm trong môi trường thực thi; cần CI xác nhận. Chưa kiểm thử trình duyệt/Android, hiệu năng trên thiết bị 4 GB RAM hoặc triển khai GitHub Pages.
+- Bắt đầu và phát triển: 21/11/2026.
