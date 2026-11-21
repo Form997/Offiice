@@ -239,8 +239,8 @@ function renderGrid(targetGrid,targetScroll){
   const w=getVirtualWindow({scrollTop:targetScroll.scrollTop,scrollLeft:targetScroll.scrollLeft,viewportHeight:targetScroll.clientHeight||480,viewportWidth:targetScroll.clientWidth||900,rowHeight:ROW_HEIGHT,columnWidth:COLUMN_WIDTH,overscanRows:OVERSCAN_ROWS,overscanColumns:OVERSCAN_COLUMNS,maxRow:ROWS,maxColumn:COLS});
   const layout=buildFreezeLayout(w,{rows:frozenRows,columns:frozenColumns,rowHeight:ROW_HEIGHT,columnWidth:COLUMN_WIDTH,rowHeaderWidth:48});
   const pinnedColumns=layout.pinnedColumns,pinnedRows=layout.pinnedRows;
-  const colHeaders=pinnedColumns.map(c=>"<th class='freeze-col freeze-col-head' style='left:"+(48+(c-1)*COLUMN_WIDTH)+"px'>"+letters(c)+"</th>").join("");
-  const visibleHeaders=Array.from({length:w.renderedColumns},(_,i)=>"<th>"+letters(w.columnStart+i)+"</th>").join("");
+  const colHeaders=pinnedColumns.map(c=>"<th data-column='"+c+"' class='freeze-col freeze-col-head' style='left:"+(48+(c-1)*COLUMN_WIDTH)+"px'>"+letters(c)+"</th>").join("");
+  const visibleHeaders=Array.from({length:w.renderedColumns},(_,i)=>"<th data-column='"+(w.columnStart+i)+"'>"+letters(w.columnStart+i)+"</th>").join("");
   const leftGap=layout.leftGap? "<th class='virtual-spacer' style='width:"+layout.leftGap+"px;min-width:"+layout.leftGap+"px'></th>":"";
   const rightGap=w.rightOffset?"<th class='virtual-spacer' style='width:"+w.rightOffset+"px;min-width:"+w.rightOffset+"px'></th>":"";
   thead.innerHTML="<tr><th class='corner'></th>"+colHeaders+leftGap+visibleHeaders+rightGap+"</tr>";
@@ -248,7 +248,7 @@ function renderGrid(targetGrid,targetScroll){
   if(layout.topGap)rows.push("<tr class='virtual-gap'><td colspan='"+span+"' style='height:"+layout.topGap+"px'></td></tr>");
   const activeBounds=getRangeBounds(selectionRange.start,selectionRange.end),fillAt=address(activeBounds.endRow,activeBounds.endCol);
   const renderRow=(r,isFrozen)=>{
-    let rowHtml="<th class='row-head"+(isFrozen?" freeze-row-head":"")+"' "+(isFrozen?"style='top:"+(32+(r-1)*ROW_HEIGHT)+"px'":"")+">"+r+"</th>";
+    let rowHtml="<th data-row='"+r+"' class='row-head"+(isFrozen?" freeze-row-head":"")+"' aria-label='Hàng "+r+"' "+(isFrozen?"style='top:"+(32+(r-1)*ROW_HEIGHT)+"px'":"")+">"+r+"</th>";
     for(const c of pinnedColumns){const a=address(r,c);rowHtml+="<td class='freeze-col"+(isFrozen?" freeze-intersection":"")+"' style='left:"+(48+(c-1)*COLUMN_WIDTH)+"px"+(isFrozen?";top:"+(32+(r-1)*ROW_HEIGHT)+"px":"")+"'><button type='button' class='cell' draggable='true' data-cell='"+a+"' aria-label='Ô "+a+"'>"+escapeHtml(display(a))+(a===fillAt?"<span class='fill-handle' data-fill-handle='"+a+"' title='Kéo để điền dữ liệu' aria-label='Kéo để điền dữ liệu'></span>":"")+"</button></td>";}
     if(layout.leftGap)rowHtml+="<td class='virtual-spacer' style='width:"+layout.leftGap+"px;min-width:"+layout.leftGap+"px'></td>";
     for(let c=w.columnStart;c<=w.columnEnd;c++){const a=address(r,c);rowHtml+="<td"+(isFrozen?" class='freeze-row-cell' style='top:"+(32+(r-1)*ROW_HEIGHT)+"px'":"")+"><button type='button' class='cell' draggable='true' data-cell='"+a+"' aria-label='Ô "+a+"'>"+escapeHtml(display(a))+"</button></td>";}
@@ -265,10 +265,16 @@ function renderGrid(targetGrid,targetScroll){
 }
 function escapeHtml(v){return String(v).replace(/[&<>"']/g,ch=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[ch]));}
 function updateSelection(){
-  cellAddress.textContent=selected;formulaInput.value=raw(selected);
+  cellAddress.value=selected;formulaInput.value=raw(selected);
   const x=getRangeBounds(selectionRange.start,selectionRange.end),count=(x.endRow-x.startRow+1)*(x.endCol-x.startCol+1);
   selectionInfo.textContent=count===1?"Ô "+selected+" đang được chọn":"Vùng "+x.start+":"+x.end+" · "+count.toLocaleString("vi-VN")+" ô";
-  for(const el of [grid,...(splitMode==="quadrant"?[quadrantPanes.topRight.grid,quadrantPanes.bottomLeft.grid,splitGrid]:splitMode!=="none"?[splitGrid]:[])].flatMap(g=>[...g.querySelectorAll(".cell")])){
+  const visibleGrids=[grid,...(splitMode==="quadrant"?[quadrantPanes.topRight.grid,quadrantPanes.bottomLeft.grid,splitGrid]:splitMode!=="none"?[splitGrid]:[])];
+  const activeCell=parseAddress(selected);
+  for(const currentGrid of visibleGrids){
+    for(const header of currentGrid.querySelectorAll("thead [data-column]"))header.classList.toggle("axis-selected",Number(header.dataset.column)===activeCell.c);
+    for(const header of currentGrid.querySelectorAll("tbody [data-row]"))header.classList.toggle("axis-selected",Number(header.dataset.row)===activeCell.r);
+  }
+  for(const el of visibleGrids.flatMap(g=>[...g.querySelectorAll(".cell")])){
     const p=parseAddress(el.dataset.cell);if(!p)continue;
     const inside=p.r>=x.startRow&&p.r<=x.endRow&&p.c>=x.startCol&&p.c<=x.endCol;
     el.classList.toggle("selected",el.dataset.cell===selected);
@@ -297,6 +303,24 @@ function choose(a,extend=false,scrollElement=sheetScroll){
   else if(right>scrollElement.scrollLeft+scrollElement.clientWidth)scrollElement.scrollLeft=right-scrollElement.clientWidth;
   updateSelection();if(typeof renderFormulaVersions==="function")renderFormulaVersions();formulaInput.focus();formulaInput.select();
 }
+function navigateToAddress(){
+  const candidate=cellAddress.value.trim().toUpperCase();
+  const point=parseAddress(candidate);
+  if(!point||point.r>MAX_ROWS||point.c>MAX_COLS){
+    cellAddress.value=selected;
+    calcStatus.textContent="Địa chỉ ô không hợp lệ hoặc vượt giới hạn lưới.";
+    return false;
+  }
+  choose(candidate,false,sheetScroll);
+  calcStatus.textContent="Đã chuyển tới ô "+candidate+".";
+  return true;
+}
+cellAddress.addEventListener("keydown",event=>{
+  if(event.key==="Enter"){event.preventDefault();navigateToAddress();}
+  else if(event.key==="Escape"){event.preventDefault();cellAddress.value=selected;cellAddress.blur();}
+});
+cellAddress.addEventListener("change",navigateToAddress);
+cellAddress.addEventListener("focus",()=>cellAddress.select());
 function handlePaneScroll(source,peer){
   if(splitMode==="quadrant"){handleQuadrantScroll(source);return;}
   if(splitMode!=="none"&&!syncingSplitScroll){
