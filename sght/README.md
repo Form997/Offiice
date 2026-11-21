@@ -1103,3 +1103,15 @@ Bổ sung mô hình đáp ứng tăng dần, lợi ích biên giảm dần:
 - Chưa triển khai đổi kích thước đồng loạt cho nhiều hàng/cột, AutoFit nội dung hoặc sao chép kích thước giữa các trục. Chưa chạy trình duyệt/Android; chưa thực thi npm test trong môi trường này; chưa có xác nhận CI hoặc Pages deployment cho commit này.
 - Nhánh: v1-development; không sửa hoặc hợp nhất vào main.
 - Bắt đầu và phát triển: 21/11/2026.
+
+
+## SGHT B5.5.5 — Chọn nhiều hàng/cột và đổi kích thước đồng loạt — 2026-11-21
+
+- Dùng vùng chọn hiện hành làm phạm vi: khi vùng chọn bao gồm nhiều hàng, kéo/nhập/điều chỉnh tay nắm của một hàng nằm trong vùng sẽ áp dụng cùng chiều cao cho toàn bộ hàng được chọn; tương tự với nhiều cột.
+- Nếu vùng chọn chỉ có một hàng/cột, hoặc tay nắm nằm ngoài trục được chọn, thao tác chỉ tác động một hàng/cột như trước.
+- Mỗi lần đổi đồng loạt là một giao dịch hình học duy nhất, có thể hoàn tác/làm lại bằng lịch sử kích thước B5.5.4; dữ liệu ô, định dạng và lịch sử công thức không bị ghi lại.
+- Thêm API setAxisSizes cập nhật một bản đồ thưa trong một lượt, loại bỏ chỉ số trùng, kiểm tra chỉ số và giới hạn kích thước; không lặp tạo geometry cho từng hàng/cột.
+- Giới hạn an toàn: tối đa 5.000 hàng hoặc cột trong một thao tác để tránh tạo metadata quá lớn và làm nghẽn thiết bị cấu hình thấp. Kích thước vẫn theo giới hạn B5.5.1: hàng 20–240 px, cột 40–500 px.
+- Bổ sung unit test cho đổi hàng/cột hàng loạt, chỉ số trùng, giữ mặc định cho trục ngoài vùng, và giới hạn 5.000. Chưa chạy npm test trong môi trường này.
+- Chưa kiểm thử thao tác thực tế trên Chrome/Android, chưa đo RAM, chưa xác nhận CI hoặc GitHub Pages deployment. Nhánh v1-development; không sửa main.
+- Bắt đầu: 21/11/2026.
