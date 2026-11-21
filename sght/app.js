@@ -25,6 +25,7 @@ import { searchCells, replaceCells } from "./engine/search.js";
 import { sortRangeRows, filterRangeRows, removeDuplicateRows, defineStructuredRange, uniqueColumnValues, summarizeByGroup, summarizeByGroups, buildPivotTable, expandStructuredRange, structuredColumnRange, expandStructuredReferences } from "./engine/data-tools.js";
 import { getVirtualWindow } from "./engine/sparse-grid.js";
 import { GRID_GEOMETRY_DEFAULTS, createGridGeometry, getAxisOffset, getAxisSize, findAxisIndexAtOffset, setAxisSize, setAxisSizes, setAxisSizeMap, resetAxisSize, serializeGridGeometry } from "./engine/grid-geometry.js";
+import { copyAxisDimension, applyCopiedAxisDimension } from "./engine/axis-dimension-clipboard.js";
 import { expandGridCapacity } from "./engine/grid-capacity.js";
 import { buildFreezeLayout, normalizeFreezeSettings } from "./engine/freeze-panes.js";
 import { normalizeSplitSettings, synchronizedAxis, splitRatioFromPointer, normalizeQuadrantPositions, synchronizeQuadrantPositions, quadrantScrollTargets } from "./engine/split-panes.js";
@@ -77,7 +78,7 @@ let macroExecution=false;
 const grid=document.querySelector("#sheetGrid"),formulaInput=document.querySelector("#formulaInput"),cellAddress=document.querySelector("#cellAddress"),selectionInfo=document.querySelector("#selectionInfo"),saveStatus=document.querySelector("#saveStatus"),calcStatus=document.querySelector("#calcStatus");
 const searchInput=document.querySelector("#searchQuery"),searchModeInput=document.querySelector("#searchMode"),searchCaseInput=document.querySelector("#searchCase"),searchWholeInput=document.querySelector("#searchWhole"),searchCount=document.querySelector("#searchCount"),searchSelectionOnly=document.querySelector("#searchSelectionOnly"),replaceInput=document.querySelector("#replaceQuery"),replaceOneButton=document.querySelector("#replaceOne"),replaceAllButton=document.querySelector("#replaceAll"),replaceStatus=document.querySelector("#replaceStatus");
 let searchResults=[],searchIndex=-1,searchMatchAddresses=new Set(),currentSearchAddress=null,searchDirty=false,historyCaptureAvailable=true;
-let geometryUndoStack=[],geometryRedoStack=[];
+let geometryUndoStack=[],geometryRedoStack=[],axisDimensionClipboard=null;
 function applySheetState(sheet){if(!sheet)return;activeSheetId=sheet.id;cells=sheet.cells;cellFormats=sheet.formats;gridGeometry=createGridGeometry(sheet.geometry||{});sheetTitle=sheet.name;const freeze=normalizeFreezeSettings(sheet.freeze||{});frozenRows=freeze.rows;frozenColumns=freeze.columns;const split=normalizeSplitSettings(sheet.split);splitMode=split.mode;splitRatio=split.ratio;splitPositions=split.positions;quadrantPositions=normalizeQuadrantPositions(sheet.split?.quadrants);dataTables=sheet.dataTables||[];pivotConfig=sheet.pivotConfig||null;pivotCharts=normalizePivotCharts(sheet.pivotCharts,sheet.pivotChart||{});activePivotChartId=pivotCharts.some(x=>x.id===sheet.activePivotChartId)?sheet.activePivotChartId:pivotCharts[0].id;pivotChartSettings={...getActivePivotChart(pivotCharts,activePivotChartId).settings};pivotFields=[];searchResults=[];searchIndex=-1;searchDirty=true;searchMatchAddresses.clear();undoStack=Array.isArray(sheet.history?.undo)?sheet.history.undo.slice(-40):[];redoStack=Array.isArray(sheet.history?.redo)?sheet.history.redo.slice(-40):[];geometryUndoStack=Array.isArray(sheet.history?.geometryUndo)?sheet.history.geometryUndo.slice(-40):[];geometryRedoStack=Array.isArray(sheet.history?.geometryRedo)?sheet.history.geometryRedo.slice(-40):[];filteredRows=new Set();activeFilter=null;document.querySelector("#sheetName").value=sheetTitle;document.querySelector("#freezeRowsInput").value=frozenRows;document.querySelector("#freezeColumnsInput").value=frozenColumns;document.querySelector("#splitMode").value=splitMode;applySplitMode(false);renderDataTables();updateHistoryControls();updateGeometryHistoryControls();renderSheetTabs();}
 function storeActiveSheet(){if(!activeSheetId)return;syncActivePivotChart();workbookSheets=updateWorkbookSheet(workbookSheets,activeSheetId,{name:sheetTitle,cells,formats:cellFormats,geometry:serializeGridGeometry(gridGeometry),freeze:{rows:frozenRows,columns:frozenColumns},split:{mode:splitMode,ratio:splitRatio,positions:readSplitPositions(),quadrants:readQuadrantPositions()},dataTables,pivotConfig,pivotCharts,activePivotChartId,pivotChart:pivotChartSettings,history:{undo:undoStack,redo:redoStack,geometryUndo:geometryUndoStack,geometryRedo:geometryRedoStack}});}
 function load(){try{const saved=JSON.parse(localStorage.getItem(STORAGE_KEY)||"null");if(saved){dashboard=normalizeDashboard(saved.dashboard);dashboardTemplates=Array.isArray(saved.dashboardTemplates)?saved.dashboardTemplates:[];if(Array.isArray(saved.sheets)){workbookSheets=normalizeWorkbookSheets(saved.sheets);activeSheetId=workbookSheets.some(x=>x.id===saved.activeSheetId)?saved.activeSheetId:workbookSheets[0].id;}else{const legacy={id:"sheet-1",name:String(saved.title||"Bảng tính chưa đặt tên"),cells:saved.cells||{},formats:saved.formats||{},freeze:saved.freeze,split:saved.split,dataTables:saved.dataTables,pivotConfig:saved.pivotConfig,pivotCharts:saved.pivotCharts,activePivotChartId:saved.activePivotChartId,pivotChart:saved.pivotChart,history:saved.history};workbookSheets=normalizeWorkbookSheets([legacy]);activeSheetId="sheet-1";}dashboard=normalizeDashboard({...dashboard,widgets:dashboard.widgets.map(w=>w.pivotConfig&&!w.pivotConfig.sheetId?{...w,pivotConfig:{...w.pivotConfig,sheetId:workbookSheets[0].id}}:w)});applySheetState(getWorkbookSheet(workbookSheets,activeSheetId));if(saved.history&&Array.isArray(saved.history.undo)&&Array.isArray(saved.history.redo)){undoStack=saved.history.undo.filter(x=>typeof x==="string").slice(-40);redoStack=saved.history.redo.filter(x=>typeof x==="string").slice(-40);}}else{workbookSheets=normalizeWorkbookSheets([]);applySheetState(workbookSheets[0]);}}catch{workbookSheets=normalizeWorkbookSheets([]);applySheetState(workbookSheets[0]);}renderSheetTabs();}
@@ -447,6 +448,40 @@ function installAxisResize(gridElement){
 }
 document.querySelector("#autoFitColumns")?.addEventListener("click",()=>{try{autoFitSelection("column");}catch(error){calcStatus.textContent="Không thể AutoFit cột: "+(error?.message||String(error));}});
 document.querySelector("#autoFitRows")?.addEventListener("click",()=>{try{autoFitSelection("row");}catch(error){calcStatus.textContent="Không thể AutoFit hàng: "+(error?.message||String(error));}});
+function updateAxisDimensionClipboardControl(){
+ const button=document.querySelector("#applyAxisDimension");
+ if(button)button.disabled=!axisDimensionClipboard;
+}
+function copySelectedAxisDimension(axis){
+ try{
+  const point=parseAddress(selected);
+  if(!point)throw new TypeError("Ô đang chọn không hợp lệ.");
+  axisDimensionClipboard=copyAxisDimension(gridGeometry,axis,axis==="row"?point.r:point.c);
+  updateAxisDimensionClipboardControl();
+  calcStatus.textContent="Đã chép "+(axis==="row"?"chiều cao hàng "+point.r:"độ rộng cột "+letters(point.c))+" · "+axisDimensionClipboard.size+" px. Có thể chuyển trang tính rồi áp dụng.";
+ }catch(error){calcStatus.textContent="Không thể chép kích thước: "+(error?.message||String(error));}
+}
+function applySelectedAxisDimension(){
+ try{
+  if(!axisDimensionClipboard)throw new TypeError("Hãy chép kích thước hàng hoặc cột trước.");
+  const bounds=getRangeBounds(selectionRange.start,selectionRange.end);
+  const first=axisDimensionClipboard.axis==="row"?bounds.startRow:bounds.startCol;
+  const last=axisDimensionClipboard.axis==="row"?bounds.endRow:bounds.endCol;
+  const count=last-first+1;
+  if(count>5000)throw new RangeError("Chỉ áp dụng tối đa 5.000 hàng hoặc cột mỗi lần.");
+  const targets=Array.from({length:count},(_,offset)=>first+offset);
+  const before=geometrySnapshot();
+  gridGeometry=applyCopiedAxisDimension(gridGeometry,axisDimensionClipboard,targets);
+  const after=geometrySnapshot();
+  recordGeometryChange(before,after,"Áp dụng kích thước "+(axisDimensionClipboard.axis==="row"?"hàng ":"cột ")+first+":"+last);
+  render();save();
+  calcStatus.textContent="Đã áp dụng "+axisDimensionClipboard.size+" px cho "+count+" "+(axisDimensionClipboard.axis==="row"?"hàng":"cột")+". Có thể hoàn tác trong lịch sử kích thước.";
+ }catch(error){calcStatus.textContent="Không thể áp dụng kích thước: "+(error?.message||String(error));}
+}
+document.querySelector("#copyRowDimension")?.addEventListener("click",()=>copySelectedAxisDimension("row"));
+document.querySelector("#copyColumnDimension")?.addEventListener("click",()=>copySelectedAxisDimension("column"));
+document.querySelector("#applyAxisDimension")?.addEventListener("click",applySelectedAxisDimension);
+updateAxisDimensionClipboardControl();
 [grid,splitGrid,quadrantPanes.topRight.grid,quadrantPanes.bottomLeft.grid].forEach(installAxisResize);
 window.addEventListener("pointermove",moveAxisResize,{passive:false});
 window.addEventListener("pointerup",event=>finishAxisResize(event,true));
