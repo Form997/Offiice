@@ -1007,3 +1007,16 @@ Bổ sung mô hình đáp ứng tăng dần, lợi ích biên giảm dần:
 - Giới hạn: rate limiter hiện vẫn lưu trong bộ nhớ từng tiến trình, không chia sẻ giữa nhiều instance và có thể mất khi khởi động lại. Trước khi mở dịch vụ công khai cần rate limiter phân tán, giám sát, kiểm thử PostgreSQL end-to-end, kiểm tra gửi email thật và rà soát bảo mật độc lập.
 - Kiểm thử CI và Pages: chờ workflow của commit 19 xác nhận; không đánh dấu đạt trước khi có kết quả.
 - Bắt đầu: 20/11/2026.
+
+
+## SGHT B5 — Đại tu giao diện, lớp nền không gian làm việc — 2026-11-21
+
+- Bắt đầu triển khai đại tu giao diện trên nhánh `v1-development`, theo kết quả kiểm kê B1, bản đồ điều khiển B2 và ma trận hồi quy B4.
+- Bước B5.1 chỉ thay đổi lớp CSS: chuẩn hóa bảng màu và bề mặt làm việc; làm rõ phân cấp thanh đầu trang, thông tin workbook, tab trang tính, ribbon, thanh công cụ, formula bar và vùng lưới; tăng độ rõ của focus bàn phím, trạng thái nút bị khóa và thao tác cảm ứng.
+- Bổ sung bố cục thích ứng cho desktop, tablet và điện thoại; ưu tiên vùng lưới làm trung tâm, thanh ribbon có thể cuộn, thanh tab/formula dễ tiếp cận trên màn hình nhỏ và giảm chuyển động khi người dùng bật tùy chọn reduced motion.
+- Không thay đổi HTML, JavaScript, engine tính toán, cấu trúc workbook, dữ liệu, API hay schema. Không xóa chức năng và không thay đổi hợp đồng sự kiện.
+- Kiểm tra sau ghi: xác nhận tệp CSS được lưu trên nhánh phát triển và xác nhận HTML/JS giữ nguyên blob SHA. Chưa chạy Chrome, Android, kiểm thử thị giác, đo RAM hoặc kiểm thử hồi quy; chưa tuyên bố giao diện đã nghiệm thu.
+- Dung lượng `sght/style.css`: trước B5 51,369 byte UTF-8; sau B5 58,046 byte UTF-8; tăng 6,677 byte (6.52 KiB; 53,416 bit). Số liệu tính từ nội dung tệp được GitHub trả về, không phải tổng dung lượng repository.
+- Trạng thái triển khai: chưa xác nhận Pages deployment cho commit B5. `main` không được sửa hoặc hợp nhất.
+- Bắt đầu và phát triển: 21/11/2026.
+
