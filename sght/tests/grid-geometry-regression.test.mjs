@@ -121,3 +121,23 @@ test("resize guide bám theo mép tay nắm và có thể hủy bằng Escape", 
 test("pointer phụ không được tự khởi tạo phiên resize", () => {
   assert.match(appSource, /if\(event\.isPrimary===false\)\{event\.preventDefault\(\);event\.stopPropagation\(\);return true;\}/);
 });
+
+import { calculateAxisResizeGuidePosition } from "../engine/axis-resize-guide.js";
+
+test("tọa độ đường căn resize được quy đổi theo viewport và giới hạn trong vùng bảng", () => {
+  assert.equal(calculateAxisResizeGuidePosition({axis:"column",startGuideCoordinate:420,pointerCoordinate:530,startCoordinate:500,origin:100,extent:900}),350);
+  assert.equal(calculateAxisResizeGuidePosition({axis:"row",startGuideCoordinate:260,pointerCoordinate:300,startCoordinate:280,origin:80,extent:600}),200);
+  assert.equal(calculateAxisResizeGuidePosition({axis:"column",startGuideCoordinate:110,pointerCoordinate:20,startCoordinate:100,origin:100,extent:500}),20);
+});
+
+test("đường căn không tràn khỏi sheetPanes khi kéo qua mép vùng nhìn", () => {
+  assert.equal(calculateAxisResizeGuidePosition({axis:"column",startGuideCoordinate:400,pointerCoordinate:1400,startCoordinate:400,origin:100,extent:800}),800);
+  assert.equal(calculateAxisResizeGuidePosition({axis:"row",startGuideCoordinate:150,pointerCoordinate:-100,startCoordinate:150,origin:50,extent:500}),0);
+  assert.equal(calculateAxisResizeGuidePosition({axis:"row",startGuideCoordinate:200,pointerCoordinate:200,startCoordinate:200,origin:200,extent:0}),0);
+  assert.throws(() => calculateAxisResizeGuidePosition({axis:"diagonal"}), TypeError);
+});
+
+test("giao diện resize dùng kích thước thực của overlay thay vì tọa độ vô hạn", () => {
+  assert.match(appSource, /calculateAxisResizeGuidePosition/);
+  assert.match(appSource, /extent=drag\.axis===\"column\"\?rect\.width:rect\.height/);
+});
