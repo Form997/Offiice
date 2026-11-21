@@ -1,42 +1,37 @@
 # HAI ĐẤT SGHT — Bảng tính
 
-## Giao diện làm việc chuyên nghiệp — 2026-11-18
+## Trạng thái nền tảng — 2026-11-21
 
-### Thanh công cụ và bố cục
-- Thanh tiêu đề: tên ứng dụng, trạng thái lưu, hoàn tác/làm lại, lưu, tạo bảng mới, xuất CSV.
-- Thanh trình đơn: Trang chủ, Chèn, Công thức, Dữ liệu, Xem, Tệp.
-- Thanh công cụ: bảng tạm, định dạng ô cơ bản, hàm nhanh, thu phóng.
-- Thanh địa chỉ và công thức: hiển thị ô đang chọn, nhập và áp dụng biểu thức.
-- Vùng lưới: tiêu đề cột/hàng cố định khi cuộn.
-- Thanh trang tính và thanh trạng thái ở cuối vùng làm việc.
-- Bố cục co giãn, thanh công cụ cuộn ngang trên điện thoại.
+SGHT là ứng dụng bảng tính web đang phát triển, ưu tiên tiếng Việt, lưu dữ liệu cục bộ và vận hành theo lưới ảo hóa để hạn chế dựng hàng loạt ô không cần thiết.
 
-### Lệnh đang hoạt động
-- Hoàn tác/làm lại lịch sử chỉnh sửa trong phiên hiện tại.
-- Lưu thủ công và tự lưu vào localStorage.
-- Sao chép/cắt/dán khi trình duyệt cấp quyền clipboard; vẫn hỗ trợ dán bằng thao tác hệ thống.
-- Xóa nội dung ô đang chọn.
-- Tạo công thức nhanh SUM, AVERAGE, COUNT.
-- Thu phóng lưới từ 60% đến 160%.
-- Xuất CSV UTF-8.
+### Lưới và workbook
+- Kích thước khởi đầu: 100 cột × 1.000 hàng; giới hạn kiến trúc hiện tại: 16.384 cột × 100.000 hàng.
+- Lưới ảo hóa và lưu dữ liệu ô dạng thưa; kích thước hàng/cột tùy chỉnh được lưu riêng theo từng trang tính.
+- Workbook hỗ trợ nhiều sheet, lưu nội dung ô, công thức, định dạng, cấu hình Freeze/Split và metadata liên quan.
+- Có Undo/Redo dữ liệu và lịch sử riêng cho thay đổi kích thước hàng/cột.
+- Freeze Panes, Split ngang/dọc/Quadrant, điều hướng địa chỉ và cuộn vùng bảng.
 
-### Nền tảng bảng tính
-- Lưới hiện tại vẫn dựng 16 cột × 40 hàng; chưa triển khai lưới mở rộng không giới hạn.
-- Chọn ô, nhập/sửa nội dung qua thanh công thức.
-- Công thức tham chiếu ô, ví dụ `=A1+B1`, `=SUM(A1:A5)`.
-- Phát hiện tham chiếu vòng ở mức cơ bản.
-- Dán vùng dữ liệu dạng tab/newline từ clipboard.
-- Bộ máy công thức độc lập tại `engine/core.js`, không dùng `eval()`, `new Function()` hay thư viện spreadsheet bên ngoài.
+### Công cụ bảng tính và phân tích
+- Nhập công thức, tham chiếu ô, hàm nhanh; bộ máy công thức độc lập tại `engine/core.js`, không dùng `eval()` hoặc `new Function()`.
+- Định dạng ô, clipboard, tìm kiếm/thay thế, sắp xếp, lọc, loại trùng, vùng dữ liệu cấu trúc và Pivot Table.
+- Pivot Chart, Dashboard, Macro Studio, AI Intelligence và Data Science là các mô-đun riêng; phạm vi từng mô-đun được ghi trong nhật ký phát triển bên dưới.
+- Macro là ngôn ngữ khai báo giới hạn, không phải VBA và không thực thi JavaScript tùy ý.
+- Các mô-đun AI/Statistics hiện chạy theo quy tắc cục bộ; không đồng nghĩa với mô hình ngôn ngữ trực tuyến.
 
-### Giới hạn còn lại
-Đây là bản phát triển giao diện, chưa phải sản phẩm thay thế Excel/Google Sheets. Chưa có nhiều trang tính thực sự, định dạng ô được lưu, biểu đồ, lọc/sắp xếp, nhập XLSX, cộng tác trực tuyến, đồng bộ đám mây hoặc kiểm soát quyền. Một số mục trình đơn là khung điều hướng cho các mô-đun sẽ phát triển tiếp. Dữ liệu localStorage chỉ nằm trên trình duyệt/thiết bị hiện tại; xóa dữ liệu trình duyệt có thể làm mất bản lưu.
+### Lưu trữ và giới hạn
+- Workbook tự lưu vào `localStorage` của trình duyệt/thiết bị hiện tại. Người dùng cần xuất/sao lưu dữ liệu quan trọng; xóa dữ liệu trình duyệt có thể làm mất bản lưu.
+- Chưa có đồng bộ đám mây/cộng tác thời gian thực mặc định; không xem đây là sản phẩm thay thế hoàn chỉnh cho Excel hoặc Google Sheets.
+- Kiểm thử Node.js/CI không thay thế nghiệm thu thao tác DOM, chuột/cảm ứng, Chrome desktop hoặc Android/Samsung A05.
 
 ### Chạy thử
-Mở `sght/index.html` qua GitHub Pages sau khi workflow triển khai hoàn tất. Khi chạy cục bộ, cần phục vụ thư mục qua HTTP vì ứng dụng dùng JavaScript module.
+Mở `sght/index.html` qua GitHub Pages sau khi workflow triển khai hoàn tất. Khi chạy cục bộ, phục vụ thư mục qua HTTP vì ứng dụng dùng JavaScript module.
 
 ## Nhật ký phát triển
+
 - 2026-11-18 — Bản lưới tương tác đầu tiên, nối với bộ máy công thức.
-- 2026-11-18 — Hiện đại hóa bố cục: thanh tiêu đề, trình đơn, ribbon công cụ, thanh công thức, thanh trang tính và trạng thái; bổ sung hoàn tác/làm lại, clipboard, hàm nhanh và thu phóng. Ghi rõ lưới mở rộng vô hạn vẫn là hạng mục tiếp theo.
+- 2026-11-18 — Hiện đại hóa bố cục: thanh tiêu đề, trình đơn, ribbon công cụ, thanh công thức, thanh trang tính và trạng thái.
+- 2026-11-21 — B5.5.18: bổ sung kiểm thử biên hình học, lưới cuối, tương thích workbook cũ và độc lập geometry giữa các sheet; chuẩn hóa runbook nghiệm thu thủ công.
+- 2026-11-21 — Sửa phần mô tả nền tảng cũ không còn đúng (16 × 40 ô và thiếu multi-sheet/format/filter) để phản ánh trạng thái mã nguồn hiện tại.
 
 ## SGHT Macro Studio — nền móng đầu tiên — 2026-11-19
 
@@ -1239,3 +1234,13 @@ Bổ sung mô hình đáp ứng tăng dần, lợi ích biên giảm dần:
 - Không sửa runtime app, engine công thức, dữ liệu workbook hoặc schema; không thêm dependency. Test tự chạy qua glob hiện hữu của `npm test`.
 - Đây là kiểm thử tích hợp module Node.js, không phải browser E2E. Chrome desktop, Android/Samsung A05, thao tác cảm ứng, Freeze/Split thực tế và đo hiệu năng vẫn cần nghiệm thu thủ công.
 - Nhánh `v1-development`; không sửa `main`. Ngày: 21/11/2026.
+
+
+## SGHT B5.5.18 — Kiểm thử biên hình học và tương thích workbook — 2026-11-21
+
+- Thêm `sght/tests/axis-resize-boundary.test.mjs`: kiểm tra ranh giới offset của hàng/cột tùy biến, kích thước min/max, reset sparse override, virtual window tại hàng 100.000/cột 16.384, workbook cũ không có geometry và geometry riêng từng sheet.
+- Xác nhận cập nhật geometry theo kiểu copy-on-write không làm thay đổi đối tượng nguồn.
+- Thêm runbook `docs/SGHT_B5_5_18_ACCEPTANCE_RUNBOOK.md` với dữ liệu mẫu, checklist Chrome desktop/Android và mẫu ghi bằng chứng.
+- Không sửa runtime, engine công thức, cell data, định dạng, clipboard hoặc workbook schema; không thêm dependency.
+- Test tự động là kiểm thử module Node.js, không phải browser E2E. Chưa chạy nghiệm thu thủ công trên Chrome desktop hoặc Samsung A05.
+- Nhánh `v1-development`; không sửa `main`. Ngày 21/11/2026.
