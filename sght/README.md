@@ -1115,3 +1115,16 @@ Bổ sung mô hình đáp ứng tăng dần, lợi ích biên giảm dần:
 - Bổ sung unit test cho đổi hàng/cột hàng loạt, chỉ số trùng, giữ mặc định cho trục ngoài vùng, và giới hạn 5.000. Chưa chạy npm test trong môi trường này.
 - Chưa kiểm thử thao tác thực tế trên Chrome/Android, chưa đo RAM, chưa xác nhận CI hoặc GitHub Pages deployment. Nhánh v1-development; không sửa main.
 - Bắt đầu: 21/11/2026.
+
+
+## SGHT B5.5.6 — AutoFit theo nội dung — 2026-11-21
+
+- Bổ sung hai lệnh AutoFit cho cột và hàng trong vùng chọn hiện hành.
+- AutoFit cột đo độ rộng hiển thị của nội dung ô đã có dữ liệu, cộng khoảng đệm và giới hạn theo chuẩn 40–500 px.
+- AutoFit hàng ước lượng số dòng cần hiển thị theo độ rộng cột hiện hành, đặt chiều cao trong giới hạn 20–240 px; ô hỗ trợ xuống dòng.
+- Chỉ quét các ô có dữ liệu trong vùng chọn, không duyệt toàn bộ lưới trống. Giới hạn mỗi thao tác 5.000 hàng/cột và 100.000 ô vùng chọn.
+- Thao tác được ghi vào lịch sử kích thước B5.5.4, có thể hoàn tác/làm lại; không thay đổi giá trị, công thức hay định dạng dữ liệu.
+- Đo chữ dùng Canvas 2D của trình duyệt khi có; dự phòng ước lượng theo số ký tự khi không có ngữ cảnh đo.
+- AutoFit hàng hiện dùng độ rộng cột đầu tiên trong vùng làm chuẩn ước lượng dòng; chưa xử lý tối ưu ghép nội dung nhiều cột hoặc chiều cao hàng theo nhiều ô gộp.
+- Đã cập nhật mã nguồn và tài liệu; chưa chạy npm test, chưa kiểm thử Chrome/Android, chưa đo hiệu năng workbook lớn, chưa xác nhận CI/deployment.
+- Nhánh v1-development; không sửa main. Ngày: 21/11/2026.
