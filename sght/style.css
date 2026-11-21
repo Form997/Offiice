@@ -391,3 +391,23 @@ main{max-width:1920px;margin:0 auto;padding:0 0 24px}
 @media(prefers-reduced-motion:reduce){
   *,*::before,*::after{scroll-behavior:auto!important;transition:none!important;animation:none!important}
 }
+
+
+/* SGHT B5.2 — Ribbon có phân cấp, cuộn ngang có kiểm soát và trạng thái thao tác rõ ràng. */
+.ribbon-tabs{position:sticky;top:0;z-index:30;align-items:stretch;gap:4px;background:rgba(255,255,255,.96);backdrop-filter:blur(12px);scrollbar-width:thin;overscroll-behavior-x:contain}
+.ribbon-tab{position:relative;white-space:nowrap;flex:0 0 auto;border-radius:8px 8px 0 0;transition:background .16s ease,color .16s ease}
+.ribbon-tab:hover{background:#edf4ef;color:#173b32}
+.ribbon-tab:focus-visible{outline:2px solid #287653;outline-offset:-3px}
+.ribbon-tab.active{background:#e7f1eb;color:#174b38}
+.ribbon-tab.active::after{content:'';position:absolute;left:12px;right:12px;bottom:0;height:3px;border-radius:3px 3px 0 0;background:#287653}
+.ribbon-panel{display:flex;align-items:stretch;gap:0;max-width:1600px;margin:0 auto 10px;padding:10px 14px;overflow-x:auto;overscroll-behavior-x:contain;scrollbar-width:thin;scrollbar-color:#b7c9bd transparent;border:1px solid #dce7df;border-radius:0 0 12px 12px;background:#fff;box-shadow:0 4px 16px rgba(26,54,40,.045)}
+.ribbon-panel>.tool-group{flex:0 0 auto;min-width:max-content;padding:3px 14px;border-right:1px solid #e5ece7}
+.ribbon-panel>.tool-group:first-child{padding-left:4px}.ribbon-panel>.tool-group:last-child{border-right:0}
+.ribbon-panel .tool-group>small{display:block;margin-top:7px;color:#75857b;font-size:10px;letter-spacing:.025em}
+.ribbon-panel .tool-row{align-items:center;flex-wrap:nowrap}
+.ribbon-panel .tool-btn{min-height:34px;border:1px solid #dce6df;border-radius:7px;background:#f8faf8;color:#24382d;padding:7px 10px;white-space:nowrap}
+.ribbon-panel .tool-btn:hover:not(:disabled){background:#eaf3ed;border-color:#9eb9a7}
+.ribbon-panel .tool-btn:focus-visible{outline:2px solid #287653;outline-offset:2px}
+.ribbon-panel .tool-btn:disabled{opacity:.45;cursor:not-allowed}.ribbon-panel label{white-space:nowrap}
+.data-tools-panel[hidden],.dashboard-panel[hidden],.data-science-panel[hidden],.ai-panel[hidden],.macro-panel[hidden]{display:none!important}
+@media(max-width:760px){.ribbon-tabs{top:0;padding:0 8px;gap:2px}.ribbon-tab{padding:10px 11px;font-size:11px}.ribbon-panel{margin:0 6px 8px;padding:7px 8px;border-radius:0 0 9px 9px}.ribbon-panel>.tool-group{padding:3px 9px}.ribbon-panel .tool-btn{min-height:38px;padding:8px 9px}}
