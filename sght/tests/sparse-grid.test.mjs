@@ -1,6 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { columnLabel, cellAddress, parseCellAddress, getSparseBounds, getVirtualWindow, updateSparseCells } from "../engine/sparse-grid.js";
+import { createGridGeometry } from "../engine/grid-geometry.js";
 
 test("đổi số cột sang nhãn A1 không giới hạn theo quy tắc cơ số 26", () => {
   assert.equal(columnLabel(1), "A");
@@ -59,4 +60,14 @@ test("cập nhật sparse map theo copy-on-write và chuẩn hóa địa chỉ",
   assert.equal(after.B2, undefined);
   assert.equal(after.C3, 9);
   assert.throws(() => updateSparseCells(before, { "A1:B2": 1 }), TypeError);
+});
+
+
+test("cửa sổ ảo định vị đúng hàng/cột khi kích thước biến thiên",()=>{
+ const geometry=createGridGeometry({rowHeights:{2:48},columnWidths:{3:160}});
+ const w=getVirtualWindow({scrollTop:32,scrollLeft:216,viewportHeight:48,viewportWidth:160,overscanRows:0,overscanColumns:0,maxRow:3,maxColumn:4,geometry});
+ assert.equal(w.rowStart,2);assert.equal(w.rowEnd,2);
+ assert.equal(w.columnStart,3);assert.equal(w.columnEnd,3);
+ assert.equal(w.topOffset,32);assert.equal(w.leftOffset,216);
+ assert.equal(w.bottomOffset,32);assert.equal(w.rightOffset,108);
 });
