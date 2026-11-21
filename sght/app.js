@@ -415,17 +415,18 @@ function stopAxisResizeAutoScroll(){
 function axisResizeAutoScrollTick(){
  axisResizeAutoScrollFrame=null;
  const drag=axisResizeDrag,pointer=axisResizeLastPointer;
- if(!drag||!pointer)return;
- const scroll=drag.handle?.closest?.(".sheet-scroll");
- if(!scroll)return;
+ if(!drag||!pointer){stopAxisResizeAutoScroll();return;}
+ if(drag.sheetId!==activeSheetId||!drag.handle?.isConnected){cancelAxisResize();return;}
+ const scroll=drag.handle.closest?.(".sheet-scroll");
+ if(!scroll||!scroll.isConnected||!scroll.contains(drag.handle)){cancelAxisResize();return;}
  const rect=scroll.getBoundingClientRect(),horizontal=drag.axis==="column";
  const coordinate=horizontal?pointer.clientX:pointer.clientY,start=horizontal?rect.left:rect.top,end=horizontal?rect.right:rect.bottom;
  const delta=calculateAxisResizeAutoScrollDelta({coordinate,start,end,edgeSize:44,maxSpeed:16});
- if(!delta)return;
+ if(!delta){axisResizeLastPointer=null;return;}
  const current=horizontal?scroll.scrollLeft:scroll.scrollTop;
  const maximum=Math.max(0,(horizontal?scroll.scrollWidth-scroll.clientWidth:scroll.scrollHeight-scroll.clientHeight));
  const next=Math.max(0,Math.min(maximum,current+delta));
- if(next===current)return;
+ if(next===current){axisResizeLastPointer=null;return;}
  if(horizontal)scroll.scrollLeft=next;else scroll.scrollTop=next;
  axisResizeAutoScrollFrame=requestAnimationFrame(axisResizeAutoScrollTick);
 }
