@@ -140,3 +140,18 @@ B5.5.5 đã cho phép kéo tay nắm để đổi kích thước đồng loạt 
 - Thêm helper thuần axis-resize-autoscroll.js và unit/source-contract tests cho mép đầu/cuối, vùng giữa, tốc độ giới hạn, pane hẹp, dữ liệu tọa độ không hợp lệ và đường dừng vòng lặp.
 - Các test tự động không mô phỏng cuộn DOM/Pointer Events thật. Cần nghiệm thu Chrome desktop, Freeze Panes, Split dọc/ngang, Quadrant và Android/Samsung A05; chưa có đo RAM hoặc hiệu năng thiết bị thật.
 - Không sửa engine công thức, cell data, định dạng, clipboard, workbook schema hoặc nhánh main. Nhánh phát triển: v1-development.
+
+## B5.5.16 — Gia cố vòng đời tự cuộn khi resize — 2026-11-21
+
+### Phát hiện và xử lý
+
+- Helper tự cuộn nay từ chối tọa độ, mép pane hoặc giá trị tốc độ không hữu hạn; tọa độ lỗi không còn bị ép thành 0 rồi vô tình kích hoạt cuộn về đầu bảng.
+- Mỗi khung hình kiểm tra trang tính vẫn là trang đang hoạt động, tay nắm còn gắn trong DOM và pane `.sheet-scroll` còn tồn tại, vẫn chứa đúng tay nắm. Nếu cấu trúc bị thay thế trong lúc kéo, phiên resize được hủy an toàn.
+- Khi con trỏ rời vùng kích hoạt hoặc pane đã tới giới hạn cuộn, vòng lặp không tiếp tục chạy vô ích; lượt pointermove sau có thể khởi động lại.
+- Giữ nguyên tốc độ tối đa 16 px/khung hình, vùng kích hoạt 44 px, giới hạn resize và logic đồng bộ cuộn của Freeze/Split/Quadrant.
+
+### Kiểm thử và giới hạn
+
+- Bổ sung kiểm thử tọa độ NaN/Infinity, mép pane lỗi, vùng pane hẹp, điều kiện pane/handle bị tháo khỏi DOM và dừng vòng lặp tại biên cuộn.
+- Unit/source-contract tests không thay thế mô phỏng DOM/Pointer Events thật. Vẫn cần nghiệm thu Chrome desktop, Freeze/Split/Quadrant và Android/Samsung A05; chưa có đo RAM hay hiệu năng thiết bị thật.
+- Không sửa engine công thức, dữ liệu ô, định dạng, clipboard, workbook schema hoặc nhánh `main`. Nhánh phát triển: `v1-development`.
