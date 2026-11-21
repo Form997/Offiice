@@ -1148,3 +1148,13 @@ Bổ sung mô hình đáp ứng tăng dần, lợi ích biên giảm dần:
 - Chưa chạy npm test trong môi trường này; chưa có CI status xác nhận, chưa chạy browser E2E/Android, chưa đo RAM và chưa xác nhận Pages deployment. Không tuyên bố toàn bộ B5.5 đã nghiệm thu.
 - Không sửa engine công thức, cells, formats, clipboard nội dung, hoặc nhánh `main`. Nhánh: `v1-development`.
 - Ngày: 21/11/2026.
+
+
+## SGHT B5.5.9 — Sửa kiểm thử hồi quy và cổng chất lượng CI — 2026-11-21
+
+- Đối chiếu kết quả workflow B5.5.8: `npm test` đã chạy 376 test, 375 đạt và 1 thất bại; job xác thực API đạt.
+- Xác định test lỗi do assertion giao diện còn tìm cấu trúc biến trạng thái kéo cũ, trong khi mã hiện hành dùng đối tượng `axisResizeDrag`.
+- Cập nhật assertion để khớp cấu trúc trạng thái kéo thực tế; không sửa logic resize, engine công thức, workbook, dữ liệu ô hoặc định dạng.
+- Ghi nhận nguyên nhân, thay đổi và tiêu chí nghiệm thu tại `docs/SGHT_B5_5_9_CI_HARDENING.md`.
+- Workflow hiện hữu sẽ tự chạy lại trên commit mới. Chỉ đánh dấu kiểm thử Node đạt sau khi xem kết quả Actions thực tế; Chrome/Android, touch, lưu–mở workbook và hiệu năng vẫn cần nghiệm thu riêng.
+- Nhánh `v1-development`; không sửa hoặc hợp nhất vào `main`. Ngày: 21/11/2026.
