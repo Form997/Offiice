@@ -1,3 +1,4 @@
+import { getAxisOffset, getAxisSize, findAxisIndexAtOffset } from "./grid-geometry.js";
 /**
  * HAI ĐẤT SGHT — Sparse Grid Core (Stage 18.1)
  * Logical address and viewport primitives for a resource-aware virtual grid.
@@ -62,7 +63,7 @@ export function getSparseBounds(cells = {}, formats = {}) {
 export function getVirtualWindow({
   scrollTop = 0, scrollLeft = 0, viewportHeight = 600, viewportWidth = 900,
   rowHeight = 32, columnWidth = 112, overscanRows = 5, overscanColumns = 2,
-  maxRow = Number.MAX_SAFE_INTEGER, maxColumn = Number.MAX_SAFE_INTEGER
+  maxRow = Number.MAX_SAFE_INTEGER, maxColumn = Number.MAX_SAFE_INTEGER, geometry = null
 } = {}) {
   const finiteNonNegative = (value, fallback) => Number.isFinite(value) && value >= 0 ? value : fallback;
   const top = finiteNonNegative(scrollTop, 0);
@@ -75,21 +76,24 @@ export function getVirtualWindow({
   const oc = Number.isSafeInteger(overscanColumns) && overscanColumns >= 0 ? overscanColumns : 2;
   const lastRow = Number.isSafeInteger(maxRow) && maxRow > 0 ? maxRow : Number.MAX_SAFE_INTEGER;
   const lastColumn = Number.isSafeInteger(maxColumn) && maxColumn > 0 ? maxColumn : Number.MAX_SAFE_INTEGER;
-  const firstVisibleRow = Math.floor(top / rh) + 1;
-  const firstVisibleColumn = Math.floor(left / cw) + 1;
-  const visibleRows = Math.ceil(height / rh);
-  const visibleColumns = Math.ceil(width / cw);
+  const firstVisibleRow = geometry ? findAxisIndexAtOffset(geometry, "row", top) : Math.floor(top / rh) + 1;
+  const firstVisibleColumn = geometry ? findAxisIndexAtOffset(geometry, "column", left) : Math.floor(left / cw) + 1;
+  const lastVisibleRow = geometry ? findAxisIndexAtOffset(geometry, "row", top + height - 1) : firstVisibleRow + Math.ceil(height / rh) - 1;
+  const lastVisibleColumn = geometry ? findAxisIndexAtOffset(geometry, "column", left + width - 1) : firstVisibleColumn + Math.ceil(width / cw) - 1;
+  const visibleRows = Math.max(1, lastVisibleRow - firstVisibleRow + 1);
+  const visibleColumns = Math.max(1, lastVisibleColumn - firstVisibleColumn + 1);
   const rowStart = Math.max(1, firstVisibleRow - or);
   const columnStart = Math.max(1, firstVisibleColumn - oc);
-  const rowEnd = Math.min(lastRow, firstVisibleRow + visibleRows + or - 1);
-  const columnEnd = Math.min(lastColumn, firstVisibleColumn + visibleColumns + oc - 1);
+  const rowEnd = Math.min(lastRow, lastVisibleRow + or);
+  const columnEnd = Math.min(lastColumn, lastVisibleColumn + oc);
+  const topOffset = geometry ? getAxisOffset(geometry, "row", rowStart) : (rowStart - 1) * rh;
+  const leftOffset = geometry ? getAxisOffset(geometry, "column", columnStart) : (columnStart - 1) * cw;
+  const bottomOffset = geometry ? Math.max(0, getAxisOffset(geometry, "row", lastRow + 1) - getAxisOffset(geometry, "row", rowEnd + 1)) : Math.max(0, (lastRow - rowEnd) * rh);
+  const rightOffset = geometry ? Math.max(0, getAxisOffset(geometry, "column", lastColumn + 1) - getAxisOffset(geometry, "column", columnEnd + 1)) : Math.max(0, (lastColumn - columnEnd) * cw);
   return {
     rowStart, rowEnd, columnStart, columnEnd,
     visibleRows, visibleColumns,
-    topOffset: (rowStart - 1) * rh,
-    leftOffset: (columnStart - 1) * cw,
-    bottomOffset: Math.max(0, (lastRow - rowEnd) * rh),
-    rightOffset: Math.max(0, (lastColumn - columnEnd) * cw),
+    topOffset, leftOffset, bottomOffset, rightOffset,
     renderedRows: Math.max(0, rowEnd - rowStart + 1),
     renderedColumns: Math.max(0, columnEnd - columnStart + 1)
   };
