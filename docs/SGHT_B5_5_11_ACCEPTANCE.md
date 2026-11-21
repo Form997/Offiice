@@ -79,3 +79,26 @@ B5.5.11 bổ sung lớp kiểm định tự động cho hình học và một bi
 - Đây là sửa lỗi và kiểm thử hợp đồng mã nguồn; không thay đổi engine hình học, công thức, dữ liệu ô, định dạng, lưu trữ workbook hay schema.
 - CI Node kiểm tra cú pháp và các hợp đồng; không phải mô phỏng Pointer Events trong trình duyệt.
 - Cần nghiệm thu Chrome và Android thật cho Escape, pointer phụ, căn đường biên, cuộn, Freeze/Split và lưu–mở workbook.
+
+
+## B5.5.13 — Giới hạn tọa độ đường căn trong vùng bảng — 2026-11-21
+
+### Phát hiện và xử lý
+
+Lớp phủ resize dùng chung được đặt trong #sheetPanes, trong khi sự kiện con trỏ phát ra từ nhiều lưới con. Phép đổi tọa độ phải dùng gốc và kích thước thực của lớp phủ chung, không lấy gốc của riêng một pane. Trước đây vị trí chỉ chặn ở mép đầu; khi kéo vượt khỏi mép cuối, đường căn có thể đi ra ngoài vùng bảng.
+
+- Thêm module thuần sght/engine/axis-resize-guide.js.
+- Tính vị trí theo công thức: tâm tay nắm ban đầu + delta con trỏ − gốc overlay.
+- Giới hạn vị trí trong đoạn [0, extent], với extent là chiều rộng cho cột hoặc chiều cao cho hàng.
+- Dùng cùng hàm cho pane thường, Freeze, Split và Quadrant; không thay đổi phép tính kích thước thực tế của hàng/cột.
+
+### Kiểm thử
+
+- Kiểm tra quy đổi từ tọa độ viewport về tọa độ overlay.
+- Kiểm tra kéo vượt mép trái/trên và phải/dưới; đường căn không vượt giới hạn.
+- Kiểm tra overlay có kích thước bằng 0 và từ chối trục không hợp lệ.
+- Kiểm tra hợp đồng nối app với helper mới.
+
+### Giới hạn nghiệm thu
+
+Các kiểm tra trên là unit/source-contract tests bằng Node.js. Chúng không mô phỏng DOM layout, cuộn thật hoặc Pointer Events đa pane. Vẫn phải chạy checklist Chrome desktop và Android/Samsung A05 trong B5.5.11, đặc biệt: cuộn tới vị trí xa rồi resize, bật Freeze, Split dọc/ngang và Quadrant, kéo ở từng pane, kéo vượt mép bảng, sau đó lưu–mở workbook. Không tuyên bố đã nghiệm thu thiết bị khi chưa chạy các bước đó.
