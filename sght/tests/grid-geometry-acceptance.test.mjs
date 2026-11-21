@@ -34,7 +34,7 @@ test("offset, tổng vùng và tổng trục nhất quán với kích thước t
   });
   assert.equal(getAxisOffset(geometry, "row", 1), 0);
   assert.equal(getAxisOffset(geometry, "row", 3), 80);
-  assert.equal(getAxisRangeSize(geometry, "row", 2, 7), 48 + 32 + 32 + 20 + 32 + 32);
+  assert.equal(getAxisRangeSize(geometry, "row", 2, 7), 48 + 32 + 32 + 32 + 32 + 60);
   assert.equal(getAxisOffset(geometry, "row", 11), 32 * 10 + 16 + 28);
   assert.equal(getAxisRangeSize(geometry, "column", 2, 4), 108 + 160 + 108);
   assert.equal(getAxisOffset(geometry, "column", 9), 108 * 8 + 52 + 92);
