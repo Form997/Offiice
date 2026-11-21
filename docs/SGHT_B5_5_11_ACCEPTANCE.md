@@ -179,3 +179,12 @@ Không sửa runtime `app.js`, engine công thức, sparse cell storage, clipboa
 Đây là kiểm thử tích hợp cấp module bằng Node.js, chưa phải browser E2E. Chỉ xác nhận CI sau khi workflow trên commit mới hoàn tất. Vẫn cần thao tác thật trên Chrome desktop và Android/Samsung A05: resize bằng chuột/cảm ứng, bàn phím, AutoFit, nhiều hàng/cột, Undo/Redo, tự cuộn, Freeze, Split từng chế độ, đổi sheet giữa lúc kéo và lưu–mở workbook. Chưa có số đo RAM hoặc hiệu năng thiết bị thật.
 
 Nhánh `v1-development`; không sửa hoặc hợp nhất vào `main`. Ngày: 21/11/2026.
+
+
+## B5.5.18 — Kiểm thử biên hình học và tương thích workbook — 2026-11-21
+
+- Bổ sung kiểm thử offset tại các ranh giới, kích thước min/max, reset override, viewport tại hàng/cột cuối, workbook cũ và geometry độc lập theo sheet.
+- Runbook chi tiết: `docs/SGHT_B5_5_18_ACCEPTANCE_RUNBOOK.md`.
+- Các kiểm thử tự động chạy bằng Node.js; không mô phỏng DOM, CSS layout hoặc Pointer Events.
+- Checklist Chrome desktop và Android/Samsung A05 vẫn ở trạng thái chờ cho tới khi có biên bản chạy thật. Không ghi nhận CI là nghiệm thu thiết bị.
+- Không thay đổi runtime, công thức, cell data, định dạng, clipboard hoặc schema workbook.
