@@ -1125,6 +1125,6 @@ Bổ sung mô hình đáp ứng tăng dần, lợi ích biên giảm dần:
 - Chỉ quét các ô có dữ liệu trong vùng chọn, không duyệt toàn bộ lưới trống. Giới hạn mỗi thao tác 5.000 hàng/cột và 100.000 ô vùng chọn.
 - Thao tác được ghi vào lịch sử kích thước B5.5.4, có thể hoàn tác/làm lại; không thay đổi giá trị, công thức hay định dạng dữ liệu.
 - Đo chữ dùng Canvas 2D của trình duyệt khi có; dự phòng ước lượng theo số ký tự khi không có ngữ cảnh đo.
-- AutoFit hàng hiện dùng độ rộng cột đầu tiên trong vùng làm chuẩn ước lượng dòng; chưa xử lý tối ưu ghép nội dung nhiều cột hoặc chiều cao hàng theo nhiều ô gộp.
+- AutoFit hàng ước lượng số dòng riêng theo độ rộng thực tế của từng cột trong vùng chọn và lấy số dòng lớn nhất trên mỗi hàng. Không xử lý ô gộp; đây là phép đo xấp xỉ dựa trên độ rộng chữ.
 - Đã cập nhật mã nguồn và tài liệu; chưa chạy npm test, chưa kiểm thử Chrome/Android, chưa đo hiệu năng workbook lớn, chưa xác nhận CI/deployment.
 - Nhánh v1-development; không sửa main. Ngày: 21/11/2026.
