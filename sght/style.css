@@ -470,7 +470,7 @@ main{max-width:1920px;margin:0 auto;padding:0 0 24px}
 
 /* SGHT B5.5.3 — tay nắm thay đổi kích thước trục hàng/cột. */
 .sheet-panes{position:relative}
-.sheet-grid thead th[data-column],.sheet-grid .row-head{position:relative}
+.sheet-grid thead th[data-column]:not(.freeze-col),.sheet-grid .row-head{position:relative}
 .sheet-grid .axis-resize-handle{position:absolute;z-index:18;display:block;margin:0;padding:0;border:0;border-radius:0;background:transparent;opacity:.24;touch-action:none;cursor:col-resize}
 .sheet-grid .axis-resize-column{top:0;right:-5px;bottom:0;width:11px;min-width:11px}
 .sheet-grid .axis-resize-row{right:0;bottom:-5px;left:0;width:100%;height:11px;min-width:0;cursor:row-resize}
