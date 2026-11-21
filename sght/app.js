@@ -77,8 +77,9 @@ let macroExecution=false;
 const grid=document.querySelector("#sheetGrid"),formulaInput=document.querySelector("#formulaInput"),cellAddress=document.querySelector("#cellAddress"),selectionInfo=document.querySelector("#selectionInfo"),saveStatus=document.querySelector("#saveStatus"),calcStatus=document.querySelector("#calcStatus");
 const searchInput=document.querySelector("#searchQuery"),searchModeInput=document.querySelector("#searchMode"),searchCaseInput=document.querySelector("#searchCase"),searchWholeInput=document.querySelector("#searchWhole"),searchCount=document.querySelector("#searchCount"),searchSelectionOnly=document.querySelector("#searchSelectionOnly"),replaceInput=document.querySelector("#replaceQuery"),replaceOneButton=document.querySelector("#replaceOne"),replaceAllButton=document.querySelector("#replaceAll"),replaceStatus=document.querySelector("#replaceStatus");
 let searchResults=[],searchIndex=-1,searchMatchAddresses=new Set(),currentSearchAddress=null,searchDirty=false,historyCaptureAvailable=true;
-function applySheetState(sheet){if(!sheet)return;activeSheetId=sheet.id;cells=sheet.cells;cellFormats=sheet.formats;gridGeometry=createGridGeometry(sheet.geometry||{});sheetTitle=sheet.name;const freeze=normalizeFreezeSettings(sheet.freeze||{});frozenRows=freeze.rows;frozenColumns=freeze.columns;const split=normalizeSplitSettings(sheet.split);splitMode=split.mode;splitRatio=split.ratio;splitPositions=split.positions;quadrantPositions=normalizeQuadrantPositions(sheet.split?.quadrants);dataTables=sheet.dataTables||[];pivotConfig=sheet.pivotConfig||null;pivotCharts=normalizePivotCharts(sheet.pivotCharts,sheet.pivotChart||{});activePivotChartId=pivotCharts.some(x=>x.id===sheet.activePivotChartId)?sheet.activePivotChartId:pivotCharts[0].id;pivotChartSettings={...getActivePivotChart(pivotCharts,activePivotChartId).settings};pivotFields=[];searchResults=[];searchIndex=-1;searchDirty=true;searchMatchAddresses.clear();undoStack=Array.isArray(sheet.history?.undo)?sheet.history.undo.slice(-40):[];redoStack=Array.isArray(sheet.history?.redo)?sheet.history.redo.slice(-40):[];filteredRows=new Set();activeFilter=null;document.querySelector("#sheetName").value=sheetTitle;document.querySelector("#freezeRowsInput").value=frozenRows;document.querySelector("#freezeColumnsInput").value=frozenColumns;document.querySelector("#splitMode").value=splitMode;applySplitMode(false);renderDataTables();updateHistoryControls();renderSheetTabs();}
-function storeActiveSheet(){if(!activeSheetId)return;syncActivePivotChart();workbookSheets=updateWorkbookSheet(workbookSheets,activeSheetId,{name:sheetTitle,cells,formats:cellFormats,geometry:serializeGridGeometry(gridGeometry),freeze:{rows:frozenRows,columns:frozenColumns},split:{mode:splitMode,ratio:splitRatio,positions:readSplitPositions(),quadrants:readQuadrantPositions()},dataTables,pivotConfig,pivotCharts,activePivotChartId,pivotChart:pivotChartSettings,history:{undo:undoStack,redo:redoStack}});}
+let geometryUndoStack=[],geometryRedoStack=[];
+function applySheetState(sheet){if(!sheet)return;activeSheetId=sheet.id;cells=sheet.cells;cellFormats=sheet.formats;gridGeometry=createGridGeometry(sheet.geometry||{});sheetTitle=sheet.name;const freeze=normalizeFreezeSettings(sheet.freeze||{});frozenRows=freeze.rows;frozenColumns=freeze.columns;const split=normalizeSplitSettings(sheet.split);splitMode=split.mode;splitRatio=split.ratio;splitPositions=split.positions;quadrantPositions=normalizeQuadrantPositions(sheet.split?.quadrants);dataTables=sheet.dataTables||[];pivotConfig=sheet.pivotConfig||null;pivotCharts=normalizePivotCharts(sheet.pivotCharts,sheet.pivotChart||{});activePivotChartId=pivotCharts.some(x=>x.id===sheet.activePivotChartId)?sheet.activePivotChartId:pivotCharts[0].id;pivotChartSettings={...getActivePivotChart(pivotCharts,activePivotChartId).settings};pivotFields=[];searchResults=[];searchIndex=-1;searchDirty=true;searchMatchAddresses.clear();undoStack=Array.isArray(sheet.history?.undo)?sheet.history.undo.slice(-40):[];redoStack=Array.isArray(sheet.history?.redo)?sheet.history.redo.slice(-40):[];geometryUndoStack=Array.isArray(sheet.history?.geometryUndo)?sheet.history.geometryUndo.slice(-40):[];geometryRedoStack=Array.isArray(sheet.history?.geometryRedo)?sheet.history.geometryRedo.slice(-40):[];filteredRows=new Set();activeFilter=null;document.querySelector("#sheetName").value=sheetTitle;document.querySelector("#freezeRowsInput").value=frozenRows;document.querySelector("#freezeColumnsInput").value=frozenColumns;document.querySelector("#splitMode").value=splitMode;applySplitMode(false);renderDataTables();updateHistoryControls();renderSheetTabs();}
+function storeActiveSheet(){if(!activeSheetId)return;syncActivePivotChart();workbookSheets=updateWorkbookSheet(workbookSheets,activeSheetId,{name:sheetTitle,cells,formats:cellFormats,geometry:serializeGridGeometry(gridGeometry),freeze:{rows:frozenRows,columns:frozenColumns},split:{mode:splitMode,ratio:splitRatio,positions:readSplitPositions(),quadrants:readQuadrantPositions()},dataTables,pivotConfig,pivotCharts,activePivotChartId,pivotChart:pivotChartSettings,history:{undo:undoStack,redo:redoStack,geometryUndo:geometryUndoStack,geometryRedo:geometryRedoStack}});}
 function load(){try{const saved=JSON.parse(localStorage.getItem(STORAGE_KEY)||"null");if(saved){dashboard=normalizeDashboard(saved.dashboard);dashboardTemplates=Array.isArray(saved.dashboardTemplates)?saved.dashboardTemplates:[];if(Array.isArray(saved.sheets)){workbookSheets=normalizeWorkbookSheets(saved.sheets);activeSheetId=workbookSheets.some(x=>x.id===saved.activeSheetId)?saved.activeSheetId:workbookSheets[0].id;}else{const legacy={id:"sheet-1",name:String(saved.title||"Bảng tính chưa đặt tên"),cells:saved.cells||{},formats:saved.formats||{},freeze:saved.freeze,split:saved.split,dataTables:saved.dataTables,pivotConfig:saved.pivotConfig,pivotCharts:saved.pivotCharts,activePivotChartId:saved.activePivotChartId,pivotChart:saved.pivotChart,history:saved.history};workbookSheets=normalizeWorkbookSheets([legacy]);activeSheetId="sheet-1";}dashboard=normalizeDashboard({...dashboard,widgets:dashboard.widgets.map(w=>w.pivotConfig&&!w.pivotConfig.sheetId?{...w,pivotConfig:{...w.pivotConfig,sheetId:workbookSheets[0].id}}:w)});applySheetState(getWorkbookSheet(workbookSheets,activeSheetId));if(saved.history&&Array.isArray(saved.history.undo)&&Array.isArray(saved.history.redo)){undoStack=saved.history.undo.filter(x=>typeof x==="string").slice(-40);redoStack=saved.history.redo.filter(x=>typeof x==="string").slice(-40);}}else{workbookSheets=normalizeWorkbookSheets([]);applySheetState(workbookSheets[0]);}}catch{workbookSheets=normalizeWorkbookSheets([]);applySheetState(workbookSheets[0]);}renderSheetTabs();}
 function save(){try{storeActiveSheet();localStorage.setItem(STORAGE_KEY,JSON.stringify({version:2,sheets:workbookSheets,activeSheetId,dashboard,dashboardTemplates,updatedAt:new Date().toISOString()}));saveStatus.textContent="Đã lưu trên thiết bị";}catch{saveStatus.textContent="Không đủ dung lượng lưu · lịch sử có thể chưa được ghi";}}
 function updateHistoryControls(){document.querySelector("#undoAction").disabled=undoStack.length===0;document.querySelector("#redoAction").disabled=redoStack.length===0;}
@@ -278,6 +279,42 @@ resizeGuide.append(resizeGuideLabel);
 sheetPanesElement.append(resizeGuide);
 let axisResizeDrag=null;
 
+function geometrySnapshot(){return serializeGridGeometry(gridGeometry);}
+function recordGeometryChange(before,after,label){
+ if(JSON.stringify(before)===JSON.stringify(after))return;
+ geometryUndoStack.push({before,after,label:String(label||"Đổi kích thước"),at:Date.now()});
+ if(geometryUndoStack.length>40)geometryUndoStack.shift();
+ geometryRedoStack=[];
+ updateGeometryHistoryControls();
+}
+function updateGeometryHistoryControls(){
+ const undo=document.querySelector("#geometryUndoAction"),redo=document.querySelector("#geometryRedoAction");
+ if(undo)undo.disabled=geometryUndoStack.length===0;
+ if(redo)redo.disabled=geometryRedoStack.length===0;
+}
+function moveGeometryHistory(from,to){
+ if(!from.length)return;
+ const isUndo=from===geometryUndoStack,entry=from.pop();to.push(entry);if(to.length>40)to.shift();
+ gridGeometry=createGridGeometry(isUndo?entry.before:entry.after);
+ render();save();updateGeometryHistoryControls();
+ calcStatus.textContent=(isUndo?"Đã hoàn tác: ":"Đã làm lại: ")+entry.label+".";
+}
+function undoGeometry(){moveGeometryHistory(geometryUndoStack,geometryRedoStack);}
+function redoGeometry(){moveGeometryHistory(geometryRedoStack,geometryUndoStack);}
+function applyAxisSize(axis,index,size,label){
+ const before=geometrySnapshot();
+ gridGeometry=setAxisSize(gridGeometry,axis,index,size);
+ const after=geometrySnapshot();
+ recordGeometryChange(before,after,label||((axis==="column"?"Độ rộng cột ":"Chiều cao hàng ")+(axis==="column"?letters(index):index)));
+ render();save();
+}
+function resetAxisDimension(axis,index){
+ const before=geometrySnapshot();
+ gridGeometry=resetAxisSize(gridGeometry,axis,index);
+ const after=geometrySnapshot();
+ recordGeometryChange(before,after,"Khôi phục kích thước "+(axis==="column"?"cột "+letters(index):"hàng "+index));
+ render();save();
+}
 function clampAxisSize(axis,value){
  const min=axis==="row"?GRID_GEOMETRY_DEFAULTS.minRowHeight:GRID_GEOMETRY_DEFAULTS.minColumnWidth;
  const max=axis==="row"?GRID_GEOMETRY_DEFAULTS.maxRowHeight:GRID_GEOMETRY_DEFAULTS.maxColumnWidth;
@@ -319,12 +356,20 @@ function finishAxisResize(event,commit=true){
  axisResizeDrag=null;resizeGuide.hidden=true;
  if(!commit||drag.sheetId!==activeSheetId||drag.previewSize===drag.startSize)return;
  try{
-  gridGeometry=setAxisSize(gridGeometry,drag.axis,drag.index,drag.previewSize);
-  render();save();
+  applyAxisSize(drag.axis,drag.index,drag.previewSize);
   calcStatus.textContent=(drag.axis==="column"?"Độ rộng cột ":"Chiều cao hàng ")+(drag.axis==="column"?letters(drag.index):drag.index)+" đã đổi thành "+drag.previewSize+" px.";
  }catch(error){calcStatus.textContent="Không thể đổi kích thước: "+(error?.message||String(error));}
 }
 function installAxisResize(gridElement){
+ gridElement.addEventListener("dblclick",event=>{
+  const handle=event.target.closest?.("[data-resize-axis][data-resize-index]");if(!handle)return;
+  const axis=handle.dataset.resizeAxis,index=Number(handle.dataset.resizeIndex),current=getAxisSize(gridGeometry,axis,index);
+  const answer=window.prompt("Nhập "+(axis==="column"?"độ rộng cột":"chiều cao hàng")+" (px), giới hạn "+(axis==="column"?"40–500":"20–240")+".",String(current));
+  if(answer===null)return;
+  const value=Number(answer.trim());
+  try{if(!Number.isFinite(value))throw new TypeError("Kích thước phải là số.");const next=clampAxisSize(axis,Math.round(value));applyAxisSize(axis,index,next);calcStatus.textContent="Đã đặt kích thước "+(axis==="column"?"cột "+letters(index):"hàng "+index)+" = "+next+" px.";}
+  catch(error){calcStatus.textContent="Không thể đổi kích thước: "+(error?.message||String(error));}
+ });
  gridElement.addEventListener("pointerdown",beginAxisResize);
  gridElement.addEventListener("lostpointercapture",event=>finishAxisResize(event,false));
  gridElement.addEventListener("keydown",event=>{
@@ -338,13 +383,13 @@ function installAxisResize(gridElement){
   else if(axis==="row"&&event.key==="ArrowDown")next=getAxisSize(gridGeometry,axis,index)+step;
   else if(axis==="row"&&event.key==="ArrowUp")next=getAxisSize(gridGeometry,axis,index)-step;
   else if(event.key==="Home"){
-   event.preventDefault();gridGeometry=resetAxisSize(gridGeometry,axis,index);render();save();
+   event.preventDefault();resetAxisDimension(axis,index);
    calcStatus.textContent="Đã khôi phục kích thước mặc định cho "+(axis==="column"?"cột "+letters(index):"hàng "+index)+".";
    requestAnimationFrame(()=>document.querySelector('[data-resize-axis="'+axis+'"][data-resize-index="'+index+'"]')?.focus());return;
   }else return;
   event.preventDefault();
   try{
-   gridGeometry=setAxisSize(gridGeometry,axis,index,clampAxisSize(axis,next));render();save();
+   applyAxisSize(axis,index,clampAxisSize(axis,next));
    requestAnimationFrame(()=>document.querySelector('[data-resize-axis="'+axis+'"][data-resize-index="'+index+'"]')?.focus());
   }catch(error){calcStatus.textContent="Không thể đổi kích thước: "+(error?.message||String(error));}
  });
@@ -559,6 +604,9 @@ document.querySelector("#downloadCsv").addEventListener("click",exportCsv);
 document.querySelector("#saveAction").addEventListener("click",()=>{save();calcStatus.textContent="Đã lưu bảng tính";});
 document.querySelector("#undoAction").addEventListener("click",()=>historyMove(undoStack,redoStack));
 document.querySelector("#redoAction").addEventListener("click",()=>historyMove(redoStack,undoStack));
+document.querySelector("#geometryUndoAction")?.addEventListener("click",undoGeometry);
+document.querySelector("#geometryRedoAction")?.addEventListener("click",redoGeometry);
+updateGeometryHistoryControls();
 updateHistoryControls();
 document.querySelector("#clearAction").addEventListener("click",()=>{const targets=expandRange(selectionRange.start,selectionRange.end);snapshot();for(const a of targets){if(Object.hasOwn(cells,a))recordFormulaCellVersion(a,raw(a),"","clear");delete cells[a];}invalidateFormulaCells(targets);render();save();calcStatus.textContent="Đã xóa nội dung "+targets.length+" ô";});
 function applyFormat(patch){const targets=expandRange(selectionRange.start,selectionRange.end);snapshot();for(const a of targets)cellFormats[a]=normalizeCellFormat({...cellFormats[a],...patch});render();save();calcStatus.textContent="Đã định dạng "+targets.length+" ô";}
