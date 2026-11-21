@@ -326,6 +326,7 @@ function finishAxisResize(event,commit=true){
 }
 function installAxisResize(gridElement){
  gridElement.addEventListener("pointerdown",beginAxisResize);
+ gridElement.addEventListener("lostpointercapture",event=>finishAxisResize(event,false));
  gridElement.addEventListener("keydown",event=>{
   const handle=event.target.closest?.("[data-resize-axis][data-resize-index]");
   if(!handle)return;
