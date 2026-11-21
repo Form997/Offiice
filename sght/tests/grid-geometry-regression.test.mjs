@@ -141,3 +141,25 @@ test("giao diện resize dùng kích thước thực của overlay thay vì tọ
   assert.match(appSource, /calculateAxisResizeGuidePosition/);
   assert.match(appSource, /extent=drag\.axis===\"column\"\?rect\.width:rect\.height/);
 });
+
+
+test("resize bằng bàn phím dùng chung vùng chọn và giới hạn lô với thao tác kéo", () => {
+  assert.match(appSource, /const targets=axisResizeTargets\(axis,index\);\s*applyAxisSize\(axis,index,clampAxisSize\(axis,next\),null,targets\)/);
+  assert.match(appSource, /const targets=axisResizeTargets\(axis,index\);\s*resetAxisDimension\(axis,index,targets\)/);
+  assert.match(appSource, /function resetAxisDimension\(axis,index,targetsOverride=null\)/);
+  assert.match(appSource, /else gridGeometry=setAxisSizes\(gridGeometry,axis,targets,axis===\"column\"\?GRID_GEOMETRY_DEFAULTS\.columnWidth:GRID_GEOMETRY_DEFAULTS\.rowHeight\)/);
+});
+
+test("đặt lại kích thước nhiều hàng hoặc cột về mặc định mà vẫn giữ hình học thưa", () => {
+  const source = createGridGeometry({ rowHeights: { "2": 48, "3": 56 }, columnWidths: { "4": 180, "5": 220 } });
+  const rows = setAxisSizes(source, "row", [2, 3], 32);
+  const columns = setAxisSizes(source, "column", [4, 5], 108);
+  assert.equal(getAxisSize(rows, "row", 2), 32);
+  assert.equal(getAxisSize(rows, "row", 3), 32);
+  assert.equal(getAxisSize(columns, "column", 4), 108);
+  assert.equal(getAxisSize(columns, "column", 5), 108);
+  assert.equal(getAxisSize(source, "row", 2), 48);
+  assert.equal(getAxisSize(source, "column", 4), 180);
+  assert.equal(Object.keys(serializeGridGeometry(rows).rowHeights || {}).length, 0);
+  assert.equal(Object.keys(serializeGridGeometry(columns).columnWidths || {}).length, 0);
+});
