@@ -74,6 +74,15 @@ HAI ĐẤT CALC được định hướng trở thành ứng dụng bảng tính
 - Dùng **PocketBase** làm backend dùng chung của HAI ĐẤT OFFICE; dùng **IndexedDB** làm lớp lưu trữ cục bộ cho dữ liệu ứng dụng; cơ chế đồng bộ theo hướng tự động khi khả dụng và cho phép người dùng chủ động đồng bộ thủ công.
 - Không đưa máy chủ PostgreSQL hoặc hệ thống đăng nhập độc lập của bản SGHT riêng vào kiến trúc OFFICE. Không đặt khóa bí mật backend trong mã nguồn frontend.
 
+### Tiến trình cập nhật SGHT
+
+Các đợt phát triển SGHT V1 được ghi nhận theo hai nhánh công việc chính:
+
+- **Chuỗi 18.x (đến mốc 18.50):** mở rộng nền tảng bảng tính và các nhóm chức năng chuyên sâu như công thức, workbook, xử lý dữ liệu, biểu đồ, Macro, AI và phân tích dữ liệu.
+- **Chuỗi B5.x:** tập trung đại tu trải nghiệm sử dụng; các phần B5.1–B5.4 xử lý tương tác trên lưới, còn B5.5 và các bước nhỏ tập trung vào kéo thả, thay đổi độ rộng cột và chiều cao hàng.
+- **Nguyên tắc bảo toàn:** các đợt nâng cấp phải giữ ổn định engine, dữ liệu workbook và những chức năng đã xây dựng trước đó; không thay thế bằng giao diện minh họa hoặc bản rút gọn.
+- **Cách ghi nhận:** số thứ tự/mốc phát triển thể hiện tiến trình công việc, không tự động đồng nghĩa mọi hạng mục đã hoàn tất, kiểm thử đạt hoặc đã được đưa lên nhánh main.
+
 ### Trạng thái tích hợp
 - Mã SGHT V1 hiện được phát triển trên nhánh `v1-development`; nhánh `main` chưa có đầy đủ bộ mã SGHT.
 - Việc chuyển đổi được thực hiện có chọn lọc vào `calc/`, sau khi rà soát quan hệ phụ thuộc, tài nguyên giao diện, lưu trữ, xác thực, service worker và kiểm thử.
