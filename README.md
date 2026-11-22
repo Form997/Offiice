@@ -5,7 +5,7 @@
 HAI ĐẤT OFFICE là bộ ứng dụng văn phòng gồm ba công cụ độc lập nhưng dùng chung định hướng tài liệu, cách học và hệ thống hướng dẫn:
 
 1. **HAI ĐẤT WRITER** — soạn thảo, biên tập và trình bày văn bản.
-2. **HAI ĐẤT CALC** — tính toán, xử lý bảng dữ liệu và công thức.
+2. **HAI ĐẤT CALC** — ứng dụng bảng tính, lấy SGHT V1 làm lõi xử lý dữ liệu, công thức và phân tích; máy tính khoa học được giữ như công cụ phụ trợ.
 3. **HAI ĐẤT SLIDES** — thiết kế bài trình chiếu và trình bày nội dung.
 
 ## Giáo trình dùng chung
@@ -19,7 +19,7 @@ HAI ĐẤT OFFICE là bộ ứng dụng văn phòng gồm ba công cụ độc l
 | Ứng dụng | Chức năng | Mở ứng dụng |
 |---|---|---|
 | Writer | Soạn thảo văn bản | [Mở Writer](https://form997.github.io/Offiice/writer/) |
-| Calc | Bảng tính và công thức | [Mở Calc](https://form997.github.io/Offiice/calc/) |
+| Calc | Bảng tính SGHT (đang trong lộ trình tích hợp) | [Mở Calc](https://form997.github.io/Offiice/calc/) |
 | Slides | Thiết kế và trình chiếu | [Mở Slides](https://form997.github.io/Offiice/slides/) |
 
 ## Một giáo trình dùng chung cho cả ba ứng dụng
@@ -61,6 +61,24 @@ Giáo trình được định hướng để đọc bằng nhiều ngôn ngữ, 
 - Nội dung giáo trình cần dùng định dạng có cấu trúc, có mã bài và mã ngôn ngữ để dễ tìm kiếm, cập nhật, dịch và tái sử dụng.
 - Bản dịch không được làm thay đổi công thức, mã lệnh, dữ liệu mẫu hoặc ý nghĩa thao tác.
 - Tài liệu người dùng tạo ra phải được phân biệt với nội dung giáo trình; cập nhật giáo trình không được tự ý sửa tài liệu cá nhân.
+
+## Định hướng HAI ĐẤT CALC — SGHT V1
+
+HAI ĐẤT CALC được định hướng trở thành ứng dụng bảng tính chính của bộ OFFICE, sử dụng **SGHT V1 làm nền tảng**, với tên sản phẩm **HAI ĐẤT CALC — powered by SGHT**.
+
+### Kiến trúc đã thống nhất
+- Tích hợp SGHT V1 vào thư mục và ứng dụng chính `calc/`; không duy trì SGHT như một ứng dụng bảng tính tách rời trong bộ OFFICE.
+- Giữ bộ máy công thức, mô hình workbook nhiều trang tính, lưới thưa/ảo hóa, định dạng ô, thao tác vùng, công cụ dữ liệu, biểu đồ, Macro Studio, AI Intelligence và Data Science theo đúng phạm vi đã có trong mã nguồn.
+- Máy tính khoa học hiện có được giữ lại như một tiện ích phụ, không còn là giao diện/chức năng trung tâm của Calc.
+- Writer, Calc và Slides tiếp tục là ba ứng dụng riêng; không thay thế hoặc làm xáo trộn mã nguồn Writer và Slides khi tích hợp SGHT.
+- Dùng **PocketBase** làm backend dùng chung của HAI ĐẤT OFFICE; dùng **IndexedDB** làm lớp lưu trữ cục bộ cho dữ liệu ứng dụng; cơ chế đồng bộ theo hướng tự động khi khả dụng và cho phép người dùng chủ động đồng bộ thủ công.
+- Không đưa máy chủ PostgreSQL hoặc hệ thống đăng nhập độc lập của bản SGHT riêng vào kiến trúc OFFICE. Không đặt khóa bí mật backend trong mã nguồn frontend.
+
+### Trạng thái tích hợp
+- Mã SGHT V1 hiện được phát triển trên nhánh `v1-development`; nhánh `main` chưa có đầy đủ bộ mã SGHT.
+- Việc chuyển đổi được thực hiện có chọn lọc vào `calc/`, sau khi rà soát quan hệ phụ thuộc, tài nguyên giao diện, lưu trữ, xác thực, service worker và kiểm thử.
+- Không hợp nhất toàn bộ nhánh `v1-development` vào `main` chỉ để đưa SGHT vào Calc; phải bảo toàn các ứng dụng và lịch sử không liên quan.
+- Cho tới khi mã nguồn được tích hợp và kiểm thử đạt yêu cầu, không xem các chức năng SGHT là đã có sẵn trên bản Calc đang triển khai.
 
 ## Phiên bản và phát triển
 
