@@ -1,14 +1,14 @@
 # Nguyên tắc đặt tên & đăng ký hàm — HAI ĐẤT CALC (SGHT)
 
-Tài liệu này quy định chuẩn đặt tên, phân nhóm và cấu trúc đăng ký hàm bảng tính trong `calc/engine/core.js` và `calc/engine/functions-standard.js` nhằm đảm bảo **đúng chuẩn Excel / Google Sheets**, **dễ nhớ cho người dùng** và **dễ mở rộng cho lập trình viên**.
+Tài liệu này quy định chuẩn đặt tên, phân nhóm và cấu trúc đăng ký hàm bảng tính trong `calc/engine/core.js` và `calc/engine/functions-standard.js` nhằm đảm bảo **tương thích chuẩn công thức mở OpenFormula (ODF)**, **dễ nhớ cho người dùng** và **dễ mở rộng cho lập trình viên**.
 
 ---
 
 ## 1. Quy tắc đặt tên hàm (bắt buộc)
 
-1. **Chữ HOA tiếng Anh không dấu theo chuẩn bảng tính quốc tế:**
+1. **Chữ HOA tiếng Anh không dấu theo chuẩn công thức bảng tính quốc tế (OpenFormula):**
    - Định dạng regex: `^[A-Z][A-Z0-9_]*(\.[A-Z0-9_]+)*$`
-   - Không đặt tên hàm gốc có dấu tiếng Việt để tương thích 100% khi nhập/xuất CSV, đối chiếu công thức từ Excel / Google Sheets và tránh lỗi gõ bộ gõ Telex/VNI.
+   - Không đặt tên hàm gốc có dấu tiếng Việt để tương thích 100% khi nhập/xuất CSV, đối chiếu công thức theo chuẩn bảng tính quốc tế và tránh lỗi gõ bộ gõ Telex/VNI.
    - Mọi nhãn nhóm, cú pháp gợi ý, ví dụ và giải thích đều trình bày bằng **tiếng Việt dễ hiểu**.
 
 2. **Đặt tên theo mẫu (Pattern-based — đoán được ngay tên hàm):**
@@ -19,7 +19,7 @@ Tài liệu này quy định chuẩn đặt tên, phân nhóm và cấu trúc đ
    | `IS<KIỂU>` | Kiểm tra kiểu dữ liệu (luôn trả `TRUE`/`FALSE`) | `ISBLANK`, `ISNUMBER`, `ISTEXT`, `ISLOGICAL`, `ISERROR`, `ISERR`, `ISNA`, `ISEVEN`, `ISODD` |
    | `<CHIỀU>LOOKUP` | Tra cứu theo chiều | `VLOOKUP` (dọc), `HLOOKUP` (ngang), `XLOOKUP` (hiện đại 2 chiều) |
    | `<HÀM>.S` / `<HÀM>.P` | Thống kê mẫu (Sample) / tổng thể (Population) | `STDEV.S`, `STDEV.P`, `VAR.S`, `VAR.P` |
-   | `<HÀM>.INC` / `.EQ` / `.SNGL` | Chuẩn Excel hiện đại kèm **alias ngắn** quen thuộc | `RANK.EQ` (`RANK`), `PERCENTILE.INC` (`PERCENTILE`), `QUARTILE.INC` (`QUARTILE`), `MODE.SNGL` (`MODE`) |
+   | `<HÀM>.INC` / `.EQ` / `.SNGL` | Chuẩn hiện đại kèm **alias ngắn** quen thuộc | `RANK.EQ` (`RANK`), `PERCENTILE.INC` (`PERCENTILE`), `QUARTILE.INC` (`QUARTILE`), `MODE.SNGL` (`MODE`) |
    | `ROUND<HƯỚNG>` | Làm tròn theo hướng rõ nghĩa | `ROUND`, `ROUNDUP`, `ROUNDDOWN`, `MROUND`, `CEILING.MATH` (`CEILING`), `FLOOR.MATH` (`FLOOR`) |
 
 3. **Alias tương thích ngược (dùng `registerFormulaAlias`):**
@@ -75,3 +75,7 @@ Khi đăng ký xong, hàm mới **tự động** xuất hiện đồng bộ tạ
 2. Menu tự gợi ý khi gõ `=` trên thanh công thức (`#formulaSuggest`)
 3. Ngăn kéo `fx Thư viện hàm` (`#functionLibraryPanel`)
 4. Bộ đề xuất sửa lỗi chính tả tên hàm (`suggestFormulaRepairs`)
+
+---
+
+> **Ghi chú tiêu chuẩn mở:** Tên hàm trong HAI ĐẤT CALC tuân theo chuẩn công thức mở quốc tế (OASIS OpenFormula / ODF). HAI ĐẤT OFFICE là dự án độc lập, không liên kết hay đại diện cho bất kỳ bên thứ ba nào (xem [Trang Pháp lý](../legal/) và [`LICENSE`](../LICENSE)).

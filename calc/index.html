@@ -86,7 +86,7 @@
 
     <div class="ribbon-strip" data-ribbon-panel="formulas" hidden>
       <div class="tool-group">
-        <button class="tool-btn drawer-trigger" type="button" data-open-drawer="functions" title="Mở thư viện 120+ hàm chuẩn Excel">📚 Thư viện hàm</button>
+        <button class="tool-btn drawer-trigger" type="button" data-open-drawer="functions" title="Mở Thư viện 149 hàm bảng tính chuẩn OpenFormula">📚 Thư viện hàm</button>
       </div>
       <div class="tool-group">
         <button class="tool-btn quick-fn" type="button" data-fn="SUM">∑ SUM</button>
@@ -158,7 +158,7 @@
 
   <section class="formula-panel" aria-label="Thanh địa chỉ và công thức">
     <input class="name-box" id="cellAddress" type="text" value="A1" maxlength="12" autocomplete="off" autocapitalize="characters" spellcheck="false" aria-label="Đi tới địa chỉ ô" title="Nhập địa chỉ ô, ví dụ D25 rồi nhấn Enter">
-    <button id="openFunctionLibrary" class="fx-mark fx-btn drawer-trigger" type="button" data-open-drawer="functions" title="Mở Thư viện hàm (120+ hàm chuẩn Excel)">fx</button>
+    <button id="openFunctionLibrary" class="fx-mark fx-btn drawer-trigger" type="button" data-open-drawer="functions" title="Mở Thư viện 149 hàm bảng tính chuẩn OpenFormula">fx</button>
     <div class="formula-input-wrap">
       <input id="formulaInput" autocomplete="off" spellcheck="false" placeholder="Nhập giá trị hoặc gõ = để gợi ý hàm (vd =SUM(A1:A5), =IF(A1>0, &quot;Đạt&quot;, &quot;Chưa&quot;))" aria-label="Nội dung ô đang chọn">
       <div id="formulaSuggest" class="formula-suggest" role="listbox" aria-label="Gợi ý hàm" hidden></div>
@@ -411,8 +411,9 @@
             </details>
 
             <details class="drawer-fold">
-              <summary>Kho kiểm toán SHA-256 &amp; Chữ ký số (nâng cao)</summary>
+              <summary>Kiểm tra toàn vẹn SHA-256 &amp; Khóa kỹ thuật cục bộ (nâng cao)</summary>
               <div class="drawer-fold-body">
+                <small class="legal-audit-note">Chỉ dùng đối chiếu toàn vẹn kỹ thuật cục bộ (SHA-256/ECDSA). Không phải chữ ký số công cộng do CA cấp phép và không có giá trị pháp lý thay chữ ký số theo Luật Giao dịch điện tử 2023 / eIDAS.</small>
                 <div class="formula-version-toolbar">
                   <button id="createFormulaAuditArchive" type="button" class="quiet">Tạo bản lưu</button>
                   <button id="verifyFormulaAuditArchive" type="button" class="quiet">Kiểm tra chuỗi</button>
@@ -423,20 +424,20 @@
                 <pre id="formulaArchiveStatus" class="formula-version-output" aria-live="polite">Chưa có bản lưu SHA-256.</pre>
                 <form class="formula-version-toolbar" onsubmit="return false">
                   <input type="text" autocomplete="username" value="sght-signing-key" hidden aria-hidden="true" tabindex="-1">
-                  <label>Mật khẩu khóa ký <input id="formulaSigningPassword" type="password" autocomplete="new-password" minlength="12" placeholder="Ít nhất 12 ký tự"></label>
+                  <label>Mật khẩu khóa kỹ thuật <input id="formulaSigningPassword" type="password" autocomplete="new-password" minlength="12" placeholder="Ít nhất 12 ký tự"></label>
                 </form>
                 <div class="formula-version-toolbar">
                   <button id="generateFormulaSigningKey" type="button" class="quiet">Tạo khóa</button>
                   <button id="loadFormulaSigningKey" type="button" class="quiet">Nạp khóa</button>
-                  <button id="signFormulaAuditArchive" type="button" class="primary">Ký kho</button>
-                  <button id="exportSignedFormulaAudit" type="button" class="quiet">Xuất gói ký</button>
+                  <button id="signFormulaAuditArchive" type="button" class="primary">Đóng dấu kỹ thuật</button>
+                  <button id="exportSignedFormulaAudit" type="button" class="quiet">Xuất gói kiểm định</button>
                 </div>
                 <div class="formula-version-toolbar">
                   <input id="trustedFormulaFingerprint" type="text" spellcheck="false" placeholder="Fingerprint SHA-256 tin cậy">
                   <button id="verifySignedFormulaAudit" type="button" class="quiet">Xác minh gói</button>
                   <input id="signedFormulaAuditFile" type="file" accept="application/json,.json" hidden>
                 </div>
-                <pre id="formulaSignatureStatus" class="formula-version-output" aria-live="polite">Chưa tạo chữ ký.</pre>
+                <pre id="formulaSignatureStatus" class="formula-version-output" aria-live="polite">Chưa tạo dấu kiểm định cục bộ.</pre>
                 <details class="drawer-fold">
                   <summary>Sổ danh tính &amp; vòng đời khóa</summary>
                   <div class="drawer-fold-body">
@@ -706,7 +707,7 @@
           </div>
           <div id="fnCategoryPills" class="drawer-subtabs" role="tablist" aria-label="Nhóm hàm"></div>
           <details class="drawer-fold">
-            <summary>📐 Nguyên tắc đặt tên hàm (chuẩn Excel · dễ nhớ)</summary>
+            <summary>📐 Nguyên tắc đặt tên hàm (chuẩn OpenFormula · dễ nhớ)</summary>
             <ul class="fn-rules-list">
               <li><b>Viết HOA không dấu:</b> <code>SUM</code>, <code>VLOOKUP</code>, <code>STDEV.S</code> (hỗ trợ cả dấu <code>,</code> và <code>;</code>, nối chuỗi <code>&amp;</code>, phần trăm <code>15%</code>, cố định <code>$A$1</code>).</li>
               <li><b>Điều kiện:</b> thêm <code>IF</code> (1 đk) hoặc <code>IFS</code> (nhiều đk) → <code>SUMIF/SUMIFS</code>, <code>COUNTIF/COUNTIFS</code>, <code>AVERAGEIF/AVERAGEIFS</code>.</li>
@@ -727,7 +728,8 @@
       <span id="selectionInfo">Ô A1</span>
       <span id="calcStatus">Sẵn sàng</span>
       <span id="statusCount"></span>
-      <button id="openCalcShortcuts" class="shortcuts-pill" type="button" title="Xem bảng phím tắt chuẩn Excel (Ctrl+/)">⌨ Phím tắt</button>
+      <button id="openCalcShortcuts" class="shortcuts-pill" type="button" title="Xem bảng phím tắt HAI ĐẤT CALC (Ctrl+/)">⌨ Phím tắt</button>
+      <a class="shortcuts-pill legal-pill" href="../legal/" title="Pháp lý, Quyền riêng tư &amp; Điều khoản sử dụng">⚖ Pháp lý</a>
     </div>
   </footer>
 
@@ -782,7 +784,7 @@
 
   <!-- Keyboard Shortcuts Reference Modal -->
   <dialog id="calcShortcutsDialog" class="sci-calc-dialog shortcuts-dialog" aria-labelledby="calcShortcutsTitle">
-    <div class="sci-calc-head"><strong id="calcShortcutsTitle">⌨ Phím tắt HAI ĐẤT CALC (chuẩn Excel / Sheets)</strong><button id="closeCalcShortcuts" type="button" class="quiet">Đóng</button></div>
+    <div class="sci-calc-head"><strong id="calcShortcutsTitle">⌨ Phím tắt HAI ĐẤT CALC</strong><button id="closeCalcShortcuts" type="button" class="quiet">Đóng</button></div>
     <div id="calcShortcutsBody" class="calc-shortcuts-body"></div>
   </dialog>
 

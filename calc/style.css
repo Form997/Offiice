@@ -742,9 +742,10 @@ body.calc-app .formula-input-wrap input#formulaInput{width:100%}
 :root[data-calc-theme="dark"] .fn-card{background:#141c24;border-color:#2e3c4a}
 :root[data-calc-theme="dark"] .fn-syntax,:root[data-calc-theme="dark"] .fn-rules-list code{background:#1c2d35;color:#8ee9c1}
 
-/* Calc Keyboard Shortcuts Pill & Modal */
-.shortcuts-pill{border:1px solid var(--line);background:#fff;color:var(--green);border-radius:999px;padding:2px 9px;font-size:11px;font-weight:650;line-height:1.4}
+/* Calc Keyboard Shortcuts & Legal Pills + Modal */
+.shortcuts-pill{border:1px solid var(--line);background:#fff;color:var(--green);border-radius:999px;padding:2px 9px;font-size:11px;font-weight:650;line-height:1.4;text-decoration:none;display:inline-flex;align-items:center;gap:3px}
 .shortcuts-pill:hover{background:#e2f0e8;border-color:#9fc5b1}
+.legal-audit-note{display:block;font-size:11px;line-height:1.45;color:var(--muted);background:#f3f7f4;border-left:3px solid #9ab8a8;padding:6px 8px;border-radius:4px}
 .shortcuts-dialog{width:min(740px,calc(100vw - 24px));max-height:86dvh;overflow:auto}
 .calc-shortcuts-body{display:grid;gap:12px}
 .shortcut-group h4{margin:0 0 6px;font-size:12px;color:var(--green);letter-spacing:.03em;text-transform:uppercase}
@@ -754,6 +755,7 @@ body.calc-app .formula-input-wrap input#formulaInput{width:100%}
 .shortcut-row span{color:var(--muted);text-align:right}
 :root[data-calc-theme="dark"] .shortcuts-pill{background:#202c38;color:#a7f3d0;border-color:#354757}
 :root[data-calc-theme="dark"] .shortcuts-pill:hover{background:#27443c}
+:root[data-calc-theme="dark"] .legal-audit-note{background:#18242e;border-left-color:#3b7562;color:#b2c4d4}
 :root[data-calc-theme="dark"] .shortcut-group h4{color:#6ee7b7}
 :root[data-calc-theme="dark"] .shortcut-row{background:#141c24}
 :root[data-calc-theme="dark"] .shortcut-row kbd{background:#212e3b;color:#a7f3d0;border-color:#3a4e60}

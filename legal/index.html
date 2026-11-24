@@ -1,0 +1,225 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#123f36">
+  <title>Pháp lý &amp; Quyền riêng tư · HAI ĐẤT OFFICE</title>
+  <style>
+    :root{--ink:#17212b;--muted:#52655d;--brand:#176b57;--line:#d8e3dd;--bg:#f2f6f4;--card:#fff;--danger:#a52e21}
+    *{box-sizing:border-box}
+    body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.65 system-ui,-apple-system,"Segoe UI",sans-serif}
+    header{background:linear-gradient(120deg,#123f36,#176b57);color:#fff;padding:14px clamp(14px,3vw,32px);display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+    header a{color:#dff4eb;text-decoration:none;font-size:13px;font-weight:600}
+    header a:hover{text-decoration:underline;color:#fff}
+    .brand{font-weight:800;letter-spacing:.05em;font-size:16px}
+    .lang-switch{display:flex;gap:6px}
+    .lang-switch button{border:1px solid rgba(255,255,255,.32);background:rgba(255,255,255,.12);color:#fff;border-radius:8px;padding:6px 12px;font-size:12.5px;font-weight:650;cursor:pointer}
+    .lang-switch button.active{background:#fff;color:#123f36;border-color:#fff}
+    main{max-width:920px;margin:20px auto 36px;padding:0 16px;display:grid;gap:14px}
+    .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px 20px;box-shadow:0 3px 14px rgba(16,43,36,.06)}
+    h1{margin:0 0 6px;font-size:22px;color:#123f36}
+    h2{margin:0 0 10px;font-size:16px;color:#145744}
+    p,li{margin:0 0 8px;color:var(--ink)}
+    ul{margin:0;padding-left:20px}
+    .meta{font-size:12.5px;color:var(--muted)}
+    .badge-row{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+    .badge{font-size:11.5px;font-weight:650;padding:3px 10px;border-radius:999px;background:#e6f3ec;color:#145744}
+    .data-box{margin-top:10px;padding:12px 14px;border:1px solid #cfe0d7;border-radius:10px;background:#f7fbf9;display:grid;gap:8px}
+    .data-actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+    .btn{border:1px solid var(--line);background:#fff;color:var(--ink);border-radius:8px;padding:7px 12px;font-size:13px;font-weight:650;cursor:pointer}
+    .btn:hover{background:#edf5f0}
+    .btn-danger{background:#fff1ef;color:var(--danger);border-color:#e8b9b1}
+    .btn-danger:hover{background:#fde2de}
+    footer{text-align:center;color:var(--muted);font-size:12px;padding:0 16px 28px}
+    footer a{color:#176b57;text-decoration:none}
+    [data-lang][hidden]{display:none!important}
+  </style>
+</head>
+<body>
+  <header>
+    <div>
+      <div class="brand">HAI ĐẤT OFFICE · PHÁP LÝ &amp; QUYỀN RIÊNG TƯ</div>
+      <a href="../">← Về trang chủ HAI ĐẤT OFFICE</a>
+    </div>
+    <div class="lang-switch" role="group" aria-label="Chọn ngôn ngữ">
+      <button type="button" class="active" data-set-lang="vi">Tiếng Việt</button>
+      <button type="button" data-set-lang="en">English</button>
+    </div>
+  </header>
+
+  <main>
+    <!-- VIETNAMESE VERSION -->
+    <div data-lang="vi" style="display:grid;gap:14px">
+      <section class="card">
+        <h1>Chính sách Quyền riêng tư, Điều khoản &amp; Thông báo Pháp lý</h1>
+        <p class="meta">Áp dụng cho toàn bộ bộ ứng dụng HAI ĐẤT OFFICE (Writer, Calc, Slides và Academy) · Cập nhật: 2026</p>
+        <div class="badge-row">
+          <span class="badge">100% xử lý cục bộ trên thiết bị</span>
+          <span class="badge">0 máy chủ thu thập dữ liệu</span>
+          <span class="badge">0 mã theo dõi / quảng cáo</span>
+          <span class="badge">0 CDN bên thứ ba</span>
+        </div>
+      </section>
+
+      <section class="card">
+        <h2>1. Chính sách Quyền riêng tư (Nghị định 13/2023/NĐ-CP Việt Nam · GDPR · CCPA)</h2>
+        <ul>
+          <li><b>Không thu thập dữ liệu cá nhân:</b> HAI ĐẤT OFFICE hoạt động trực tiếp trên trình duyệt của bạn. Tài liệu văn bản, bảng tính, slide, lịch sử tính toán và tiến độ học tập chỉ được lưu cục bộ trên thiết bị của bạn (qua bộ nhớ <code>localStorage</code> và bộ nhớ đệm ngoại tuyến Service Worker).</li>
+          <li><b>Không truyền dữ liệu ra nước ngoài hay bên thứ ba:</b> Ứng dụng không gắn Google Analytics, không đặt cookie quảng cáo, không tải script từ CDN bên thứ ba và không gửi nội dung tài liệu về bất kỳ máy chủ nào.</li>
+          <li><b>Lưu ý hạ tầng lưu trữ tĩnh:</b> Khi bạn truy cập trang web công khai qua GitHub Pages, nhà cung cấp hạ tầng máy chủ (GitHub, Inc.) có thể ghi nhật ký kỹ thuật tiêu chuẩn (như địa chỉ IP) theo chính sách bảo mật của họ để vận hành dịch vụ mạng.</li>
+          <li><b>Quyền kiểm soát và xóa dữ liệu của bạn:</b> Bạn toàn quyền xuất tệp (DOCX, HTML, TXT, CSV, JSON) để sao lưu hoặc xóa vĩnh viễn toàn bộ dữ liệu ứng dụng khỏi trình duyệt bất cứ lúc nào bằng công cụ bên dưới.</li>
+        </ul>
+        <div class="data-box">
+          <strong id="storageSummaryVi">Đang kiểm tra bộ nhớ cục bộ trên thiết bị…</strong>
+          <div class="data-actions">
+            <button type="button" class="btn" data-action="refresh-storage">Kiểm tra lại</button>
+            <button type="button" class="btn btn-danger" data-action="erase-storage">Xóa toàn bộ dữ liệu HAI ĐẤT OFFICE trên thiết bị này</button>
+          </div>
+          <small id="storageResultVi" class="meta"></small>
+        </div>
+      </section>
+
+      <section class="card">
+        <h2>2. Điều khoản sử dụng &amp; Miễn trừ trách nhiệm (Luật BVQLNTD 2023 &amp; chuẩn quốc tế)</h2>
+        <ul>
+          <li><b>Phạm vi sử dụng:</b> Cá nhân, học sinh, sinh viên và tổ chức được sử dụng miễn phí ứng dụng web HAI ĐẤT OFFICE cho công việc soạn thảo, tính toán và trình chiếu hợp pháp.</li>
+          <li><b>Miễn trừ trách nhiệm chuyên môn:</b> Các hàm tính toán (kể cả nhóm Tài chính như <code>PMT</code>, <code>PV</code>, <code>FV</code>, <code>NPV</code>, <code>RATE</code>, nhóm Thống kê/Nông học) và mẫu văn bản chỉ mang tính <b>công cụ hỗ trợ kỹ thuật</b>, <b>không thay thế tư vấn pháp lý, kế toán, thuế, kiểm toán, y tế hay kỹ thuật chuyên ngành</b>. Người dùng cần tự kiểm chứng số liệu và sao lưu tệp định kỳ.</li>
+          <li><b>Nguyên trạng (“As-Is”):</b> Ứng dụng được cung cấp theo nguyên trạng; chủ sở hữu dự án không chịu trách nhiệm pháp lý đối với tổn thất dữ liệu do xóa trình duyệt/hỏng thiết bị hoặc quyết định kinh doanh phát sinh từ việc sử dụng phần mềm.</li>
+        </ul>
+      </section>
+
+      <section class="card">
+        <h2>3. Lưu ý về Luật Giao dịch điện tử (2023) &amp; Xác thực kỹ thuật cục bộ</h2>
+        <p>Công cụ băm kiểm tra toàn vẹn SHA-256 / khóa ECDSA cục bộ (nếu dùng trong mục nâng cao của Calc) <b>chỉ phục vụ đối chiếu tính nguyên vẹn kỹ thuật nội bộ trên thiết bị</b>. Đây <b>không phải chữ ký số công cộng</b> do tổ chức chứng thực (CA) được cấp phép phát hành và <b>không có giá trị pháp lý thay thế chữ ký tay hay chữ ký số</b> theo Luật Giao dịch điện tử Việt Nam hoặc quy định eIDAS của Liên minh châu Âu.</p>
+      </section>
+
+      <section class="card">
+        <h2>4. Sở hữu trí tuệ, Chuẩn mở &amp; Khẳng định độc lập thương hiệu</h2>
+        <ul>
+          <li><b>Bản quyền:</b> Toàn bộ mã nguồn gốc, thiết kế giao diện và nội dung giáo trình thuộc bản quyền của <b>HAI ĐẤT OFFICE</b> (All Rights Reserved — xem tệp <code>LICENSE</code> tại thư mục gốc).</li>
+          <li><b>Chuẩn kỹ thuật mở quốc tế:</b> Bộ ứng dụng triển khai độc lập các chuẩn mở quốc tế gồm <b>OASIS OpenFormula (ISO/IEC 26300)</b> cho cú pháp hàm bảng tính, <b>ISO/IEC 29500 (OOXML)</b> cho định dạng <code>.docx</code>, <b>RFC 4180</b> cho <code>.csv</code>, <b>HTML5</b> và <b>SVG (W3C)</b>.</li>
+          <li><b>Độc lập thương hiệu:</b> HAI ĐẤT OFFICE là dự án độc lập, <b>không liên kết, không được tài trợ hay chứng thực</b> bởi Microsoft Corporation, Google LLC, Apple Inc. hay bất kỳ tổ chức bên thứ ba nào. Mọi tên định dạng hay nhãn hiệu bên thứ ba (nếu được nêu vì mục đích tương thích kỹ thuật) thuộc quyền sở hữu của chủ sở hữu tương ứng.</li>
+        </ul>
+      </section>
+    </div>
+
+    <!-- ENGLISH VERSION -->
+    <div data-lang="en" hidden style="display:grid;gap:14px">
+      <section class="card">
+        <h1>Privacy Policy, Terms of Use &amp; Legal Notice</h1>
+        <p class="meta">Applies to the entire HAI ĐẤT OFFICE suite (Writer, Calc, Slides, and Academy) · Updated: 2026</p>
+        <div class="badge-row">
+          <span class="badge">100% Local-First Processing</span>
+          <span class="badge">Zero Data Collection Servers</span>
+          <span class="badge">Zero Trackers / Ads</span>
+          <span class="badge">Zero Third-Party CDNs</span>
+        </div>
+      </section>
+
+      <section class="card">
+        <h2>1. Privacy Policy (Vietnam Decree 13/2023/ND-CP · EU GDPR · California CCPA)</h2>
+        <ul>
+          <li><b>No Personal Data Collection:</b> HAI ĐẤT OFFICE runs entirely in your web browser. Documents, spreadsheets, presentations, calculation history, and learning progress are stored exclusively on your local device (via browser <code>localStorage</code> and offline Service Worker cache).</li>
+          <li><b>No Cross-Border Tracking or Third-Party CDNs:</b> The applications contain no third-party analytics, no advertising cookies, no external CDN script requests, and never transmit your documents to any external server.</li>
+          <li><b>Static Hosting Infrastructure:</b> When accessing the public site on GitHub Pages, the static hosting provider (GitHub, Inc.) may process standard technical access logs (such as IP addresses) under its own privacy statement to deliver web traffic securely.</li>
+          <li><b>Your Right to Access, Export, and Erasure:</b> You may export your files (DOCX, HTML, TXT, CSV, JSON) at any time or permanently erase all locally stored HAI ĐẤT OFFICE data from this browser using the button below.</li>
+        </ul>
+        <div class="data-box">
+          <strong id="storageSummaryEn">Checking local browser storage…</strong>
+          <div class="data-actions">
+            <button type="button" class="btn" data-action="refresh-storage">Refresh</button>
+            <button type="button" class="btn btn-danger" data-action="erase-storage">Erase all HAI ĐẤT OFFICE local data on this device</button>
+          </div>
+          <small id="storageResultEn" class="meta"></small>
+        </div>
+      </section>
+
+      <section class="card">
+        <h2>2. Terms of Use &amp; Disclaimer</h2>
+        <ul>
+          <li><b>Permitted Use:</b> Individuals, students, and organizations may use the published HAI ĐẤT OFFICE web applications free of charge for lawful personal, educational, or internal work.</li>
+          <li><b>No Professional Advice:</b> Spreadsheet formulas (including financial functions such as <code>PMT</code>, <code>PV</code>, <code>FV</code>, <code>NPV</code>, <code>RATE</code>, and statistical/agronomy tools) and document templates are technical aids only and <b>do not constitute legal, accounting, tax, audit, medical, or engineering advice</b>. Users are solely responsible for verifying outputs and maintaining external file backups.</li>
+          <li><b>As-Is Basis:</b> The software is provided "AS IS", without warranty of any kind. The author is not liable for data loss caused by browser clearing/device failure or for decisions made relying on generated outputs.</li>
+        </ul>
+      </section>
+
+      <section class="card">
+        <h2>3. Technical Hashing vs. Legal Electronic Signatures (Vietnam E-Transactions Law 2023 &amp; EU eIDAS)</h2>
+        <p>Local SHA-256 integrity archives and browser-generated ECDSA keys available in advanced audit tools of Calc are <b>strictly technical self-verification utilities</b>. They are <b>not qualified or CA-issued digital signatures</b> and carry no statutory legal equivalence to handwritten or certified digital signatures under Vietnam's Law on Electronic Transactions (2023), EU eIDAS, or US ESIGN.</p>
+      </section>
+
+      <section class="card">
+        <h2>4. Intellectual Property, Open Standards &amp; Trademark Independence</h2>
+        <ul>
+          <li><b>Copyright:</b> All original source code, interface designs, and curriculum content are copyrighted by <b>HAI ĐẤT OFFICE</b> (All Rights Reserved — see the root <code>LICENSE</code> file).</li>
+          <li><b>Open Standards:</b> The suite independently implements open technical standards including <b>OASIS OpenFormula (ISO/IEC 26300)</b>, <b>ISO/IEC 29500 (OOXML)</b>, <b>RFC 4180 (CSV)</b>, <b>HTML5</b>, and <b>SVG (W3C)</b>.</li>
+          <li><b>Trademark Independence:</b> HAI ĐẤT OFFICE is an independent project and is <b>not affiliated with, endorsed by, or sponsored by</b> Microsoft Corporation, Google LLC, Apple Inc., or any other third party. Any third-party trademarks mentioned solely for interoperability remain the property of their respective owners.</li>
+        </ul>
+      </section>
+    </div>
+  </main>
+
+  <footer>
+    HAI ĐẤT OFFICE © 2026 · <a href="../writer/">Writer</a> · <a href="../calc/">Calc</a> · <a href="../slides/">Slides</a> · <a href="../academy/">Academy</a>
+  </footer>
+
+  <script>
+  (() => {
+    'use strict';
+    const langBtns = [...document.querySelectorAll('[data-set-lang]')];
+    const langBlocks = [...document.querySelectorAll('[data-lang]')];
+    function setLang(code) {
+      document.documentElement.lang = code;
+      langBtns.forEach(b => b.classList.toggle('active', b.dataset.setLang === code));
+      langBlocks.forEach(el => { el.hidden = el.dataset.lang !== code; });
+    }
+    langBtns.forEach(b => b.addEventListener('click', () => setLang(b.dataset.setLang)));
+
+    function listAppKeys() {
+      const keys = [];
+      try {
+        for (let i = 0; i < localStorage.length; i++) {
+          const k = localStorage.key(i);
+          if (k && /^(haidat-|sght-)/i.test(k)) keys.push(k);
+        }
+      } catch {}
+      return keys;
+    }
+    function refreshStorageInfo() {
+      const keys = listAppKeys();
+      let bytes = 0;
+      keys.forEach(k => { try { bytes += (localStorage.getItem(k) || '').length * 2; } catch {} });
+      const kb = (bytes / 1024).toFixed(1);
+      const vi = document.getElementById('storageSummaryVi');
+      const en = document.getElementById('storageSummaryEn');
+      if (vi) vi.textContent = keys.length ? `Hiện có ${keys.length} mục dữ liệu HAI ĐẤT OFFICE lưu cục bộ (~${kb} KB).` : 'Hiện không có dữ liệu HAI ĐẤT OFFICE nào lưu trên trình duyệt này.';
+      if (en) en.textContent = keys.length ? `Currently storing ${keys.length} local HAI ĐẤT OFFICE item(s) (~${kb} KB) in this browser.` : 'No local HAI ĐẤT OFFICE data is currently stored in this browser.';
+    }
+    async function eraseAllLocalData() {
+      const isEn = document.documentElement.lang === 'en';
+      const msg = isEn
+        ? 'Permanently delete ALL locally saved HAI ĐẤT OFFICE documents, spreadsheets, slides, history, and settings on this browser? Please export backups first.'
+        : 'Xóa vĩnh viễn TOÀN BỘ tài liệu, bảng tính, slide, lịch sử và cài đặt HAI ĐẤT OFFICE trên trình duyệt này? Hãy chắc chắn bạn đã xuất tệp sao lưu trước.';
+      if (!window.confirm(msg)) return;
+      const keys = listAppKeys();
+      keys.forEach(k => { try { localStorage.removeItem(k); } catch {} });
+      if ('caches' in window) {
+        try {
+          const names = await caches.keys();
+          await Promise.all(names.filter(n => /^haidat-/i.test(n)).map(n => caches.delete(n)));
+        } catch {}
+      }
+      refreshStorageInfo();
+      const rVi = document.getElementById('storageResultVi');
+      const rEn = document.getElementById('storageResultEn');
+      if (rVi) rVi.textContent = `Đã xóa ${keys.length} mục dữ liệu cục bộ và bộ nhớ đệm ứng dụng.`;
+      if (rEn) rEn.textContent = `Erased ${keys.length} local storage item(s) and application caches.`;
+    }
+    document.querySelectorAll('[data-action="refresh-storage"]').forEach(b => b.addEventListener('click', refreshStorageInfo));
+    document.querySelectorAll('[data-action="erase-storage"]').forEach(b => b.addEventListener('click', eraseAllLocalData));
+    refreshStorageInfo();
+  })();
+  </script>
+</body>
+</html>
