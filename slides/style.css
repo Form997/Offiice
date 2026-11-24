@@ -57,3 +57,35 @@ footer{max-width:1500px;margin:0 auto;padding:0 clamp(14px,3vw,42px) 22px;displa
 @media(min-width:701px) and (max-width:1100px){.workspace{padding-left:18px;padding-right:18px}.preview-column .preview-shell{max-width:none}}
 @media(orientation:landscape) and (max-height:520px) and (max-width:950px){.workspace{padding-top:12px}.workspace-heading{margin-bottom:10px}.workspace-heading h1{font-size:22px}.editor-layout{grid-template-columns:155px minmax(0,1fr)}.sidebar{padding:10px}.slide-list{max-height:45vh}.preview-column{grid-column:2}.body-input{min-height:180px}}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;transition:none!important}}
+
+/* S2.1: touch, keyboard and viewport refinements */
+:root{--safe-bottom:env(safe-area-inset-bottom,0px);--safe-top:env(safe-area-inset-top,0px)}
+.topbar{padding-top:max(10px,var(--safe-top))}
+footer{padding-bottom:max(22px,var(--safe-bottom))}
+.slide-list{overscroll-behavior:contain;-webkit-overflow-scrolling:touch;scrollbar-width:thin}
+.slide-list button,.button{ -webkit-tap-highlight-color:transparent;user-select:none}
+.title-input,.body-input{scroll-margin-block:16px;scrollbar-gutter:stable}
+.body-input{overflow:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
+.preview-slide{min-width:0}
+.preview-content{overflow-wrap:anywhere;word-break:normal}
+@media(max-width:700px){
+  html,body{min-height:100%;overscroll-behavior-x:none}
+  .topbar{padding-left:max(13px,env(safe-area-inset-left));padding-right:max(13px,env(safe-area-inset-right))}
+  .workspace{padding-left:max(12px,env(safe-area-inset-left));padding-right:max(12px,env(safe-area-inset-right))}
+  .command-group .button{min-height:44px}
+  .slide-list{scroll-snap-type:x proximity}
+  .slide-list li{scroll-snap-align:start}
+  .slide-list button{min-height:48px}
+  .heading-actions .button{min-height:44px}
+  .preview-slide{aspect-ratio:16/10}
+}
+@media(hover:none){
+  .button:hover:not(:disabled){background:initial;border-color:var(--line)}
+  .button-primary:hover:not(:disabled){background:var(--brand);border-color:var(--brand)}
+}
+@media(orientation:landscape) and (max-height:520px){
+  .topbar{min-height:52px}
+  .workspace{padding-top:12px;padding-bottom:20px}
+  .workspace-heading{align-items:center}
+  .body-input{min-height:150px}
+}
