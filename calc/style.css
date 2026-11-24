@@ -503,65 +503,203 @@ main{max-width:1920px;margin:0 auto;padding:0 0 24px}
 .top-actions .geometry-history-action{white-space:nowrap}
 @media(max-width:760px){.top-actions .geometry-history-action{min-height:36px;padding:7px 9px;font-size:12px}}
 
-/* HAI ĐẤT CALC — powered by SGHT integration: topbar link, scientific calculator utility & dark theme */
-.topbar-link{display:inline-flex;align-items:center;gap:5px;padding:7px 11px;border-radius:9px;background:rgba(255,255,255,.12);color:#e6f5ee;border:1px solid rgba(255,255,255,.22);text-decoration:none;font-size:12.5px;font-weight:600;white-space:nowrap}
+/* HAI ĐẤT CALC — Clean Full-Viewport Spreadsheet Workspace (Google Sheets / Excel layout) */
+html,body.calc-app{height:100dvh;width:100%;margin:0;overflow:hidden}
+body.calc-app{display:flex;flex-direction:column;background:var(--paper);color:var(--ink)}
+
+/* 1. Compact single-row Topbar (46px) */
+body.calc-app .topbar{position:static;flex:0 0 auto;min-height:46px;padding:5px 14px;gap:10px;border-bottom:1px solid rgba(255,255,255,.12)}
+body.calc-app .topbar-left{display:flex;align-items:center;gap:10px;min-width:0;flex:1}
+body.calc-app .brand{gap:8px}
+body.calc-app .brand-mark{width:30px;height:30px;font-size:17px;border-radius:8px}
+body.calc-app .brand-text b{font-size:12px;letter-spacing:.06em}
+body.calc-app .brand-text small{font-size:8.5px;margin-top:1px}
+body.calc-app .sheet-name{width:min(280px,32vw);min-width:110px;font-size:14px;font-weight:650;color:#fff;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.16);border-radius:7px;padding:5px 10px}
+body.calc-app .sheet-name:focus{background:rgba(255,255,255,.18);border-color:#9dd7be}
+body.calc-app .save-chip{font-size:11px;color:#c7e5d7;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:140px}
+body.calc-app .top-actions{gap:6px;flex-shrink:0}
+body.calc-app .top-actions button{padding:6px 10px;font-size:12px;border-radius:7px;white-space:nowrap}
+body.calc-app .top-actions .icon-action{font-size:16px!important;padding:4px 9px!important;min-width:32px}
+.topbar-link{display:inline-flex;align-items:center;gap:4px;padding:6px 10px;border-radius:7px;background:rgba(255,255,255,.12);color:#e6f5ee;border:1px solid rgba(255,255,255,.2);text-decoration:none;font-size:12px;font-weight:600;white-space:nowrap}
 .topbar-link:hover{background:rgba(255,255,255,.22);color:#fff}
-.sci-calc-dialog{width:min(520px,calc(100vw - 24px));border:1px solid #cfdcd6;border-radius:16px;padding:18px;box-shadow:0 20px 60px rgba(10,32,24,.32);background:#fff;color:#17212b;font:14px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif}
+
+/* 2. Compact Ribbon Tabs (32px) + Single-Row Switching Strip (42px) */
+body.calc-app .ribbon-tabs{position:static;flex:0 0 auto;max-width:none;width:100%;margin:0;padding:0 12px;min-height:32px;display:flex;align-items:center;gap:2px;background:#eef3ef;border-bottom:1px solid var(--line)}
+body.calc-app .ribbon-tab{padding:6px 12px;font-size:12px;border-bottom:2px solid transparent;border-radius:6px 6px 0 0}
+body.calc-app .ribbon-tab.active{background:#fff;color:var(--green);border-bottom-color:#267350}
+.ribbon-collapse-btn{margin-left:auto;border:1px solid transparent;background:transparent;color:#52645a;border-radius:6px;padding:3px 9px;font-size:13px;font-weight:700}
+.ribbon-collapse-btn:hover{background:#dfeae2;color:var(--green)}
+
+body.calc-app .ribbon-panel{position:static;flex:0 0 auto;max-width:none;width:100%;margin:0;padding:5px 12px;min-height:42px;background:#fff;border-bottom:1px solid var(--line);box-shadow:none;overflow-x:auto;display:flex;align-items:center}
+body.calc-app .ribbon-panel[hidden]{display:none!important}
+.ribbon-strip{display:flex;align-items:center;gap:10px;width:max-content;min-width:100%}
+.ribbon-strip[hidden]{display:none!important}
+body.calc-app .tool-group{flex-direction:row;align-items:center;gap:4px;padding:0 10px 0 0;border-right:1px solid #e4ebe6;flex-shrink:0}
+body.calc-app .tool-group:last-child{border-right:0;padding-right:0}
+body.calc-app .tool-btn{padding:5px 9px;font-size:12px;border-radius:6px;line-height:1.25}
+body.calc-app .tool-btn.active{background:#dff0e6;border-color:#7db397;color:#144932;font-weight:700}
+body.calc-app .ribbon-panel select{height:28px;border:1px solid var(--line);border-radius:6px;background:#fff;color:var(--ink);font-size:11.5px;padding:0 6px}
+body.calc-app .ribbon-panel input[type=number]{width:46px;height:28px;border:1px solid var(--line);border-radius:6px;padding:0 5px;font-size:11.5px;background:#fff;color:var(--ink)}
+.color-chip{display:inline-flex;align-items:center;gap:3px;padding:2px 6px;border:1px solid var(--line);border-radius:6px;font-size:11.5px;font-weight:700;cursor:pointer;background:#fff;color:var(--ink)}
+.color-chip input[type=color]{width:18px;height:18px;border:0;padding:0;background:transparent;cursor:pointer}
+.inline-lbl{display:inline-flex;align-items:center;gap:4px;font-size:11.5px;color:#52645a;white-space:nowrap}
+.ribbon-hint{margin-left:auto;font-size:11px;color:var(--muted);white-space:nowrap}
+.ribbon-hint code{background:#edf3ef;padding:1px 5px;border-radius:4px;color:#1e4d3a}
+
+/* 3. Compact Formula Bar (34px) */
+body.calc-app .formula-panel{position:static;flex:0 0 auto;max-width:none;width:100%;margin:0;padding:4px 12px;background:#fafcfa;border-bottom:1px solid var(--line);gap:6px}
+body.calc-app .name-box{height:28px;min-width:58px;max-width:74px;font-size:12px;padding:0 6px;border-radius:5px}
+body.calc-app .formula-panel input#formulaInput{height:28px;font-size:12.5px;padding:0 10px;border-radius:5px}
+body.calc-app .apply{height:28px;padding:0 10px;font-size:12px;border-radius:5px}
+
+/* 4. Full-Viewport Workspace: Grid + Docked Right Side Drawer */
+.calc-workspace{flex:1 1 auto;min-height:0;display:flex;position:relative;overflow:hidden;padding:0}
+body.calc-app .sheet-shell{flex:1 1 auto;min-width:0;min-height:0;max-width:none;margin:0;padding:0;display:flex;flex-direction:column;position:relative}
+body.calc-app .sheet-panes{flex:1 1 auto;min-height:0;height:100%;width:100%}
+body.calc-app .sheet-scroll{height:100%;max-height:none;min-height:0;border:0;border-radius:0;box-shadow:none}
+body.calc-app .sheet-panes[data-mode="horizontal"],
+body.calc-app .sheet-panes[data-mode="vertical"],
+body.calc-app .sheet-panes.quadrant-mode{height:100%;max-height:none;min-height:0}
+
+/* Floating compact Find & Replace popover */
+body.calc-app .search-panel.floating-search{position:absolute;top:8px;right:16px;z-index:45;width:min(440px,calc(100% - 24px));margin:0;padding:8px 10px;border-radius:10px;box-shadow:0 12px 32px rgba(14,36,28,.2);border:1px solid #bfd1c7;background:#fff;gap:6px}
+body.calc-app .search-panel.floating-search[hidden]{display:none!important}
+body.calc-app .floating-search .search-main{gap:5px;flex-wrap:nowrap}
+body.calc-app .floating-search .search-main input{height:30px;min-width:0;flex:1}
+body.calc-app .floating-search .search-main button{height:30px;min-width:30px;padding:0 8px;font-size:12px}
+.search-close{background:transparent!important;border-color:transparent!important;color:var(--muted)!important}
+.search-close:hover{background:#edf3ef!important;color:var(--ink)!important}
+.search-more{font-size:11.5px;color:var(--muted)}
+.search-more>summary{cursor:pointer;font-weight:600;color:var(--green);padding:2px 0;user-select:none}
+.search-more[open]{display:grid;gap:6px;padding-top:4px;border-top:1px solid var(--line)}
+body.calc-app .floating-search .replace-row input{height:29px;font-size:12px}
+body.calc-app .floating-search .replace-row button{height:29px;font-size:11.5px;padding:0 9px}
+body.calc-app .floating-search .search-options{gap:8px;font-size:11px}
+
+/* Docked Right Side Drawer (never pushes spreadsheet down!) */
+.calc-side-drawer{flex:0 0 410px;width:410px;max-width:94vw;height:100%;display:flex;flex-direction:column;background:#fff;border-left:1px solid #c9d8cf;box-shadow:-6px 0 24px rgba(14,36,28,.08);z-index:35;overflow:hidden}
+.calc-side-drawer[hidden]{display:none!important}
+.drawer-topbar{flex:0 0 auto;display:flex;align-items:center;justify-content:space-between;gap:8px;padding:9px 12px;background:#f2f7f4;border-bottom:1px solid var(--line)}
+.drawer-topbar strong{font-size:13px;color:var(--green)}
+.drawer-close-btn{border:1px solid var(--line);background:#fff;color:var(--ink);border-radius:6px;padding:4px 9px;font-size:11.5px;font-weight:650}
+.drawer-close-btn:hover{background:#e7f0eb}
+.drawer-body{flex:1 1 auto;min-height:0;overflow-y:auto;padding:10px 12px}
+.drawer-panel{margin:0!important;padding:0!important;border:0!important;border-radius:0!important;background:transparent!important;display:grid;gap:9px;max-width:none!important}
+.drawer-panel[hidden]{display:none!important}
+.drawer-subtabs{display:flex;flex-wrap:wrap;gap:4px;padding-bottom:8px;border-bottom:1px solid var(--line)}
+.subtab-btn{border:1px solid var(--line);background:#f5f8f6;color:#41564b;border-radius:999px;padding:5px 10px;font-size:11.5px;font-weight:650}
+.subtab-btn.active{background:var(--green);color:#fff;border-color:var(--green)}
+.drawer-status{margin:0;font-size:11.5px;color:var(--muted)}
+.drawer-stack{display:grid;gap:8px}
+.drawer-stack[hidden],.drawer-panel [data-subpanel][hidden]{display:none!important}
+body.calc-app .drawer-body .data-tools-grid{grid-template-columns:1fr;gap:8px}
+body.calc-app .drawer-body fieldset{border:1px solid var(--line);border-radius:8px;padding:10px;display:grid;gap:7px;background:#fbfdfb;margin:0}
+body.calc-app .drawer-body fieldset>label,
+body.calc-app .drawer-body .ds-form label,
+body.calc-app .drawer-body .ds-advanced label{display:grid;gap:3px;font-size:11.5px;color:var(--muted)}
+body.calc-app .drawer-body input:not([type=checkbox]):not([type=color]),
+body.calc-app .drawer-body select{width:100%;max-width:none;height:32px;padding:0 8px;border:1px solid var(--line);border-radius:6px;background:#fff;color:var(--ink);font-size:12px}
+body.calc-app .drawer-body .ds-form,
+body.calc-app .drawer-body .ds-advanced{grid-template-columns:1fr;gap:7px;margin:0;padding:0;border:0;background:transparent}
+body.calc-app .drawer-body .pivot-zones{grid-template-columns:1fr 1fr}
+body.calc-app .drawer-body .security-config,
+body.calc-app .drawer-body .debug-config,
+body.calc-app .drawer-body .macro-metadata{grid-template-columns:1fr}
+.drawer-btn-row{display:flex;gap:6px;flex-wrap:wrap}
+.drawer-btn-row button,.drawer-body button.primary,.drawer-body button.quiet{height:32px;padding:0 11px;border-radius:6px;font-size:12px;font-weight:650}
+.drawer-fold{border:1px solid var(--line);border-radius:8px;background:#f8fbf9;padding:6px 9px}
+.drawer-fold>summary{cursor:pointer;font-size:12px;font-weight:650;color:var(--green);user-select:none}
+.drawer-fold-body{display:grid;gap:7px;margin-top:8px}
+.drawer-output-bar{display:flex;align-items:center;justify-content:space-between;gap:8px;padding-top:6px;border-top:1px solid var(--line);font-size:12px}
+body.calc-app .formula-error-output,
+body.calc-app .formula-repair-output,
+body.calc-app .formula-audit-output,
+body.calc-app .formula-version-output,
+body.calc-app .diagnostics-output{max-height:200px;overflow:auto;font-size:11.5px;margin:0}
+
+/* 5. Bottom Sheet Tabs + Status Bar (34px) */
+.calc-bottombar{flex:0 0 auto;min-height:34px;background:#edf2ee;border-top:1px solid #cbd7cf;padding:3px 12px;display:flex;align-items:center;justify-content:space-between;gap:12px;overflow-x:auto}
+body.calc-app .calc-bottombar .sheet-tabs{max-width:none;margin:0;padding:0;gap:4px;flex-shrink:0}
+body.calc-app .calc-bottombar .sheet-tab{padding:4px 10px;font-size:11.5px;border-radius:6px}
+body.calc-app .calc-bottombar .sheet-footer{max-width:none;margin:0;padding:0;gap:14px;font-size:11px;white-space:nowrap}
+
+/* 6. Centered Dashboard Modal Overlay */
+.dashboard-backdrop{position:fixed;inset:0;z-index:90;background:rgba(13,34,27,.55);backdrop-filter:blur(2px);display:grid;place-items:center;padding:18px}
+.dashboard-backdrop[hidden]{display:none!important}
+body.calc-app .dashboard-backdrop .dashboard-panel{width:min(1180px,96vw);max-height:90dvh;overflow:auto;margin:0;padding:16px;border-radius:14px;box-shadow:0 24px 64px rgba(10,28,22,.35)}
+body.calc-app .dashboard-backdrop .dashboard-panel[hidden]{display:none!important}
+
+/* 7. Scientific Calculator Utility Modal */
+.sci-calc-dialog{width:min(500px,calc(100vw - 24px));border:1px solid #cfdcd6;border-radius:16px;padding:16px;box-shadow:0 20px 60px rgba(10,32,24,.32);background:#fff;color:#17212b;font:14px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif}
 .sci-calc-dialog::backdrop{background:rgba(13,34,27,.62);backdrop-filter:blur(3px)}
-.sci-calc-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px}
-.sci-calc-label{display:block;font-size:12px;color:#52665e;margin-bottom:6px;font-weight:600}
-.sci-calc-input{width:100%;font-size:19px;font-weight:650;padding:10px 12px;border:1px solid #c5d6ce;border-radius:10px;background:#f8fbf9;color:#17212b;margin-bottom:10px}
-.sci-calc-result-row{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;padding:10px 12px;border-radius:10px;background:#eef6f2;border:1px solid #cfe2d8;margin-bottom:12px}
+.sci-calc-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px}
+.sci-calc-label{display:block;font-size:12px;color:#52665e;margin-bottom:5px;font-weight:600}
+.sci-calc-input{width:100%;font-size:18px;font-weight:650;padding:9px 12px;border:1px solid #c5d6ce;border-radius:10px;background:#f8fbf9;color:#17212b;margin-bottom:10px}
+.sci-calc-result-row{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;padding:9px 12px;border-radius:10px;background:#eef6f2;border:1px solid #cfe2d8;margin-bottom:10px}
 .sci-calc-result-row small{display:block;font-size:11px;color:#52665e}
-.sci-calc-result{font-size:26px;font-weight:800;color:#145744;font-variant-numeric:tabular-nums;word-break:break-all}
+.sci-calc-result{font-size:24px;font-weight:800;color:#145744;font-variant-numeric:tabular-nums;word-break:break-all}
 .sci-calc-main-actions{display:flex;gap:7px;flex-wrap:wrap}
-.sci-calc-keys{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;margin-bottom:14px}
-.sci-calc-keys button{min-height:40px;border:1px solid #d2dfd9;border-radius:9px;background:#fff;color:#17212b;font-weight:650;cursor:pointer}
+.sci-calc-keys{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;margin-bottom:12px}
+.sci-calc-keys button{min-height:38px;border:1px solid #d2dfd9;border-radius:9px;background:#fff;color:#17212b;font-weight:650;cursor:pointer}
 .sci-calc-keys button:hover{background:#edf6f2;border-color:#88b8a6}
-.sci-calc-history-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:6px;font-size:12.5px}
-.sci-calc-history{margin:0;padding-left:20px;max-height:140px;overflow-y:auto;font-size:12.5px;color:#4a5d56}
-.sci-calc-history li{padding:3px 0;cursor:pointer}
+.sci-calc-history-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:4px;font-size:12px}
+.sci-calc-history{margin:0;padding-left:20px;max-height:120px;overflow-y:auto;font-size:12px;color:#4a5d56}
+.sci-calc-history li{padding:2px 0;cursor:pointer}
 .sci-calc-history li:hover{color:#145744;text-decoration:underline}
 
-:root[data-calc-theme="dark"]{color-scheme:dark;--bg:#11171e;--surface:#1a232d;--paper:#1c2530;--ink:#e7edf4;--muted:#9fb0c0;--line:#32404e;--soft:#203834}
-:root[data-calc-theme="dark"] body{background:#11171e;color:#e7edf4}
-:root[data-calc-theme="dark"] .document-head,
-:root[data-calc-theme="dark"] .ribbon-panel,
-:root[data-calc-theme="dark"] .formula-bar,
-:root[data-calc-theme="dark"] .search-panel,
-:root[data-calc-theme="dark"] .sheet-shell,
-:root[data-calc-theme="dark"] .diagnostics-panel,
-:root[data-calc-theme="dark"] .help,
-:root[data-calc-theme="dark"] .sheet-footer,
-:root[data-calc-theme="dark"] .ai-panel,
-:root[data-calc-theme="dark"] .macro-panel,
-:root[data-calc-theme="dark"] .data-tools-panel,
-:root[data-calc-theme="dark"] .data-science-panel,
+/* Responsive overlay drawer on small screens */
+@media(max-width:860px){
+  .calc-side-drawer{position:absolute;top:0;right:0;bottom:0;width:min(390px,96vw);box-shadow:-12px 0 36px rgba(0,0,0,.22)}
+  body.calc-app .brand-text{display:none}
+  body.calc-app .save-chip{display:none}
+  body.calc-app .topbar-link{padding:6px 8px}
+}
+@media(max-width:600px){
+  body.calc-app .topbar{padding:4px 8px}
+  body.calc-app .sheet-name{width:130px;font-size:13px;padding:4px 7px}
+  body.calc-app .top-actions button{padding:5px 7px;font-size:11px}
+  body.calc-app .calc-bottombar .sheet-footer{display:none}
+}
+
+/* Dark Theme */
+:root[data-calc-theme="dark"]{color-scheme:dark;--bg:#11171e;--surface:#1a232d;--paper:#161e27;--ink:#e7edf4;--muted:#9fb0c0;--line:#303e4d;--soft:#203834}
+:root[data-calc-theme="dark"] body.calc-app{background:#11171e;color:#e7edf4}
+:root[data-calc-theme="dark"] body.calc-app .ribbon-tabs,
+:root[data-calc-theme="dark"] .calc-bottombar,
+:root[data-calc-theme="dark"] .drawer-topbar{background:#151d26;border-color:#303e4d}
+:root[data-calc-theme="dark"] body.calc-app .ribbon-panel,
+:root[data-calc-theme="dark"] body.calc-app .formula-panel,
+:root[data-calc-theme="dark"] .calc-side-drawer,
+:root[data-calc-theme="dark"] .search-panel.floating-search,
 :root[data-calc-theme="dark"] .dashboard-panel,
-:root[data-calc-theme="dark"] .sci-calc-dialog{background:#1a232d;color:#e7edf4;border-color:#32404e}
-:root[data-calc-theme="dark"] .ribbon-tabs,
-:root[data-calc-theme="dark"] .sheet-tabs{background:#151d26;border-color:#32404e}
-:root[data-calc-theme="dark"] .ribbon-tab,
-:root[data-calc-theme="dark"] .sheet-tab{color:#c6d3df;background:transparent}
-:root[data-calc-theme="dark"] .ribbon-tab.active,
-:root[data-calc-theme="dark"] .sheet-tab-group.active .sheet-tab{background:#23443c;color:#a7f3d0;border-color:#397365}
+:root[data-calc-theme="dark"] .sci-calc-dialog{background:#1a232d;color:#e7edf4;border-color:#303e4d}
+:root[data-calc-theme="dark"] body.calc-app .ribbon-tab.active{background:#1a232d;color:#6ee7b7;border-bottom-color:#34d399}
+:root[data-calc-theme="dark"] .drawer-topbar strong,
+:root[data-calc-theme="dark"] .drawer-fold>summary,
+:root[data-calc-theme="dark"] .search-more>summary{color:#6ee7b7}
+:root[data-calc-theme="dark"] .drawer-fold,
+:root[data-calc-theme="dark"] body.calc-app .drawer-body fieldset{background:#141c24;border-color:#2e3c4a}
+:root[data-calc-theme="dark"] .subtab-btn{background:#222e3b;color:#c7d4e0;border-color:#344454}
+:root[data-calc-theme="dark"] .subtab-btn.active{background:#226653;color:#fff;border-color:#2e846c}
+:root[data-calc-theme="dark"] .drawer-close-btn,
+:root[data-calc-theme="dark"] .color-chip{background:#222e3b;color:#e7edf4;border-color:#364657}
 :root[data-calc-theme="dark"] input,
 :root[data-calc-theme="dark"] select,
-:root[data-calc-theme="dark"] textarea,
-:root[data-calc-theme="dark"] .sci-calc-input{background:#131b23;color:#e7edf4;border-color:#384858}
+:root[data-calc-theme="dark"] textarea{background:#131b23;color:#e7edf4;border-color:#384858}
 :root[data-calc-theme="dark"] button.quiet,
 :root[data-calc-theme="dark"] button.tool-btn,
 :root[data-calc-theme="dark"] button.icon-action,
 :root[data-calc-theme="dark"] .sci-calc-keys button{background:#24303d;color:#e7edf4;border-color:#3a4a5a}
-:root[data-calc-theme="dark"] button.quiet:hover,
-:root[data-calc-theme="dark"] button.tool-btn:hover,
-:root[data-calc-theme="dark"] .sci-calc-keys button:hover{background:#2e3d4e;border-color:#536b82}
-:root[data-calc-theme="dark"] .sheet-grid th{background:#17202a;color:#a9bac9;border-color:#32404e}
+:root[data-calc-theme="dark"] button.tool-btn.active{background:#1f4f42;color:#a7f3d0;border-color:#397e6b}
+:root[data-calc-theme="dark"] .sheet-grid th{background:#17202a;color:#a9bac9;border-color:#303e4d}
 :root[data-calc-theme="dark"] .sheet-grid td,
-:root[data-calc-theme="dark"] .sheet-grid .cell{background:#1c2530;color:#e7edf4;border-color:#2e3c4a}
+:root[data-calc-theme="dark"] .sheet-grid .cell{background:#1c2530;color:#e7edf4;border-color:#2c3a48}
+:root[data-calc-theme="dark"] .calc-bottombar .sheet-tab{background:#202b36;color:#cbd7e2;border-color:#334252}
+:root[data-calc-theme="dark"] .calc-bottombar .sheet-tab-group.active .sheet-tab{background:#1f4e41;color:#a7f3d0;border-color:#387c68}
 :root[data-calc-theme="dark"] .sci-calc-result-row{background:#1c332e;border-color:#325e54}
 :root[data-calc-theme="dark"] .sci-calc-result{color:#6ee7b7}
 :root[data-calc-theme="dark"] .sci-calc-label,
 :root[data-calc-theme="dark"] .sci-calc-result-row small,
 :root[data-calc-theme="dark"] .sci-calc-history{color:#9fb0c0}
+
 

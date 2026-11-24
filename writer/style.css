@@ -373,4 +373,34 @@ button.is-active,button[aria-pressed="true"]{background:#daf0e6!important;color:
   .page-stage{width:100%}
 }
 
+/* V7.3 — Compact Zero-Bloat Ribbons & Floating Find Popover */
+.home-ribbon-panel{flex-wrap:nowrap!important;min-height:48px!important;padding:5px 10px!important;align-items:center!important;gap:6px!important}
+.home-ribbon-panel .tool-group{flex-wrap:nowrap!important;flex-shrink:0;gap:3px!important;padding:0 7px 0 0!important;margin:0!important}
+.home-ribbon-panel button{min-width:30px!important;min-height:32px!important;padding:3px 7px!important;font-size:12.5px!important}
+.home-ribbon-panel select{min-height:32px!important;padding:3px 6px!important;font-size:12.5px!important}
+.home-ribbon-panel #blockType{width:92px}
+.home-ribbon-panel #fontName{width:100px}
+.home-ribbon-panel #fontSize{width:62px}
+.home-ribbon-panel #changeCase{width:48px}
+.home-ribbon-panel #lineSpacing{width:58px}
+.home-ribbon-panel #paragraphAfter{width:56px}
+.home-ribbon-panel .color-tool{height:32px!important;padding:2px 5px!important;font-size:12px!important}
+.home-ribbon-panel .color-tool input{width:20px!important;height:20px!important}
+.file-ribbon-panel{flex-direction:column!important;min-height:auto!important;padding:6px 10px 8px!important;gap:7px!important;overflow-x:visible!important}
+.file-subtabs{display:flex;align-items:center;gap:5px;flex-wrap:wrap;padding-bottom:6px;border-bottom:1px solid var(--line)}
+.file-subtab{min-height:30px!important;padding:4px 11px!important;font-size:12px!important;font-weight:650;border-radius:999px!important;background:#f2f6f4!important;color:#3d534b!important;border:1px solid var(--line)!important}
+.file-subtab.active{background:var(--brand)!important;color:#fff!important;border-color:var(--brand)!important}
+.file-subpanel{display:flex;align-items:center;overflow-x:auto}
+.file-subpanel[hidden]{display:none!important}
+.file-subpanel .ribbon-group{border:0;padding:0;gap:5px}
+.file-subpanel .ribbon-tools{flex-wrap:wrap;gap:6px}
+.writer-find-popover{display:flex;align-items:center;gap:6px;flex-wrap:wrap;width:min(100%,920px);margin:-4px auto 10px;padding:7px 10px;background:#fff;border:1px solid #b8d3c8;border-radius:10px;box-shadow:0 6px 20px #102b2416}
+.writer-find-popover[hidden]{display:none!important}
+.writer-find-popover input{flex:1 1 150px;min-width:120px;min-height:32px!important;padding:4px 9px!important;font-size:13px!important}
+.writer-find-popover button{min-height:32px!important;padding:4px 10px!important;font-size:12.5px!important}
+:root[data-writer-theme="dark"] .file-subtab{background:#232f3c!important;color:#c7d4e0!important;border-color:#344454!important}
+:root[data-writer-theme="dark"] .file-subtab.active{background:#226653!important;color:#fff!important;border-color:#2e846c!important}
+:root[data-writer-theme="dark"] .writer-find-popover{background:#1b242f;border-color:#34495a;color:#e7edf4}
+
+
 

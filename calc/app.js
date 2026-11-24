@@ -189,7 +189,21 @@ document.querySelector("#searchClear").addEventListener("click",clearSearch);
 for(const control of [searchModeInput,searchCaseInput,searchWholeInput])control.addEventListener("change",()=>{if(searchInput.value){runSearch(true);if(searchResults.length)navigateSearch(0);}updateReplaceControls();});
 window.addEventListener("keydown",event=>{
   const key=event.key.toLowerCase(),target=event.target;
-  if((event.ctrlKey||event.metaKey)&&key==="f"){event.preventDefault();searchInput.focus();searchInput.select();return;}
+  if((event.ctrlKey||event.metaKey)&&(key==="f"||key==="h")){
+    event.preventDefault();
+    const sp=document.querySelector("#searchPanel"),more=document.querySelector("#searchMoreDetails");
+    if(sp)sp.hidden=false;
+    if(more&&key==="h")more.open=true;
+    searchInput.focus();searchInput.select();return;
+  }
+  if(key==="escape"){
+    const sp=document.querySelector("#searchPanel");
+    if(sp&&!sp.hidden){sp.hidden=true;return;}
+    const db=document.querySelector("#dashboardBackdrop");
+    if(db&&!db.hidden){document.querySelector("#closeDashboard")?.click();return;}
+    const dr=document.querySelector("#calcSideDrawer");
+    if(dr&&!dr.hidden){document.querySelector("#closeCalcDrawer")?.click();return;}
+  }
   if(target instanceof HTMLElement&&(target.isContentEditable||/^(INPUT|TEXTAREA|SELECT)$/.test(target.tagName)))return;
   if(!(event.ctrlKey||event.metaKey)||event.altKey)return;
   if(key==="z"&&event.shiftKey){event.preventDefault();historyMove(redoStack,undoStack);}
@@ -765,7 +779,6 @@ document.querySelector("#pasteAction").addEventListener("click",async()=>{if(int
 for(const [id,fn] of [["sumAction","SUM"],["averageAction","AVERAGE"],["countAction","COUNT"]])document.querySelector("#"+id).addEventListener("click",()=>{const p=parseAddress(selected),range=p?address(Math.max(1,p.r-4),p.c)+":"+address(p.r,p.c):"A1:A5";formulaInput.value="="+fn+"("+range+")";formulaInput.focus();});
 document.querySelector("#zoomIn").addEventListener("click",()=>setZoom(zoom+10));document.querySelector("#zoomOut").addEventListener("click",()=>setZoom(zoom-10));document.querySelector("#zoomReset").addEventListener("click",()=>setZoom(100));
 function setZoom(v){zoom=Math.max(60,Math.min(160,v));document.querySelector("#zoomValue").textContent=zoom+"%";grid.style.zoom=String(zoom/100);}
-document.querySelectorAll(".ribbon-tab").forEach(tab=>tab.addEventListener("click",()=>{document.querySelectorAll(".ribbon-tab").forEach(x=>x.classList.toggle("active",x===tab));calcStatus.textContent="Nhóm công cụ: "+tab.textContent;}));
 
 const dataPanel=document.querySelector("#dataToolsPanel");
 const dataSortColumn=document.querySelector("#dataSortColumn"),dataSortOrder=document.querySelector("#dataSortOrder"),dataSortType=document.querySelector("#dataSortType");
@@ -973,16 +986,9 @@ document.querySelector("#dataClearTables").addEventListener("click",()=>{
  if(!confirm("Xóa toàn bộ định nghĩa vùng dữ liệu? Ô và nội dung bảng không bị xóa."))return;
  dataTables=[];save();renderDataTables();dataStatus.textContent="Đã xóa định nghĩa vùng; dữ liệu ô vẫn giữ nguyên.";
 });
-document.querySelector('[data-tab="data"]').addEventListener("click",()=>{dataPanel.hidden=false;renderDataTables();renderPivotBuilder();renderPivotReport();});
-document.querySelectorAll('.ribbon-tab:not([data-tab="data"])').forEach(tab=>tab.addEventListener("click",()=>{if(tab.dataset.tab!=="data")dataPanel.hidden=true;}));
-
-document.querySelector("#addSheet").addEventListener("click",()=>{calcStatus.textContent="Tính năng nhiều trang tính sẽ được bổ sung ở phiên bản kế tiếp.";});
-
 const dsPanel=document.querySelector("#dataSciencePanel"),dsOutput=document.querySelector("#dataScienceOutput");
 const chartPresets=new ChartPresetStore();
 let dsLastReport=[];
-document.querySelector("#openDataScience").addEventListener("click",()=>{dsPanel.hidden=false;document.querySelector("#dsXRange").focus();});
-document.querySelector("#closeDataScience").addEventListener("click",()=>{dsPanel.hidden=true;});
 function readRawRange(range){
   const m=/^([A-Z]+[1-9][0-9]*):([A-Z]+[1-9][0-9]*)$/i.exec(range.trim());
   if(!m)throw new Error("Nhập vùng theo dạng A1:A20.");
@@ -1157,19 +1163,15 @@ document.querySelector("#dsForecast").addEventListener("click",()=>{try{const y=
 document.querySelector("#dsDescriptive").addEventListener("click",()=>{try{const r=descriptiveStatistics(readNumericRange(document.querySelector("#dsDescRange").value));dsShow("Thống kê mô tả",Object.entries(r));}catch(e){dsOutput.textContent="Không tính được: "+e.message;}});
 
 const aiPanel=document.querySelector("#aiPanel"),aiPrompt=document.querySelector("#aiPrompt"),aiOutput=document.querySelector("#aiOutput");
-document.querySelector("#openAI").addEventListener("click",()=>{aiPanel.hidden=false;aiPrompt.focus();});
-document.querySelector("#closeAI").addEventListener("click",()=>{aiPanel.hidden=true;});
 function aiValue(a){return calculate(a);}
 function showAIAnalysis(){const r=analyzeWorkbook(cells,aiValue);aiOutput.replaceChildren();const summary=document.createElement("div");summary.className="ai-summary";summary.textContent="Đã dùng "+r.cellCount+" ô có dữ liệu: "+r.numericCount+" giá trị số, "+r.textCount+" giá trị chữ, "+r.formulaCount+" công thức, "+r.errorCount+" lỗi tính toán.";aiOutput.append(summary);if(r.statistics){const stats=document.createElement("div");stats.className="ai-stats";for(const [label,value] of [["Tổng",r.statistics.sum],["Trung bình",r.statistics.mean],["Trung vị",r.statistics.median],["Nhỏ nhất",r.statistics.min],["Lớn nhất",r.statistics.max]]){const item=document.createElement("div");const b=document.createElement("b");b.textContent=label;const span=document.createElement("span");span.textContent=Number(value).toLocaleString("vi-VN",{maximumFractionDigits:4});item.append(b,span);stats.append(item);}aiOutput.append(stats);}const note=document.createElement("p");note.className="ai-note";note.textContent=r.outliers.length?"Có "+r.outliers.length+" giá trị ngoại lệ theo quy tắc IQR (1,5 × khoảng tứ phân vị): "+r.outliers.map(x=>x.cell+" = "+x.value).join(", ")+". Đây là dấu hiệu cần kiểm tra, không phải kết luận dữ liệu sai.":"Không phát hiện ngoại lệ theo quy tắc IQR trong các giá trị số.";aiOutput.append(note);if(r.errors.length){const err=document.createElement("p");err.className="ai-note";err.textContent="Ô có lỗi: "+r.errors.map(x=>x.cell+" ("+x.error+")").join(", ");aiOutput.append(err);}const disclaimer=document.createElement("small");disclaimer.textContent="Phân tích chạy cục bộ bằng thống kê xác định; không gửi dữ liệu ra ngoài.";aiOutput.append(disclaimer);}
 document.querySelector("#aiAnalyze").addEventListener("click",()=>{try{showAIAnalysis();}catch(e){aiOutput.textContent="Chưa phân tích được: "+e.message;}});
 document.querySelector("#aiSuggestFormula").addEventListener("click",()=>{const list=suggestFormulas(cells,selected,aiValue);aiOutput.replaceChildren();const title=document.createElement("p");title.textContent="Gợi ý cho ô "+selected+". Chọn một công thức để đưa lên thanh công thức; công thức chưa được áp dụng.";aiOutput.append(title);for(const item of list){const row=document.createElement("div");row.className="ai-suggestion";const text=document.createElement("code");text.textContent=item.formula;const reason=document.createElement("small");reason.textContent=item.reason;const use=document.createElement("button");use.type="button";use.className="quiet";use.textContent="Dùng công thức";use.addEventListener("click",()=>{formulaInput.value=item.formula;formulaInput.focus();formulaInput.select();calcStatus.textContent="Đã đưa gợi ý vào thanh công thức. Nhấn Áp dụng để ghi vào ô.";});row.append(text,reason,use);aiOutput.append(row);}});
-document.querySelector("#aiDraftMacro").addEventListener("click",()=>{try{const draft=draftMacroFromVietnamese(aiPrompt.value);planMacro(draft.source);macroSource.value=draft.source;macroPanel.hidden=false;aiOutput.textContent="Đã tạo bản nháp an toàn: "+draft.explanation+" Mã đã được kiểm tra cú pháp và chuyển sang Macro Studio. Chưa thực thi; hãy xem lại, rồi tự phê duyệt nếu muốn chạy.";}catch(e){aiOutput.textContent=e.message;}});
+document.querySelector("#aiDraftMacro").addEventListener("click",()=>{try{const draft=draftMacroFromVietnamese(aiPrompt.value);planMacro(draft.source);macroSource.value=draft.source;window.sghtOpenDrawer?.("macro","editor");aiOutput.textContent="Đã tạo bản nháp an toàn: "+draft.explanation+" Mã đã chuyển sang Macro Studio.";}catch(e){aiOutput.textContent=e.message;}});
 const macroSource=document.querySelector("#macroSource"),macroPreview=document.querySelector("#macroPreview"),macroResult=document.querySelector("#macroResult"),macroPanel=document.querySelector("#macroPanel");
-document.querySelector("#openMacro").addEventListener("click",()=>{macroPanel.hidden=false;macroSource.focus();});
 const recordButton=document.querySelector("#recordMacro"),stopRecordButton=document.querySelector("#stopMacro"),recordStatus=document.querySelector("#recordStatus");
 recordButton.addEventListener("click",()=>{macroRecorder.start();recordButton.disabled=true;stopRecordButton.disabled=false;recordStatus.textContent="Đang ghi thao tác…";macroResult.textContent="Bắt đầu ghi. Chọn ô, nhập dữ liệu hoặc dán vùng; thao tác sẽ được ghi thành lệnh.";});
 stopRecordButton.addEventListener("click",()=>{macroRecorder.stop();recordButton.disabled=false;stopRecordButton.disabled=true;macroSource.value=macroRecorder.source();macroPreview.textContent=macroRecorder.count?macroRecorder.source():"Chưa ghi nhận thao tác nào.";recordStatus.textContent="Đã dừng · "+macroRecorder.count+" thao tác";macroResult.textContent="Đã chuyển thao tác thành mã macro. Hãy kiểm tra trước khi chạy.";});
-document.querySelector("#closeMacro").addEventListener("click",()=>{macroPanel.hidden=true;});
 const macroName=document.querySelector("#macroName"),macroDescription=document.querySelector("#macroDescription"),macroList=document.querySelector("#macroList"),macroLibraryStatus=document.querySelector("#macroLibraryStatus"),macroFile=document.querySelector("#macroFile");
 const historyPanel=document.querySelector("#macroHistoryPanel"),historyTitle=document.querySelector("#macroHistoryTitle"),historyList=document.querySelector("#macroHistoryList"),historyCompare=document.querySelector("#historyCompare"),historyFrom=document.querySelector("#historyFrom"),historyTo=document.querySelector("#historyTo"),historyDiff=document.querySelector("#historyDiff");
 let historyMacroId=null;
@@ -1539,26 +1541,149 @@ if(errorAnalyzeButton&&errorOutput)errorAnalyzeButton.addEventListener("click",(
 if(errorScanButton&&errorOutput)errorScanButton.addEventListener("click",()=>{errorScanButton.disabled=true;errorOutput.textContent="Đang quét tối đa 5.000 công thức…";try{const report=scanWorkbookFormulaErrors({graph:dependencyGraph,sheets:workbookSheets,evaluateNode:evaluateFormulaNode,maxFormulas:5000});const lines=["KẾT QUẢ QUÉT LỖI WORKBOOK","Đã kiểm tra "+report.checked.toLocaleString("vi-VN")+"/"+report.totalFormulas.toLocaleString("vi-VN")+" công thức","Số công thức lỗi: "+report.errors.length,...Object.entries(report.byCode).map(([code,count])=>code+": "+count),"",...report.errors.slice(0,200).map(item=>item.cellKey+" · "+item.code+" · "+item.title+" · "+item.message)];if(report.errors.length>200)lines.push("… còn "+(report.errors.length-200)+" lỗi không hiển thị trong danh sách.");if(report.truncated)lines.push("Đã dừng ở giới hạn 5.000 công thức; cần chia nhỏ workbook để quét tiếp.");lines.push("","Không có công thức hay dữ liệu nào bị tự động sửa.");errorOutput.textContent=lines.join("\n");calcStatus.textContent="Quét hoàn tất · "+report.errors.length+" công thức lỗi";}catch(error){errorOutput.textContent="Không thể quét workbook: "+(error?.message||String(error));}finally{errorScanButton.disabled=false;}});
 
 
-// SGHT B5.2 — điều hướng Ribbon theo không gian công cụ thực có.
+// HAI ĐẤT CALC — Unified Workspace Shell Controller (1-row switching ribbon + docked right drawer + floating search + Dashboard modal).
 (()=>{
- const tabs=[...document.querySelectorAll('.ribbon-tab')];
- const panels={data:document.querySelector('#dataToolsPanel'),dashboard:document.querySelector('#dashboardPanel'),'data-science':document.querySelector('#dataSciencePanel'),ai:document.querySelector('#aiPanel'),macro:document.querySelector('#macroPanel')};
- const homeOnly=new Set(['home','insert','formulas','view','file']);
- function activate(tab){
-  const key=tab.dataset.tab || (tab.id==='openDashboard'?'dashboard':'');
-  const panelKey=panels[key]?key:'';
-  Object.entries(panels).forEach(([name,panel])=>{if(panel)panel.hidden=name!==panelKey;});
-  tabs.forEach(item=>item.classList.toggle('active',item===tab));
-  if(key==='data'){renderDataTables();renderPivotBuilder();renderPivotReport();calcStatus.textContent='Dữ liệu · công cụ thao tác vùng và Pivot';}
-  else if(key==='dashboard')calcStatus.textContent='Dashboard Studio · bố cục báo cáo';
-  else if(key==='data-science')calcStatus.textContent='Data Science · phân tích thống kê';
-  else if(key==='ai')calcStatus.textContent='AI Intelligence · trợ lý phân tích workbook';
-  else if(key==='macro')calcStatus.textContent='Macro Studio · tự động hóa';
-  else if(homeOnly.has(key))calcStatus.textContent=key==='home'?'Trang chủ · công cụ ô và định dạng':'Nhóm '+tab.textContent+' · chưa có bảng lệnh riêng';
+ const tabs=[...document.querySelectorAll('.ribbon-tab[data-tab]')];
+ const strips=[...document.querySelectorAll('.ribbon-strip[data-ribbon-panel]')];
+ const ribbonBar=document.querySelector('#calcRibbonBar');
+ const ribbonToggle=document.querySelector('#toggleCalcRibbon');
+ const drawer=document.querySelector('#calcSideDrawer');
+ const drawerTitle=document.querySelector('#calcDrawerTitle');
+ const closeDrawerBtn=document.querySelector('#closeCalcDrawer');
+ const dashboardBackdrop=document.querySelector('#dashboardBackdrop');
+ const dashboardPanel=document.querySelector('#dashboardPanel');
+ const searchPanel=document.querySelector('#searchPanel');
+
+ const drawerPanels={
+  data:{el:document.querySelector('#dataToolsPanel'),title:'📊 Dữ liệu & Pivot'},
+  formula:{el:document.querySelector('#formulaErrorPanel'),title:'🩺 Công thức & Lịch sử'},
+  'data-science':{el:document.querySelector('#dataSciencePanel'),title:'🧪 Thống kê & Biểu đồ'},
+  ai:{el:document.querySelector('#aiPanel'),title:'✨ Trợ lý AI ngoại tuyến'},
+  macro:{el:document.querySelector('#macroPanel'),title:'⚙️ Macro Studio'},
+  diagnostics:{el:document.querySelector('#diagnosticsPanel'),title:'⚡ Hiệu năng công thức'}
+ };
+ let activeDrawerKey='',activeDrawerSubtab='';
+
+ function activateRibbonTab(key){
+  tabs.forEach(item=>item.classList.toggle('active',item.dataset.tab===key));
+  strips.forEach(strip=>{strip.hidden=strip.dataset.ribbonPanel!==key;});
+  if(ribbonBar&&ribbonBar.hidden){
+   ribbonBar.hidden=false;
+   if(ribbonToggle){ribbonToggle.setAttribute('aria-expanded','true');ribbonToggle.textContent='⌃';}
+  }
+  const labels={home:'Trang chủ',data:'Dữ liệu',formulas:'Công thức',view:'Xem',analyze:'Phân tích',file:'Tệp'};
+  calcStatus.textContent=(labels[key]||'Sẵn sàng');
  }
- tabs.forEach(tab=>tab.addEventListener('click',()=>activate(tab)));
- ['closeDashboard','closeDataScience','closeAI','closeMacro'].forEach(id=>document.querySelector('#'+id)?.addEventListener('click',()=>{Object.values(panels).forEach(panel=>{if(panel)panel.hidden=true;});const home=tabs.find(tab=>tab.dataset.tab==='home');if(home)activate(home);}));
- const initial=tabs.find(tab=>tab.dataset.tab==='home');if(initial)activate(initial);
+ tabs.forEach(tab=>tab.addEventListener('click',()=>activateRibbonTab(tab.dataset.tab)));
+
+ if(ribbonToggle&&ribbonBar){
+  ribbonToggle.addEventListener('click',()=>{
+   const collapsed=!ribbonBar.hidden;
+   ribbonBar.hidden=collapsed;
+   ribbonToggle.setAttribute('aria-expanded',String(!collapsed));
+   ribbonToggle.textContent=collapsed?'⌄':'⌃';
+  });
+ }
+
+ function activateSubtab(panelEl,subtab){
+  if(!panelEl||!subtab)return;
+  const btns=[...panelEl.querySelectorAll('.drawer-subtabs [data-subtab]')];
+  const subpanels=[...panelEl.querySelectorAll('[data-subpanel]')];
+  if(!btns.length)return;
+  const chosen=btns.some(b=>b.dataset.subtab===subtab)?subtab:btns[0].dataset.subtab;
+  btns.forEach(b=>b.classList.toggle('active',b.dataset.subtab===chosen));
+  subpanels.forEach(sp=>{sp.hidden=sp.dataset.subpanel!==chosen;});
+  activeDrawerSubtab=chosen;
+ }
+
+ function closeDrawer(){
+  if(drawer)drawer.hidden=true;
+  Object.values(drawerPanels).forEach(p=>{if(p.el)p.el.hidden=true;});
+  document.querySelectorAll('.drawer-trigger.active').forEach(b=>b.classList.remove('active'));
+  activeDrawerKey='';activeDrawerSubtab='';
+ }
+
+ function openDrawer(key,subtab=''){
+  const entry=drawerPanels[key];
+  if(!entry||!entry.el||!drawer)return;
+  if(!drawer.hidden&&activeDrawerKey===key&&(!subtab||activeDrawerSubtab===subtab)){closeDrawer();return;}
+  Object.entries(drawerPanels).forEach(([k,p])=>{if(p.el)p.el.hidden=k!==key;});
+  drawer.hidden=false;
+  if(drawerTitle)drawerTitle.textContent=entry.title;
+  activeDrawerKey=key;
+  if(subtab)activateSubtab(entry.el,subtab);
+  else {
+   const firstBtn=entry.el.querySelector('.drawer-subtabs [data-subtab]');
+   if(firstBtn)activateSubtab(entry.el,firstBtn.dataset.subtab);
+  }
+  document.querySelectorAll('.drawer-trigger').forEach(b=>{
+   const match=b.dataset.openDrawer===key&&(!b.dataset.subtab||b.dataset.subtab===activeDrawerSubtab);
+   b.classList.toggle('active',match);
+  });
+  if(key==='data'){renderDataTables();renderPivotBuilder();renderPivotReport();}
+  else if(key==='macro'){renderMacroLibrary();}
+  else if(key==='formula'&&activeDrawerSubtab==='history'){renderFormulaVersions();}
+  calcStatus.textContent=entry.title;
+ }
+ window.sghtOpenDrawer=openDrawer;
+
+ document.querySelectorAll('.drawer-trigger[data-open-drawer]').forEach(btn=>{
+  btn.addEventListener('click',()=>openDrawer(btn.dataset.openDrawer,btn.dataset.subtab||''));
+ });
+ document.querySelectorAll('.drawer-subtabs').forEach(group=>{
+  const panelEl=group.closest('.drawer-panel');
+  group.querySelectorAll('[data-subtab]').forEach(btn=>{
+   btn.addEventListener('click',()=>{
+    activateSubtab(panelEl,btn.dataset.subtab);
+    if(activeDrawerKey==='formula'&&btn.dataset.subtab==='history')renderFormulaVersions();
+   });
+  });
+ });
+ if(closeDrawerBtn)closeDrawerBtn.addEventListener('click',closeDrawer);
+
+ // Dashboard centered modal
+ const openDashBtn=document.querySelector('#openDashboard');
+ const closeDashBtn=document.querySelector('#closeDashboard');
+ function closeDashboardModal(){
+  if(dashboardPanel)dashboardPanel.hidden=true;
+  if(dashboardBackdrop)dashboardBackdrop.hidden=true;
+ }
+ if(openDashBtn){
+  openDashBtn.addEventListener('click',()=>{
+   closeDrawer();
+   if(dashboardBackdrop)dashboardBackdrop.hidden=false;
+   if(dashboardPanel)dashboardPanel.hidden=false;
+   renderDashboard();
+   calcStatus.textContent='Dashboard Studio';
+  });
+ }
+ if(closeDashBtn)closeDashBtn.addEventListener('click',closeDashboardModal);
+ if(dashboardBackdrop)dashboardBackdrop.addEventListener('click',e=>{if(e.target===dashboardBackdrop)closeDashboardModal();});
+
+ // Floating Search & Replace
+ document.querySelector('#toggleSearchBar')?.addEventListener('click',()=>{
+  if(!searchPanel)return;
+  searchPanel.hidden=!searchPanel.hidden;
+  if(!searchPanel.hidden){searchInput.focus();searchInput.select();}
+ });
+ document.querySelector('#closeSearchPanel')?.addEventListener('click',()=>{if(searchPanel)searchPanel.hidden=true;});
+
+ // Quick formula helpers in Formulas tab
+ document.querySelectorAll('.quick-fn[data-fn]').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+   const fn=btn.dataset.fn;
+   const p=parseAddress(selected),range=p?address(Math.max(1,p.r-4),p.c)+":"+address(p.r,p.c):"A1:A5";
+   formulaInput.value=fn==='IF'?'=IF(A1>0,"Đạt","Chưa đạt")':'='+fn+'('+range+')';
+   formulaInput.focus();
+  });
+ });
+
+ // Proxy buttons
+ document.querySelectorAll('[data-proxy-click]').forEach(btn=>{
+  btn.addEventListener('click',()=>{document.getElementById(btn.dataset.proxyClick)?.click();});
+ });
+
+ activateRibbonTab('home');
 })();
 
 

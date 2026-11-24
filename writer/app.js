@@ -867,12 +867,14 @@
   document.addEventListener('keydown',e=>{
     const mod=e.ctrlKey||e.metaKey,key=e.key.toLowerCase(),inEd=document.activeElement===editor||editor.contains(document.activeElement);
     if(e.key==='Escape'){
+      const fp=$('#writerFindPopover');
+      if(fp&&!fp.hidden){fp.hidden=true;$('#toggleWriterFind')?.setAttribute('aria-pressed','false');editor.focus();return;}
       if(typeof selectImage==='function')selectImage(null);
       if(copiedFormat){setFormatPainter(null);setState('Đã tắt sao chép định dạng','');}
       if(document.body.classList.contains('focus-mode'))setFocusMode(false);
     }
-    if(mod && key==='f'){e.preventDefault();document.querySelector('.ribbon')?.classList.remove('is-collapsed');const t=document.querySelector('.ribbon-tab[data-tab="home"]');if(t&&!t.classList.contains('active'))t.click();$('#findText')?.focus();$('#findText')?.select();}
-    if(mod && key==='h'){e.preventDefault();document.querySelector('.ribbon')?.classList.remove('is-collapsed');const t=document.querySelector('.ribbon-tab[data-tab="home"]');if(t&&!t.classList.contains('active'))t.click();$('#replaceText')?.focus();$('#replaceText')?.select();}
+    if(mod && key==='f'){e.preventDefault();const fp=$('#writerFindPopover');if(fp)fp.hidden=false;$('#toggleWriterFind')?.setAttribute('aria-pressed','true');$('#findText')?.focus();$('#findText')?.select();}
+    if(mod && key==='h'){e.preventDefault();const fp=$('#writerFindPopover');if(fp)fp.hidden=false;$('#toggleWriterFind')?.setAttribute('aria-pressed','true');$('#replaceText')?.focus();$('#replaceText')?.select();}
     if(mod && key==='s'){e.preventDefault();clearTimeout(saveTimer);persist();}
     if(!inEd)return;
     if(e.shiftKey && e.key==='F3'){e.preventDefault();if(typeof cycleChangeCase==='function')cycleChangeCase();}
@@ -1457,6 +1459,22 @@
   // Ensure the Home writing tab is active on initial load without collapsing on phones.
   const homeTab=document.querySelector('.ribbon-tab[data-tab="home"]');
   if(homeTab&&!homeTab.classList.contains('active'))homeTab.click();
+  document.querySelectorAll('.file-subtab').forEach(btn=>btn.addEventListener('click',()=>{
+    const key=btn.dataset.fileTab;
+    document.querySelectorAll('.file-subtab').forEach(b=>b.classList.toggle('active',b===btn));
+    document.querySelectorAll('.file-subpanel').forEach(p=>{p.hidden=p.dataset.filePanel!==key;});
+  }));
+  const findPop=$('#writerFindPopover'),findToggle=$('#toggleWriterFind'),findClose=$('#closeWriterFind');
+  if(findToggle&&findPop)findToggle.addEventListener('click',()=>{
+    findPop.hidden=!findPop.hidden;
+    findToggle.setAttribute('aria-pressed',String(!findPop.hidden));
+    if(!findPop.hidden){$('#findText')?.focus();$('#findText')?.select();}
+  });
+  if(findClose&&findPop)findClose.addEventListener('click',()=>{
+    findPop.hidden=true;
+    findToggle?.setAttribute('aria-pressed','false');
+    editor.focus();
+  });
   // Keep the existing page controls and statistics in their corresponding ribbon tabs.
   const pagePanel=$('#pageSetupRibbon'), side=$('.sidepanel');
   if(pagePanel&&side){const labels=[...side.querySelectorAll('.setting')];labels.forEach(label=>pagePanel.append(label));const pageBreak=$('#insertPageBreak');if(pageBreak)pagePanel.append(pageBreak);}

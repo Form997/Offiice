@@ -18,7 +18,7 @@
 <main>
   <section class="docbar">
     <label class="sr-only" for="docTitle">Tên tài liệu</label>
-    <input id="docTitle" value="Tài liệu chưa đặt tên" maxlength="120" aria-label="Tên tài liệu"><small class="doc-id" id="docIdDisplay">ID: —</small><button type="button" id="copyDocId" title="Sao chép ID tài liệu">Sao chép ID</button><small class="access-state" title="Tài liệu hiện chỉ lưu trên thiết bị này; chưa chia sẻ trực tuyến">Riêng tư · Chỉ trên thiết bị</small>
+    <input id="docTitle" value="Tài liệu chưa đặt tên" maxlength="120" aria-label="Tên tài liệu">
     <div class="doc-actions"><a id="canvasLaunch" class="canvas-launch" href="canvas-studio.html" style="display:inline-flex;align-items:center;padding:8px 12px;border-radius:8px;background:#167d70;color:#fff;text-decoration:none;font-weight:700">✦ Mở Canvas</a><button type="button" class="quick-save" data-proxy="saveNow">Lưu</button>
       <button id="newDoc">Tài liệu mới</button>
       <select id="docList" aria-label="Chọn tài liệu"></select>
@@ -36,60 +36,101 @@
       <button class="ribbon-tab" type="button" role="tab" aria-selected="false" aria-controls="panel-view" data-tab="view">Xem</button>
       <button class="ribbon-collapse-btn" type="button" id="toggleRibbon" title="Thu gọn / mở rộng thanh công cụ" aria-expanded="true">⌃</button>
     </div>
-    <section class="ribbon-panel" id="panel-file" role="tabpanel" hidden>
-      <div class="ribbon-group file-workflow-group"><strong>Quản lý tệp</strong><div class="ribbon-tools file-workflow-tools">
-<button type="button" id="openLocalFile">Mở tệp</button><button type="button" id="saveFile" class="primary">Lưu</button><button type="button" id="saveAsFile">Lưu thành</button><button type="button" id="closeFile">Đóng tệp</button><button type="button" id="chooseWorkFolder">Chọn thư mục làm việc</button><button type="button" id="openWorkFolder">Mở từ thư mục</button></div><small id="workFolderStatus">Chưa chọn thư mục làm việc</small><small class="font-integrity-note">V7 · DOCX/ODT: giữ định dạng phổ biến; HTML: giữ CSS an toàn; RTF: chuyển đổi có giới hạn; TXT/CSV: không chứa thông tin phông gốc. DOC/PDF: chưa nhập trực tiếp.</small></div><div class="ribbon-group account-manager"><strong>Tài khoản HAI ĐẤT OFFICE</strong><div class="ribbon-tools"><input id="accountEmail" type="email" autocomplete="email" placeholder="Email tài khoản" aria-label="Email tài khoản"><input id="accountPassword" type="password" autocomplete="current-password" placeholder="Mật khẩu · tối thiểu 8 ký tự" aria-label="Mật khẩu"></div><div class="ribbon-tools"><button type="button" id="accountSignup">Đăng ký</button><button type="button" id="accountLogin" class="primary">Đăng nhập</button><button type="button" id="accountLogout" disabled>Đăng xuất</button><button type="button" id="accountReset">Quên mật khẩu</button></div><small id="accountStatus" role="status" aria-live="polite">Chưa cấu hình Supabase · tài liệu vẫn lưu cục bộ</small></div><div class="ribbon-group collaboration-manager">
-<strong>Kho chung &amp; chia sẻ</strong>
-<div class="ribbon-tools"><button type="button" id="cloudSave" class="primary">Đưa tài liệu lên kho chung</button><input id="cloudDocumentId" type="text" placeholder="ID tài liệu trên kho chung" aria-label="ID tài liệu trên kho chung"><button type="button" id="cloudOpen">Mở theo ID</button><button type="button" id="cloudCopy">Sao chép từ kho</button></div>
-<div class="ribbon-tools"><select id="shareSubjectType" aria-label="Loại người nhận"><option value="user">Cá nhân</option><option value="group">Nhóm / đội</option></select><input id="shareSubjectId" type="text" placeholder="UUID tài khoản hoặc nhóm" aria-label="UUID người nhận"><label><input id="shareRead" type="checkbox"> Đọc</label><label><input id="shareEdit" type="checkbox"> Chỉnh sửa</label><label><input id="shareCopy" type="checkbox"> Sao chép</label><button type="button" id="shareSave">Lưu quyền</button><button type="button" id="shareRevoke" class="danger">Thu hồi</button></div>
-<div class="ribbon-tools"><input id="newGroupName" type="text" maxlength="120" placeholder="Tên nhóm mới"><button type="button" id="createCloudGroup">Tạo nhóm</button><input id="groupMemberId" type="text" placeholder="UUID thành viên"><button type="button" id="addCloudGroupMember">Thêm thành viên</button></div>
-<small id="collaborationStatus" role="status" aria-live="polite">Chưa kết nối kho chung · tài liệu vẫn lưu trên thiết bị.</small>
-</div><div class="ribbon-group document-manager"><strong>Kho tài liệu</strong><div class="ribbon-tools"><input id="documentSearch" type="search" placeholder="Tìm tên, ID hoặc loại…" aria-label="Tìm tài liệu"><span id="documentCount">0 tài liệu</span></div><div class="ribbon-tools"><select id="folderFilter" aria-label="Lọc thư mục"><option value="__all__">Tất cả thư mục</option></select><select id="documentSort" aria-label="Sắp xếp"><option value="updated">Mới cập nhật</option><option value="name">Tên A–Z</option><option value="oldest">Cũ nhất</option></select></div><div class="ribbon-tools"><select id="trashList" aria-label="Tài liệu trong thùng rác"><option value="">Thùng rác</option></select><button type="button" id="restoreTrash">Khôi phục</button><button type="button" id="purgeTrash" class="danger">Xóa vĩnh viễn</button></div><small>Tài liệu xóa được giữ trong thùng rác đến khi xóa vĩnh viễn.</small></div>
-      <div class="ribbon-group version-manager"><strong>Lịch sử phiên bản</strong><div class="ribbon-tools"><select id="versionHistoryList" aria-label="Chọn phiên bản"><option value="">Chưa có lịch sử</option></select><span id="versionHistoryCount">0/6 mốc</span></div><div class="ribbon-tools"><button type="button" id="saveVersion">Lưu mốc</button><button type="button" id="previewVersion">Xem nội dung</button><button type="button" id="restoreVersion">Khôi phục</button></div><small>Lịch sử lưu cả nội dung Writer và bố cục Canvas khi kích thước cho phép; tự động ghi mốc tối đa mỗi 5 phút, có thể lưu mốc thủ công.</small></div><div class="ribbon-group folder-manager"><strong>Phân loại tài liệu</strong><div class="ribbon-tools"><button type="button" id="createFolder">+ Thư mục</button><button type="button" id="deleteFolder" class="danger">Xóa thư mục</button></div><div class="ribbon-tools"><select id="docFolder" aria-label="Chuyển tài liệu vào thư mục"><option value="__current__">Chuyển vào thư mục…</option></select><select id="docCategory" aria-label="Loại tài liệu"><option>Báo cáo</option><option>Công văn</option><option>Nghiên cứu</option><option>Biên bản</option><option>Ghi chú</option><option>Khác</option></select><button type="button" id="togglePin">☆ Ghim tài liệu</button></div><small>Ghim tài liệu quan trọng; thư mục và loại được lưu cùng tài liệu.</small></div><div class="ribbon-group"><strong>Mẫu văn bản</strong><div class="ribbon-tools"><select id="documentTemplate" aria-label="Chọn mẫu văn bản"><option value="">Chọn mẫu…</option><option value="report">Báo cáo</option><option value="letter">Công văn / thư</option><option value="minutes">Biên bản</option><option value="thesis">Bài nghiên cứu</option></select><button type="button" id="applyTemplate">Áp dụng mẫu</button></div></div>
-      <div class="ribbon-group"><div class="ribbon-tools">
-        <button type="button" data-proxy="saveFile" class="primary">Lưu tệp</button>
-        <button type="button" data-proxy="exportDocx">Xuất DOCX</button>
-        <button type="button" data-proxy="exportHtml">Xuất HTML</button>
-        <button type="button" data-proxy="exportTxt">Xuất TXT</button>
-        <button type="button" data-proxy="printDoc">In / PDF</button>
-        <button type="button" data-proxy="openLocalFile">Mở tệp bất kỳ</button>
-        <button type="button" id="backupExport">Sao lưu toàn bộ</button>
-        <select id="backupMode" aria-label="Cách khôi phục bản sao lưu"><option value="merge" selected>Hợp nhất · giữ tài liệu hiện có</option><option value="replace">Thay thế toàn bộ</option></select><button type="button" id="backupImport">Khôi phục bản sao</button>
-        <input id="backupFile" type="file" accept=".json,application/json" hidden>
-        <button type="button" id="checkDataHealth">Kiểm tra kho dữ liệu</button><small id="dataHealthStatus" role="status" aria-live="polite">Chưa kiểm tra dữ liệu</small>
-      </div><small>Tạo và quản lý tài liệu ở thanh tên tài liệu bên dưới</small></div>
+    <section class="ribbon-panel file-ribbon-panel" id="panel-file" role="tabpanel" hidden>
+      <div class="file-subtabs" role="tablist" aria-label="Mục Tệp">
+        <button type="button" class="file-subtab active" data-file-tab="io">📄 Tệp &amp; Xuất</button>
+        <button type="button" class="file-subtab" data-file-tab="library">📁 Kho tài liệu</button>
+        <button type="button" class="file-subtab" data-file-tab="versions">🕒 Mẫu &amp; Phiên bản</button>
+        <button type="button" class="file-subtab" data-file-tab="backup">🛡 Sao lưu</button>
+      </div>
+      <div class="file-subpanel" data-file-panel="io">
+        <div class="ribbon-group file-workflow-group">
+          <div class="ribbon-tools file-workflow-tools">
+            <button type="button" id="openLocalFile">📂 Mở tệp</button>
+            <button type="button" id="saveFile" class="primary">💾 Lưu</button>
+            <button type="button" id="saveAsFile">Lưu thành</button>
+            <button type="button" data-proxy="exportDocx" class="primary">Xuất DOCX</button>
+            <button type="button" data-proxy="exportHtml">HTML</button>
+            <button type="button" data-proxy="exportTxt">TXT</button>
+            <button type="button" data-proxy="printDoc">🖨 In / PDF</button>
+            <button type="button" id="chooseWorkFolder">Thư mục làm việc</button>
+            <button type="button" id="openWorkFolder">Mở từ thư mục</button>
+            <button type="button" id="closeFile">Đóng tệp</button>
+          </div>
+          <small id="workFolderStatus">Chưa chọn thư mục làm việc · V7 hỗ trợ DOCX/ODT/HTML/RTF/TXT.</small>
+        </div>
+      </div>
+      <div class="file-subpanel" data-file-panel="library" hidden>
+        <div class="ribbon-group document-manager">
+          <div class="ribbon-tools">
+            <input id="documentSearch" type="search" placeholder="Tìm tên, ID hoặc loại…" aria-label="Tìm tài liệu">
+            <span id="documentCount">0 tài liệu</span>
+            <select id="folderFilter" aria-label="Lọc thư mục"><option value="__all__">Tất cả thư mục</option></select>
+            <select id="documentSort" aria-label="Sắp xếp"><option value="updated">Mới cập nhật</option><option value="name">Tên A–Z</option><option value="oldest">Cũ nhất</option></select>
+            <button type="button" id="createFolder">+ Thư mục</button>
+            <button type="button" id="deleteFolder" class="danger">Xóa thư mục</button>
+            <select id="docFolder" aria-label="Chuyển tài liệu vào thư mục"><option value="__current__">Chuyển thư mục…</option></select>
+            <select id="docCategory" aria-label="Loại tài liệu"><option>Báo cáo</option><option>Công văn</option><option>Nghiên cứu</option><option>Biên bản</option><option>Ghi chú</option><option>Khác</option></select>
+            <button type="button" id="togglePin">☆ Ghim</button>
+            <select id="trashList" aria-label="Tài liệu trong thùng rác"><option value="">Thùng rác</option></select>
+            <button type="button" id="restoreTrash">Khôi phục</button>
+            <button type="button" id="purgeTrash" class="danger">Xóa hẳn</button>
+            <small class="doc-id" id="docIdDisplay">ID: —</small><button type="button" id="copyDocId" title="Sao chép ID tài liệu">Chép ID</button>
+          </div>
+        </div>
+      </div>
+      <div class="file-subpanel" data-file-panel="versions" hidden>
+        <div class="ribbon-group">
+          <div class="ribbon-tools">
+            <select id="documentTemplate" aria-label="Chọn mẫu văn bản"><option value="">Chọn mẫu văn bản…</option><option value="report">Báo cáo</option><option value="letter">Công văn / thư</option><option value="minutes">Biên bản</option><option value="thesis">Bài nghiên cứu</option></select>
+            <button type="button" id="applyTemplate">Áp dụng mẫu</button>
+            <select id="versionHistoryList" aria-label="Chọn phiên bản"><option value="">Chưa có lịch sử</option></select>
+            <span id="versionHistoryCount">0/6 mốc</span>
+            <button type="button" id="saveVersion">Lưu mốc</button>
+            <button type="button" id="previewVersion">Xem</button>
+            <button type="button" id="restoreVersion">Khôi phục</button>
+          </div>
+        </div>
+      </div>
+      <div class="file-subpanel" data-file-panel="backup" hidden>
+        <div class="ribbon-group">
+          <div class="ribbon-tools">
+            <button type="button" id="backupExport" class="primary">Sao lưu toàn bộ</button>
+            <select id="backupMode" aria-label="Cách khôi phục bản sao lưu"><option value="merge" selected>Hợp nhất · giữ tài liệu hiện có</option><option value="replace">Thay thế toàn bộ</option></select>
+            <button type="button" id="backupImport">Khôi phục bản sao</button>
+            <input id="backupFile" type="file" accept=".json,application/json" hidden>
+            <button type="button" id="checkDataHealth">Kiểm tra kho dữ liệu</button>
+            <small id="dataHealthStatus" role="status" aria-live="polite">Chưa kiểm tra dữ liệu</small>
+          </div>
+        </div>
+      </div>
+      <!-- Unconfigured cloud/account controls preserved hidden for compatibility -->
+      <div class="ribbon-group account-manager" hidden aria-hidden="true"><input id="accountEmail" type="email" autocomplete="off"><input id="accountPassword" type="text" autocomplete="off"><button type="button" id="accountSignup"></button><button type="button" id="accountLogin"></button><button type="button" id="accountLogout" disabled></button><button type="button" id="accountReset"></button><small id="accountStatus"></small></div>
+      <div class="ribbon-group collaboration-manager" hidden aria-hidden="true"><button type="button" id="cloudSave"></button><input id="cloudDocumentId" type="text"><button type="button" id="cloudOpen"></button><button type="button" id="cloudCopy"></button><select id="shareSubjectType"><option value="user">user</option><option value="group">group</option></select><input id="shareSubjectId" type="text"><input id="shareRead" type="checkbox"><input id="shareEdit" type="checkbox"><input id="shareCopy" type="checkbox"><button type="button" id="shareSave"></button><button type="button" id="shareRevoke"></button><input id="newGroupName" type="text"><button type="button" id="createCloudGroup"></button><input id="groupMemberId" type="text"><button type="button" id="addCloudGroupMember"></button><small id="collaborationStatus"></small></div>
     </section>
-    <section class="ribbon-panel active" id="panel-home" role="tabpanel">
+    <section class="ribbon-panel active home-ribbon-panel" id="panel-home" role="tabpanel">
     <div class="tool-group">
-      <button type="button" data-action="undo" title="Hoàn tác (Ctrl+Z)">↶</button><button type="button" data-action="redo" title="Làm lại (Ctrl+Y)">↷</button><button type="button" id="formatPainter" title="Sao chép định dạng (chọn chữ mẫu → bấm → quét chữ đích)" aria-pressed="false">🖌</button>
+      <button type="button" data-action="undo" title="Hoàn tác (Ctrl+Z)">↶</button><button type="button" data-action="redo" title="Làm lại (Ctrl+Y)">↷</button><button type="button" id="formatPainter" title="Sao chép định dạng" aria-pressed="false">🖌</button>
     </div>
     <div class="tool-group">
-      <select id="blockType" aria-label="Kiểu đoạn"><option value="P">Đoạn văn</option><option value="H1">Tiêu đề 1</option><option value="H2">Tiêu đề 2</option><option value="H3">Tiêu đề 3</option><option value="BLOCKQUOTE">Trích dẫn</option><option value="PRE">Mã / văn bản thô</option></select>
+      <select id="blockType" aria-label="Kiểu đoạn"><option value="P">Đoạn văn</option><option value="H1">Tiêu đề 1</option><option value="H2">Tiêu đề 2</option><option value="H3">Tiêu đề 3</option><option value="BLOCKQUOTE">Trích dẫn</option><option value="PRE">Mã / thô</option></select>
       <select id="fontName" aria-label="Phông chữ"><option value="Arial">Arial</option><option value="Times New Roman">Times New Roman</option><option value="Georgia">Georgia</option><option value="Segoe UI">Segoe UI</option><option value="Verdana">Verdana</option><option value="Tahoma">Tahoma</option><option value="Courier New">Courier New</option></select>
       <select id="fontSize" aria-label="Cỡ chữ"><option value="2">10 pt</option><option value="3" selected>12 pt</option><option value="4">14 pt</option><option value="5">18 pt</option><option value="6">24 pt</option><option value="7">36 pt</option></select>
     </div>
     <div class="tool-group">
       <button type="button" data-cmd="bold" title="Đậm (Ctrl+B)" aria-pressed="false"><b>B</b></button><button type="button" data-cmd="italic" title="Nghiêng (Ctrl+I)" aria-pressed="false"><i>I</i></button><button type="button" data-cmd="underline" title="Gạch chân (Ctrl+U)" aria-pressed="false"><u>U</u></button><button type="button" data-cmd="strikeThrough" title="Gạch ngang" aria-pressed="false"><s>S</s></button><button type="button" data-cmd="superscript" title="Chỉ số trên" aria-pressed="false">x²</button><button type="button" data-cmd="subscript" title="Chỉ số dưới" aria-pressed="false">x₂</button>
       <label class="color-tool" title="Màu chữ">A <input id="textColor" type="color" value="#17212b" aria-label="Màu chữ"></label>
-      <label class="color-tool" title="Màu nền chữ">▧ <input id="highlightColor" type="color" value="#fff29a" aria-label="Màu đánh dấu"></label>
-      <select id="changeCase" aria-label="Đổi kiểu chữ hoa thường" title="Đổi kiểu chữ (Shift+F3)"><option value="">Aa Đổi chữ</option><option value="upper">CHỮ IN HOA</option><option value="lower">chữ thường</option><option value="title">Viết Hoa Đầu Từ</option><option value="sentence">Viết hoa đầu câu</option></select>
+      <label class="color-tool" title="Màu đánh dấu">▧ <input id="highlightColor" type="color" value="#fff29a" aria-label="Màu đánh dấu"></label>
+      <select id="changeCase" aria-label="Đổi kiểu chữ hoa thường" title="Đổi kiểu chữ (Shift+F3)"><option value="">Aa</option><option value="upper">IN HOA</option><option value="lower">chữ thường</option><option value="title">Hoa Đầu Từ</option><option value="sentence">Hoa đầu câu</option></select>
       <button type="button" id="clearFormatHome" data-proxy="clearFormat" title="Xóa định dạng (Ctrl+\)">Tx</button>
     </div>
     <div class="tool-group paragraph-align-tools" aria-label="Căn chỉnh đoạn">
       <button type="button" data-cmd="justifyLeft" title="Căn trái (Ctrl+L)" aria-pressed="false">Trái</button><button type="button" data-cmd="justifyCenter" title="Căn giữa (Ctrl+E)" aria-pressed="false">Giữa</button><button type="button" data-cmd="justifyRight" title="Căn phải (Ctrl+R)" aria-pressed="false">Phải</button><button type="button" data-cmd="justifyFull" title="Căn đều (Ctrl+J)" aria-pressed="false">Đều</button>
     </div>
     <div class="tool-group paragraph-indent-tools" aria-label="Danh sách và thụt lề">
-      <button type="button" data-cmd="insertUnorderedList" title="Danh sách gạch đầu dòng (Ctrl+Shift+8)" aria-pressed="false">• Danh sách</button><button type="button" data-cmd="insertOrderedList" title="Danh sách đánh số (Ctrl+Shift+7)" aria-pressed="false">1. Danh sách</button><button type="button" id="outdent" title="Giảm thụt lề (Shift+Tab)">Giảm lề</button><button type="button" id="indent" title="Tăng thụt lề (Tab)">Tăng lề</button>
+      <button type="button" data-cmd="insertUnorderedList" title="Danh sách chấm" aria-pressed="false">•</button><button type="button" data-cmd="insertOrderedList" title="Danh sách số" aria-pressed="false">1.</button><button type="button" id="outdent" title="Giảm thụt lề (Shift+Tab)">⇤</button><button type="button" id="indent" title="Tăng thụt lề (Tab)">⇥</button>
     </div>
-    <div class="tool-group paragraph-tools" aria-label="Định dạng đoạn văn"><label>Giãn dòng <select id="lineSpacing"><option value="1">1.0</option><option value="1.15" selected>1.15</option><option value="1.5">1.5</option><option value="2">2.0</option></select></label><label>Sau đoạn <select id="paragraphAfter"><option value="0">0 pt</option><option value="6" selected>6 pt</option><option value="12">12 pt</option><option value="18">18 pt</option></select></label><button type="button" id="applyParagraphSpacing">Áp dụng đoạn</button></div>
-    <div class="tool-group find-tools" aria-label="Tìm kiếm và thay thế">
-      <input id="findText" type="search" placeholder="Tìm (Ctrl+F)…" aria-label="Từ cần tìm">
-      <span id="findMatchCount" class="find-match-count" aria-live="polite"></span>
-      <input id="replaceText" type="text" placeholder="Thay (Ctrl+H)…" aria-label="Nội dung thay thế">
-      <button type="button" id="findNext">Tìm tiếp</button>
-      <button type="button" id="replaceOne">Thay</button>
-      <button type="button" id="replaceAll">Thay tất cả</button>
-    </div>
+    <div class="tool-group paragraph-tools" aria-label="Giãn dòng"><select id="lineSpacing" title="Giãn dòng" aria-label="Giãn dòng"><option value="1">1.0</option><option value="1.15" selected>1.15</option><option value="1.5">1.5</option><option value="2">2.0</option></select><select id="paragraphAfter" title="Khoảng cách sau đoạn" aria-label="Sau đoạn"><option value="0">0pt</option><option value="6" selected>6pt</option><option value="12">12pt</option><option value="18">18pt</option></select><button type="button" id="applyParagraphSpacing" title="Áp dụng giãn đoạn">Đoạn</button></div>
     </section>
     <section class="ribbon-panel" id="panel-insert" role="tabpanel" hidden>
     <div class="ribbon-group"><strong>Đối tượng &amp; phương tiện</strong><div class="ribbon-tools">
@@ -155,26 +196,23 @@
       <p id="outlineEmpty" class="outline-empty">Thêm Tiêu đề 1–3 để xem cấu trúc và nhảy nhanh giữa các mục.</p>
     </aside>
     <div class="page-wrap" id="pageWrap">
-      <div class="editor-quickbar" role="toolbar" aria-label="Định dạng nhanh">
+      <div class="editor-quickbar" role="toolbar" aria-label="Điều hướng tài liệu">
         <button type="button" id="toggleOutline" title="Bật / tắt Mục lục điều hướng" aria-pressed="false">📑 Mục lục</button>
-        <button type="button" id="toggleComments" title="Bật / tắt bảng Bình luận (Ctrl+Alt+M)" aria-pressed="false">💬 <span id="commentCountBadge">0</span></button>
+        <button type="button" id="toggleComments" title="Bật / tắt bảng Bình luận (Ctrl+Alt+M)" aria-pressed="false">💬 Bình luận (<span id="commentCountBadge">0</span>)</button>
+        <button type="button" data-proxy="addComment" title="Thêm bình luận cho đoạn chọn (Ctrl+Alt+M)">+ Ghi chú</button>
         <span class="quick-divider"></span>
-        <button type="button" data-cmd="undo" title="Hoàn tác (Ctrl+Z)">↶</button>
-        <button type="button" data-cmd="redo" title="Làm lại (Ctrl+Y)">↷</button>
-        <button type="button" data-proxy="formatPainter" title="Sao chép định dạng">🖌</button>
-        <span class="quick-divider"></span>
-        <button type="button" data-cmd="bold" title="In đậm (Ctrl+B)" aria-pressed="false"><b>B</b></button>
-        <button type="button" data-cmd="italic" title="In nghiêng (Ctrl+I)" aria-pressed="false"><i>I</i></button>
-        <button type="button" data-cmd="underline" title="Gạch chân (Ctrl+U)" aria-pressed="false"><u>U</u></button>
-        <button type="button" data-cmd="strikeThrough" title="Gạch ngang" aria-pressed="false"><s>S</s></button>
-        <span class="quick-divider"></span>
-        <button type="button" data-cmd="justifyLeft" title="Căn trái (Ctrl+L)" aria-pressed="false">☰</button>
-        <button type="button" data-cmd="justifyCenter" title="Căn giữa (Ctrl+E)" aria-pressed="false">≡</button>
-        <button type="button" data-cmd="insertUnorderedList" title="Danh sách" aria-pressed="false">•</button>
-        <button type="button" data-cmd="insertOrderedList" title="Danh sách số" aria-pressed="false">1.</button>
-        <span class="quick-divider"></span>
-        <button type="button" data-proxy="addComment" title="Thêm bình luận cho đoạn chọn (Ctrl+Alt+M)">+ Bình luận</button>
-        <button type="button" id="quickPageBreak" title="Ngắt trang (Ctrl+Enter)">↵ Trang</button><button type="button" id="focusModeExit" hidden>Thoát tập trung</button>
+        <button type="button" id="toggleWriterFind" title="Tìm kiếm và thay thế (Ctrl+F / Ctrl+H)" aria-pressed="false">🔍 Tìm &amp; Thay</button>
+        <button type="button" id="quickPageBreak" title="Ngắt trang (Ctrl+Enter)">↵ Ngắt trang</button>
+        <button type="button" id="focusModeExit" hidden>Thoát tập trung</button>
+      </div>
+      <div id="writerFindPopover" class="writer-find-popover" role="dialog" aria-label="Tìm kiếm và thay thế" hidden>
+        <input id="findText" type="search" placeholder="Tìm (Ctrl+F)…" aria-label="Từ cần tìm">
+        <span id="findMatchCount" class="find-match-count" aria-live="polite"></span>
+        <button type="button" id="findNext">Tìm tiếp</button>
+        <input id="replaceText" type="text" placeholder="Thay bằng…" aria-label="Nội dung thay thế">
+        <button type="button" id="replaceOne">Thay</button>
+        <button type="button" id="replaceAll">Thay tất cả</button>
+        <button type="button" id="closeWriterFind" title="Đóng (Esc)" aria-label="Đóng tìm kiếm">✕</button>
       </div>
       <div id="tableContextBar" class="table-context-bar" role="toolbar" aria-label="Công cụ bảng" hidden>
         <span class="table-context-label">Bảng:</span>
