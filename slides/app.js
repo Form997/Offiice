@@ -48,6 +48,15 @@ function persist(showMessage = false) {
   return true;
 }
 
+function renderPreview() {
+  const current = slides[activeIndex];
+  if (!current) return;
+  $("#previewTitle").textContent = current.title.trim() || "Tiêu đề slide";
+  $("#previewBody").textContent = current.body.trim() || "Nội dung của bạn sẽ hiển thị tại đây.";
+  $("#previewNumber").textContent = String(activeIndex + 1).padStart(2, "0");
+  $("#slide-total").textContent = String(slides.length).padStart(2, "0");
+}
+
 function render() {
   slides = normalizeSlides(slides);
   activeIndex = Math.max(0, Math.min(activeIndex, slides.length - 1));
@@ -61,8 +70,8 @@ function render() {
     const button = document.createElement("button");
     button.type = "button";
     button.textContent = slide.title.trim() || "Slide " + (index + 1);
+    button.dataset.number = String(index + 1).padStart(2, "0");
     button.setAttribute("aria-current", index === activeIndex ? "true" : "false");
-    button.style.margin = "4px 0";
     button.addEventListener("click", () => {
       commitEditor();
       activeIndex = index;
@@ -76,10 +85,12 @@ function render() {
   setStatus("Slide " + (activeIndex + 1) + "/" + slides.length);
   $("#prev").disabled = activeIndex === 0;
   $("#next").disabled = activeIndex === slides.length - 1;
+  renderPreview();
 }
 
 function updateFromEditor() {
   commitEditor();
+  renderPreview();
   if (persist()) setStatus("Slide " + (activeIndex + 1) + "/" + slides.length + " · đã tự lưu");
 }
 
