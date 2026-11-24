@@ -14,6 +14,7 @@ import { createEmptyAuthStore, validateAuthStore, createAuthUser, loginAuthUser,
 import { SghtAuthApiClient } from "./engine/auth-api-client.js";
 import { consumeAccountAction, validateNewPassword } from "./engine/account-lifecycle.js";
 import { evaluateFormula, FormulaError, FUNCTION_CATEGORIES, getFormulaFunction, listFormulaFunctions } from "./engine/core.js";
+import { cycleReferenceAtCursor, findDataEdge, findContiguousRegion, computeAutoSumFormula, CALC_SHORTCUT_GROUPS } from "./engine/shortcuts.js";
 import { buildDependencyGraph, updateDependencyNode, planRecalculation } from "./engine/dependency-engine.js";
 import { CalculationScheduler } from "./engine/calculation-scheduler.js";
 import { FormulaResultCache } from "./engine/formula-result-cache.js";
@@ -188,15 +189,21 @@ document.querySelector("#searchNext").addEventListener("click",()=>navigateSearc
 document.querySelector("#searchClear").addEventListener("click",clearSearch);
 for(const control of [searchModeInput,searchCaseInput,searchWholeInput])control.addEventListener("change",()=>{if(searchInput.value){runSearch(true);if(searchResults.length)navigateSearch(0);}updateReplaceControls();});
 window.addEventListener("keydown",event=>{
-  const key=event.key.toLowerCase(),target=event.target;
-  if((event.ctrlKey||event.metaKey)&&(key==="f"||key==="h")){
+  const key=event.key.toLowerCase(),target=event.target,mod=event.ctrlKey||event.metaKey;
+  if(mod&&(key==="f"||key==="h")){
     event.preventDefault();
     const sp=document.querySelector("#searchPanel"),more=document.querySelector("#searchMoreDetails");
     if(sp)sp.hidden=false;
     if(more&&key==="h")more.open=true;
     searchInput.focus();searchInput.select();return;
   }
+  if(mod&&key==="s"){event.preventDefault();save();calcStatus.textContent="Đã lưu bảng tính (Ctrl+S)";return;}
+  if(mod&&key==="g"){event.preventDefault();cellAddress.focus();cellAddress.select();return;}
+  if(event.shiftKey&&event.key==="F3"){event.preventDefault();window.sghtOpenDrawer?.("functions");return;}
+  if(mod&&key==="/"){event.preventDefault();document.querySelector("#openCalcShortcuts")?.click();return;}
   if(key==="escape"){
+    const sc=document.querySelector("#calcShortcutsDialog");
+    if(sc&&sc.open){sc.close();return;}
     const sp=document.querySelector("#searchPanel");
     if(sp&&!sp.hidden){sp.hidden=true;return;}
     const db=document.querySelector("#dashboardBackdrop");
@@ -205,7 +212,7 @@ window.addEventListener("keydown",event=>{
     if(dr&&!dr.hidden){document.querySelector("#closeCalcDrawer")?.click();return;}
   }
   if(target instanceof HTMLElement&&(target.isContentEditable||/^(INPUT|TEXTAREA|SELECT)$/.test(target.tagName)))return;
-  if(!(event.ctrlKey||event.metaKey)||event.altKey)return;
+  if(!mod||event.altKey)return;
   if(key==="z"&&event.shiftKey){event.preventDefault();historyMove(redoStack,undoStack);}
   else if(key==="z"){event.preventDefault();historyMove(undoStack,redoStack);}
   else if(key==="y"){event.preventDefault();historyMove(redoStack,undoStack);}
@@ -723,12 +730,191 @@ document.querySelector("#applySplit").addEventListener("click",()=>{
   calcStatus.textContent=splitMode==="none"?"Đã tắt chia vùng.":splitMode==="quadrant"?"Đã chia bốn góc phần tư; các trục cuộn liên kết được đồng bộ.":splitMode==="horizontal"?"Đã chia ngang: cuộn dọc độc lập, cuộn ngang đồng bộ.":"Đã chia dọc: cuộn ngang độc lập, cuộn dọc đồng bộ.";
 });
 document.querySelector("#clearSplit").addEventListener("click",()=>{splitMode="none";document.querySelector("#splitMode").value="none";applySplitMode();calcStatus.textContent="Đã tắt chia vùng.";});
+function focusActiveGridCell(){
+  const active=[grid,quadrantPanes.topRight.grid,quadrantPanes.bottomLeft.grid,splitGrid].map(g=>g.querySelector("[data-cell='"+selected+"']")).find(Boolean);
+  if(active)active.focus({preventScroll:true});
+}
+function enterEditMode(initialText=null){
+  if(initialText!==null){
+    formulaInput.value=initialText;
+  }else{
+    formulaInput.value=raw(selected);
+  }
+  formulaInput.focus();
+  const len=formulaInput.value.length;
+  formulaInput.setSelectionRange(len,len);
+  formulaInput.dispatchEvent(new Event("input"));
+}
+function clearSelectedCells(){
+  const targets=expandRange(selectionRange.start,selectionRange.end);
+  snapshot();
+  for(const a of targets){if(Object.hasOwn(cells,a))recordFormulaCellVersion(a,raw(a),"","clear");delete cells[a];}
+  invalidateFormulaCells(targets);render();save();
+  calcStatus.textContent="Đã xóa nội dung "+targets.length+" ô";
+}
+function clearSelectedFormats(){
+  const targets=expandRange(selectionRange.start,selectionRange.end);
+  snapshot();
+  for(const a of targets)delete cellFormats[a];
+  render();save();
+  calcStatus.textContent="Đã xóa định dạng "+targets.length+" ô";
+}
+function fillDirection(dir){
+  const b=getRangeBounds(selectionRange.start,selectionRange.end);
+  let src,target;
+  if(dir==="down"){
+    if(b.endRow>b.startRow){
+      src={start:address(b.startRow,b.startCol),end:address(b.startRow,b.endCol),startRow:b.startRow,endRow:b.startRow,startCol:b.startCol,endCol:b.endCol};
+      target={start:b.start,end:b.end};
+    }else if(b.startRow>1){
+      src={start:address(b.startRow-1,b.startCol),end:address(b.startRow-1,b.endCol),startRow:b.startRow-1,endRow:b.startRow-1,startCol:b.startCol,endCol:b.endCol};
+      target={start:address(b.startRow-1,b.startCol),end:address(b.startRow,b.endCol)};
+    }else return;
+  }else{
+    if(b.endCol>b.startCol){
+      src={start:address(b.startRow,b.startCol),end:address(b.endRow,b.startCol),startRow:b.startRow,endRow:b.endRow,startCol:b.startCol,endCol:b.startCol};
+      target={start:b.start,end:b.end};
+    }else if(b.startCol>1){
+      src={start:address(b.startRow,b.startCol-1),end:address(b.endRow,b.startCol-1),startRow:b.startRow,endRow:b.endRow,startCol:b.startCol-1,endCol:b.startCol-1};
+      target={start:address(b.startRow,b.startCol-1),end:address(b.endRow,b.startCol)};
+    }else return;
+  }
+  try{
+    snapshot();
+    const result=fillRange(cells,cellFormats,src,target,{maxCells:100000});
+    for(const a of expandRange(result.range.start,result.range.end))if(cells[a]!==result.cells[a])recordFormulaCellVersion(a,raw(a),result.cells[a]??"","fill");
+    cells=result.cells;cellFormats=result.formats;
+    invalidateFormulaCells(expandRange(result.range.start,result.range.end));
+    render();save();
+    calcStatus.textContent=(dir==="down"?"Đã điền xuống (Ctrl+D) ":"Đã điền sang phải (Ctrl+R) ")+result.changed+" ô.";
+  }catch(err){calcStatus.textContent="Không thể điền nhanh: "+err.message;}
+}
+function runAutoSum(){
+  const p=parseAddress(selected);if(!p)return;
+  const formula=computeAutoSumFormula(cells,p);
+  formulaInput.value=formula;
+  formulaInput.focus();
+  if(formula==="=SUM()"){formulaInput.setSelectionRange(5,5);}
+  else{formulaInput.setSelectionRange(5,formula.length-1);}
+  formulaInput.dispatchEvent(new Event("input"));
+  calcStatus.textContent="AutoSum · nhấn Enter để áp dụng";
+}
+function insertCurrentDateTime(includeTime){
+  const d=new Date(),pad=n=>String(n).padStart(2,"0");
+  const stamp=includeTime
+    ?`${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`
+    :`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+  setValue(selected,stamp);
+  formulaInput.value=stamp;
+  calcStatus.textContent=includeTime?"Đã chèn giờ hiện tại (Ctrl+Shift+;)":"Đã chèn ngày hôm nay (Ctrl+;)";
+}
+function selectAllSmart(){
+  const p=parseAddress(selected);if(!p)return;
+  const region=findContiguousRegion(cells,p,ROWS,COLS);
+  const cur=getRangeBounds(selectionRange.start,selectionRange.end);
+  if(region&&(cur.start!==region.start||cur.end!==region.end)){
+    selectionRange={start:region.start,end:region.end};
+    updateSelection();
+    calcStatus.textContent="Đã chọn khối dữ liệu "+region.start+":"+region.end+" (Ctrl+A lần nữa để chọn toàn vùng đã dùng)";
+    return;
+  }
+  const used=[...Object.keys(cells),...Object.keys(cellFormats)].map(parseAddress).filter(Boolean);
+  const maxR=Math.max(p.r,1,...used.map(u=>u.r)),maxC=Math.max(p.c,1,...used.map(u=>u.c));
+  selectionRange={start:"A1",end:address(maxR,maxC)};
+  updateSelection();
+  calcStatus.textContent="Đã chọn toàn bộ vùng đã dùng A1:"+address(maxR,maxC);
+}
+async function pasteValuesOnly(){
+  if(internalClipboard?.payload?.matrix){
+    const plain=internalClipboard.payload.matrix.map((row,ri)=>row.map((item,ci)=>{
+      const v=String(item.value??"");
+      if(v.startsWith("=")){
+        const srcCell=address((internalClipboard.bounds?.startRow||1)+ri,(internalClipboard.bounds?.startCol||1)+ci);
+        return display(srcCell);
+      }
+      return v;
+    }));
+    pasteRange(encodeTSV(plain),null);
+    calcStatus.textContent="Đã dán chỉ giá trị (Ctrl+Shift+V)";
+    return;
+  }
+  try{
+    const t=await navigator.clipboard.readText();
+    if(t){pasteRange(t,null);calcStatus.textContent="Đã dán chỉ giá trị (Ctrl+Shift+V)";}
+  }catch{calcStatus.textContent="Hãy cấp quyền bảng tạm hoặc sao chép ô trước.";}
+}
+function handleGridKeydown(e,scrollEl=sheetScroll){
+  const b=e.target.closest("[data-cell]");if(!b)return;
+  const p=parseAddress(b.dataset.cell);if(!p)return;
+  const mod=e.ctrlKey||e.metaKey,key=e.key.toLowerCase();
+
+  // Direct IME Vietnamese composition start
+  if(e.key==="Process"||e.isComposing){formulaInput.value="";formulaInput.focus();return;}
+
+  // Enter / Shift+Enter
+  if(e.key==="Enter"){e.preventDefault();choose(address(e.shiftKey?Math.max(1,p.r-1):Math.min(ROWS,p.r+1),p.c),false,scrollEl);return;}
+  // Tab / Shift+Tab
+  if(e.key==="Tab"){e.preventDefault();choose(address(p.r,e.shiftKey?Math.max(1,p.c-1):Math.min(COLS,p.c+1)),false,scrollEl);return;}
+  // Arrow navigation + Ctrl+Arrow data edge jump + Shift selection
+  if(e.key==="ArrowDown"||e.key==="ArrowUp"||e.key==="ArrowRight"||e.key==="ArrowLeft"){
+    e.preventDefault();
+    const dr=e.key==="ArrowDown"?1:(e.key==="ArrowUp"?-1:0);
+    const dc=e.key==="ArrowRight"?1:(e.key==="ArrowLeft"?-1:0);
+    const dest=mod?findDataEdge(cells,p,dr,dc,ROWS,COLS):{r:Math.max(1,Math.min(ROWS,p.r+dr)),c:Math.max(1,Math.min(COLS,p.c+dc))};
+    choose(address(dest.r,dest.c),e.shiftKey,scrollEl);return;
+  }
+  // F2 edit in place
+  if(e.key==="F2"){e.preventDefault();enterEditMode(null);return;}
+  // Delete / Backspace clears range content
+  if(e.key==="Delete"||e.key==="Backspace"){e.preventDefault();clearSelectedCells();return;}
+  // Alt+= smart AutoSum
+  if(e.altKey&&!mod&&(e.key==="="||e.key==="+")){e.preventDefault();runAutoSum();return;}
+  // Ctrl+Space (select column) / Shift+Space (select row)
+  if(mod&&!e.shiftKey&&e.code==="Space"){
+    e.preventDefault();
+    const usedR=Math.max(p.r,20,...Object.keys(cells).map(parseAddress).filter(Boolean).map(u=>u.r));
+    selectionRange={start:address(1,p.c),end:address(Math.min(ROWS,usedR),p.c)};updateSelection();
+    calcStatus.textContent="Đã chọn cột "+address(1,p.c).replace(/\d+/,"");return;
+  }
+  if(e.shiftKey&&!mod&&e.code==="Space"){
+    e.preventDefault();
+    const usedC=Math.max(p.c,10,...Object.keys(cells).map(parseAddress).filter(Boolean).map(u=>u.c));
+    selectionRange={start:address(p.r,1),end:address(p.r,Math.min(COLS,usedC))};updateSelection();
+    calcStatus.textContent="Đã chọn hàng "+p.r;return;
+  }
+  if(mod&&!e.altKey){
+    if(key==="c"){e.preventDefault();copySelection(false);return;}
+    if(key==="x"){e.preventDefault();copySelection(true);return;}
+    if(key==="v"&&e.shiftKey){e.preventDefault();pasteValuesOnly();return;}
+    if(key==="v"){e.preventDefault();if(internalClipboard)pasteRange(internalClipboard.text,internalClipboard.payload);return;}
+    if(key==="b"){e.preventDefault();applyFormat({bold:!cellFormats[selected]?.bold});return;}
+    if(key==="i"){e.preventDefault();applyFormat({italic:!cellFormats[selected]?.italic});return;}
+    if(key==="\\"){e.preventDefault();clearSelectedFormats();return;}
+    if(key==="d"){e.preventDefault();fillDirection("down");return;}
+    if(key==="r"){e.preventDefault();fillDirection("right");return;}
+    if(key==="a"){e.preventDefault();selectAllSmart();return;}
+    if(e.key===";"||e.key===":"){e.preventDefault();insertCurrentDateTime(e.shiftKey||e.key===":");return;}
+    return;
+  }
+  // Direct typing on any focused cell!
+  if(!mod&&!e.altKey&&e.key.length===1){
+    e.preventDefault();
+    enterEditMode(e.key);
+  }
+}
+function handleGridDblClick(e){
+  const b=e.target.closest("[data-cell]");if(!b)return;
+  choose(b.dataset.cell);
+  enterEditMode(null);
+}
+
 splitGrid.addEventListener("pointerdown",e=>{if(beginFillDrag(e))return;const b=e.target.closest("[data-cell]");if(!b)return;pointerSelecting=true;choose(b.dataset.cell,e.shiftKey,splitScroll);});
 splitGrid.addEventListener("pointerover",e=>{if(!pointerSelecting)return;const b=e.target.closest("[data-cell]");if(b)choose(b.dataset.cell,true,splitScroll);});
 splitGrid.addEventListener("click",e=>{const b=e.target.closest("[data-cell]");if(b&&!pointerSelecting&&selected!==b.dataset.cell)choose(b.dataset.cell,false,splitScroll);});
-splitGrid.addEventListener("keydown",e=>{const b=e.target.closest("[data-cell]");if(!b)return;const p=parseAddress(b.dataset.cell);if(e.key==="Enter"||e.key==="ArrowDown"){e.preventDefault();choose(address(Math.min(ROWS,p.r+1),p.c),e.shiftKey,splitScroll);}else if(e.key==="Tab"||e.key==="ArrowRight"){e.preventDefault();choose(address(p.r,Math.min(COLS,p.c+1)),e.shiftKey,splitScroll);}else if(e.key==="ArrowUp"){e.preventDefault();choose(address(Math.max(1,p.r-1),p.c),e.shiftKey,splitScroll);}else if(e.key==="ArrowLeft"){e.preventDefault();choose(address(p.r,Math.max(1,p.c-1)),e.shiftKey,splitScroll);}});
+splitGrid.addEventListener("dblclick",handleGridDblClick);
+splitGrid.addEventListener("keydown",e=>handleGridKeydown(e,splitScroll));
 splitGrid.addEventListener("paste",e=>{const text=e.clipboardData?.getData("text/plain");if(text){e.preventDefault();pasteRange(text);}});
-for(const key of ["topRight","bottomLeft"]){const pane=quadrantPanes[key];pane.grid.addEventListener("pointerdown",e=>{if(beginFillDrag(e))return;const b=e.target.closest("[data-cell]");if(!b)return;pointerSelecting=true;choose(b.dataset.cell,e.shiftKey,pane.scroll);});pane.grid.addEventListener("pointerover",e=>{if(!pointerSelecting)return;const b=e.target.closest("[data-cell]");if(b)choose(b.dataset.cell,true,pane.scroll);});pane.grid.addEventListener("click",e=>{const b=e.target.closest("[data-cell]");if(b&&!pointerSelecting&&selected!==b.dataset.cell)choose(b.dataset.cell,false,pane.scroll);});pane.grid.addEventListener("keydown",e=>{const b=e.target.closest("[data-cell]");if(!b)return;const p=parseAddress(b.dataset.cell);if(e.key==="Enter"||e.key==="ArrowDown"){e.preventDefault();choose(address(Math.min(ROWS,p.r+1),p.c),e.shiftKey,pane.scroll);}else if(e.key==="Tab"||e.key==="ArrowRight"){e.preventDefault();choose(address(p.r,Math.min(COLS,p.c+1)),e.shiftKey,pane.scroll);}else if(e.key==="ArrowUp"){e.preventDefault();choose(address(Math.max(1,p.r-1),p.c),e.shiftKey,pane.scroll);}else if(e.key==="ArrowLeft"){e.preventDefault();choose(address(p.r,Math.max(1,p.c-1)),e.shiftKey,pane.scroll);}});pane.grid.addEventListener("paste",e=>{const value=e.clipboardData?.getData("text/plain");if(value){e.preventDefault();pasteRange(value);}});}
+for(const key of ["topRight","bottomLeft"]){const pane=quadrantPanes[key];pane.grid.addEventListener("pointerdown",e=>{if(beginFillDrag(e))return;const b=e.target.closest("[data-cell]");if(!b)return;pointerSelecting=true;choose(b.dataset.cell,e.shiftKey,pane.scroll);});pane.grid.addEventListener("pointerover",e=>{if(!pointerSelecting)return;const b=e.target.closest("[data-cell]");if(b)choose(b.dataset.cell,true,pane.scroll);});pane.grid.addEventListener("click",e=>{const b=e.target.closest("[data-cell]");if(b&&!pointerSelecting&&selected!==b.dataset.cell)choose(b.dataset.cell,false,pane.scroll);});pane.grid.addEventListener("dblclick",handleGridDblClick);pane.grid.addEventListener("keydown",e=>handleGridKeydown(e,pane.scroll));pane.grid.addEventListener("paste",e=>{const value=e.clipboardData?.getData("text/plain");if(value){e.preventDefault();pasteRange(value);}});}
 window.addEventListener("pointerup",()=>{pointerSelecting=false;});
 
 let fillDrag=null;
@@ -744,10 +930,19 @@ function exportCsv(){const used=Object.keys(cells).map(parseAddress).filter(Bool
 function pasteRange(text,clipboardPayload=null){const start=parseAddress(selected);if(!start)return;const matrix=parseTSV(text);if(!matrix.length)return;const width=Math.max(...matrix.map(row=>row.length));const targetRow=start.r+matrix.length-1,targetColumn=start.c+width-1;if(targetRow>MAX_ROWS||targetColumn>MAX_COLS){calcStatus.textContent="Vùng dán vượt giới hạn an toàn hiện tại: "+MAX_ROWS.toLocaleString("vi-VN")+" hàng × "+MAX_COLS.toLocaleString("vi-VN")+" cột.";return;}growGridTo(targetRow,targetColumn);snapshot();const pasteAddresses=matrix.flatMap((row,ri)=>row.map((_,ci)=>address(start.r+ri,start.c+ci)));if(clipboardPayload){const next=pasteCapturedRange(cells,cellFormats,start,clipboardPayload);for(const a of pasteAddresses)if(raw(a)!==(next.cells[a]??""))recordFormulaCellVersion(a,raw(a),next.cells[a]??"", "paste");cells=next.cells;cellFormats=next.formats;}else{matrix.forEach((row,ri)=>row.forEach((v,ci)=>{const a=address(start.r+ri,start.c+ci);if(raw(a)!==v)recordFormulaCellVersion(a,raw(a),v,"paste");if(v==="")delete cells[a];else cells[a]=v;}));}selectionRange={start:selected,end:address(start.r+matrix.length-1,start.c+width-1)};expandTablesAfterWrite(start.r,start.r+matrix.length-1,start.c,start.c+width-1);invalidateFormulaCells(matrix.flatMap((row,ri)=>row.map((_,ci)=>address(start.r+ri,start.c+ci))));render();save();calcStatus.textContent="Đã dán "+matrix.length+" hàng dữ liệu"+(clipboardPayload?" kèm định dạng":"");}
 function handlePaste(e){const text=e.clipboardData?.getData("text/plain");if(!text||!/[\t\n\r]/.test(text))return;e.preventDefault();pasteRange(text);}
 grid.addEventListener("paste",e=>{const text=e.clipboardData?.getData("text/plain");if(text){e.preventDefault();pasteRange(text);}});
-grid.addEventListener("pointerdown",e=>{if(beginFillDrag(e))return;const b=e.target.closest("[data-cell]");if(!b)return;const current=getRangeBounds(selectionRange.start,selectionRange.end),p=parseAddress(b.dataset.cell),inside=p.r>=current.startRow&&p.r<=current.endRow&&p.c>=current.startCol&&p.c<=current.endCol;if(inside&&current.start!==current.end&&e.pointerType==="mouse"){pointerSelecting=false;return;}pointerSelecting=true;choose(b.dataset.cell,e.shiftKey);});grid.addEventListener("pointerover",e=>{if(!pointerSelecting)return;const b=e.target.closest("[data-cell]");if(b)choose(b.dataset.cell,true);});window.addEventListener("pointerup",()=>{pointerSelecting=false;});let dragPayload=null;grid.addEventListener("dragstart",e=>{const b=e.target.closest("[data-cell]");if(!b)return;const x=getRangeBounds(selectionRange.start,selectionRange.end),p=parseAddress(b.dataset.cell);if(!(p.r>=x.startRow&&p.r<=x.endRow&&p.c>=x.startCol&&p.c<=x.endCol)){choose(b.dataset.cell);dragPayload={bounds:getRangeBounds(b.dataset.cell,b.dataset.cell)};}else dragPayload={bounds:x};const matrix=[];for(let rr=dragPayload.bounds.startRow;rr<=dragPayload.bounds.endRow;rr++){const row=[];for(let cc=dragPayload.bounds.startCol;cc<=dragPayload.bounds.endCol;cc++){const a=address(rr,cc);row.push({value:raw(a),format:cellFormats[a]||null});}matrix.push(row);}dragPayload.matrix=matrix;e.dataTransfer.effectAllowed="move";e.dataTransfer.setData("text/plain","SGHT_RANGE_MOVE");});grid.addEventListener("dragover",e=>{if(dragPayload){e.preventDefault();e.dataTransfer.dropEffect="move";}});grid.addEventListener("drop",e=>{const b=e.target.closest("[data-cell]");if(!b||!dragPayload)return;e.preventDefault();const dest=parseAddress(b.dataset.cell),src=dragPayload.bounds,h=dragPayload.matrix.length,w=dragPayload.matrix[0]?.length||0;if(!h||!w||dest.r+h-1>MAX_ROWS||dest.c+w-1>MAX_COLS){calcStatus.textContent="Không thể thả vùng: vượt giới hạn an toàn của lưới.";dragPayload=null;return;}growGridTo(dest.r+h-1,dest.c+w-1);const sourceSet=new Set(expandRange(src.start,src.end));const movedAddresses=[...new Set([...sourceSet,...Array.from({length:h},(_,ri)=>Array.from({length:w},(_,ci)=>address(dest.r+ri,dest.c+ci))).flat()])];const beforeMoved=new Map(movedAddresses.map(a=>[a,raw(a)]));let overwrites=false;for(let rr=dest.r;rr<dest.r+h;rr++)for(let cc=dest.c;cc<dest.c+w;cc++){const a=address(rr,cc);if(!sourceSet.has(a)&&(Object.hasOwn(cells,a)||Object.hasOwn(cellFormats,a)))overwrites=true;}if(overwrites&&!confirm("Vùng đích có dữ liệu hoặc định dạng. Ghi đè khi di chuyển vùng?")){dragPayload=null;return;}snapshot();for(let rr=src.startRow;rr<=src.endRow;rr++)for(let cc=src.startCol;cc<=src.endCol;cc++){const a=address(rr,cc);delete cells[a];delete cellFormats[a];}dragPayload.matrix.forEach((row,ri)=>row.forEach((item,ci)=>{const a=address(dest.r+ri,dest.c+ci);if(item.value!=="")cells[a]=item.value;if(item.format)cellFormats[a]=item.format;}));for(const a of movedAddresses){const before=beforeMoved.get(a)??"",after=raw(a);if(before!==after)recordFormulaCellVersion(a,before,after,"move");}invalidateFormulaCells([...expandRange(src.start,src.end),...Array.from({length:h},(_,ri)=>Array.from({length:w},(_,ci)=>address(dest.r+ri,dest.c+ci))).flat()]);selected=b.dataset.cell;selectionRange={start:selected,end:address(dest.r+h-1,dest.c+w-1)};dragPayload=null;render();save();calcStatus.textContent="Đã di chuyển vùng dữ liệu.";});grid.addEventListener("click",e=>{const b=e.target.closest("[data-cell]");if(b&&!pointerSelecting&&selected!==b.dataset.cell)choose(b.dataset.cell);});
-formulaInput.addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();apply();const p=parseAddress(selected);if(p)choose(address(p.r+1,p.c));}if(e.key==="Escape")updateSelection();});
+grid.addEventListener("pointerdown",e=>{if(beginFillDrag(e))return;const b=e.target.closest("[data-cell]");if(!b)return;const current=getRangeBounds(selectionRange.start,selectionRange.end),p=parseAddress(b.dataset.cell),inside=p.r>=current.startRow&&p.r<=current.endRow&&p.c>=current.startCol&&p.c<=current.endCol;if(inside&&current.start!==current.end&&e.pointerType==="mouse"){pointerSelecting=false;return;}pointerSelecting=true;choose(b.dataset.cell,e.shiftKey);});grid.addEventListener("pointerover",e=>{if(!pointerSelecting)return;const b=e.target.closest("[data-cell]");if(b)choose(b.dataset.cell,true);});window.addEventListener("pointerup",()=>{pointerSelecting=false;});let dragPayload=null;grid.addEventListener("dragstart",e=>{const b=e.target.closest("[data-cell]");if(!b)return;const x=getRangeBounds(selectionRange.start,selectionRange.end),p=parseAddress(b.dataset.cell);if(!(p.r>=x.startRow&&p.r<=x.endRow&&p.c>=x.startCol&&p.c<=x.endCol)){choose(b.dataset.cell);dragPayload={bounds:getRangeBounds(b.dataset.cell,b.dataset.cell)};}else dragPayload={bounds:x};const matrix=[];for(let rr=dragPayload.bounds.startRow;rr<=dragPayload.bounds.endRow;rr++){const row=[];for(let cc=dragPayload.bounds.startCol;cc<=dragPayload.bounds.endCol;cc++){const a=address(rr,cc);row.push({value:raw(a),format:cellFormats[a]||null});}matrix.push(row);}dragPayload.matrix=matrix;e.dataTransfer.effectAllowed="move";e.dataTransfer.setData("text/plain","SGHT_RANGE_MOVE");});grid.addEventListener("dragover",e=>{if(dragPayload){e.preventDefault();e.dataTransfer.dropEffect="move";}});grid.addEventListener("drop",e=>{const b=e.target.closest("[data-cell]");if(!b||!dragPayload)return;e.preventDefault();const dest=parseAddress(b.dataset.cell),src=dragPayload.bounds,h=dragPayload.matrix.length,w=dragPayload.matrix[0]?.length||0;if(!h||!w||dest.r+h-1>MAX_ROWS||dest.c+w-1>MAX_COLS){calcStatus.textContent="Không thể thả vùng: vượt giới hạn an toàn của lưới.";dragPayload=null;return;}growGridTo(dest.r+h-1,dest.c+w-1);const sourceSet=new Set(expandRange(src.start,src.end));const movedAddresses=[...new Set([...sourceSet,...Array.from({length:h},(_,ri)=>Array.from({length:w},(_,ci)=>address(dest.r+ri,dest.c+ci))).flat()])];const beforeMoved=new Map(movedAddresses.map(a=>[a,raw(a)]));let overwrites=false;for(let rr=dest.r;rr<dest.r+h;rr++)for(let cc=dest.c;cc<dest.c+w;cc++){const a=address(rr,cc);if(!sourceSet.has(a)&&(Object.hasOwn(cells,a)||Object.hasOwn(cellFormats,a)))overwrites=true;}if(overwrites&&!confirm("Vùng đích có dữ liệu hoặc định dạng. Ghi đè khi di chuyển vùng?")){dragPayload=null;return;}snapshot();for(let rr=src.startRow;rr<=src.endRow;rr++)for(let cc=src.startCol;cc<=src.endCol;cc++){const a=address(rr,cc);delete cells[a];delete cellFormats[a];}dragPayload.matrix.forEach((row,ri)=>row.forEach((item,ci)=>{const a=address(dest.r+ri,dest.c+ci);if(item.value!=="")cells[a]=item.value;if(item.format)cellFormats[a]=item.format;}));for(const a of movedAddresses){const before=beforeMoved.get(a)??"",after=raw(a);if(before!==after)recordFormulaCellVersion(a,before,after,"move");}invalidateFormulaCells([...expandRange(src.start,src.end),...Array.from({length:h},(_,ri)=>Array.from({length:w},(_,ci)=>address(dest.r+ri,dest.c+ci))).flat()]);selected=b.dataset.cell;selectionRange={start:selected,end:address(dest.r+h-1,dest.c+w-1)};dragPayload=null;render();save();calcStatus.textContent="Đã di chuyển vùng dữ liệu.";});grid.addEventListener("click",e=>{const b=e.target.closest("[data-cell]");if(b&&!pointerSelecting&&selected!==b.dataset.cell)choose(b.dataset.cell);});grid.addEventListener("dblclick",handleGridDblClick);
+formulaInput.addEventListener("keydown",e=>{
+  if(e.key==="F4"){
+    const cycled=cycleReferenceAtCursor(formulaInput.value,formulaInput.selectionStart??formulaInput.value.length);
+    if(cycled){e.preventDefault();formulaInput.value=cycled.value;formulaInput.setSelectionRange(cycled.selectionStart,cycled.selectionEnd);calcStatus.textContent="Đã đổi khóa tham chiếu $ (F4)";}
+    return;
+  }
+  if(e.key==="Enter"){e.preventDefault();apply();const p=parseAddress(selected);if(p)choose(address(e.shiftKey?Math.max(1,p.r-1):Math.min(ROWS,p.r+1),p.c));return;}
+  if(e.key==="Tab"){e.preventDefault();apply();const p=parseAddress(selected);if(p)choose(address(p.r,e.shiftKey?Math.max(1,p.c-1):Math.min(COLS,p.c+1)));return;}
+  if(e.key==="Escape"){e.preventDefault();updateSelection();focusActiveGridCell();}
+});
 document.querySelector("#applyFormula").addEventListener("click",apply);
-grid.addEventListener("keydown",e=>{const b=e.target.closest("[data-cell]");if(!b)return;const p=parseAddress(b.dataset.cell);let r=p.r,c=p.c;if(e.key==="Enter"||e.key==="ArrowDown"){e.preventDefault();choose(address(Math.min(ROWS,r+1),c),e.shiftKey);}else if(e.key==="Tab"||e.key==="ArrowRight"){e.preventDefault();choose(address(r,Math.min(COLS,c+1)),e.shiftKey);}else if(e.key==="ArrowUp"){e.preventDefault();choose(address(Math.max(1,r-1),c),e.shiftKey);}else if(e.key==="ArrowLeft"){e.preventDefault();choose(address(r,Math.max(1,c-1)),e.shiftKey);}else if(e.key==="F2"){e.preventDefault();formulaInput.focus();}else if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==="c"){e.preventDefault();copySelection(false);}else if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==="x"){e.preventDefault();copySelection(true);}else if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==="v"){e.preventDefault();if(internalClipboard)pasteRange(internalClipboard.text,internalClipboard.payload);}});
+grid.addEventListener("keydown",e=>handleGridKeydown(e,sheetScroll));
 grid.addEventListener("paste",handlePaste);formulaInput.addEventListener("paste",handlePaste);
 document.querySelector("#sheetName").addEventListener("change",e=>{sheetTitle=e.target.value.trim()||"Bảng tính chưa đặt tên";save();});
 document.querySelector("#newSheet").addEventListener("click",createWorkbookSheetUI);
@@ -768,16 +963,17 @@ document.querySelector("#geometryUndoAction")?.addEventListener("click",undoGeom
 document.querySelector("#geometryRedoAction")?.addEventListener("click",redoGeometry);
 updateGeometryHistoryControls();
 updateHistoryControls();
-document.querySelector("#clearAction").addEventListener("click",()=>{const targets=expandRange(selectionRange.start,selectionRange.end);snapshot();for(const a of targets){if(Object.hasOwn(cells,a))recordFormulaCellVersion(a,raw(a),"","clear");delete cells[a];}invalidateFormulaCells(targets);render();save();calcStatus.textContent="Đã xóa nội dung "+targets.length+" ô";});
+document.querySelector("#clearAction").addEventListener("click",clearSelectedCells);
 function applyFormat(patch){const targets=expandRange(selectionRange.start,selectionRange.end);snapshot();for(const a of targets)cellFormats[a]=normalizeCellFormat({...cellFormats[a],...patch});render();save();calcStatus.textContent="Đã định dạng "+targets.length+" ô";}
 for(const [id,key] of [["fontFamily","fontFamily"],["fontSize","fontSize"],["fontColor","color"],["fillColor","background"],["horizontalAlign","align"],["verticalAlign","vertical"],["numberFormat","numberFormat"],["borderStyle","border"]])document.querySelector("#"+id).addEventListener("change",e=>applyFormat({[key]:e.target.value}));
-document.querySelector("#boldAction").addEventListener("click",()=>applyFormat({bold:!cellFormats[selected]?.bold}));document.querySelector("#italicAction").addEventListener("click",()=>applyFormat({italic:!cellFormats[selected]?.italic}));document.querySelector("#clearFormatAction").addEventListener("click",()=>{const targets=expandRange(selectionRange.start,selectionRange.end);snapshot();for(const a of targets)delete cellFormats[a];render();save();calcStatus.textContent="Đã xóa định dạng "+targets.length+" ô";});
+document.querySelector("#boldAction").addEventListener("click",()=>applyFormat({bold:!cellFormats[selected]?.bold}));document.querySelector("#italicAction").addEventListener("click",()=>applyFormat({italic:!cellFormats[selected]?.italic}));document.querySelector("#clearFormatAction").addEventListener("click",clearSelectedFormats);
 
-function copySelection(cut=false){const x=getRangeBounds(selectionRange.start,selectionRange.end),payload=captureRange(cells,cellFormats,x),matrix=payload.matrix.map(row=>row.map(item=>item.value)),text=encodeTSV(matrix);internalClipboard={text,payload,cut};navigator.clipboard?.writeText(text).catch(()=>{});if(cut){snapshot();const cutAddresses=expandRange(x.start,x.end);for(const a of cutAddresses){if(Object.hasOwn(cells,a))recordFormulaCellVersion(a,raw(a),"","cut");delete cells[a];delete cellFormats[a];}invalidateFormulaCells(cutAddresses);render();save();}calcStatus.textContent=(cut?"Đã cắt ":"Đã sao chép ")+matrix.length+" hàng, giữ định dạng trong bảng tạm SGHT";}
+function copySelection(cut=false){const x=getRangeBounds(selectionRange.start,selectionRange.end),payload=captureRange(cells,cellFormats,x),matrix=payload.matrix.map(row=>row.map(item=>item.value)),text=encodeTSV(matrix);internalClipboard={text,payload,cut,bounds:x};navigator.clipboard?.writeText(text).catch(()=>{});if(cut){snapshot();const cutAddresses=expandRange(x.start,x.end);for(const a of cutAddresses){if(Object.hasOwn(cells,a))recordFormulaCellVersion(a,raw(a),"","cut");delete cells[a];delete cellFormats[a];}invalidateFormulaCells(cutAddresses);render();save();}calcStatus.textContent=(cut?"Đã cắt ":"Đã sao chép ")+matrix.length+" hàng, giữ định dạng trong bảng tạm SGHT";}
 document.querySelector("#copyAction").addEventListener("click",()=>copySelection(false));
 document.querySelector("#cutAction").addEventListener("click",()=>copySelection(true));
 document.querySelector("#pasteAction").addEventListener("click",async()=>{if(internalClipboard){pasteRange(internalClipboard.text,internalClipboard.payload);return;}try{const t=await navigator.clipboard.readText();if(t)pasteRange(t);else calcStatus.textContent="Bảng tạm đang trống.";}catch{calcStatus.textContent="Hãy cấp quyền bảng tạm hoặc dùng Ctrl+V";}});
-for(const [id,fn] of [["sumAction","SUM"],["averageAction","AVERAGE"],["countAction","COUNT"]])document.querySelector("#"+id).addEventListener("click",()=>{const p=parseAddress(selected),range=p?address(Math.max(1,p.r-4),p.c)+":"+address(p.r,p.c):"A1:A5";formulaInput.value="="+fn+"("+range+")";formulaInput.focus();});
+document.querySelector("#sumAction").addEventListener("click",runAutoSum);
+for(const [id,fn] of [["averageAction","AVERAGE"],["countAction","COUNT"]])document.querySelector("#"+id).addEventListener("click",()=>{const p=parseAddress(selected),endR=Math.max(1,(p?.r||2)-1),startR=Math.max(1,endR-4),col=p?.c||1;formulaInput.value="="+fn+"("+address(startR,col)+":"+address(endR,col)+")";formulaInput.focus();formulaInput.dispatchEvent(new Event("input"));});
 document.querySelector("#zoomIn").addEventListener("click",()=>setZoom(zoom+10));document.querySelector("#zoomOut").addEventListener("click",()=>setZoom(zoom-10));document.querySelector("#zoomReset").addEventListener("click",()=>setZoom(100));
 function setZoom(v){zoom=Math.max(60,Math.min(160,v));document.querySelector("#zoomValue").textContent=zoom+"%";grid.style.zoom=String(zoom/100);}
 
@@ -1875,6 +2071,29 @@ if(errorScanButton&&errorOutput)errorScanButton.addEventListener("click",()=>{er
   fnList.append(frag);
  };
  fnSearch?.addEventListener('input',renderFnCatalog);
+
+ // Keyboard Shortcuts Dialog (#calcShortcutsDialog)
+ const scDlg=document.querySelector('#calcShortcutsDialog');
+ const scBody=document.querySelector('#calcShortcutsBody');
+ const scOpen=document.querySelector('#openCalcShortcuts');
+ const scClose=document.querySelector('#closeCalcShortcuts');
+ if(scBody&&!scBody.children.length){
+  for(const grp of CALC_SHORTCUT_GROUPS){
+   const sec=document.createElement('section');sec.className='shortcut-group';
+   const h=document.createElement('h4');h.textContent=grp.title;
+   const list=document.createElement('div');list.className='shortcut-list';
+   for(const [keys,desc] of grp.items){
+    const row=document.createElement('div');row.className='shortcut-row';
+    const k=document.createElement('kbd');k.textContent=keys;
+    const s=document.createElement('span');s.textContent=desc;
+    row.append(k,s);list.append(row);
+   }
+   sec.append(h,list);scBody.append(sec);
+  }
+ }
+ if(scOpen&&scDlg)scOpen.addEventListener('click',()=>{if(typeof scDlg.showModal==='function')scDlg.showModal();else scDlg.setAttribute('open','');});
+ if(scClose&&scDlg)scClose.addEventListener('click',()=>{if(typeof scDlg.close==='function')scDlg.close();else scDlg.removeAttribute('open');});
+ if(scDlg)scDlg.addEventListener('click',e=>{if(e.target===scDlg)(typeof scDlg.close==='function'?scDlg.close():scDlg.removeAttribute('open'));});
 
  activateRibbonTab('home');
 })();

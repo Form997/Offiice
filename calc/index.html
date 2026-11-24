@@ -727,6 +727,7 @@
       <span id="selectionInfo">Ô A1</span>
       <span id="calcStatus">Sẵn sàng</span>
       <span id="statusCount"></span>
+      <button id="openCalcShortcuts" class="shortcuts-pill" type="button" title="Xem bảng phím tắt chuẩn Excel (Ctrl+/)">⌨ Phím tắt</button>
     </div>
   </footer>
 
@@ -777,6 +778,12 @@
     <div id="sciKeys" class="sci-calc-keys"></div>
     <div class="sci-calc-history-head"><strong>Lịch sử tính gần đây</strong><button id="sciClear" type="button" class="quiet">Xóa lịch sử</button></div>
     <ol id="sciHistory" class="sci-calc-history"></ol>
+  </dialog>
+
+  <!-- Keyboard Shortcuts Reference Modal -->
+  <dialog id="calcShortcutsDialog" class="sci-calc-dialog shortcuts-dialog" aria-labelledby="calcShortcutsTitle">
+    <div class="sci-calc-head"><strong id="calcShortcutsTitle">⌨ Phím tắt HAI ĐẤT CALC (chuẩn Excel / Sheets)</strong><button id="closeCalcShortcuts" type="button" class="quiet">Đóng</button></div>
+    <div id="calcShortcutsBody" class="calc-shortcuts-body"></div>
   </dialog>
 
   <script src="./scientific-calc.js"></script>

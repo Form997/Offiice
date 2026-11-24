@@ -114,3 +114,43 @@ test('Calc formula engine evaluates standard functions across all 8 categories',
   assert.equal(evaluateFormula('=SLN(50000000, 5000000, 5)', ctx), 9000000);
   assert.equal(evaluateFormula('=AND(ISBLANK(Z9), ISNUMBER(C2), ISERROR(1/0), ISEVEN(10), ISODD(7))', ctx), true);
 });
+
+test('Calc keyboard shortcut helpers behave like Excel/Google Sheets', async () => {
+  const shortcutsUrl = pathToFileURL(path.resolve(__dirname, '../calc/engine/shortcuts.js')).href;
+  const {
+    cycleReferenceAtCursor,
+    findDataEdge,
+    findContiguousRegion,
+    computeAutoSumFormula,
+    CALC_SHORTCUT_GROUPS,
+  } = await import(shortcutsUrl);
+
+  // F4 cycles A1 -> $A$1 -> A$1 -> $A1 -> A1 and supports ranges A1:B5
+  const r1 = cycleReferenceAtCursor('=SUM(A1:B5)', 6);
+  assert.equal(r1.value, '=SUM($A$1:$B$5)');
+  const r2 = cycleReferenceAtCursor(r1.value, 6);
+  assert.equal(r2.value, '=SUM(A$1:B$5)');
+  const r3 = cycleReferenceAtCursor(r2.value, 6);
+  assert.equal(r3.value, '=SUM($A1:$B5)');
+  const r4 = cycleReferenceAtCursor(r3.value, 6);
+  assert.equal(r4.value, '=SUM(A1:B5)');
+
+  // Ctrl+Arrow data-edge jump
+  const sheet = { A1: '10', A2: '20', A3: '30', A6: '60', B2: '15', C2: '25' };
+  assert.deepEqual(findDataEdge(sheet, { r: 1, c: 1 }, 1, 0, 100, 26), { r: 3, c: 1 });
+  assert.deepEqual(findDataEdge(sheet, { r: 3, c: 1 }, 1, 0, 100, 26), { r: 6, c: 1 });
+  assert.deepEqual(findDataEdge(sheet, { r: 6, c: 1 }, 1, 0, 100, 26), { r: 100, c: 1 });
+  assert.deepEqual(findDataEdge(sheet, { r: 2, c: 1 }, 0, 1, 100, 26), { r: 2, c: 3 });
+
+  // Ctrl+A contiguous region detection
+  const region = findContiguousRegion(sheet, { r: 2, c: 1 }, 100, 26);
+  assert.equal(region.start, 'A1');
+  assert.equal(region.end, 'C3');
+
+  // Alt+= smart AutoSum (above first, else left, never self-referencing!)
+  assert.equal(computeAutoSumFormula(sheet, { r: 4, c: 1 }), '=SUM(A1:A3)');
+  assert.equal(computeAutoSumFormula(sheet, { r: 2, c: 4 }), '=SUM(A2:C2)');
+  assert.equal(computeAutoSumFormula(sheet, { r: 10, c: 10 }), '=SUM()');
+
+  assert.ok(Array.isArray(CALC_SHORTCUT_GROUPS) && CALC_SHORTCUT_GROUPS.length === 3);
+});

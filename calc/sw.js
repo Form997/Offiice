@@ -1,4 +1,4 @@
-const CACHE = 'haidat-calc-v4-functions';
+const CACHE = 'haidat-calc-v5-shortcuts';
 const FILES = [
   './',
   './index.html',
@@ -7,7 +7,8 @@ const FILES = [
   './scientific-calc.js',
   './manifest.webmanifest',
   './engine/core.js',
-  './engine/functions-standard.js'
+  './engine/functions-standard.js',
+  './engine/shortcuts.js'
 ];
 self.addEventListener('install', event => {
   event.waitUntil(
