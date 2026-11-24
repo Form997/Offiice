@@ -1,0 +1,51 @@
+/* HAI DAT SGHT — Foldable responsive layer
+   Cover display: uses the existing compact-phone layout (<=680px).
+   Unfolded inner display: tablet-width workspace (681px–1000px).
+   Wide unfolded / desktop: existing desktop layout remains in effect.
+   This is viewport-responsive; web pages cannot reliably read the physical hinge posture. */
+@media (min-width:681px) and (max-width:1000px){
+  .topbar{min-height:56px;padding:7px 12px;gap:8px;flex-wrap:wrap}
+  .brand{gap:7px}
+  .brand-mark{width:33px;height:33px;border-radius:9px;font-size:19px}
+  .brand b{font-size:11px}
+  .brand small{font-size:8px}
+  .top-actions{flex:1 1 100%;justify-content:flex-end;gap:5px;flex-wrap:wrap}
+  .top-actions span{font-size:10px;margin-right:auto}
+  .top-actions button{padding:7px 9px;font-size:10px}
+  .document-head{margin:12px auto 9px;padding:0 14px;align-items:flex-start;flex-direction:column;gap:5px}
+  .sheet-name{font-size:19px;width:min(100%,620px)}
+  .sheet-meta{font-size:10px;line-height:1.4}
+  .ribbon-tabs{padding:0 10px;gap:1px}
+  .ribbon-tab{padding:10px 11px 8px;font-size:11px}
+  .ribbon-panel{padding:8px 10px;min-height:66px;gap:10px;overflow-x:auto;overscroll-behavior-x:contain;scrollbar-width:thin}
+  .tool-group{padding-right:9px;gap:4px}
+  .tool-btn{padding:7px 8px;font-size:10px}
+  .tool-group small{font-size:8px}
+  .format-controls label,.freeze-controls label,.split-controls label{font-size:10px}
+  .format-controls select,.freeze-controls input,.split-controls select{max-width:105px;min-width:0;font-size:10px}
+  .formula-panel{padding:0 12px;gap:6px}
+  .name-box{height:34px;min-width:55px;font-size:11px}
+  .formula-panel input{height:34px;font-size:12px}
+  .sheet-shell{padding:0 10px}
+  .sheet-scroll{min-height:360px;max-height:calc(100dvh - 300px);overscroll-behavior:contain;scrollbar-gutter:stable}
+  .sheet-grid th,.sheet-grid td,.sheet-grid thead th{min-width:96px}
+  .sheet-grid .row-head,.sheet-grid thead .corner{min-width:40px;width:40px}
+  .cell{font-size:11px;padding:0 6px}
+  .sheet-tabs{padding:0 12px;overflow-x:auto}
+  .sheet-footer{padding:0 14px;font-size:9px}
+  .help{padding:0 14px}
+  .data-tools-panel,.dashboard-panel,.data-science-panel,.macro-panel,.ai-panel{margin-left:10px;margin-right:10px}
+}
+@media (min-width:681px) and (max-width:850px) and (orientation:portrait){
+  .top-actions button.geometry-history-action{display:none}
+  .ribbon-panel{min-height:60px}
+  .sheet-scroll{max-height:calc(100dvh - 270px);min-height:340px}
+  .sheet-grid th,.sheet-grid td,.sheet-grid thead th{min-width:88px}
+  .sheet-grid .row-head,.sheet-grid thead .corner{min-width:36px;width:36px}
+  .sheet-tabs{gap:4px}
+  .sheet-tab,.add-sheet{padding:7px 10px}
+}
+@media (max-width:680px){
+  .sheet-scroll{overscroll-behavior:contain}
+  .ribbon-tabs,.ribbon-panel,.sheet-tabs{scrollbar-width:thin}
+}
