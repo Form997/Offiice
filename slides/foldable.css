@@ -1,0 +1,42 @@
+/* HAI DAT OFFICE — SLIDES foldable responsive layer
+   Keeps the slide editor usable on both the cover screen and the unfolded inner display. */
+@media (min-width:681px) and (max-width:1000px){
+  header{padding:10px 14px;gap:8px}
+  main{margin:14px auto;padding:0 12px}
+  .toolbar{gap:6px;padding:8px}
+  .toolbar button{padding:7px 9px;font-size:12px}
+  .toolbar .status{font-size:11px}
+  main > div[style*="grid-template-columns"]{
+    grid-template-columns:minmax(145px,190px) minmax(0,1fr)!important;
+    gap:10px!important;
+    align-items:start;
+  }
+  .panel{padding:12px;min-width:0}
+  #list{max-height:calc(100dvh - 230px);overflow:auto}
+  #heading{font-size:20px!important}
+  #body{height:clamp(300px,52dvh,620px)!important;resize:vertical;font-size:16px!important}
+}
+@media (min-width:681px) and (max-width:820px) and (orientation:portrait){
+  main > div[style*="grid-template-columns"]{
+    grid-template-columns:minmax(125px,150px) minmax(0,1fr)!important;
+    gap:8px!important;
+  }
+  .toolbar button{flex:1 1 28%}
+}
+@media (max-width:680px){
+  header{padding-top:max(10px,env(safe-area-inset-top))}
+  main{margin:10px auto;padding:0 9px}
+  .toolbar{gap:5px;padding:7px}
+  .toolbar button{flex:1 1 28%;min-height:40px;padding:7px 8px;font-size:12px}
+  main > div[style*="grid-template-columns"]{
+    grid-template-columns:minmax(0,1fr)!important;
+    gap:9px!important;
+  }
+  main > div[style*="grid-template-columns"] > aside{
+    max-height:170px;overflow:auto;
+  }
+  .panel{padding:11px}
+  #heading{font-size:19px!important}
+  #body{height:clamp(260px,48dvh,520px)!important;font-size:16px!important;padding:11px!important}
+  .status{margin-left:0;flex:1 1 100%}
+}
