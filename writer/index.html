@@ -13,7 +13,7 @@
 <body>
 <header class="topbar">
   <div><div><div class="brand">HAI ĐẤT OFFICE · WORK</div><div class="sub">Writer + Canvas · V7 Font Integrity</div><a href="../academy/?app=writer" style="color:#d8eee6;font-size:12px">Giáo trình chung · Học Writer / Calc / Slides</a></div></div>
-  <div class="top-actions"><span id="saveState" class="save-state" role="status">Sẵn sàng</span><button id="install" hidden>Cài ứng dụng</button></div>
+  <div class="top-actions"><span id="saveState" class="save-state" role="status">Sẵn sàng</span><button type="button" id="openShortcuts" title="Danh sách phím tắt Word / Docs">⌨ Phím tắt</button><button type="button" id="themeToggle" title="Chuyển nhanh giao diện Xanh / Sáng / Tối">🌙 Tối</button><button id="install" hidden>Cài ứng dụng</button></div>
 </header>
 <main>
   <section class="docbar">
@@ -28,14 +28,15 @@
   </section>
   <nav class="ribbon" aria-label="Thanh công cụ Writer">
     <div class="ribbon-tabs" role="tablist" aria-label="Nhóm chức năng">
-      <button class="ribbon-tab active" type="button" role="tab" aria-selected="true" aria-controls="panel-file" data-tab="file">Tệp</button>
-      <button class="ribbon-tab" type="button" role="tab" aria-selected="false" aria-controls="panel-home" data-tab="home">Trang chủ</button>
+      <button class="ribbon-tab" type="button" role="tab" aria-selected="false" aria-controls="panel-file" data-tab="file">Tệp</button>
+      <button class="ribbon-tab active" type="button" role="tab" aria-selected="true" aria-controls="panel-home" data-tab="home">Trang chủ</button>
       <button class="ribbon-tab" type="button" role="tab" aria-selected="false" aria-controls="panel-insert" data-tab="insert">Chèn</button>
       <button class="ribbon-tab" type="button" role="tab" aria-selected="false" aria-controls="panel-layout" data-tab="layout">Bố trí</button>
       <button class="ribbon-tab" type="button" role="tab" aria-selected="false" aria-controls="panel-reference" data-tab="reference">Tham chiếu</button>
       <button class="ribbon-tab" type="button" role="tab" aria-selected="false" aria-controls="panel-view" data-tab="view">Xem</button>
+      <button class="ribbon-collapse-btn" type="button" id="toggleRibbon" title="Thu gọn / mở rộng thanh công cụ" aria-expanded="true">⌃</button>
     </div>
-    <section class="ribbon-panel active" id="panel-file" role="tabpanel">
+    <section class="ribbon-panel" id="panel-file" role="tabpanel" hidden>
       <div class="ribbon-group file-workflow-group"><strong>Quản lý tệp</strong><div class="ribbon-tools file-workflow-tools">
 <button type="button" id="openLocalFile">Mở tệp</button><button type="button" id="saveFile" class="primary">Lưu</button><button type="button" id="saveAsFile">Lưu thành</button><button type="button" id="closeFile">Đóng tệp</button><button type="button" id="chooseWorkFolder">Chọn thư mục làm việc</button><button type="button" id="openWorkFolder">Mở từ thư mục</button></div><small id="workFolderStatus">Chưa chọn thư mục làm việc</small><small class="font-integrity-note">V7 · DOCX/ODT: giữ định dạng phổ biến; HTML: giữ CSS an toàn; RTF: chuyển đổi có giới hạn; TXT/CSV: không chứa thông tin phông gốc. DOC/PDF: chưa nhập trực tiếp.</small></div><div class="ribbon-group account-manager"><strong>Tài khoản HAI ĐẤT OFFICE</strong><div class="ribbon-tools"><input id="accountEmail" type="email" autocomplete="email" placeholder="Email tài khoản" aria-label="Email tài khoản"><input id="accountPassword" type="password" autocomplete="current-password" placeholder="Mật khẩu · tối thiểu 8 ký tự" aria-label="Mật khẩu"></div><div class="ribbon-tools"><button type="button" id="accountSignup">Đăng ký</button><button type="button" id="accountLogin" class="primary">Đăng nhập</button><button type="button" id="accountLogout" disabled>Đăng xuất</button><button type="button" id="accountReset">Quên mật khẩu</button></div><small id="accountStatus" role="status" aria-live="polite">Chưa cấu hình Supabase · tài liệu vẫn lưu cục bộ</small></div><div class="ribbon-group collaboration-manager">
 <strong>Kho chung &amp; chia sẻ</strong>
@@ -58,39 +59,48 @@
         <button type="button" id="checkDataHealth">Kiểm tra kho dữ liệu</button><small id="dataHealthStatus" role="status" aria-live="polite">Chưa kiểm tra dữ liệu</small>
       </div><small>Tạo và quản lý tài liệu ở thanh tên tài liệu bên dưới</small></div>
     </section>
-    <section class="ribbon-panel" id="panel-home" role="tabpanel" hidden>
-          <div class="tool-group find-tools" aria-label="Tìm kiếm và thay thế">
-      <input id="findText" type="search" placeholder="Tìm nội dung…" aria-label="Từ cần tìm">
-      <input id="replaceText" type="text" placeholder="Thay bằng…" aria-label="Nội dung thay thế">
+    <section class="ribbon-panel active" id="panel-home" role="tabpanel">
+    <div class="tool-group">
+      <button type="button" data-action="undo" title="Hoàn tác (Ctrl+Z)">↶</button><button type="button" data-action="redo" title="Làm lại (Ctrl+Y)">↷</button><button type="button" id="formatPainter" title="Sao chép định dạng (chọn chữ mẫu → bấm → quét chữ đích)" aria-pressed="false">🖌</button>
+    </div>
+    <div class="tool-group">
+      <select id="blockType" aria-label="Kiểu đoạn"><option value="P">Đoạn văn</option><option value="H1">Tiêu đề 1</option><option value="H2">Tiêu đề 2</option><option value="H3">Tiêu đề 3</option><option value="BLOCKQUOTE">Trích dẫn</option><option value="PRE">Mã / văn bản thô</option></select>
+      <select id="fontName" aria-label="Phông chữ"><option value="Arial">Arial</option><option value="Times New Roman">Times New Roman</option><option value="Georgia">Georgia</option><option value="Segoe UI">Segoe UI</option><option value="Verdana">Verdana</option><option value="Tahoma">Tahoma</option><option value="Courier New">Courier New</option></select>
+      <select id="fontSize" aria-label="Cỡ chữ"><option value="2">10 pt</option><option value="3" selected>12 pt</option><option value="4">14 pt</option><option value="5">18 pt</option><option value="6">24 pt</option><option value="7">36 pt</option></select>
+    </div>
+    <div class="tool-group">
+      <button type="button" data-cmd="bold" title="Đậm (Ctrl+B)" aria-pressed="false"><b>B</b></button><button type="button" data-cmd="italic" title="Nghiêng (Ctrl+I)" aria-pressed="false"><i>I</i></button><button type="button" data-cmd="underline" title="Gạch chân (Ctrl+U)" aria-pressed="false"><u>U</u></button><button type="button" data-cmd="strikeThrough" title="Gạch ngang" aria-pressed="false"><s>S</s></button><button type="button" data-cmd="superscript" title="Chỉ số trên" aria-pressed="false">x²</button><button type="button" data-cmd="subscript" title="Chỉ số dưới" aria-pressed="false">x₂</button>
+      <label class="color-tool" title="Màu chữ">A <input id="textColor" type="color" value="#17212b" aria-label="Màu chữ"></label>
+      <label class="color-tool" title="Màu nền chữ">▧ <input id="highlightColor" type="color" value="#fff29a" aria-label="Màu đánh dấu"></label>
+      <button type="button" id="clearFormatHome" data-proxy="clearFormat" title="Xóa định dạng (Ctrl+\)">Tx</button>
+    </div>
+    <div class="tool-group paragraph-align-tools" aria-label="Căn chỉnh đoạn">
+      <button type="button" data-cmd="justifyLeft" title="Căn trái (Ctrl+L)" aria-pressed="false">Trái</button><button type="button" data-cmd="justifyCenter" title="Căn giữa (Ctrl+E)" aria-pressed="false">Giữa</button><button type="button" data-cmd="justifyRight" title="Căn phải (Ctrl+R)" aria-pressed="false">Phải</button><button type="button" data-cmd="justifyFull" title="Căn đều (Ctrl+J)" aria-pressed="false">Đều</button>
+    </div>
+    <div class="tool-group paragraph-indent-tools" aria-label="Danh sách và thụt lề">
+      <button type="button" data-cmd="insertUnorderedList" title="Danh sách gạch đầu dòng (Ctrl+Shift+8)" aria-pressed="false">• Danh sách</button><button type="button" data-cmd="insertOrderedList" title="Danh sách đánh số (Ctrl+Shift+7)" aria-pressed="false">1. Danh sách</button><button type="button" id="outdent" title="Giảm thụt lề (Shift+Tab)">Giảm lề</button><button type="button" id="indent" title="Tăng thụt lề (Tab)">Tăng lề</button>
+    </div>
+    <div class="tool-group paragraph-tools" aria-label="Định dạng đoạn văn"><label>Giãn dòng <select id="lineSpacing"><option value="1">1.0</option><option value="1.15" selected>1.15</option><option value="1.5">1.5</option><option value="2">2.0</option></select></label><label>Sau đoạn <select id="paragraphAfter"><option value="0">0 pt</option><option value="6" selected>6 pt</option><option value="12">12 pt</option><option value="18">18 pt</option></select></label><button type="button" id="applyParagraphSpacing">Áp dụng đoạn</button></div>
+    <div class="tool-group find-tools" aria-label="Tìm kiếm và thay thế">
+      <input id="findText" type="search" placeholder="Tìm (Ctrl+F)…" aria-label="Từ cần tìm">
+      <span id="findMatchCount" class="find-match-count" aria-live="polite"></span>
+      <input id="replaceText" type="text" placeholder="Thay (Ctrl+H)…" aria-label="Nội dung thay thế">
       <button type="button" id="findNext">Tìm tiếp</button>
       <button type="button" id="replaceOne">Thay</button>
       <button type="button" id="replaceAll">Thay tất cả</button>
     </div>
-    <div class="tool-group">
-      <button data-action="undo" title="Hoàn tác (Ctrl+Z)">↶</button><button data-action="redo" title="Làm lại (Ctrl+Y)">↷</button>
-    </div>
-    <div class="tool-group">
-      <select id="blockType" aria-label="Kiểu đoạn"><option value="P">Đoạn văn</option><option value="H1">Tiêu đề 1</option><option value="H2">Tiêu đề 2</option><option value="H3">Tiêu đề 3</option><option value="BLOCKQUOTE">Trích dẫn</option><option value="PRE">Mã / văn bản thô</option></select>
-      <select id="fontName" aria-label="Phông chữ"><option value="Arial">Arial</option><option value="Georgia">Georgia</option><option value="Times New Roman">Times New Roman</option><option value="Verdana">Verdana</option><option value="Tahoma">Tahoma</option><option value="Courier New">Courier New</option></select>
-      <select id="fontSize" aria-label="Cỡ chữ"><option value="2">10 pt</option><option value="3" selected>12 pt</option><option value="4">14 pt</option><option value="5">18 pt</option><option value="6">24 pt</option><option value="7">36 pt</option></select>
-    </div>
-    <div class="tool-group">
-      <button data-cmd="bold" title="Đậm"><b>B</b></button><button data-cmd="italic" title="Nghiêng"><i>I</i></button><button data-cmd="underline" title="Gạch chân"><u>U</u></button><button data-cmd="strikeThrough" title="Gạch ngang"><s>S</s></button><button data-cmd="superscript" title="Chỉ số trên">x²</button><button data-cmd="subscript" title="Chỉ số dưới">x₂</button>
-      <label class="color-tool" title="Màu chữ">A <input id="textColor" type="color" value="#17212b" aria-label="Màu chữ"></label>
-      <label class="color-tool" title="Màu nền chữ">▧ <input id="highlightColor" type="color" value="#fff29a" aria-label="Màu đánh dấu"></label>
-    </div>
-    <div class="tool-group paragraph-tools" aria-label="Định dạng đoạn văn"><label>Giãn dòng <select id="lineSpacing"><option value="1">1.0</option><option value="1.15" selected>1.15</option><option value="1.5">1.5</option><option value="2">2.0</option></select></label><label>Sau đoạn <select id="paragraphAfter"><option value="0">0 pt</option><option value="6" selected>6 pt</option><option value="12">12 pt</option><option value="18">18 pt</option></select></label><button type="button" id="applyParagraphSpacing">Áp dụng đoạn</button></div>
-    <div class="tool-group paragraph-align-tools" aria-label="Căn chỉnh đoạn">
-      <button data-cmd="justifyLeft" title="Căn trái">Trái</button><button data-cmd="justifyCenter" title="Căn giữa">Giữa</button><button data-cmd="justifyRight" title="Căn phải">Phải</button><button data-cmd="justifyFull" title="Căn đều">Đều</button>
-    </div>
-    <div class="tool-group paragraph-indent-tools" aria-label="Danh sách và thụt lề">
-      <button data-cmd="insertUnorderedList">• Danh sách</button><button data-cmd="insertOrderedList">1. Danh sách</button><button id="outdent">Giảm lề</button><button id="indent">Tăng lề</button>
-    </div>
     </section>
     <section class="ribbon-panel" id="panel-insert" role="tabpanel" hidden>
-          <div class="tool-group">
-      <button id="addLink">Chèn liên kết</button><button id="addTable">Chèn bảng</button><button id="addImage">Chèn ảnh</button><button id="clearFormat">Xóa định dạng</button>
-    </div>
+    <div class="ribbon-group"><strong>Đối tượng &amp; phương tiện</strong><div class="ribbon-tools">
+      <button type="button" id="addLink" title="Chèn liên kết (Ctrl+K)">🔗 Liên kết</button><button type="button" id="addTable">⊞ Chèn bảng</button><button type="button" id="addImage">🖼 Chèn ảnh</button><button type="button" id="insertHr">― Đường kẻ ngang</button><button type="button" id="insertDate">📅 Ngày / giờ</button><button type="button" id="insertCallout">💡 Hộp ghi chú</button><button type="button" id="clearFormat">Xóa định dạng</button>
+    </div></div>
+    <div class="ribbon-group"><strong>Ký tự đặc biệt</strong><div class="ribbon-tools">
+      <select id="insertSymbolSelect" aria-label="Chọn ký tự đặc biệt"><option value="©">© Bản quyền</option><option value="®">® Nhãn hiệu</option><option value="™">™ Trademark</option><option value="§">§ Điều khoản</option><option value="±">± Cộng trừ</option><option value="×">× Nhân</option><option value="÷">÷ Chia</option><option value="≤">≤ Nhỏ hơn bằng</option><option value="≥">≥ Lớn hơn bằng</option><option value="≠">≠ Khác</option><option value="→">→ Mũi tên phải</option><option value="←">← Mũi tên trái</option><option value="✓">✓ Dấu kiểm</option><option value="★">★ Ngôi sao</option><option value="₫">₫ Đồng</option><option value="€">€ Euro</option></select>
+      <button type="button" id="insertSymbol">Chèn ký tự</button>
+    </div></div>
+    <div class="ribbon-group"><strong>Chỉnh sửa bảng (khi con trỏ ở trong bảng)</strong><div class="ribbon-tools">
+      <button type="button" id="tableAddRowAbove">+ Hàng trên</button><button type="button" id="tableAddRowBelow">+ Hàng dưới</button><button type="button" id="tableAddColLeft">+ Cột trái</button><button type="button" id="tableAddColRight">+ Cột phải</button><button type="button" id="tableDelRow" class="danger">− Xóa hàng</button><button type="button" id="tableDelCol" class="danger">− Xóa cột</button><button type="button" id="tableDelTable" class="danger">✕ Xóa bảng</button>
+    </div></div>
     </section>
     <section class="ribbon-panel" id="panel-layout" role="tabpanel" hidden>
       <div class="ribbon-group" id="pageSetupRibbon"><strong>Thiết lập trang</strong></div><div class="ribbon-group"><strong>Ngắt phần</strong><button type="button" id="insertSectionBreak">Ngắt phần sang trang mới</button><small>Tạo ranh giới phần; chưa hỗ trợ lề riêng từng phần.</small></div>
@@ -102,16 +112,18 @@
     </section>
     <section class="ribbon-panel" id="panel-reference" role="tabpanel" hidden>
       <div class="ribbon-group"><strong>Công cụ tham chiếu</strong>
-        <button type="button" id="insertToc">Tạo / cập nhật mục lục</button>
-        <label class="toc-auto-setting"><input type="checkbox" id="tocAutoUpdate" checked> Tự cập nhật khi sửa tiêu đề</label>
-        <button type="button" id="insertFootnote">Chèn chú thích</button>
-        <button type="button" id="addCitation">Thêm trích dẫn</button>
-        <button type="button" id="buildBibliography">Tạo danh mục tài liệu</button>
+        <div class="ribbon-tools">
+          <button type="button" id="insertToc">Tạo / cập nhật mục lục</button>
+          <label class="toc-auto-setting"><input type="checkbox" id="tocAutoUpdate" checked> Tự cập nhật khi sửa tiêu đề</label>
+          <button type="button" id="insertFootnote">Chèn chú thích</button>
+          <button type="button" id="addCitation">Thêm trích dẫn</button>
+          <button type="button" id="buildBibliography">Tạo danh mục tài liệu</button>
+        </div>
         <small>Mục lục có liên kết đến Tiêu đề 1–3; tự làm mới khi tiêu đề thay đổi nếu bật tùy chọn.</small>
       </div>
     </section>
     <section class="ribbon-panel" id="panel-view" role="tabpanel" hidden>
-      <div class="ribbon-group"><strong>Thống kê tài liệu</strong><span>Từ: <b id="ribbonWordCount">0</b> · Ký tự: <b id="ribbonCharCount">0</b> · Đoạn: <b id="ribbonParaCount">0</b></span><button type="button" id="focusEditor">Về vùng soạn thảo</button><label class="zoom-control">Thu phóng <select id="editorZoom" aria-label="Thu phóng vùng soạn thảo"><option value="75">75%</option><option value="90">90%</option><option value="100" selected>100%</option><option value="110">110%</option><option value="125">125%</option><option value="150">150%</option></select></label><button type="button" id="toggleFocusMode">Chế độ tập trung</button></div>
+      <div class="ribbon-group"><strong>Thống kê &amp; điều hướng</strong><div class="ribbon-tools"><span>Từ: <b id="ribbonWordCount">0</b> · Ký tự: <b id="ribbonCharCount">0</b> · Đoạn: <b id="ribbonParaCount">0</b></span><button type="button" id="toggleOutlineView">📑 Mục lục điều hướng</button><button type="button" id="focusEditor">Về vùng soạn thảo</button><label class="zoom-control">Thu phóng <select id="editorZoom" aria-label="Thu phóng vùng soạn thảo"><option value="75">75%</option><option value="90">90%</option><option value="100" selected>100%</option><option value="110">110%</option><option value="125">125%</option><option value="150">150%</option></select></label><button type="button" id="toggleFocusMode">Chế độ tập trung</button><button type="button" data-proxy="openShortcuts">⌨ Phím tắt</button></div></div>
       <div class="ribbon-group appearance-settings"><strong>Giao diện và khả năng đọc</strong>
         <label class="setting">Màu giao diện
           <select id="writerTheme" aria-label="Chọn màu giao diện">
@@ -134,29 +146,70 @@
       </div>
     </section>
   </nav>
-  <section class="workspace">
+  <section class="workspace" id="workspace">
+    <aside id="outlinePane" class="outline-pane" aria-label="Mục lục điều hướng" hidden>
+      <div class="outline-head"><strong>📑 Mục lục</strong><button type="button" id="closeOutline" title="Đóng mục lục" aria-label="Đóng mục lục">✕</button></div>
+      <ol id="outlineList" class="outline-list"></ol>
+      <p id="outlineEmpty" class="outline-empty">Thêm Tiêu đề 1–3 để xem cấu trúc và nhảy nhanh giữa các mục.</p>
+    </aside>
     <div class="page-wrap">
       <div class="editor-quickbar" role="toolbar" aria-label="Định dạng nhanh">
+        <button type="button" id="toggleOutline" title="Bật / tắt Mục lục điều hướng" aria-pressed="false">📑 Mục lục</button>
+        <span class="quick-divider"></span>
         <button type="button" data-cmd="undo" title="Hoàn tác (Ctrl+Z)">↶</button>
         <button type="button" data-cmd="redo" title="Làm lại (Ctrl+Y)">↷</button>
+        <button type="button" data-proxy="formatPainter" title="Sao chép định dạng">🖌</button>
         <span class="quick-divider"></span>
-        <button type="button" data-cmd="bold" title="In đậm"><b>B</b></button>
-        <button type="button" data-cmd="italic" title="In nghiêng"><i>I</i></button>
-        <button type="button" data-cmd="underline" title="Gạch chân"><u>U</u></button>
+        <button type="button" data-cmd="bold" title="In đậm (Ctrl+B)" aria-pressed="false"><b>B</b></button>
+        <button type="button" data-cmd="italic" title="In nghiêng (Ctrl+I)" aria-pressed="false"><i>I</i></button>
+        <button type="button" data-cmd="underline" title="Gạch chân (Ctrl+U)" aria-pressed="false"><u>U</u></button>
+        <button type="button" data-cmd="strikeThrough" title="Gạch ngang" aria-pressed="false"><s>S</s></button>
         <span class="quick-divider"></span>
-        <button type="button" data-cmd="justifyLeft" title="Căn trái">☰</button>
-        <button type="button" data-cmd="justifyCenter" title="Căn giữa">≡</button>
-        <button type="button" data-cmd="insertUnorderedList" title="Danh sách">•</button>
-        <button type="button" data-cmd="insertOrderedList" title="Danh sách số">1.</button>
+        <button type="button" data-cmd="justifyLeft" title="Căn trái (Ctrl+L)" aria-pressed="false">☰</button>
+        <button type="button" data-cmd="justifyCenter" title="Căn giữa (Ctrl+E)" aria-pressed="false">≡</button>
+        <button type="button" data-cmd="insertUnorderedList" title="Danh sách" aria-pressed="false">•</button>
+        <button type="button" data-cmd="insertOrderedList" title="Danh sách số" aria-pressed="false">1.</button>
         <span class="quick-divider"></span>
-        <button type="button" id="quickPageBreak" title="Ngắt trang">↵ Trang</button><button type="button" id="focusModeExit" hidden>Thoát tập trung</button>
+        <button type="button" id="quickPageBreak" title="Ngắt trang (Ctrl+Enter)">↵ Trang</button><button type="button" id="focusModeExit" hidden>Thoát tập trung</button>
+      </div>
+      <div id="tableContextBar" class="table-context-bar" role="toolbar" aria-label="Công cụ bảng" hidden>
+        <span class="table-context-label">Bảng:</span>
+        <button type="button" data-proxy="tableAddRowAbove">+ Hàng trên</button>
+        <button type="button" data-proxy="tableAddRowBelow">+ Hàng dưới</button>
+        <button type="button" data-proxy="tableAddColLeft">+ Cột trái</button>
+        <button type="button" data-proxy="tableAddColRight">+ Cột phải</button>
+        <button type="button" data-proxy="tableDelRow" class="danger">− Hàng</button>
+        <button type="button" data-proxy="tableDelCol" class="danger">− Cột</button>
+        <button type="button" data-proxy="tableDelTable" class="danger">✕ Xóa bảng</button>
       </div>
       <article id="editor" class="page" contenteditable="true" spellcheck="true" role="textbox" aria-label="Nội dung tài liệu" aria-multiline="true">
         <h1>Bắt đầu soạn thảo</h1><p>Nhập nội dung văn bản tại đây...</p>
       </article>
-      <div class="editor-statusbar"><span id="editorSelectionStatus">Vùng soạn thảo · sẵn sàng</span><span id="editorLiveStats">0 từ · 0 ký tự</span><span id="editorReadTime">Đọc khoảng 0 phút</span></div>
+      <div class="editor-statusbar">
+        <span id="editorSelectionStatus">Vùng soạn thảo · sẵn sàng</span>
+        <span id="editorLiveStats">0 từ · 0 ký tự</span>
+        <span id="editorPageEstimate">~1 trang</span>
+        <span id="editorReadTime">Đọc khoảng 0 phút</span>
+        <span class="status-zoom"><button type="button" id="zoomOut" title="Thu nhỏ" aria-label="Thu nhỏ">−</button><span id="zoomBadge">100%</span><button type="button" id="zoomIn" title="Phóng to" aria-label="Phóng to">+</button></span>
+      </div>
     </div>
     <dialog id="versionPreviewDialog" class="version-preview"><div class="version-preview-head"><strong id="versionPreviewTitle">Nội dung phiên bản</strong><button type="button" id="closeVersionPreview">Đóng</button></div><textarea id="versionPreviewText" readonly aria-label="Nội dung xem trước phiên bản"></textarea></dialog>
+    <dialog id="shortcutsDialog" class="shortcuts-dialog">
+      <div class="version-preview-head"><strong>⌨ Phím tắt HAI ĐẤT WRITER</strong><button type="button" id="closeShortcuts">Đóng</button></div>
+      <div class="shortcuts-grid">
+        <div><kbd>Ctrl+B / I / U</kbd><span>In đậm / Nghiêng / Gạch chân</span></div>
+        <div><kbd>Ctrl+L / E / R / J</kbd><span>Căn trái / Giữa / Phải / Đều</span></div>
+        <div><kbd>Ctrl+Alt+1 / 2 / 3 / 0</kbd><span>Tiêu đề 1 / 2 / 3 / Đoạn thường</span></div>
+        <div><kbd>Ctrl+Shift+7 / 8</kbd><span>Danh sách số / Gạch đầu dòng</span></div>
+        <div><kbd>Ctrl+K</kbd><span>Chèn liên kết (Ctrl+Click để mở)</span></div>
+        <div><kbd>Ctrl+Shift+V</kbd><span>Dán chữ thuần (bỏ định dạng)</span></div>
+        <div><kbd>Ctrl+\</kbd><span>Xóa định dạng vùng chọn</span></div>
+        <div><kbd>Ctrl+F / Ctrl+H</kbd><span>Tìm kiếm / Thay thế</span></div>
+        <div><kbd>Ctrl+S / Ctrl+Enter</kbd><span>Lưu ngay / Chèn ngắt trang</span></div>
+        <div><kbd>Tab / Shift+Tab</kbd><span>Di chuyển ô bảng, thụt lề đoạn / danh sách</span></div>
+        <div><kbd>Esc</kbd><span>Thoát chế độ tập trung / Sao chép định dạng</span></div>
+      </div>
+    </dialog>
     <aside class="sidepanel">
       <h2>Tệp và xuất bản</h2>
       <button id="saveNow" class="primary">Lưu ngay</button>
@@ -210,8 +263,10 @@
   var themes=['green','light','dark'];
   var sizes=[14,16,18,20,22];
   var themeSelect=document.getElementById('writerTheme');
+  var themeToggle=document.getElementById('themeToggle');
   var sizeSelect=document.getElementById('writerReadingSize');
   var status=document.getElementById('appearanceStatus');
+  var labels={green:'🌿 Xanh',light:'☀️ Sáng',dark:'🌙 Tối'};
   function read(){
     try { var v=JSON.parse(localStorage.getItem(KEY)||'{}'); return v&&typeof v==='object'?v:{}; }
     catch(e){ return {}; }
@@ -222,6 +277,7 @@
     document.documentElement.dataset.writerTheme=theme;
     document.documentElement.style.setProperty('--writer-reading-size',size+'px');
     if(themeSelect)themeSelect.value=theme;
+    if(themeToggle)themeToggle.textContent=labels[theme]||'🌙 Tối';
     if(sizeSelect)sizeSelect.value=String(size);
     try{localStorage.setItem(KEY,JSON.stringify({theme:theme,size:size}));}catch(e){}
     if(announce&&status)status.textContent='Đã áp dụng · tự lưu trên thiết bị này.';
@@ -229,6 +285,11 @@
   var initial=read();
   apply({theme:initial.theme,size:initial.size},false);
   if(themeSelect)themeSelect.addEventListener('change',function(){var v=read();v.theme=themeSelect.value;apply(v,true);});
+  if(themeToggle)themeToggle.addEventListener('click',function(){
+    var v=read(),cur=themes.indexOf(v.theme)>=0?v.theme:'green';
+    v.theme=themes[(themes.indexOf(cur)+1)%themes.length];
+    apply(v,true);
+  });
   if(sizeSelect)sizeSelect.addEventListener('change',function(){var v=read();v.size=Number(sizeSelect.value);apply(v,true);});
   var reset=document.getElementById('resetAppearance');
   if(reset)reset.addEventListener('click',function(){apply({theme:'green',size:16},true);});

@@ -1,4 +1,4 @@
-const CACHE='haidat-work-v7-0-r2';
+const CACHE='haidat-work-v7-0-r1';
 const FILES=[
   './',
   './index.html',
