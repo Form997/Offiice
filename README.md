@@ -19,7 +19,7 @@ HAI ĐẤT OFFICE là bộ ứng dụng văn phòng gồm ba công cụ độc l
 | Ứng dụng | Chức năng | Mở ứng dụng |
 |---|---|---|
 | Writer | Soạn thảo văn bản | [Mở Writer](https://form997.github.io/Offiice/writer/) |
-| Calc | Bảng tính SGHT (đang trong lộ trình tích hợp) | [Mở Calc](https://form997.github.io/Offiice/calc/) |
+| Calc | Bảng tính **HAI ĐẤT CALC — powered by SGHT** (kèm máy tính khoa học phụ trợ) | [Mở Calc](https://form997.github.io/Offiice/calc/) |
 | Slides | Thiết kế và trình chiếu | [Mở Slides](https://form997.github.io/Offiice/slides/) |
 
 ## Một giáo trình dùng chung cho cả ba ứng dụng
@@ -84,10 +84,9 @@ Các đợt phát triển SGHT V1 được ghi nhận theo hai nhánh công vi�
 - **Cách ghi nhận:** số thứ tự/mốc phát triển thể hiện tiến trình công việc, không tự động đồng nghĩa mọi hạng mục đã hoàn tất, kiểm thử đạt hoặc đã được đưa lên nhánh main.
 
 ### Trạng thái tích hợp
-- Mã SGHT V1 hiện được phát triển trên nhánh `v1-development`; nhánh `main` chưa có đầy đủ bộ mã SGHT.
-- Việc chuyển đổi được thực hiện có chọn lọc vào `calc/`, sau khi rà soát quan hệ phụ thuộc, tài nguyên giao diện, lưu trữ, xác thực, service worker và kiểm thử.
-- Không hợp nhất toàn bộ nhánh `v1-development` vào `main` chỉ để đưa SGHT vào Calc; phải bảo toàn các ứng dụng và lịch sử không liên quan.
-- Cho tới khi mã nguồn được tích hợp và kiểm thử đạt yêu cầu, không xem các chức năng SGHT là đã có sẵn trên bản Calc đang triển khai.
+- Bộ mã SGHT V1 phía trình duyệt (`engine/`, `ai/`, `automation/`, `app.js`, `style.css`, `index.html`) đã được tích hợp chọn lọc từ nhánh `v1-development` vào `calc/` (**HAI ĐẤT CALC — powered by SGHT**), không đưa máy chủ PostgreSQL hay hệ thống đăng nhập độc lập của SGHT riêng vào kiến trúc OFFICE.
+- Máy tính khoa học V1 được giữ nguyên bộ máy tính toán và lịch sử (`haidat-calc`) dưới dạng tiện ích phụ trợ (`calc/scientific-calc.js`) có thể mở nhanh và chèn kết quả trực tiếp vào ô bảng tính.
+- Writer và Slides được bảo toàn độc lập; không hợp nhất toàn bộ nhánh `v1-development` vào `main`.
 
 ## Phiên bản và phát triển
 
