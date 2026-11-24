@@ -57,6 +57,11 @@ function renderPreview() {
   $("#slide-total").textContent = String(slides.length).padStart(2, "0");
 }
 
+function updateActiveListLabel() {
+  const activeButton = $("#list").querySelector('[aria-current="true"]');
+  if (activeButton) activeButton.textContent = slides[activeIndex].title.trim() || "Slide " + (activeIndex + 1);
+}
+
 function render() {
   slides = normalizeSlides(slides);
   activeIndex = Math.max(0, Math.min(activeIndex, slides.length - 1));
@@ -90,6 +95,7 @@ function render() {
 
 function updateFromEditor() {
   commitEditor();
+  updateActiveListLabel();
   renderPreview();
   if (persist()) setStatus("Slide " + (activeIndex + 1) + "/" + slides.length + " · đã tự lưu");
 }
@@ -153,6 +159,19 @@ $("#export").addEventListener("click", () => {
   window.setTimeout(() => URL.revokeObjectURL(url), 1000);
 });
 
+document.addEventListener("keydown", (event) => {
+  if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "s") {
+    event.preventDefault();
+    commitEditor();
+    persist(true);
+  }
+});
+
+window.addEventListener("pagehide", () => {
+  commitEditor();
+  persist();
+});
+
 window.addEventListener("beforeinstallprompt", (event) => {
   event.preventDefault();
   installPrompt = event;
@@ -161,10 +180,15 @@ window.addEventListener("beforeinstallprompt", (event) => {
 
 $("#install").addEventListener("click", async () => {
   if (!installPrompt) return;
-  installPrompt.prompt();
-  await installPrompt.userChoice;
-  installPrompt = null;
-  $("#install").hidden = true;
+  try {
+    installPrompt.prompt();
+    await installPrompt.userChoice;
+  } catch (error) {
+    console.warn("HAI ĐẤT SLIDES: không hoàn tất được thao tác cài ứng dụng.", error);
+  } finally {
+    installPrompt = null;
+    $("#install").hidden = true;
+  }
 });
 
 render();
