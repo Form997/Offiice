@@ -1,0 +1,35 @@
+name: HAI ĐẤT SLIDES S1 Tests
+
+on:
+  push:
+    branches:
+      - slides-s1-stability
+    paths:
+      - "slides/**"
+      - ".github/workflows/slides-s1-tests.yml"
+  pull_request:
+    paths:
+      - "slides/**"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  slides-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Run Slides core tests
+        working-directory: slides
+        run: npm test
+      - name: Check JavaScript syntax
+        run: |
+          node --check slides/app.js
+          node --check slides/core.mjs
+          node --check slides/sw.js
