@@ -1,0 +1,25 @@
+/* HAI DAT OFFICE — iOS Safari / iPhone support; keep grid's native two-axis scroll */
+:root{--hd-safe-top:env(safe-area-inset-top,0px);--hd-safe-right:env(safe-area-inset-right,0px);--hd-safe-bottom:env(safe-area-inset-bottom,0px);--hd-safe-left:env(safe-area-inset-left,0px)}
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%;height:100%;overscroll-behavior-y:contain}
+body{min-height:100%;min-height:100dvh;padding-left:var(--hd-safe-left);padding-right:var(--hd-safe-right);-webkit-tap-highlight-color:transparent}
+button,[role=button]{touch-action:manipulation;min-height:40px}
+input,select,textarea{font-size:16px;max-width:100%}
+.sheet-scroll,.ribbon-panel,.ribbon-tabs,.sheet-tabs,.search-main{-webkit-overflow-scrolling:touch}
+.sheet-scroll{overscroll-behavior:contain;touch-action:pan-x pan-y}
+.sheet-grid{touch-action:pan-x pan-y}
+@media(max-width:700px){
+ body{padding-bottom:var(--hd-safe-bottom)}
+ .topbar{padding-top:calc(8px + var(--hd-safe-top))}
+ main{padding-left:max(6px,var(--hd-safe-left));padding-right:max(6px,var(--hd-safe-right))}
+ .ribbon-tabs,.sheet-tabs{scroll-snap-type:x proximity}
+ .ribbon-tab,.sheet-tab{scroll-snap-align:start;min-height:40px}
+ .ribbon-panel{padding-bottom:calc(8px + var(--hd-safe-bottom))}
+ .formula-panel input,.name-box,.search-main input,.replace-row input{font-size:16px!important;min-height:40px}
+ .sheet-shell{min-width:0;max-width:100%;overflow:hidden}
+ .sheet-scroll{max-height:calc(100dvh - 255px);min-height:260px}
+ .sheet-grid td input,.cell-editor,input.cell-editor{font-size:16px!important}
+ .sheet-footer{padding-bottom:calc(8px + var(--hd-safe-bottom))}
+ button,select{min-height:40px}
+}
+@media(orientation:landscape) and (max-height:500px){.sheet-scroll{max-height:calc(100dvh - 185px);min-height:180px}}
+@media(display-mode:standalone){.topbar{padding-top:calc(8px + var(--hd-safe-top))}body{padding-bottom:var(--hd-safe-bottom)}}
