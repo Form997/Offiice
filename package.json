@@ -1,8 +1,8 @@
 {
-  "name": "hai-dat-sght",
+  "name": "hai-dat-calc-sght",
   "private": true,
   "type": "module",
   "scripts": {
-    "test": "node --check sght/engine/grid-geometry.js && node --check sght/app.js && node --check sght/server/server.mjs && node --check sght/server/session-security.js && node --check sght/server/mfa-totp.js && node --check sght/engine/account-lifecycle.js && node --check sght/engine/core.js && node --check sght/automation/macro-engine.js && node --check sght/automation/macro-recorder.js && node --check sght/automation/macro-library.js && node --check sght/automation/macro-history.js && node --check sght/automation/macro-debugger.js && node --check sght/automation/macro-security.js && node --check sght/ai/ai-intelligence.js && node --check sght/ai/data-science.js && node --check sght/ai/dose-response.js && node --test sght/tests/*.test.mjs && node --test sght/server/mailer.test.mjs"
+    "test": "node --check calc/engine/grid-geometry.js && node --check calc/app.js && node --check calc/server/server.mjs && node --check calc/server/session-security.js && node --check calc/server/mfa-totp.js && node --check calc/engine/account-lifecycle.js && node --check calc/engine/core.js && node --check calc/automation/macro-engine.js && node --check calc/automation/macro-recorder.js && node --check calc/automation/macro-library.js && node --check calc/automation/macro-history.js && node --check calc/automation/macro-debugger.js && node --check calc/automation/macro-security.js && node --check calc/ai/ai-intelligence.js && node --check calc/ai/data-science.js && node --check calc/ai/dose-response.js && node --test calc/tests/*.test.mjs && node --test calc/server/mailer.test.mjs"
   }
 }

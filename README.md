@@ -1,15 +1,22 @@
-# HAI ĐẤT OFFICE V1
+# HAI ĐẤT OFFICE
 
 Ba ứng dụng web độc lập:
-- `writer/` — soạn thảo, lưu cục bộ, tải TXT/HTML, in hoặc lưu PDF.
-- `calc/` — máy tính biểu thức và hàm khoa học, lưu lịch sử.
-- `slides/` — tạo slide chữ, lưu cục bộ, trình chiếu, xuất HTML.
+- **WRITER** — soạn thảo và quản lý tài liệu: [Mở WRITER](./writer/).
+- **CALC (SGHT)** — ứng dụng bảng tính chính; CALC là ứng dụng triển khai, SGHT là lõi bảng tính bên trong: [Mở CALC](./calc/).
+- **SLIDES** — tạo và trình chiếu nội dung: [Mở SLIDES](./slides/).
 
-## Chạy thử
-Mở `index.html` trong trình duyệt. Một số tính năng PWA/offline cần phục vụ qua HTTPS hoặc localhost.
+## CALC và lõi SGHT
+
+Mã nguồn SGHT được tích hợp vào calc/: app.js, engine/, ai/, automation/, server/ và tests/. CALC giữ nguyên engine công thức, lưới thưa, ảo hóa, workbook, định dạng, clipboard, Pivot, biểu đồ, Dashboard, Macro và Data Science. Các tính năng chưa có kiểm thử trình duyệt hoặc backend triển khai không được xem là đã nghiệm thu.
+
+## Lưu trữ và đồng bộ
+
+Lần tích hợp này giữ nguyên cơ chế lưu cục bộ hiện hữu; không tự chuyển đổi dữ liệu. Chưa bật đồng bộ đám mây/cộng tác thời gian thực. PocketBase + IndexedDB và đồng bộ thủ công/tự động là giai đoạn riêng, cần chuyển đổi dữ liệu và kiểm thử tương thích.
+
+## Chạy và kiểm thử
+
+Yêu cầu Node.js 22 trở lên. Chạy `npm test` từ thư mục gốc. Phục vụ website qua HTTP/HTTPS để chạy JavaScript module. CALC: https://form997.github.io/Offiice/calc/.
 
 ## Triển khai
-Đưa toàn bộ thư mục lên máy chủ HTTPS tĩnh (GitHub Pages, Cloudflare Pages hoặc hosting tương đương), giữ nguyên cấu trúc thư mục.
 
-## Phạm vi V1
-Đây là nền tảng PWA ưu tiên offline, dùng được trên trình duyệt Android/iOS/Windows/macOS/Linux. Trên iOS có thể dùng Chia sẻ → Thêm vào Màn hình chính. Bản V1 chưa có tài khoản/đồng bộ đám mây, DOCX/PPTX native, cộng tác thời gian thực, hoặc bộ cài native riêng cho từng hệ điều hành.
+GitHub Pages triển khai từ nhánh v1-development. Nhánh main được giữ nguyên; không tự động hợp nhất.

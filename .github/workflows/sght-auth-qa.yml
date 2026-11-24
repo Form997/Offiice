@@ -1,16 +1,16 @@
-name: SGHT authentication and spreadsheet QA
+name: CALC (SGHT) authentication and spreadsheet QA
 
 on:
   push:
     branches: [v1-development, main]
     paths:
-      - 'sght/**'
+      - 'calc/**'
       - 'package.json'
       - '.github/workflows/sght-auth-qa.yml'
   pull_request:
     branches: [v1-development, main]
     paths:
-      - 'sght/**'
+      - 'calc/**'
       - 'package.json'
       - '.github/workflows/sght-auth-qa.yml'
   workflow_dispatch:
@@ -35,7 +35,7 @@ jobs:
           node-version: 22
       - name: Install authentication API dependencies
         run: npm install
-        working-directory: sght/server
+        working-directory: calc/server
       - name: Check backend and mailer tests
         run: npm test
-        working-directory: sght/server
+        working-directory: calc/server

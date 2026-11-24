@@ -1,15 +1,15 @@
-name: SGHT Formula Engine Tests
+name: CALC (SGHT) Spreadsheet Tests
 
 on:
   push:
     branches: [v1-development]
     paths:
-      - "sght/**"
+      - "calc/**"
       - "package.json"
       - ".github/workflows/sght-tests.yml"
   pull_request:
     paths:
-      - "sght/**"
+      - "calc/**"
       - "package.json"
 
 jobs:
@@ -20,11 +20,11 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-      - run: node --check sght/app.js
-      - run: node --check sght/engine/cell-format.js
-      - run: node --check sght/server/server.mjs
-      - run: node --check sght/server/start.mjs
-      - run: node --check sght/server/bootstrap-admin.mjs
-      - run: node --check sght/server/mailer.mjs
-      - run: node --test sght/server/mailer.test.mjs
+      - run: node --check calc/app.js
+      - run: node --check calc/engine/cell-format.js
+      - run: node --check calc/server/server.mjs
+      - run: node --check calc/server/start.mjs
+      - run: node --check calc/server/bootstrap-admin.mjs
+      - run: node --check calc/server/mailer.mjs
+      - run: node --test calc/server/mailer.test.mjs
       - run: npm test
