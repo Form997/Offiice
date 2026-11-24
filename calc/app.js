@@ -13,7 +13,7 @@ import { createEmptyIdentityRegistry, validateIdentityRegistry, registerFormulaI
 import { createEmptyAuthStore, validateAuthStore, createAuthUser, loginAuthUser, logoutAuthUser, assignAuthRole, setAuthUserStatus, authorize, exportAuthAudit, ROLES } from "./engine/auth-rbac.js";
 import { SghtAuthApiClient } from "./engine/auth-api-client.js";
 import { consumeAccountAction, validateNewPassword } from "./engine/account-lifecycle.js";
-import { evaluateFormula, FormulaError, listFormulaFunctions } from "./engine/core.js";
+import { evaluateFormula, FormulaError, FUNCTION_CATEGORIES, getFormulaFunction, listFormulaFunctions } from "./engine/core.js";
 import { buildDependencyGraph, updateDependencyNode, planRecalculation } from "./engine/dependency-engine.js";
 import { CalculationScheduler } from "./engine/calculation-scheduler.js";
 import { FormulaResultCache } from "./engine/formula-result-cache.js";
@@ -229,6 +229,7 @@ function calculate(a,stack=new Set(),sourceSheetId=activeSheetId){
  const readRange=(ref,readCell)=>{const [s,e]=ref.toUpperCase().split(":").map(parseAddress);if(!s||!e)throw new FormulaError("#REF!","Vùng ô không hợp lệ.");const area=(Math.abs(e.r-s.r)+1)*(Math.abs(e.c-s.c)+1);if(!Number.isSafeInteger(area)||area>100000)throw new FormulaError("#REF!","Vùng công thức vượt giới hạn an toàn 100.000 ô.");const out=[];for(let r=Math.min(s.r,e.r);r<=Math.max(s.r,e.r);r++)for(let c=Math.min(s.c,e.c);c<=Math.max(s.c,e.c);c++)out.push(readCell(address(r,c)));return out;};
  const findSheet=name=>workbookSheets.find(x=>String(x.name).normalize("NFKC").toLocaleLowerCase()===String(name).normalize("NFKC").toLocaleLowerCase());
  const ctx={
+  currentCell:a,
   getCell:ref=>calculate(ref.toUpperCase(),stack,sourceSheetId),
   getRange:ref=>readRange(ref,cell=>calculate(cell,stack,sourceSheetId)),
   getSheetCell:(name,ref)=>{const target=findSheet(name);if(!target)throw new FormulaError("#REF!","Không tìm thấy trang tính '"+name+"'.");return calculate(ref.toUpperCase(),stack,target.id);},
@@ -245,7 +246,7 @@ function expandTablesAfterWrite(startRow,endRow,startCol,endCol){
 }
 
 function coerce(v){if(typeof v!=="string")return v;if(v.trim()!==""&&Number.isFinite(Number(v)))return Number(v);return v;}
-function display(a){try{const v=calculate(a);if(typeof v!=="number")return String(v??"");const f=normalizeCellFormat(cellFormats[a]||{});if(f.numberFormat==="integer")return new Intl.NumberFormat("vi-VN",{maximumFractionDigits:0}).format(v);if(f.numberFormat==="number2")return new Intl.NumberFormat("vi-VN",{minimumFractionDigits:2,maximumFractionDigits:2}).format(v);if(f.numberFormat==="percent")return new Intl.NumberFormat("vi-VN",{style:"percent",maximumFractionDigits:2}).format(v);if(f.numberFormat==="currency")return new Intl.NumberFormat("vi-VN",{style:"currency",currency:"VND",maximumFractionDigits:0}).format(v);return String(Number(v.toPrecision(12)));}catch(e){return e.code||"#CALC!";}}
+function display(a){try{const v=calculate(a);if(typeof v==="boolean")return v?"TRUE":"FALSE";if(typeof v!=="number")return String(v??"");const f=normalizeCellFormat(cellFormats[a]||{});if(f.numberFormat==="integer")return new Intl.NumberFormat("vi-VN",{maximumFractionDigits:0}).format(v);if(f.numberFormat==="number2")return new Intl.NumberFormat("vi-VN",{minimumFractionDigits:2,maximumFractionDigits:2}).format(v);if(f.numberFormat==="percent")return new Intl.NumberFormat("vi-VN",{style:"percent",maximumFractionDigits:2}).format(v);if(f.numberFormat==="currency")return new Intl.NumberFormat("vi-VN",{style:"currency",currency:"VND",maximumFractionDigits:0}).format(v);return String(Number(v.toPrecision(12)));}catch(e){return e.code||"#CALC!";}}
 function render(){
   if(searchDirty){searchDirty=false;if(searchInput.value)runSearch(false);}
   if(splitMode==="quadrant"){for(const pane of Object.values(quadrantPanes))renderGrid(pane.grid,pane.scroll);renderPivotReport();return;}
@@ -1557,6 +1558,7 @@ if(errorScanButton&&errorOutput)errorScanButton.addEventListener("click",()=>{er
  const drawerPanels={
   data:{el:document.querySelector('#dataToolsPanel'),title:'📊 Dữ liệu & Pivot'},
   formula:{el:document.querySelector('#formulaErrorPanel'),title:'🩺 Công thức & Lịch sử'},
+  functions:{el:document.querySelector('#functionLibraryPanel'),title:'fx Thư viện hàm chuẩn'},
   'data-science':{el:document.querySelector('#dataSciencePanel'),title:'🧪 Thống kê & Biểu đồ'},
   ai:{el:document.querySelector('#aiPanel'),title:'✨ Trợ lý AI ngoại tuyến'},
   macro:{el:document.querySelector('#macroPanel'),title:'⚙️ Macro Studio'},
@@ -1603,6 +1605,7 @@ if(errorScanButton&&errorOutput)errorScanButton.addEventListener("click",()=>{er
   activeDrawerKey='';activeDrawerSubtab='';
  }
 
+ let renderFnCatalog=()=>{};
  function openDrawer(key,subtab=''){
   const entry=drawerPanels[key];
   if(!entry||!entry.el||!drawer)return;
@@ -1623,6 +1626,7 @@ if(errorScanButton&&errorOutput)errorScanButton.addEventListener("click",()=>{er
   if(key==='data'){renderDataTables();renderPivotBuilder();renderPivotReport();}
   else if(key==='macro'){renderMacroLibrary();}
   else if(key==='formula'&&activeDrawerSubtab==='history'){renderFormulaVersions();}
+  else if(key==='functions'){renderFnCatalog();document.querySelector('#fnCatalogSearch')?.focus();}
   calcStatus.textContent=entry.title;
  }
  window.sghtOpenDrawer=openDrawer;
@@ -1673,8 +1677,18 @@ if(errorScanButton&&errorOutput)errorScanButton.addEventListener("click",()=>{er
   btn.addEventListener('click',()=>{
    const fn=btn.dataset.fn;
    const p=parseAddress(selected),range=p?address(Math.max(1,p.r-4),p.c)+":"+address(p.r,p.c):"A1:A5";
-   formulaInput.value=fn==='IF'?'=IF(A1>0,"Đạt","Chưa đạt")':'='+fn+'('+range+')';
+   const spec=getFormulaFunction(fn);
+   if(fn==='SUM'||fn==='AVERAGE'||fn==='COUNT'||fn==='MIN'||fn==='MAX'){
+    formulaInput.value='='+fn+'('+range+')';
+   }else if(fn==='TODAY'){
+    formulaInput.value='=TODAY()';
+   }else if(spec&&spec.example){
+    formulaInput.value=spec.example;
+   }else{
+    formulaInput.value='='+fn+'(';
+   }
    formulaInput.focus();
+   formulaInput.dispatchEvent(new Event('input'));
   });
  });
 
@@ -1682,6 +1696,185 @@ if(errorScanButton&&errorOutput)errorScanButton.addEventListener("click",()=>{er
  document.querySelectorAll('[data-proxy-click]').forEach(btn=>{
   btn.addEventListener('click',()=>{document.getElementById(btn.dataset.proxyClick)?.click();});
  });
+
+ // Formula Bar Live Autocomplete (#formulaSuggest) + Live Syntax Hint (#formulaSyntaxHint)
+ const allFunctions=listFormulaFunctions().sort((a,b)=>a.name.localeCompare(b.name));
+ const allFunctionsWithAlias=listFormulaFunctions({includeAliases:true}).sort((a,b)=>a.name.localeCompare(b.name));
+ const suggestBox=document.querySelector('#formulaSuggest');
+ const syntaxHint=document.querySelector('#formulaSyntaxHint');
+ let suggestItems=[],suggestIdx=0,suggestTokenStart=0,suggestTokenEnd=0;
+
+ function hideFormulaPopups(){
+  if(suggestBox){suggestBox.hidden=true;suggestBox.replaceChildren();}
+  if(syntaxHint)syntaxHint.hidden=true;
+  suggestItems=[];suggestIdx=0;
+ }
+
+ function findEnclosingFunction(val,pos){
+  if(!val.startsWith('='))return null;
+  let depth=0;
+  for(let i=pos-1;i>=1;i--){
+   const ch=val[i];
+   if(ch===')')depth++;
+   else if(ch==='('){
+    if(depth>0){depth--;continue;}
+    const before=val.slice(0,i);
+    const m=before.match(/([A-Z][A-Z0-9_.]*)$/i);
+    return m?getFormulaFunction(m[1]):null;
+   }
+  }
+  return null;
+ }
+
+ function acceptSuggestion(item){
+  if(!item)return;
+  const val=formulaInput.value;
+  const suffix=item.min===0&&item.max===0?'()':'(';
+  const next=val.slice(0,suggestTokenStart)+item.name+suffix+val.slice(suggestTokenEnd);
+  const caret=suggestTokenStart+item.name.length+suffix.length;
+  formulaInput.value=next;
+  formulaInput.focus();
+  formulaInput.setSelectionRange(caret,caret);
+  updateFormulaAssist();
+ }
+
+ function renderSuggestList(){
+  if(!suggestBox)return;
+  suggestBox.replaceChildren();
+  if(!suggestItems.length){suggestBox.hidden=true;return;}
+  suggestItems.forEach((item,idx)=>{
+   const row=document.createElement('button');
+   row.type='button';
+   row.className='suggest-item'+(idx===suggestIdx?' active':'');
+   row.setAttribute('role','option');
+   row.setAttribute('aria-selected',String(idx===suggestIdx));
+   const head=document.createElement('div');head.className='suggest-head';
+   const nameEl=document.createElement('b');nameEl.textContent=item.name;
+   const catEl=document.createElement('span');catEl.className='suggest-cat';catEl.textContent=FUNCTION_CATEGORIES[item.category]?.label||item.category;
+   head.append(nameEl,catEl);
+   const desc=document.createElement('small');desc.textContent=item.description;
+   row.append(head,desc);
+   row.addEventListener('mousedown',e=>{e.preventDefault();acceptSuggestion(item);});
+   suggestBox.append(row);
+  });
+  suggestBox.hidden=false;
+ }
+
+ function updateFormulaAssist(){
+  const val=formulaInput.value;
+  const pos=formulaInput.selectionStart??val.length;
+  if(!val.startsWith('=')){hideFormulaPopups();return;}
+  const left=val.slice(0,pos);
+  const tokenMatch=left.match(/(?:^=|[+\-*/^%&(,;=<>]\s*)([A-Z][A-Z0-9_.]*)$/i);
+  if(tokenMatch){
+   const prefix=tokenMatch[1].toUpperCase();
+   suggestTokenStart=pos-tokenMatch[1].length;
+   suggestTokenEnd=pos;
+   const starts=allFunctionsWithAlias.filter(f=>f.name.startsWith(prefix));
+   const contains=allFunctions.filter(f=>!f.name.startsWith(prefix)&&f.name.includes(prefix));
+   suggestItems=[...starts,...contains].slice(0,7);
+   suggestIdx=0;
+   renderSuggestList();
+  }else{
+   if(suggestBox){suggestBox.hidden=true;suggestBox.replaceChildren();}
+   suggestItems=[];
+  }
+  const activeFn=findEnclosingFunction(val,pos);
+  if(syntaxHint){
+   if(activeFn){
+    syntaxHint.replaceChildren();
+    const code=document.createElement('code');code.textContent=activeFn.syntax;
+    const sep=document.createElement('span');sep.textContent=' — '+activeFn.description;
+    syntaxHint.append(code,sep);
+    syntaxHint.hidden=false;
+   }else{
+    syntaxHint.hidden=true;
+   }
+  }
+ }
+
+ formulaInput.addEventListener('input',updateFormulaAssist);
+ formulaInput.addEventListener('click',updateFormulaAssist);
+ formulaInput.addEventListener('keyup',e=>{if(['ArrowLeft','ArrowRight','Home','End'].includes(e.key))updateFormulaAssist();});
+ formulaInput.addEventListener('blur',()=>{setTimeout(()=>{if(document.activeElement!==formulaInput)hideFormulaPopups();},120);});
+ formulaInput.addEventListener('keydown',e=>{
+  if(!suggestItems.length||!suggestBox||suggestBox.hidden)return;
+  if(e.key==='ArrowDown'){e.preventDefault();e.stopImmediatePropagation();suggestIdx=(suggestIdx+1)%suggestItems.length;renderSuggestList();}
+  else if(e.key==='ArrowUp'){e.preventDefault();e.stopImmediatePropagation();suggestIdx=(suggestIdx-1+suggestItems.length)%suggestItems.length;renderSuggestList();}
+  else if(e.key==='Tab'||e.key==='Enter'){e.preventDefault();e.stopImmediatePropagation();acceptSuggestion(suggestItems[suggestIdx]);}
+  else if(e.key==='Escape'){e.preventDefault();e.stopImmediatePropagation();hideFormulaPopups();}
+ },true);
+
+ // Function Catalog Drawer (#functionLibraryPanel)
+ const fnSearch=document.querySelector('#fnCatalogSearch');
+ const fnCount=document.querySelector('#fnCatalogCount');
+ const fnPills=document.querySelector('#fnCategoryPills');
+ const fnList=document.querySelector('#fnCatalogList');
+ let fnActiveCat='all';
+
+ if(fnPills){
+  const cats=[{id:'all',label:'Tất cả'},...Object.values(FUNCTION_CATEGORIES)];
+  fnPills.replaceChildren();
+  cats.forEach(c=>{
+   const b=document.createElement('button');
+   b.type='button';
+   b.className='subtab-btn'+(c.id==='all'?' active':'');
+   b.dataset.fnCat=c.id;
+   b.textContent=c.label;
+   b.addEventListener('click',()=>{
+    fnActiveCat=c.id;
+    fnPills.querySelectorAll('button').forEach(x=>x.classList.toggle('active',x===b));
+    renderFnCatalog();
+   });
+   fnPills.append(b);
+  });
+ }
+
+ renderFnCatalog=()=>{
+  if(!fnList)return;
+  const q=(fnSearch?.value||'').trim().toLocaleLowerCase('vi-VN');
+  const rows=allFunctions.filter(f=>{
+   if(fnActiveCat!=='all'&&f.category!==fnActiveCat)return false;
+   if(!q)return true;
+   return f.name.toLowerCase().includes(q)||f.description.toLocaleLowerCase('vi-VN').includes(q)||f.syntax.toLocaleLowerCase('vi-VN').includes(q);
+  });
+  if(fnCount)fnCount.textContent=rows.length+' hàm';
+  fnList.replaceChildren();
+  if(!rows.length){
+   const empty=document.createElement('p');empty.className='drawer-status';empty.textContent='Không tìm thấy hàm phù hợp.';fnList.append(empty);return;
+  }
+  const frag=document.createDocumentFragment();
+  for(const f of rows){
+   const card=document.createElement('div');card.className='fn-card';
+   const top=document.createElement('div');top.className='fn-card-top';
+   const name=document.createElement('b');name.textContent=f.name;
+   const cat=document.createElement('span');cat.className='suggest-cat';cat.textContent=FUNCTION_CATEGORIES[f.category]?.label||f.category;
+   const actions=document.createElement('div');actions.className='fn-card-actions';
+   const insertBtn=document.createElement('button');insertBtn.type='button';insertBtn.className='quiet';insertBtn.textContent='Chèn';
+   insertBtn.addEventListener('click',()=>{
+    const suffix=f.min===0&&f.max===0?'()':'(';
+    formulaInput.value='='+f.name+suffix;
+    formulaInput.focus();
+    formulaInput.setSelectionRange(formulaInput.value.length,formulaInput.value.length);
+    updateFormulaAssist();
+   });
+   const exBtn=document.createElement('button');exBtn.type='button';exBtn.className='quiet';exBtn.textContent='Ví dụ';
+   exBtn.title=f.example;
+   exBtn.addEventListener('click',()=>{
+    formulaInput.value=f.example;
+    formulaInput.focus();
+    updateFormulaAssist();
+   });
+   actions.append(insertBtn,exBtn);
+   top.append(name,cat,actions);
+   const syn=document.createElement('code');syn.className='fn-syntax';syn.textContent=f.syntax;
+   const desc=document.createElement('small');desc.className='fn-desc';desc.textContent=f.description;
+   card.append(top,syn,desc);
+   frag.append(card);
+  }
+  fnList.append(frag);
+ };
+ fnSearch?.addEventListener('input',renderFnCatalog);
 
  activateRibbonTab('home');
 })();

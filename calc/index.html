@@ -86,16 +86,22 @@
 
     <div class="ribbon-strip" data-ribbon-panel="formulas" hidden>
       <div class="tool-group">
-        <button class="tool-btn quick-fn" type="button" data-fn="SUM">∑ SUM</button>
-        <button class="tool-btn quick-fn" type="button" data-fn="AVERAGE">AVERAGE</button>
-        <button class="tool-btn quick-fn" type="button" data-fn="COUNT">COUNT</button>
-        <button class="tool-btn quick-fn" type="button" data-fn="MIN">MIN</button>
-        <button class="tool-btn quick-fn" type="button" data-fn="MAX">MAX</button>
-        <button class="tool-btn quick-fn" type="button" data-fn="IF">IF</button>
+        <button class="tool-btn drawer-trigger" type="button" data-open-drawer="functions" title="Mở thư viện 120+ hàm chuẩn Excel">📚 Thư viện hàm</button>
       </div>
       <div class="tool-group">
-        <button class="tool-btn drawer-trigger" type="button" data-open-drawer="formula" data-subtab="error">🩺 Truy lỗi &amp; Sửa công thức</button>
-        <button class="tool-btn drawer-trigger" type="button" data-open-drawer="formula" data-subtab="history">🕒 Lịch sử công thức</button>
+        <button class="tool-btn quick-fn" type="button" data-fn="SUM">∑ SUM</button>
+        <button class="tool-btn quick-fn" type="button" data-fn="AVERAGE">AVERAGE</button>
+        <button class="tool-btn quick-fn" type="button" data-fn="IF">IF</button>
+        <button class="tool-btn quick-fn" type="button" data-fn="SUMIF">SUMIF</button>
+        <button class="tool-btn quick-fn" type="button" data-fn="COUNTIF">COUNTIF</button>
+        <button class="tool-btn quick-fn" type="button" data-fn="VLOOKUP">VLOOKUP</button>
+        <button class="tool-btn quick-fn" type="button" data-fn="XLOOKUP">XLOOKUP</button>
+        <button class="tool-btn quick-fn" type="button" data-fn="IFERROR">IFERROR</button>
+        <button class="tool-btn quick-fn" type="button" data-fn="TODAY">TODAY</button>
+      </div>
+      <div class="tool-group">
+        <button class="tool-btn drawer-trigger" type="button" data-open-drawer="formula" data-subtab="error">🩺 Truy lỗi</button>
+        <button class="tool-btn drawer-trigger" type="button" data-open-drawer="formula" data-subtab="history">🕒 Lịch sử</button>
       </div>
     </div>
 
@@ -146,14 +152,18 @@
         <button class="tool-btn" type="button" data-proxy-click="openSciCalc">🧮 Máy tính khoa học</button>
         <button class="tool-btn drawer-trigger" type="button" data-open-drawer="diagnostics">⚡ Kiểm thử hiệu năng</button>
       </div>
-      <span class="ribbon-hint">Tự lưu trên thiết bị · Công thức dùng <code>=SUM(A1:A5)</code> · <code>Ctrl+F</code> tìm nhanh</span>
+      <span class="ribbon-hint">Tự lưu trên thiết bị · Gõ <code>=</code> để gợi ý hàm · hỗ trợ dấu <code>,</code> hoặc <code>;</code></span>
     </div>
   </section>
 
   <section class="formula-panel" aria-label="Thanh địa chỉ và công thức">
     <input class="name-box" id="cellAddress" type="text" value="A1" maxlength="12" autocomplete="off" autocapitalize="characters" spellcheck="false" aria-label="Đi tới địa chỉ ô" title="Nhập địa chỉ ô, ví dụ D25 rồi nhấn Enter">
-    <div class="fx-mark">fx</div>
-    <input id="formulaInput" autocomplete="off" spellcheck="false" placeholder="Nhập giá trị hoặc công thức, ví dụ =SUM(A1:A5)" aria-label="Nội dung ô đang chọn">
+    <button id="openFunctionLibrary" class="fx-mark fx-btn drawer-trigger" type="button" data-open-drawer="functions" title="Mở Thư viện hàm (120+ hàm chuẩn Excel)">fx</button>
+    <div class="formula-input-wrap">
+      <input id="formulaInput" autocomplete="off" spellcheck="false" placeholder="Nhập giá trị hoặc gõ = để gợi ý hàm (vd =SUM(A1:A5), =IF(A1>0, &quot;Đạt&quot;, &quot;Chưa&quot;))" aria-label="Nội dung ô đang chọn">
+      <div id="formulaSuggest" class="formula-suggest" role="listbox" aria-label="Gợi ý hàm" hidden></div>
+      <div id="formulaSyntaxHint" class="formula-syntax-hint" aria-live="polite" hidden></div>
+    </div>
     <button id="applyFormula" class="apply" type="button" title="Áp dụng (Enter)">✓ Áp dụng</button>
   </section>
 
@@ -687,6 +697,25 @@
             <button id="runFormulaDiagnostics" class="primary" type="button">Chạy benchmark</button>
           </div>
           <pre id="formulaDiagnosticsOutput" class="diagnostics-output" aria-live="polite">Chưa chạy benchmark. Bấm nút trên để đo thời gian dựng đồ thị, lập lịch và cache công thức.</pre>
+        </section>
+
+        <section id="functionLibraryPanel" class="drawer-panel fn-library-panel" hidden aria-label="Thư viện hàm chuẩn">
+          <div class="fn-search-row">
+            <input id="fnCatalogSearch" type="search" placeholder="Tìm hàm hoặc công dụng (vd: VLOOKUP, điều kiện, ngày, lãi)…" aria-label="Tìm hàm">
+            <span id="fnCatalogCount" class="fn-count">0 hàm</span>
+          </div>
+          <div id="fnCategoryPills" class="drawer-subtabs" role="tablist" aria-label="Nhóm hàm"></div>
+          <details class="drawer-fold">
+            <summary>📐 Nguyên tắc đặt tên hàm (chuẩn Excel · dễ nhớ)</summary>
+            <ul class="fn-rules-list">
+              <li><b>Viết HOA không dấu:</b> <code>SUM</code>, <code>VLOOKUP</code>, <code>STDEV.S</code> (hỗ trợ cả dấu <code>,</code> và <code>;</code>, nối chuỗi <code>&amp;</code>, phần trăm <code>15%</code>, cố định <code>$A$1</code>).</li>
+              <li><b>Điều kiện:</b> thêm <code>IF</code> (1 đk) hoặc <code>IFS</code> (nhiều đk) → <code>SUMIF/SUMIFS</code>, <code>COUNTIF/COUNTIFS</code>, <code>AVERAGEIF/AVERAGEIFS</code>.</li>
+              <li><b>Kiểm tra kiểu:</b> bắt đầu bằng <code>IS</code> → <code>ISBLANK</code>, <code>ISNUMBER</code>, <code>ISTEXT</code>, <code>ISERROR</code>.</li>
+              <li><b>Tra cứu:</b> <code>VLOOKUP</code> (dọc), <code>HLOOKUP</code> (ngang), <code>XLOOKUP</code> (2 chiều), <code>INDEX</code> + <code>MATCH</code>.</li>
+              <li><b>Thống kê:</b> đuôi <code>.S</code> (mẫu) / <code>.P</code> (tổng thể), kèm tên ngắn <code>STDEV</code>, <code>VAR</code>, <code>RANK</code>.</li>
+            </ul>
+          </details>
+          <div id="fnCatalogList" class="fn-catalog-list"></div>
         </section>
       </div>
     </aside>
