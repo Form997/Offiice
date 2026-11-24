@@ -3,12 +3,20 @@ import {
   readSlides,
   writeSlides,
   normalizeSlides,
-  buildPresentationHtml,
-  escapeHtml
+  buildPresentationHtml
 } from "./core.mjs";
 
 const $ = (selector) => document.querySelector(selector);
-const storage = window.localStorage;
+const storage = (() => {
+  try {
+    return window.localStorage;
+  } catch {
+    return {
+      getItem() { throw new Error("Local storage is unavailable"); },
+      setItem() { throw new Error("Local storage is unavailable"); }
+    };
+  }
+})();
 let slides = readSlides(storage, STORAGE_KEY);
 let activeIndex = 0;
 let installPrompt = null;
@@ -29,7 +37,7 @@ function persist(showMessage = false) {
   if (!result.ok) {
     setStatus("Chưa lưu được · bộ nhớ thiết bị có thể đã đầy");
     if (showMessage) {
-      window.alert("Không thể lưu bài trình chiếu trên thiết bị này. Hãy kiểm tra dung lượng lưu trữ.");
+      window.alert("Không thể lưu bài trình chiếu trên thiết bị này. Hãy kiểm tra quyền lưu trữ và dung lượng còn trống.");
     }
     return false;
   }
@@ -72,8 +80,7 @@ function render() {
 
 function updateFromEditor() {
   commitEditor();
-  persist();
-  setStatus("Slide " + (activeIndex + 1) + "/" + slides.length + " · đã tự lưu");
+  if (persist()) setStatus("Slide " + (activeIndex + 1) + "/" + slides.length + " · đã tự lưu");
 }
 
 $("#heading").addEventListener("input", updateFromEditor);
