@@ -557,4 +557,20 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible{
   .ribbon-tab{min-height:36px;font-size:13px}
   .ribbon-collapse-btn{min-height:32px;font-size:14px}
 }
+:root[data-writer-theme="dark"] .comments-pane{background:#1c242d;color:#e7edf4;border-color:#35414e}
+:root[data-writer-theme="dark"] .comment-card{background:#242e39;border-color:#3a4857}
+:root[data-writer-theme="dark"] .comment-card.is-resolved{background:#1a222b}
+:root[data-writer-theme="dark"] .comment-quote{background:#1e3430;color:#a7f3d0;border-left-color:#34d399}
+:root[data-writer-theme="dark"] .page .hd-comment-mark{background:#78530b;border-bottom-color:#f59e0b;color:#fef3c7}
+:root[data-writer-theme="dark"] .page-ruler{background:#1c242d;border-color:#35414e}
+:root[data-writer-theme="dark"] .ruler-margin{background:rgba(114,182,164,.16)}
+:root[data-writer-theme="dark"] .ruler-ticks{color:#94a3b8}
+:root[data-writer-theme="dark"] .ruler-tick{background:#3a4857}
+:root[data-writer-theme="dark"] .ruler-tick.major{background:#64748b}
+:root[data-writer-theme="dark"] .page-running-band{background:#1b222b;border-color:#35414e;color:#94a3b8}
+:root[data-writer-theme="dark"] .image-context-bar{background:#1c2d3c;border-color:#375a78}
+:root[data-writer-theme="dark"] .image-context-bar .table-context-label,
+:root[data-writer-theme="dark"] .img-size-slider{color:#bae6fd}
+:root[data-writer-theme="dark"] .cell-bg-tool{background:#19222c;color:#a7f3d0;border-color:#35414e}
+
 

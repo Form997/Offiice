@@ -119,14 +119,15 @@
           const key=attr.name.toLowerCase(), val=attr.value;
           if (key.startsWith('on') || key === 'contenteditable') child.removeAttribute(attr.name);
           else if (key === 'id') { if (!/^hd-[a-z0-9-]+$/i.test(val)) child.removeAttribute(attr.name); }
-          else if (key === 'class') { const allowedClasses=new Set(['page-break','section-break','hd-toc','hd-citation','hd-callout','toc-updated','toc-level-h1','toc-level-h2','toc-level-h3']); if (!val.split(/\s+/).every(c=>allowedClasses.has(c))) child.removeAttribute(attr.name); }
+          else if (key === 'class') { const allowedClasses=new Set(['page-break','section-break','hd-toc','hd-citation','hd-callout','hd-comment-mark','toc-updated','toc-level-h1','toc-level-h2','toc-level-h3']); if (!val.split(/\s+/).every(c=>allowedClasses.has(c))) child.removeAttribute(attr.name); }
+          else if (key === 'data-comment-id') { if (!/^hdc-[a-z0-9-]+$/i.test(val)) child.removeAttribute(attr.name); }
           else if (key === 'href' && !/^(https?:|mailto:|tel:)/i.test(val) && !/^#hd-[a-z0-9-]+$/i.test(val)) child.removeAttribute(attr.name);
           else if (key === 'src' && child.tagName === 'IMG' && !/^(data:image\/(png|jpeg|gif|webp);base64,|https?:)/i.test(val)) child.removeAttribute(attr.name);
           else if (['face','color','size'].includes(key) && child.tagName === 'FONT') { /* safe legacy font attributes */ }
           else if (key === 'style') {
-            const safe = val.split(';').filter(rule => /^(color|background-color|font-weight|font-style|text-decoration|text-align|font-size|font-family|width|max-width|height|line-height|margin-top|margin-bottom|text-indent|margin-left|margin-right|padding-left|padding-right)\s*:/i.test(rule.trim()) && !/url\s*\(|expression|javascript/i.test(rule)).join(';');
+            const safe = val.split(';').filter(rule => /^(color|background-color|font-weight|font-style|text-decoration|text-align|font-size|font-family|display|width|max-width|height|line-height|margin-top|margin-bottom|text-indent|margin-left|margin-right|padding-left|padding-right|border-radius)\s*:/i.test(rule.trim()) && !/url\s*\(|expression|javascript/i.test(rule)).join(';');
             if (safe) child.setAttribute('style', safe); else child.removeAttribute('style');
-          } else if (!['href','src','alt','title','colspan','rowspan','style','width','height'].includes(key)) child.removeAttribute(attr.name);
+          } else if (!['href','src','alt','title','colspan','rowspan','style','width','height','data-comment-id'].includes(key)) child.removeAttribute(attr.name);
         });
         clean(child);
       });
@@ -172,7 +173,7 @@
     try{
       const localDocs=documents.map(d=>cloneJSON(d)),activeLocal=localDocs.find(d=>d.id===active.id);
       if(!activeLocal)throw new Error('Không tìm thấy tài liệu đang mở.');
-      activeLocal.title=titleInput.value.trim()||'Tài liệu chưa đặt tên';activeLocal.html=editor.innerHTML;
+      activeLocal.title=titleInput.value.trim()||'Tài liệu chưa đặt tên';activeLocal.html=editor.innerHTML.replace(/\sclass="hd-img-selected"/g,'');
       activeLocal.appType='writer';activeLocal.schemaVersion=3;activeLocal.folder=folders.includes(activeLocal.folder)?activeLocal.folder:'Chưa phân loại';activeLocal.category=String(activeLocal.category||'Khác');activeLocal.pinned=!!activeLocal.pinned;activeLocal.createdAt=Number(activeLocal.createdAt)||activeLocal.updatedAt||Date.now();
       const raw=JSON.parse(localStorage.getItem(STORE)||'[]');if(!Array.isArray(raw))throw new Error('Kho tài liệu không hợp lệ.');
       const remoteDocs=raw.map(d=>cloneJSON(d)),remoteMap=new Map(remoteDocs.map(d=>[d.id,d])),localMap=new Map(localDocs.map(d=>[d.id,d]));
@@ -248,7 +249,8 @@
   function loadDoc(id) {
     const doc=documents.find(d=>d.id===id); if(!doc) return;
     clearTimeout(saveTimer); activeId=id; titleInput.value=doc.title; editor.innerHTML=sanitizeHTML(doc.html || '<p><br></p>');
-    dirty=false;renderDocList();renderVersionHistory();updateStats();const identity=$('#docIdDisplay');if(identity)identity.textContent='ID: '+doc.id;const cat=$('#docCategory');if(cat)cat.value=doc.category||'Khác';const pin=$('#togglePin');if(pin)pin.textContent=doc.pinned?'★ Đã ghim':'☆ Ghim tài liệu';setState('Đã mở tài liệu','saved');
+    if(typeof selectImage==='function')selectImage(null);
+    dirty=false;renderDocList();renderVersionHistory();updateStats();if(typeof renderComments==='function')renderComments();const identity=$('#docIdDisplay');if(identity)identity.textContent='ID: '+doc.id;const cat=$('#docCategory');if(cat)cat.value=doc.category||'Khác';const pin=$('#togglePin');if(pin)pin.textContent=doc.pinned?'★ Đã ghim':'☆ Ghim tài liệu';setState('Đã mở tài liệu','saved');
   }
 
   // Public, narrow bridge for the optional cloud-collaboration module.
@@ -751,6 +753,11 @@
   });
   editor.addEventListener('paste',e=>{
     const dt=e.clipboardData;if(!dt)return;
+    const imgItem=[...(dt.items||[])].find(it=>it.kind==='file'&&it.type.startsWith('image/'));
+    if(imgItem){
+      const f=imgItem.getAsFile();
+      if(f){e.preventDefault();addImage(f);return;}
+    }
     const html=dt.getData('text/html'),text=dt.getData('text/plain');
     if(html){
       e.preventDefault();
@@ -777,7 +784,7 @@
     }
   });
   document.addEventListener('selectionchange',()=>{rememberEditorSelection();syncToolbarState();});
-  document.addEventListener('pointerdown',e=>{if(e.target.closest('.ribbon,.editor-quickbar,.table-context-bar'))rememberEditorSelection();},true);
+  document.addEventListener('pointerdown',e=>{if(e.target.closest('.ribbon,.editor-quickbar,.table-context-bar,.image-context-bar'))rememberEditorSelection();},true);
   $('#quickPageBreak').onclick=()=>command('insertHTML','<div class="page-break"></div><p><br></p>');
   const zoomControl=$('#editorZoom'),zoomSteps=['75','90','100','110','125','150'];
   const savedZoom=localStorage.getItem('haidat-writer-editor-zoom-v1');
@@ -787,6 +794,8 @@
     editor.style.zoom=(Number(value)/100);
     const badge=$('#zoomBadge');if(badge)badge.textContent=value+'%';
     localStorage.setItem('haidat-writer-editor-zoom-v1',value);
+    if(typeof renderRuler==='function')renderRuler();
+    if(typeof positionImageHandle==='function')positionImageHandle();
   }
   zoomControl.addEventListener('change',applyEditorZoom);applyEditorZoom();
   const stepZoom=dir=>{const i=zoomSteps.indexOf(zoomControl.value),next=Math.max(0,Math.min(zoomSteps.length-1,(i<0?2:i)+dir));zoomControl.value=zoomSteps[next];applyEditorZoom();};
@@ -858,6 +867,7 @@
   document.addEventListener('keydown',e=>{
     const mod=e.ctrlKey||e.metaKey,key=e.key.toLowerCase(),inEd=document.activeElement===editor||editor.contains(document.activeElement);
     if(e.key==='Escape'){
+      if(typeof selectImage==='function')selectImage(null);
       if(copiedFormat){setFormatPainter(null);setState('Đã tắt sao chép định dạng','');}
       if(document.body.classList.contains('focus-mode'))setFocusMode(false);
     }
@@ -865,6 +875,8 @@
     if(mod && key==='h'){e.preventDefault();document.querySelector('.ribbon')?.classList.remove('is-collapsed');const t=document.querySelector('.ribbon-tab[data-tab="home"]');if(t&&!t.classList.contains('active'))t.click();$('#replaceText')?.focus();$('#replaceText')?.select();}
     if(mod && key==='s'){e.preventDefault();clearTimeout(saveTimer);persist();}
     if(!inEd)return;
+    if(e.shiftKey && e.key==='F3'){e.preventDefault();if(typeof cycleChangeCase==='function')cycleChangeCase();}
+    if(mod && e.altKey && key==='m'){e.preventDefault();if(typeof addComment==='function')addComment();}
     if(mod && e.key==='Enter'){e.preventDefault();command('insertHTML','<div class="page-break"></div><p><br></p>');}
     if(mod && e.shiftKey && (key==='l'||e.code==='Digit8')){e.preventDefault();command('insertUnorderedList');}
     if(mod && e.shiftKey && e.code==='Digit7'){e.preventDefault();command('insertOrderedList');}
@@ -1244,6 +1256,8 @@
     let style=$('#dynamicPrintStyle');if(!style){style=document.createElement('style');style.id='dynamicPrintStyle';document.head.append(style);}
     style.textContent='@page{size:'+$('#paperSize').value+';margin:'+margin+'mm}';
     try{localStorage.setItem('haidat-writer-page-settings',JSON.stringify({paper:$('#paperSize').value,margin}));}catch{}
+    if(typeof renderRuler==='function')renderRuler();
+    if(typeof positionImageHandle==='function')positionImageHandle();
     if(typeof applyPrintSettings==='function')applyPrintSettings();
   }
 
@@ -1265,6 +1279,12 @@
       '@top-center{content:"'+header+'";font:9pt Arial,sans-serif;color:#555}'+
       (settings.numbers?'@bottom-center{content:"'+(footer?footer+' · ':'')+'Trang " counter(page) " / " counter(pages);font:9pt Arial,sans-serif;color:#555}':'@bottom-center{content:"'+footer+'";font:9pt Arial,sans-serif;color:#555}')+'}'+
       '@media print{.page{position:relative}.print-running-header{display:none!important}.print-running-footer{display:none!important}}';
+    const hPrev=$('#pageHeaderPreview'),fPrev=$('#pageFooterPreview');
+    if(hPrev){hPrev.textContent=settings.header;hPrev.hidden=!settings.header;}
+    if(fPrev){
+      const fText=settings.numbers?(settings.footer?settings.footer+' · Trang 1':'Trang 1'):settings.footer;
+      fPrev.textContent=fText;fPrev.hidden=!settings.footer&&!settings.numbers;
+    }
   }
   function loadPrintSettings(){
     const p=readPrintSettings();
@@ -1499,5 +1519,291 @@
   $('#closeShortcuts').addEventListener('click',()=>shortcutsDlg?.close?shortcutsDlg.close():shortcutsDlg?.removeAttribute('open'));
   shortcutsDlg?.addEventListener('click',e=>{if(e.target===shortcutsDlg)(shortcutsDlg.close?shortcutsDlg.close():shortcutsDlg.removeAttribute('open'));});
 
+  // V7.2 — Interactive Horizontal Page Ruler
+  const rulerEl=$('#pageRuler'),rulerL=$('#rulerMarginLeft'),rulerR=$('#rulerMarginRight'),rulerBtn=$('#toggleRuler');
+  function renderRuler(){
+    const el=$('#pageRuler'),ticks=$('#rulerTicks'),mL=$('#rulerMarginLeft'),mR=$('#rulerMarginRight');
+    if(!el||!ticks)return;
+    const widths={A4:210,A5:148,Letter:216},paperMm=widths[$('#paperSize')?.value]||210;
+    const marginMm=Math.max(5,Math.min(50,Number($('#pageMargin')?.value)||20));
+    const zoomFactor=(Number($('#editorZoom')?.value)||100)/100;
+    const pxW=Math.round(paperMm*96/25.4*zoomFactor);
+    el.style.width='min(100%,'+pxW+'px)';
+    const pct=(marginMm/paperMm*100).toFixed(2)+'%';
+    if(mL)mL.style.width=pct;
+    if(mR)mR.style.width=pct;
+    ticks.replaceChildren();
+    for(let mm=5;mm<paperMm;mm+=5){
+      const left=(mm/paperMm*100).toFixed(3)+'%';
+      const isCm=mm%10===0;
+      const t=document.createElement('span');
+      t.className='ruler-tick '+(isCm?'major':'minor');
+      t.style.left=left;
+      ticks.append(t);
+      if(isCm&&mm<paperMm-5){
+        const n=document.createElement('span');
+        n.className='ruler-num';n.style.left=left;n.textContent=String(mm/10);
+        ticks.append(n);
+      }
+    }
+  }
+  function setRulerVisible(show){
+    const el=$('#pageRuler'),btn=$('#toggleRuler');
+    if(!el)return;
+    el.hidden=!show;
+    if(btn)btn.setAttribute('aria-pressed',String(show));
+    try{localStorage.setItem('haidat-writer-ruler-visible-v1',String(show));}catch{}
+    if(show)renderRuler();
+  }
+  if(rulerBtn)rulerBtn.addEventListener('click',()=>setRulerVisible(rulerEl.hidden));
+  setRulerVisible((()=>{try{return localStorage.getItem('haidat-writer-ruler-visible-v1')!=='false';}catch{return true;}})());
+  let rulerDrag=null;
+  [rulerL,rulerR].forEach((handle,side)=>{
+    if(!handle)return;
+    handle.addEventListener('pointerdown',e=>{
+      e.preventDefault();
+      handle.setPointerCapture?.(e.pointerId);
+      const widths={A4:210,A5:148,Letter:216},paperMm=widths[$('#paperSize')?.value]||210;
+      rulerDrag={side,startX:e.clientX,startMargin:Number($('#pageMargin')?.value)||20,paperMm,rulerW:rulerEl.getBoundingClientRect().width||794};
+    });
+  });
+  document.addEventListener('pointermove',e=>{
+    if(!rulerDrag)return;
+    const dx=e.clientX-rulerDrag.startX;
+    const deltaMm=(dx/rulerDrag.rulerW)*rulerDrag.paperMm*(rulerDrag.side===0?1:-1);
+    const next=Math.max(5,Math.min(50,Math.round(rulerDrag.startMargin+deltaMm)));
+    if(Number($('#pageMargin').value)!==next){$('#pageMargin').value=String(next);applyPageSettings();}
+  });
+  document.addEventListener('pointerup',()=>{if(rulerDrag){rulerDrag=null;setState('Đã chỉnh lề trang: '+$('#pageMargin').value+' mm','saved');}});
+
+  // V7.2 — Interactive Image Resizer, Alignment & Drag-and-Drop
+  var selectedImage=null,imgDrag=null;
+  const imgHandle=$('#imgResizeHandle'),imgSlider=$('#imgWidthSlider'),imgLabel=$('#imgWidthLabel');
+  function positionImageHandle(){
+    const h=$('#imgResizeHandle'),st=$('#pageStage');
+    if(!h||!st)return;
+    if(!selectedImage||!editor.contains(selectedImage)){h.hidden=true;return;}
+    const stRect=st.getBoundingClientRect(),imRect=selectedImage.getBoundingClientRect();
+    h.hidden=false;
+    h.style.left=Math.round(imRect.right-stRect.left-7)+'px';
+    h.style.top=Math.round(imRect.bottom-stRect.top-7)+'px';
+  }
+  function syncImageSlider(){
+    const sl=$('#imgWidthSlider'),lb=$('#imgWidthLabel');
+    if(!selectedImage||!sl)return;
+    const edW=Math.max(100,editor.clientWidth-60);
+    const pct=Math.max(15,Math.min(100,Math.round((selectedImage.getBoundingClientRect().width/edW)*100)));
+    sl.value=String(pct);
+    if(lb)lb.textContent=pct+'%';
+  }
+  function selectImage(img){
+    const bar=$('#imageContextBar'),h=$('#imgResizeHandle');
+    if(selectedImage&&selectedImage!==img)selectedImage.classList.remove('hd-img-selected');
+    selectedImage=img&&editor.contains(img)?img:null;
+    if(selectedImage){
+      selectedImage.classList.add('hd-img-selected');
+      if(bar)bar.hidden=false;
+      syncImageSlider();positionImageHandle();
+    }else{
+      if(bar)bar.hidden=true;
+      if(h)h.hidden=true;
+    }
+  }
+  function setImageWidthPct(pct){
+    const sl=$('#imgWidthSlider'),lb=$('#imgWidthLabel');
+    if(!selectedImage)return;
+    const p=Math.max(15,Math.min(100,Math.round(Number(pct)||100)));
+    selectedImage.style.width=p+'%';selectedImage.style.height='auto';
+    if(sl)sl.value=String(p);
+    if(lb)lb.textContent=p+'%';
+    positionImageHandle();scheduleSave();
+  }
+  editor.addEventListener('click',e=>{
+    const im=e.target.closest('img');
+    if(im&&editor.contains(im)){selectImage(im);return;}
+    if(selectedImage)selectImage(null);
+    const mark=e.target.closest('.hd-comment-mark');
+    if(mark&&editor.contains(mark)){
+      const cid=mark.getAttribute('data-comment-id');
+      if(cid){setCommentsOpen(true);highlightCommentCard(cid);}
+    }
+  });
+  document.addEventListener('click',e=>{
+    if(selectedImage&&!e.target.closest('#editor,#imageContextBar,#imgResizeHandle'))selectImage(null);
+  });
+  document.querySelectorAll('[data-img-pct]').forEach(btn=>btn.addEventListener('click',()=>setImageWidthPct(btn.dataset.imgPct)));
+  imgSlider?.addEventListener('input',()=>setImageWidthPct(imgSlider.value));
+  $('#imgAlignLeft')?.addEventListener('click',()=>{if(!selectedImage)return;selectedImage.style.display='block';selectedImage.style.marginLeft='0';selectedImage.style.marginRight='auto';positionImageHandle();scheduleSave();});
+  $('#imgAlignCenter')?.addEventListener('click',()=>{if(!selectedImage)return;selectedImage.style.display='block';selectedImage.style.marginLeft='auto';selectedImage.style.marginRight='auto';positionImageHandle();scheduleSave();});
+  $('#imgAlignRight')?.addEventListener('click',()=>{if(!selectedImage)return;selectedImage.style.display='block';selectedImage.style.marginLeft='auto';selectedImage.style.marginRight='0';positionImageHandle();scheduleSave();});
+  $('#imgDelete')?.addEventListener('click',()=>{if(!selectedImage)return;const im=selectedImage;selectImage(null);im.remove();scheduleSave();setState('Đã xóa ảnh','saved');});
+  imgHandle?.addEventListener('pointerdown',e=>{
+    if(!selectedImage)return;
+    e.preventDefault();e.stopPropagation();
+    imgHandle.setPointerCapture?.(e.pointerId);
+    imgDrag={startX:e.clientX,startW:selectedImage.getBoundingClientRect().width,maxW:Math.max(120,editor.clientWidth-60)};
+  });
+  document.addEventListener('pointermove',e=>{
+    if(!imgDrag||!selectedImage)return;
+    const nextW=Math.max(60,Math.min(imgDrag.maxW,imgDrag.startW+(e.clientX-imgDrag.startX)));
+    const pct=Math.max(15,Math.min(100,Math.round(nextW/imgDrag.maxW*100)));
+    selectedImage.style.width=pct+'%';selectedImage.style.height='auto';
+    if(imgSlider)imgSlider.value=String(pct);
+    if(imgLabel)imgLabel.textContent=pct+'%';
+    positionImageHandle();
+  });
+  document.addEventListener('pointerup',()=>{if(imgDrag){imgDrag=null;scheduleSave();setState('Đã đổi kích thước ảnh','saved');}});
+  window.addEventListener('resize',()=>{if(selectedImage)positionImageHandle();},{passive:true});
+
+  // Drag & drop image files onto the page
+  const pageWrapEl=$('#pageWrap');
+  if(pageWrapEl){
+    pageWrapEl.addEventListener('dragover',e=>{if(e.dataTransfer&&[...(e.dataTransfer.types||[])].includes('Files')){e.preventDefault();pageWrapEl.classList.add('is-drop-target');}});
+    pageWrapEl.addEventListener('dragleave',()=>pageWrapEl.classList.remove('is-drop-target'));
+    pageWrapEl.addEventListener('drop',e=>{
+      pageWrapEl.classList.remove('is-drop-target');
+      const f=[...(e.dataTransfer?.files||[])].find(x=>x.type.startsWith('image/'));
+      if(f){e.preventDefault();addImage(f);}
+    });
+  }
+
+  // V7.2 — Table Column Border Drag-Resize & Cell Background Shading
+  let colResize=null;
+  editor.addEventListener('pointermove',e=>{
+    if(colResize)return;
+    const cell=e.target.closest('td,th');
+    if(cell&&editor.contains(cell)){
+      const r=cell.getBoundingClientRect();
+      editor.style.cursor=(r.right-e.clientX<=7&&e.clientX<=r.right+2)?'col-resize':'';
+    }else if(editor.style.cursor==='col-resize')editor.style.cursor='';
+  });
+  editor.addEventListener('pointerdown',e=>{
+    const cell=e.target.closest('td,th');
+    if(!cell||!editor.contains(cell))return;
+    const r=cell.getBoundingClientRect();
+    if(r.right-e.clientX<=7&&e.clientX<=r.right+2){
+      e.preventDefault();
+      colResize={table:cell.closest('table'),colIndex:cell.cellIndex,startX:e.clientX,startW:r.width};
+    }
+  });
+  document.addEventListener('pointermove',e=>{
+    if(!colResize)return;
+    const nextW=Math.max(48,Math.round(colResize.startW+(e.clientX-colResize.startX)));
+    [...colResize.table.rows].forEach(row=>{const c=row.cells[colResize.colIndex];if(c)c.style.width=nextW+'px';});
+  });
+  document.addEventListener('pointerup',()=>{if(colResize){colResize=null;editor.style.cursor='';scheduleSave();setState('Đã đổi độ rộng cột bảng','saved');}});
+  $('#tableCellBg')?.addEventListener('input',e=>{
+    restoreEditorSelection();
+    const cell=activeTableCell();if(!cell)return;
+    cell.style.backgroundColor=e.target.value;scheduleSave();
+  });
+  $('#tableClearCellBg')?.addEventListener('click',()=>{
+    restoreEditorSelection();
+    const cell=activeTableCell();if(!cell)return;
+    cell.style.backgroundColor='';scheduleSave();
+  });
+
+  // V7.2 — Margin Comments / Review Notes Panel
+  function docComments(){const d=current();if(!d)return [];if(!Array.isArray(d.comments))d.comments=[];return d.comments;}
+  function setCommentsOpen(open){
+    const pane=$('#commentsPane'),ws=$('#workspace');
+    if(!pane||!ws)return;
+    pane.hidden=!open;
+    ws.classList.toggle('has-comments',open);
+    $('#toggleComments')?.setAttribute('aria-pressed',String(open));
+    $('#toggleCommentsView')?.setAttribute('aria-pressed',String(open));
+    if(open)renderComments();
+  }
+  function highlightCommentCard(cid){
+    const card=document.querySelector('[data-comment-card="'+CSS.escape(cid)+'"]');
+    if(card){card.scrollIntoView({behavior:'smooth',block:'nearest'});card.style.boxShadow='0 0 0 2px var(--brand)';setTimeout(()=>{card.style.boxShadow='';},1500);}
+  }
+  function renderComments(){
+    const list=$('#commentsList'),empty=$('#commentsEmpty'),badge=$('#commentCountBadge');
+    const items=docComments(),unresolved=items.filter(c=>!c.resolved).length;
+    if(badge)badge.textContent=String(unresolved);
+    if(!list)return;
+    list.replaceChildren();
+    if(empty)empty.hidden=items.length>0;
+    items.slice().sort((a,b)=>(b.createdAt||0)-(a.createdAt||0)).forEach(c=>{
+      const card=document.createElement('div');
+      card.className='comment-card'+(c.resolved?' is-resolved':'');
+      card.dataset.commentCard=c.id;
+      const quote=document.createElement('div');
+      quote.className='comment-quote';
+      quote.textContent='“'+(c.quote||'Toàn văn bản')+'”';
+      quote.title='Bấm để nhảy tới vị trí bình luận';
+      quote.addEventListener('click',()=>{
+        const mark=editor.querySelector('.hd-comment-mark[data-comment-id="'+CSS.escape(c.id)+'"]');
+        if(mark){mark.scrollIntoView({behavior:'smooth',block:'center'});mark.classList.add('is-focused');setTimeout(()=>mark.classList.remove('is-focused'),1600);}
+      });
+      const body=document.createElement('div');body.className='comment-body';body.textContent=c.text;
+      const meta=document.createElement('div');meta.className='comment-meta';
+      const time=document.createElement('span');time.textContent=new Date(c.createdAt||Date.now()).toLocaleString('vi-VN',{hour:'2-digit',minute:'2-digit',day:'2-digit',month:'2-digit'});
+      const acts=document.createElement('div');acts.className='comment-actions';
+      const resBtn=document.createElement('button');resBtn.type='button';resBtn.textContent=c.resolved?'Mở lại':'✓ Xong';
+      resBtn.addEventListener('click',()=>{c.resolved=!c.resolved;renderComments();scheduleSave();});
+      const delBtn=document.createElement('button');delBtn.type='button';delBtn.className='danger';delBtn.textContent='Xóa';
+      delBtn.addEventListener('click',()=>{
+        const d=current();if(!d)return;
+        d.comments=docComments().filter(x=>x.id!==c.id);
+        editor.querySelectorAll('.hd-comment-mark[data-comment-id="'+CSS.escape(c.id)+'"]').forEach(sp=>{sp.replaceWith(...sp.childNodes);});
+        renderComments();scheduleSave();
+      });
+      acts.append(resBtn,delBtn);meta.append(time,acts);
+      card.append(quote,body,meta);list.append(card);
+    });
+  }
+  function addComment(){
+    restoreEditorSelection();
+    const sel=window.getSelection();
+    const selectedText=(sel&&sel.rangeCount&&editor.contains(sel.anchorNode))?sel.toString().trim():'';
+    const text=prompt(selectedText?'Bình luận cho “'+selectedText.slice(0,60)+'”:':'Nhập nội dung bình luận cho tài liệu:');
+    if(!text||!text.trim())return;
+    const cid='hdc-'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,6);
+    if(selectedText&&sel&&sel.rangeCount&&!sel.isCollapsed&&editor.contains(sel.anchorNode)){
+      try{
+        const range=sel.getRangeAt(0),span=document.createElement('span');
+        span.className='hd-comment-mark';span.setAttribute('data-comment-id',cid);
+        range.surroundContents(span);
+      }catch{
+        command('insertHTML','<span class="hd-comment-mark" data-comment-id="'+cid+'">'+escapeHTML(selectedText)+'</span>');
+      }
+    }
+    docComments().push({id:cid,quote:(selectedText||titleInput.value||'Tài liệu').slice(0,80),text:text.trim().slice(0,1000),createdAt:Date.now(),resolved:false});
+    setCommentsOpen(true);renderComments();scheduleSave();setState('Đã thêm bình luận','saved');
+  }
+  $('#addComment')?.addEventListener('click',addComment);
+  $('#addCommentFromPane')?.addEventListener('click',addComment);
+  $('#toggleComments')?.addEventListener('click',()=>setCommentsOpen($('#commentsPane')?.hidden));
+  $('#toggleCommentsView')?.addEventListener('click',()=>setCommentsOpen($('#commentsPane')?.hidden));
+  $('#closeComments')?.addEventListener('click',()=>setCommentsOpen(false));
+  renderComments();
+
+  // V7.2 — Change Case (Word Shift+F3)
+  let caseCycleIdx=0;
+  function applyChangeCase(mode){
+    restoreEditorSelection();
+    const sel=window.getSelection();
+    if(!sel||!sel.rangeCount||sel.isCollapsed||!editor.contains(sel.anchorNode)){alert('Hãy bôi đen đoạn chữ cần đổi hoa/thường trước.');return;}
+    const raw=sel.toString();
+    let next=raw;
+    if(mode==='upper')next=raw.toLocaleUpperCase('vi');
+    else if(mode==='lower')next=raw.toLocaleLowerCase('vi');
+    else if(mode==='title')next=raw.toLocaleLowerCase('vi').replace(/(^|[\s([{"'–—-])([\p{L}])/gu,(m,p,c)=>p+c.toLocaleUpperCase('vi'));
+    else if(mode==='sentence')next=raw.toLocaleLowerCase('vi').replace(/(^|[.!?…]\s+)([\p{L}])/gu,(m,p,c)=>p+c.toLocaleUpperCase('vi'));
+    command('insertText',next);
+  }
+  function cycleChangeCase(){
+    const modes=['upper','lower','title'];
+    applyChangeCase(modes[caseCycleIdx%modes.length]);
+    caseCycleIdx++;
+  }
+  $('#changeCase')?.addEventListener('change',e=>{
+    const mode=e.target.value;e.target.value='';
+    if(mode)applyChangeCase(mode);
+  });
+
+  renderRuler();
   syncToolbarState();
 })();

@@ -72,6 +72,7 @@
       <button type="button" data-cmd="bold" title="Đậm (Ctrl+B)" aria-pressed="false"><b>B</b></button><button type="button" data-cmd="italic" title="Nghiêng (Ctrl+I)" aria-pressed="false"><i>I</i></button><button type="button" data-cmd="underline" title="Gạch chân (Ctrl+U)" aria-pressed="false"><u>U</u></button><button type="button" data-cmd="strikeThrough" title="Gạch ngang" aria-pressed="false"><s>S</s></button><button type="button" data-cmd="superscript" title="Chỉ số trên" aria-pressed="false">x²</button><button type="button" data-cmd="subscript" title="Chỉ số dưới" aria-pressed="false">x₂</button>
       <label class="color-tool" title="Màu chữ">A <input id="textColor" type="color" value="#17212b" aria-label="Màu chữ"></label>
       <label class="color-tool" title="Màu nền chữ">▧ <input id="highlightColor" type="color" value="#fff29a" aria-label="Màu đánh dấu"></label>
+      <select id="changeCase" aria-label="Đổi kiểu chữ hoa thường" title="Đổi kiểu chữ (Shift+F3)"><option value="">Aa Đổi chữ</option><option value="upper">CHỮ IN HOA</option><option value="lower">chữ thường</option><option value="title">Viết Hoa Đầu Từ</option><option value="sentence">Viết hoa đầu câu</option></select>
       <button type="button" id="clearFormatHome" data-proxy="clearFormat" title="Xóa định dạng (Ctrl+\)">Tx</button>
     </div>
     <div class="tool-group paragraph-align-tools" aria-label="Căn chỉnh đoạn">
@@ -111,19 +112,20 @@
       </div>
     </section>
     <section class="ribbon-panel" id="panel-reference" role="tabpanel" hidden>
-      <div class="ribbon-group"><strong>Công cụ tham chiếu</strong>
+      <div class="ribbon-group"><strong>Công cụ tham chiếu &amp; nhận xét</strong>
         <div class="ribbon-tools">
           <button type="button" id="insertToc">Tạo / cập nhật mục lục</button>
           <label class="toc-auto-setting"><input type="checkbox" id="tocAutoUpdate" checked> Tự cập nhật khi sửa tiêu đề</label>
           <button type="button" id="insertFootnote">Chèn chú thích</button>
           <button type="button" id="addCitation">Thêm trích dẫn</button>
           <button type="button" id="buildBibliography">Tạo danh mục tài liệu</button>
+          <button type="button" id="addComment" title="Thêm bình luận cho đoạn chọn (Ctrl+Alt+M)">💬 Thêm bình luận</button>
         </div>
-        <small>Mục lục có liên kết đến Tiêu đề 1–3; tự làm mới khi tiêu đề thay đổi nếu bật tùy chọn.</small>
+        <small>Mục lục liên kết Tiêu đề 1–3; Bình luận được lưu kèm tài liệu để góp ý và rà soát.</small>
       </div>
     </section>
     <section class="ribbon-panel" id="panel-view" role="tabpanel" hidden>
-      <div class="ribbon-group"><strong>Thống kê &amp; điều hướng</strong><div class="ribbon-tools"><span>Từ: <b id="ribbonWordCount">0</b> · Ký tự: <b id="ribbonCharCount">0</b> · Đoạn: <b id="ribbonParaCount">0</b></span><button type="button" id="toggleOutlineView">📑 Mục lục điều hướng</button><button type="button" id="focusEditor">Về vùng soạn thảo</button><label class="zoom-control">Thu phóng <select id="editorZoom" aria-label="Thu phóng vùng soạn thảo"><option value="75">75%</option><option value="90">90%</option><option value="100" selected>100%</option><option value="110">110%</option><option value="125">125%</option><option value="150">150%</option></select></label><button type="button" id="toggleFocusMode">Chế độ tập trung</button><button type="button" data-proxy="openShortcuts">⌨ Phím tắt</button></div></div>
+      <div class="ribbon-group"><strong>Thống kê &amp; điều hướng</strong><div class="ribbon-tools"><span>Từ: <b id="ribbonWordCount">0</b> · Ký tự: <b id="ribbonCharCount">0</b> · Đoạn: <b id="ribbonParaCount">0</b></span><button type="button" id="toggleOutlineView">📑 Mục lục điều hướng</button><button type="button" id="toggleCommentsView">💬 Bình luận</button><button type="button" id="toggleRuler" aria-pressed="true">📏 Thước kẻ</button><button type="button" id="focusEditor">Về vùng soạn thảo</button><label class="zoom-control">Thu phóng <select id="editorZoom" aria-label="Thu phóng vùng soạn thảo"><option value="75">75%</option><option value="90">90%</option><option value="100" selected>100%</option><option value="110">110%</option><option value="125">125%</option><option value="150">150%</option></select></label><button type="button" id="toggleFocusMode">Chế độ tập trung</button><button type="button" data-proxy="openShortcuts">⌨ Phím tắt</button></div></div>
       <div class="ribbon-group appearance-settings"><strong>Giao diện và khả năng đọc</strong>
         <label class="setting">Màu giao diện
           <select id="writerTheme" aria-label="Chọn màu giao diện">
@@ -152,9 +154,10 @@
       <ol id="outlineList" class="outline-list"></ol>
       <p id="outlineEmpty" class="outline-empty">Thêm Tiêu đề 1–3 để xem cấu trúc và nhảy nhanh giữa các mục.</p>
     </aside>
-    <div class="page-wrap">
+    <div class="page-wrap" id="pageWrap">
       <div class="editor-quickbar" role="toolbar" aria-label="Định dạng nhanh">
         <button type="button" id="toggleOutline" title="Bật / tắt Mục lục điều hướng" aria-pressed="false">📑 Mục lục</button>
+        <button type="button" id="toggleComments" title="Bật / tắt bảng Bình luận (Ctrl+Alt+M)" aria-pressed="false">💬 <span id="commentCountBadge">0</span></button>
         <span class="quick-divider"></span>
         <button type="button" data-cmd="undo" title="Hoàn tác (Ctrl+Z)">↶</button>
         <button type="button" data-cmd="redo" title="Làm lại (Ctrl+Y)">↷</button>
@@ -170,6 +173,7 @@
         <button type="button" data-cmd="insertUnorderedList" title="Danh sách" aria-pressed="false">•</button>
         <button type="button" data-cmd="insertOrderedList" title="Danh sách số" aria-pressed="false">1.</button>
         <span class="quick-divider"></span>
+        <button type="button" data-proxy="addComment" title="Thêm bình luận cho đoạn chọn (Ctrl+Alt+M)">+ Bình luận</button>
         <button type="button" id="quickPageBreak" title="Ngắt trang (Ctrl+Enter)">↵ Trang</button><button type="button" id="focusModeExit" hidden>Thoát tập trung</button>
       </div>
       <div id="tableContextBar" class="table-context-bar" role="toolbar" aria-label="Công cụ bảng" hidden>
@@ -178,13 +182,37 @@
         <button type="button" data-proxy="tableAddRowBelow">+ Hàng dưới</button>
         <button type="button" data-proxy="tableAddColLeft">+ Cột trái</button>
         <button type="button" data-proxy="tableAddColRight">+ Cột phải</button>
+        <label class="cell-bg-tool" title="Tô màu nền ô đang chọn">Nền ô <input id="tableCellBg" type="color" value="#e8f2ef" aria-label="Màu nền ô bảng"></label>
+        <button type="button" id="tableClearCellBg" title="Bỏ màu nền ô">Bỏ nền</button>
         <button type="button" data-proxy="tableDelRow" class="danger">− Hàng</button>
         <button type="button" data-proxy="tableDelCol" class="danger">− Cột</button>
         <button type="button" data-proxy="tableDelTable" class="danger">✕ Xóa bảng</button>
       </div>
-      <article id="editor" class="page" contenteditable="true" spellcheck="true" role="textbox" aria-label="Nội dung tài liệu" aria-multiline="true">
-        <h1>Bắt đầu soạn thảo</h1><p>Nhập nội dung văn bản tại đây...</p>
-      </article>
+      <div id="imageContextBar" class="table-context-bar image-context-bar" role="toolbar" aria-label="Công cụ ảnh" hidden>
+        <span class="table-context-label">Ảnh:</span>
+        <button type="button" data-img-pct="25">25%</button>
+        <button type="button" data-img-pct="50">50%</button>
+        <button type="button" data-img-pct="75">75%</button>
+        <button type="button" data-img-pct="100">100%</button>
+        <label class="img-size-slider"><input id="imgWidthSlider" type="range" min="15" max="100" value="100" aria-label="Độ rộng ảnh (%)"><span id="imgWidthLabel">100%</span></label>
+        <button type="button" id="imgAlignLeft" title="Căn trái">Trái</button>
+        <button type="button" id="imgAlignCenter" title="Căn giữa">Giữa</button>
+        <button type="button" id="imgAlignRight" title="Căn phải">Phải</button>
+        <button type="button" id="imgDelete" class="danger">✕ Xóa ảnh</button>
+      </div>
+      <div id="pageRuler" class="page-ruler" aria-label="Thước kẻ ngang trang giấy">
+        <div id="rulerMarginLeft" class="ruler-margin ruler-margin-left" title="Kéo để chỉnh lề trái/phải"></div>
+        <div id="rulerTicks" class="ruler-ticks" aria-hidden="true"></div>
+        <div id="rulerMarginRight" class="ruler-margin ruler-margin-right" title="Kéo để chỉnh lề trái/phải"></div>
+      </div>
+      <div class="page-stage" id="pageStage">
+        <div id="pageHeaderPreview" class="page-running-band page-header-band" hidden></div>
+        <article id="editor" class="page" contenteditable="true" spellcheck="true" role="textbox" aria-label="Nội dung tài liệu" aria-multiline="true">
+          <h1>Bắt đầu soạn thảo</h1><p>Nhập nội dung văn bản tại đây...</p>
+        </article>
+        <div id="imgResizeHandle" class="img-resize-handle" title="Kéo để thay đổi kích thước ảnh" hidden></div>
+        <div id="pageFooterPreview" class="page-running-band page-footer-band" hidden></div>
+      </div>
       <div class="editor-statusbar">
         <span id="editorSelectionStatus">Vùng soạn thảo · sẵn sàng</span>
         <span id="editorLiveStats">0 từ · 0 ký tự</span>
@@ -193,6 +221,11 @@
         <span class="status-zoom"><button type="button" id="zoomOut" title="Thu nhỏ" aria-label="Thu nhỏ">−</button><span id="zoomBadge">100%</span><button type="button" id="zoomIn" title="Phóng to" aria-label="Phóng to">+</button></span>
       </div>
     </div>
+    <aside id="commentsPane" class="comments-pane" aria-label="Bình luận tài liệu" hidden>
+      <div class="outline-head"><strong>💬 Bình luận</strong><div class="comments-head-actions"><button type="button" id="addCommentFromPane" class="primary" title="Thêm bình luận mới">+ Mới</button><button type="button" id="closeComments" title="Đóng bình luận" aria-label="Đóng bình luận">✕</button></div></div>
+      <div id="commentsList" class="comments-list"></div>
+      <p id="commentsEmpty" class="outline-empty">Bôi đen một đoạn chữ rồi bấm <b>+ Bình luận</b> (hoặc <b>Ctrl+Alt+M</b>) để ghi chú phản biện.</p>
+    </aside>
     <dialog id="versionPreviewDialog" class="version-preview"><div class="version-preview-head"><strong id="versionPreviewTitle">Nội dung phiên bản</strong><button type="button" id="closeVersionPreview">Đóng</button></div><textarea id="versionPreviewText" readonly aria-label="Nội dung xem trước phiên bản"></textarea></dialog>
     <dialog id="shortcutsDialog" class="shortcuts-dialog">
       <div class="version-preview-head"><strong>⌨ Phím tắt HAI ĐẤT WRITER</strong><button type="button" id="closeShortcuts">Đóng</button></div>
@@ -201,6 +234,8 @@
         <div><kbd>Ctrl+L / E / R / J</kbd><span>Căn trái / Giữa / Phải / Đều</span></div>
         <div><kbd>Ctrl+Alt+1 / 2 / 3 / 0</kbd><span>Tiêu đề 1 / 2 / 3 / Đoạn thường</span></div>
         <div><kbd>Ctrl+Shift+7 / 8</kbd><span>Danh sách số / Gạch đầu dòng</span></div>
+        <div><kbd>Ctrl+Alt+M</kbd><span>Thêm bình luận cho đoạn đang chọn</span></div>
+        <div><kbd>Shift+F3</kbd><span>Đổi chữ HOA / thường / Đầu từ</span></div>
         <div><kbd>Ctrl+K</kbd><span>Chèn liên kết (Ctrl+Click để mở)</span></div>
         <div><kbd>Ctrl+Shift+V</kbd><span>Dán chữ thuần (bỏ định dạng)</span></div>
         <div><kbd>Ctrl+\</kbd><span>Xóa định dạng vùng chọn</span></div>
