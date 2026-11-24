@@ -1,1 +1,78 @@
-<!doctype html><html lang="vi"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#123f36"><link rel="manifest" href="manifest.webmanifest"><link rel="stylesheet" href="style.css"><title>HAI ĐẤT SLIDES</title></head><body><header><div><div class="brand">HAI ĐẤT SLIDES</div><div class="sub">Tạo bài trình chiếu · V1</div></div><button id="install" hidden>Cài ứng dụng</button></header><main><div class="toolbar"><button id="add" class="primary">+ Thêm slide</button><button id="prev">← Trước</button><button id="next">Sau →</button><button id="present">Trình chiếu</button><button id="export">Xuất HTML</button><button id="save">Lưu</button><span class="status" id="count" aria-live="polite"></span></div><div class="slide-editor"><aside class="panel"><b>Danh sách slide</b><ol id="list" style="padding-left:22px"></ol></aside><section class="panel"><label for="heading">Tiêu đề slide</label><input id="heading" placeholder="Tiêu đề slide" style="width:100%;font-size:23px;font-weight:700"><label for="body">Nội dung</label><textarea id="body" placeholder="Nội dung slide..." style="width:100%;height:300px;margin-top:12px;padding:14px;border:1px solid var(--line);border-radius:8px;font:18px/1.6 system-ui"></textarea><p class="muted">Mỗi dòng là một ý trình bày. Bản V1 hỗ trợ nội dung chữ, lưu cục bộ và trình chiếu.</p></section></div></main><footer>HAI ĐẤT OFFICE · Hoạt động ngoại tuyến sau lần mở đầu tiên</footer><script type="module" src="app.js"></script></body></html>
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#173f36">
+  <meta name="description" content="HAI ĐẤT SLIDES – công cụ tạo và trình chiếu nội dung.">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="stylesheet" href="style.css">
+  <title>HAI ĐẤT SLIDES</title>
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand-lockup" href="./" aria-label="HAI ĐẤT SLIDES">
+      <span class="brand-mark" aria-hidden="true">HĐ</span>
+      <span class="brand-copy"><strong>HAI ĐẤT</strong><small>SLIDES WORKSPACE</small></span>
+    </a>
+    <div class="topbar-meta"><span class="save-indicator" aria-hidden="true"></span><span id="count" class="status" aria-live="polite">Đang mở bài trình chiếu</span></div>
+    <button id="install" class="button button-quiet" hidden>Cài ứng dụng</button>
+  </header>
+
+  <main class="workspace">
+    <section class="workspace-heading">
+      <div><p class="eyebrow">HAI ĐẤT OFFICE</p><h1>Bản trình chiếu của bạn</h1><p class="intro">Soạn nội dung, sắp xếp từng trang và trình chiếu ngay trên thiết bị.</p></div>
+      <div class="heading-actions"><button id="save" class="button button-secondary">Lưu bản trình chiếu</button><button id="present" class="button button-primary"><span aria-hidden="true">▶</span> Trình chiếu</button></div>
+    </section>
+
+    <nav class="commandbar" aria-label="Công cụ trình chiếu">
+      <div class="command-group">
+        <span class="group-label">Trang</span>
+        <button id="add" class="button button-primary">＋ Thêm slide</button>
+        <button id="prev" class="button button-quiet" aria-label="Slide trước">← Trước</button>
+        <button id="next" class="button button-quiet" aria-label="Slide tiếp theo">Sau →</button>
+      </div>
+      <span class="command-divider" aria-hidden="true"></span>
+      <div class="command-group">
+        <span class="group-label">Tệp</span>
+        <button id="export" class="button button-quiet">↓ Xuất HTML</button>
+      </div>
+    </nav>
+
+    <div class="editor-layout">
+      <aside class="sidebar panel" aria-label="Danh sách slide">
+        <div class="panel-heading"><div><span class="eyebrow">NỘI DUNG</span><h2>Các trang</h2></div><span class="panel-count" id="slide-total">01</span></div>
+        <ol id="list" class="slide-list"></ol>
+        <p class="sidebar-hint">Chọn một trang để tiếp tục biên soạn.</p>
+      </aside>
+
+      <section class="editing-column" aria-label="Khu vực biên soạn">
+        <div class="section-heading"><div><span class="eyebrow">BIÊN SOẠN</span><h2>Nội dung trang</h2></div><span class="keyboard-hint">Tự động lưu trên thiết bị</span></div>
+        <div class="panel editor-panel">
+          <label for="heading">Tiêu đề</label>
+          <input id="heading" class="title-input" placeholder="Đặt tiêu đề cho slide" autocomplete="off">
+          <label for="body">Nội dung trình bày</label>
+          <textarea id="body" class="body-input" placeholder="Viết nội dung tại đây…&#10;Mỗi dòng sẽ hiển thị thành một đoạn riêng."></textarea>
+          <div class="editor-foot"><span>Gợi ý: mỗi dòng là một ý chính.</span><span>HAI ĐẤT SLIDES · V1</span></div>
+        </div>
+      </section>
+
+      <aside class="preview-column" aria-label="Xem trước slide">
+        <div class="section-heading"><div><span class="eyebrow">XEM TRƯỚC</span><h2>Khung trình chiếu</h2></div></div>
+        <div class="preview-shell">
+          <div class="preview-slide" id="preview" aria-live="polite">
+            <span class="preview-kicker">HAI ĐẤT SLIDES</span>
+            <h3 id="previewTitle">Tiêu đề slide</h3>
+            <div id="previewBody" class="preview-content">Nội dung của bạn sẽ hiển thị tại đây.</div>
+            <span id="previewNumber" class="preview-number">01</span>
+          </div>
+        </div>
+        <p class="preview-note">Bản xem trước mô phỏng bố cục khi trình chiếu.</p>
+      </aside>
+    </div>
+  </main>
+
+  <footer><span>HAI ĐẤT OFFICE</span><span>Soạn thảo cục bộ · Có thể dùng ngoại tuyến sau lần mở đầu tiên</span></footer>
+  <script type="module" src="app.js"></script>
+</body>
+</html>
