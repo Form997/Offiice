@@ -45,9 +45,9 @@
   <section id="calcRibbonBar" class="ribbon-panel" aria-label="Thanh công cụ">
     <div class="ribbon-strip" data-ribbon-panel="home">
       <div class="tool-group">
-        <button id="cutAction" class="tool-btn" type="button" title="Cắt (Ctrl+X)">✂ Cắt</button>
-        <button id="copyAction" class="tool-btn" type="button" title="Sao chép (Ctrl+C)">▢ Chép</button>
-        <button id="pasteAction" class="tool-btn" type="button" title="Dán (Ctrl+V)">▣ Dán</button>
+        <button id="cutAction" class="tool-btn" type="button" title="Cắt (Ctrl+X)">✂</button>
+        <button id="copyAction" class="tool-btn" type="button" title="Sao chép (Ctrl+C)">▢</button>
+        <button id="pasteAction" class="tool-btn" type="button" title="Dán (Ctrl+V)">▣</button>
       </div>
       <div class="tool-group">
         <select id="fontFamily" aria-label="Phông chữ" title="Phông chữ"><option>Arial</option><option>Calibri</option><option>Georgia</option><option>Times New Roman</option><option>Courier New</option></select>
@@ -60,17 +60,49 @@
       <div class="tool-group">
         <select id="horizontalAlign" aria-label="Căn ngang" title="Căn ngang"><option value="left">Trái</option><option value="center">Giữa</option><option value="right">Phải</option></select>
         <select id="verticalAlign" aria-label="Căn dọc" title="Căn dọc"><option value="middle">Giữa dòng</option><option value="top">Trên</option><option value="bottom">Dưới</option></select>
-        <select id="numberFormat" aria-label="Định dạng số" title="Định dạng số"><option value="general">Số: Chung</option><option value="number2">0.00</option><option value="integer">Nguyên</option><option value="percent">%</option><option value="currency">VND</option></select>
-        <select id="borderStyle" aria-label="Viền ô" title="Viền ô"><option value="none">Không viền</option><option value="thin">Viền mảnh</option><option value="medium">Viền đậm</option><option value="bottom">Viền dưới</option><option value="outer">Khung ngoài</option></select>
+        <button id="wrapAction" class="tool-btn" type="button" title="Ngắt dòng tự động trong ô (Wrap Text)">↩</button>
+        <button id="mergeAction" class="tool-btn" type="button" title="Gộp ô / Tách ô đang chọn (Merge Cells)">⊞ Gộp</button>
       </div>
       <div class="tool-group">
-        <button id="sumAction" class="tool-btn" type="button" title="Tính tổng cột phía trên">∑ Tổng</button>
+        <select id="numberFormat" aria-label="Định dạng số" title="Định dạng số">
+          <option value="general">Chung</option>
+          <option value="thousands">#,##0</option>
+          <option value="number2">0,00</option>
+          <option value="integer">Nguyên</option>
+          <option value="percent">Phần trăm %</option>
+          <option value="currency">Tiền VNĐ (₫)</option>
+          <option value="usd">Tiền USD ($)</option>
+          <option value="date">Ngày (dd/mm/yyyy)</option>
+        </select>
+        <button id="quickVndAction" class="tool-btn num-pill" type="button" title="Định dạng tiền VNĐ (Ctrl+Shift+4)">₫</button>
+        <button id="quickPercentAction" class="tool-btn num-pill" type="button" title="Định dạng phần trăm (Ctrl+Shift+5)">%</button>
+        <button id="quickCommaAction" class="tool-btn num-pill" type="button" title="Phân cách hàng nghìn #,##0 (Ctrl+Shift+1)">,</button>
+        <button id="decIncAction" class="tool-btn num-pill" type="button" title="Tăng chữ số thập phân">.00</button>
+        <button id="decDecAction" class="tool-btn num-pill" type="button" title="Giảm chữ số thập phân">.0</button>
+      </div>
+      <div class="tool-group">
+        <select id="borderStyle" aria-label="Kẻ viền ô" title="Kẻ viền vùng đang chọn">
+          <option value="">▦ Viền…</option>
+          <option value="all">▦ Kẻ toàn bộ</option>
+          <option value="outer">▢ Khung ngoài</option>
+          <option value="outer-medium">▣ Khung ngoài đậm</option>
+          <option value="inner">┼ Chỉ viền trong</option>
+          <option value="bottom">▁ Viền dưới</option>
+          <option value="double-bottom">═ Gạch đôi dưới</option>
+          <option value="top">▔ Viền trên</option>
+          <option value="left">▏ Viền trái</option>
+          <option value="right">▕ Viền phải</option>
+          <option value="none">⊘ Xóa viền</option>
+        </select>
+      </div>
+      <div class="tool-group">
+        <button id="sumAction" class="tool-btn" type="button" title="Tính tổng dãy số phía trên (Alt+=)">∑ Tổng</button>
         <button id="averageAction" class="tool-btn" type="button" title="Tính trung bình">TB</button>
         <button id="countAction" class="tool-btn" type="button" title="Đếm số ô">Đếm</button>
       </div>
       <div class="tool-group">
-        <button id="clearAction" class="tool-btn" type="button" title="Xóa nội dung ô đang chọn">Xóa nội dung</button>
-        <button id="clearFormatAction" class="tool-btn" type="button" title="Xóa định dạng ô đang chọn">Xóa định dạng</button>
+        <button id="clearAction" class="tool-btn" type="button" title="Xóa nội dung ô đang chọn (Delete)">Xóa</button>
+        <button id="clearFormatAction" class="tool-btn" type="button" title="Xóa định dạng ô đang chọn (Ctrl+\)">Xóa ĐD</button>
       </div>
     </div>
 
@@ -787,6 +819,9 @@
     <div class="sci-calc-head"><strong id="calcShortcutsTitle">⌨ Phím tắt HAI ĐẤT CALC</strong><button id="closeCalcShortcuts" type="button" class="quiet">Đóng</button></div>
     <div id="calcShortcutsBody" class="calc-shortcuts-body"></div>
   </dialog>
+
+  <!-- Right-click Grid Context Menu -->
+  <div id="calcContextMenu" class="calc-context-menu" role="menu" aria-label="Trình đơn thao tác bảng tính" hidden></div>
 
   <script src="./scientific-calc.js"></script>
   <script type="module" src="./app.js"></script>

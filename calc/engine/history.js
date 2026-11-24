@@ -2,8 +2,12 @@ const MAX_ENTRIES = 40;
 const MAX_BYTES = 32 * 1024 * 1024;
 const PERSISTED_MAX_BYTES = 24 * 1024 * 1024;
 
-export function serializeWorkbook(cells = {}, formats = {}) {
-  return JSON.stringify({ cells: { ...cells }, formats: { ...formats } });
+export function serializeWorkbook(cells = {}, formats = {}, merges = []) {
+  return JSON.stringify({
+    cells: { ...cells },
+    formats: { ...formats },
+    merges: Array.isArray(merges) ? merges.map(m => ({ ...m })) : []
+  });
 }
 
 export function restoreWorkbook(snapshot) {
@@ -13,7 +17,8 @@ export function restoreWorkbook(snapshot) {
   }
   return {
     cells: Object.assign(Object.create(null), state.cells),
-    formats: Object.assign(Object.create(null), state.formats || {})
+    formats: Object.assign(Object.create(null), state.formats || {}),
+    merges: Array.isArray(state.merges) ? state.merges.map(m => ({ ...m })) : []
   };
 }
 
