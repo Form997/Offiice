@@ -1,1 +1,220 @@
-<!doctype html><html lang="vi"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#123f36"><link rel="manifest" href="manifest.webmanifest"><link rel="stylesheet" href="style.css"><title>HAI ĐẤT SLIDES</title></head><body><header><div><div class="brand">HAI ĐẤT SLIDES</div><div class="sub">Tạo bài trình chiếu · V1</div></div><div><a href="../academy/?app=slides" style="color:#d8eee6;font-size:12px">Giáo trình chung</a> <button id="install" hidden>Cài ứng dụng</button></div></header><main><div class="toolbar"><button id="add" class="primary">+ Thêm slide</button><button id="prev">← Trước</button><button id="next">Sau →</button><button id="present">Trình chiếu</button><button id="export">Xuất HTML</button><button id="save">Lưu</button><span class="status" id="count"></span></div><div style="display:grid;grid-template-columns:minmax(110px,190px) 1fr;gap:14px"><aside class="panel"><b>Danh sách slide</b><ol id="list" style="padding-left:22px"></ol></aside><section class="panel"><input id="heading" placeholder="Tiêu đề slide" style="width:100%;font-size:23px;font-weight:700"><textarea id="body" placeholder="Nội dung slide..." style="width:100%;height:300px;margin-top:12px;padding:14px;border:1px solid var(--line);border-radius:8px;font:18px/1.6 system-ui"></textarea><p class="muted">Mỗi dòng là một ý trình bày. Bản V1 hỗ trợ nội dung chữ, lưu cục bộ và trình chiếu.</p></section></div></main><footer>HAI ĐẤT OFFICE · Hoạt động ngoại tuyến sau lần mở đầu tiên · <a href="../legal/" style="color:inherit">Pháp lý &amp; Quyền riêng tư</a></footer><script src="app.js"></script></body></html>
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#173b32">
+  <meta name="description" content="HAI ĐẤT SLIDES — Trình chiếu 16:9 gọn nhẹ, kéo thả trực tiếp, trình chiếu toàn màn hình, xuất HTML/PDF, chạy 100% cục bộ ngoại tuyến.">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="stylesheet" href="style.css">
+  <title>HAI ĐẤT SLIDES — Trình chiếu ngoại tuyến</title>
+</head>
+<body class="slides-app">
+  <header class="topbar">
+    <div class="topbar-left">
+      <a class="brand" href="../" aria-label="Về trang chủ HAI ĐẤT OFFICE">
+        <span class="brand-mark">S</span>
+        <span class="brand-text"><b>HAI ĐẤT SLIDES</b><small>V2 STUDIO</small></span>
+      </a>
+      <input id="deckTitle" class="deck-title" value="Bài trình chiếu chưa đặt tên" aria-label="Tên bài trình chiếu" maxlength="120">
+      <span id="saveStatus" class="save-chip" role="status">Đã lưu cục bộ</span>
+    </div>
+    <div class="top-actions">
+      <button id="undoBtn" class="icon-btn" type="button" title="Hoàn tác (Ctrl+Z)" aria-label="Hoàn tác" disabled>↶</button>
+      <button id="redoBtn" class="icon-btn" type="button" title="Làm lại (Ctrl+Y)" aria-label="Làm lại" disabled>↷</button>
+      <button id="presentBtn" class="primary" type="button" title="Trình chiếu toàn màn hình từ đầu (F5) · Shift+F5 từ slide hiện tại">▶ Trình chiếu</button>
+      <div class="menu-anchor">
+        <button id="exportMenuBtn" class="quiet" type="button" aria-haspopup="menu" aria-expanded="false" title="Xuất HTML, in PDF, lưu/mở dự án">📤 Xuất &amp; Tệp</button>
+        <div id="exportMenu" class="popover-menu" role="menu" hidden>
+          <button type="button" role="menuitem" data-export="html">🌐 Xuất HTML trình chiếu độc lập (.html)</button>
+          <button type="button" role="menuitem" data-export="pdf">🖨 In / Lưu PDF (16:9 chuẩn)</button>
+          <div class="menu-sep"></div>
+          <button type="button" role="menuitem" data-export="save-json">💾 Tải tệp dự án (.hdslides.json)</button>
+          <button type="button" role="menuitem" data-export="open-json">📂 Mở tệp dự án (.hdslides.json)</button>
+          <div class="menu-sep"></div>
+          <button type="button" role="menuitem" data-export="new-deck" class="danger">🆕 Tạo bài trình chiếu mới</button>
+        </div>
+      </div>
+      <button id="chromeThemeBtn" class="quiet" type="button" title="Chuyển giao diện Sáng / Tối">🌙 Tối</button>
+      <a class="topbar-link" href="../academy/?app=slides" title="Giáo trình chung HAI ĐẤT OFFICE">📚 Giáo trình</a>
+      <button id="install" class="quiet" type="button" hidden>Cài app</button>
+    </div>
+  </header>
+
+  <section class="slides-toolbar" aria-label="Thanh công cụ thiết kế slide">
+    <div class="tool-group">
+      <button id="addSlideBtn" class="tool-btn accent" type="button" title="Thêm slide mới sau slide hiện tại (Ctrl+M)">＋ Slide</button>
+      <select id="slideLayoutSelect" aria-label="Thêm slide theo bố cục" title="Thêm slide theo bố cục mẫu">
+        <option value="">Bố cục…</option>
+        <option value="title">Bìa tiêu đề</option>
+        <option value="content">Tiêu đề &amp; nội dung</option>
+        <option value="two-column">So sánh 2 cột</option>
+        <option value="blank">Slide trống</option>
+      </select>
+      <button id="dupSlideBtn" class="tool-btn" type="button" title="Nhân bản slide hiện tại">⧉</button>
+      <button id="delSlideBtn" class="tool-btn" type="button" title="Xóa slide hiện tại">🗑</button>
+    </div>
+
+    <div class="tool-group">
+      <button id="addTextBtn" class="tool-btn" type="button" title="Chèn khung chữ">T Chữ</button>
+      <select id="addShapeSelect" aria-label="Chèn hình khối" title="Chèn hình khối">
+        <option value="">▣ Hình…</option>
+        <option value="rounded">▢ Khung bo góc</option>
+        <option value="rect">▭ Hình chữ nhật</option>
+        <option value="circle">◯ Hình tròn</option>
+        <option value="pill">💊 Nhãn viên thuốc</option>
+        <option value="line">━ Đường kẻ nhấn</option>
+      </select>
+      <button id="addImageBtn" class="tool-btn" type="button" title="Chèn ảnh từ máy (lưu cục bộ)">🖼 Ảnh</button>
+      <button id="addTableBtn" class="tool-btn" type="button" title="Chèn bảng 3×3 có thể sửa ô">▦ Bảng</button>
+    </div>
+
+    <div class="tool-group" id="elementToolsGroup">
+      <select id="elFontSize" aria-label="Cỡ chữ" title="Cỡ chữ khối đang chọn" disabled>
+        <option value="14">14</option>
+        <option value="16">16</option>
+        <option value="18">18</option>
+        <option value="20">20</option>
+        <option value="22">22</option>
+        <option value="24" selected>24</option>
+        <option value="28">28</option>
+        <option value="34">34</option>
+        <option value="42">42</option>
+        <option value="48">48</option>
+        <option value="60">60</option>
+      </select>
+      <button id="elBoldBtn" class="tool-btn" type="button" title="In đậm (Ctrl+B)" disabled><b>B</b></button>
+      <button id="elItalicBtn" class="tool-btn" type="button" title="In nghiêng (Ctrl+I)" disabled><i>I</i></button>
+      <select id="elAlign" aria-label="Căn lề" title="Căn lề chữ" disabled>
+        <option value="left">Trái</option>
+        <option value="center">Giữa</option>
+        <option value="right">Phải</option>
+      </select>
+      <label class="color-chip" title="Màu chữ khối đang chọn">A<input id="elTextColor" type="color" value="#f3faf6" aria-label="Màu chữ" disabled></label>
+      <label class="color-chip" title="Màu nền khối đang chọn">▧<input id="elBgColor" type="color" value="#1a4f40" aria-label="Màu nền khối" disabled></label>
+      <button id="elBringUpBtn" class="tool-btn" type="button" title="Đưa khối lên lớp trên" disabled>↑</button>
+      <button id="elSendDownBtn" class="tool-btn" type="button" title="Đưa khối xuống lớp dưới" disabled>↓</button>
+      <button id="elDeleteBtn" class="tool-btn danger" type="button" title="Xóa khối đang chọn (Delete)" disabled>✕</button>
+    </div>
+
+    <div class="tool-group">
+      <select id="deckTheme" aria-label="Chủ đề màu sắc" title="Chủ đề màu toàn bài trình chiếu">
+        <option value="forest">🌿 Rừng Xanh</option>
+        <option value="light">☀️ Sáng Tối Giản</option>
+        <option value="midnight">🌌 Đêm Công Nghệ</option>
+        <option value="sand">🏜 Cát Ấm</option>
+        <option value="ocean">🌊 Đại Dương</option>
+        <option value="slate">🧊 Hiện Đại</option>
+      </select>
+      <select id="deckTransition" aria-label="Hiệu ứng chuyển trang" title="Hiệu ứng khi trình chiếu">
+        <option value="fade">✨ Mờ dần</option>
+        <option value="slide">➡ Trượt ngang</option>
+        <option value="zoom">🔍 Phóng nhẹ</option>
+        <option value="none">⊘ Không hiệu ứng</option>
+      </select>
+    </div>
+  </section>
+
+  <main class="slides-workspace">
+    <aside class="filmstrip" aria-label="Danh sách slide">
+      <div class="filmstrip-head">
+        <span>Trang trình bày</span>
+        <span id="slideCountBadge">1</span>
+      </div>
+      <div id="thumbList" class="thumb-list" role="listbox" aria-label="Chọn slide"></div>
+    </aside>
+
+    <section class="stage-column" aria-label="Vùng thiết kế slide 16:9">
+      <div id="stageViewport" class="stage-viewport">
+        <div id="stageScaler" class="stage-scaler">
+          <div id="slideCanvas" class="slide-canvas" tabindex="0" aria-label="Khung thiết kế slide 16:9">
+            <div id="snapGuideV" class="snap-guide snap-v" hidden></div>
+            <div id="snapGuideH" class="snap-guide snap-h" hidden></div>
+          </div>
+        </div>
+      </div>
+
+      <div id="tableQuickBar" class="table-quick-bar" hidden>
+        <span>Bảng đang chọn:</span>
+        <button id="tblAddRowBtn" type="button" class="mini-btn">＋ Hàng</button>
+        <button id="tblDelRowBtn" type="button" class="mini-btn">− Hàng</button>
+        <button id="tblAddColBtn" type="button" class="mini-btn">＋ Cột</button>
+        <button id="tblDelColBtn" type="button" class="mini-btn">− Cột</button>
+      </div>
+
+      <section id="notesDrawer" class="notes-drawer" hidden aria-label="Ghi chú diễn giả">
+        <div class="notes-head">
+          <strong>📝 Ghi chú diễn giả (hiển thị riêng khi nhấn N lúc trình chiếu)</strong>
+          <button id="closeNotesBtn" type="button" class="mini-btn">✕ Ẩn</button>
+        </div>
+        <textarea id="speakerNotes" placeholder="Nhập ý chính cần nói khi trình chiếu slide này…"></textarea>
+      </section>
+    </section>
+  </main>
+
+  <footer class="slides-bottombar">
+    <div class="bottom-left">
+      <span id="slidePositionLabel">Slide 1 / 2</span>
+      <span id="selectionStatus">Nhấp đúp vào chữ để sửa · Chuột phải để mở menu</span>
+      <button id="toggleNotesBtn" class="pill-btn" type="button" aria-expanded="false">📝 Ghi chú</button>
+    </div>
+    <div class="bottom-right">
+      <span id="stageScaleLabel" class="muted-tag">16:9 · 100%</span>
+      <button id="openShortcutsBtn" class="pill-btn" type="button" title="Xem phím tắt HAI ĐẤT SLIDES (Ctrl+/)">⌨ Phím tắt</button>
+      <a class="pill-btn legal-pill" href="../legal/" title="Pháp lý, Quyền riêng tư &amp; Điều khoản sử dụng">⚖ Pháp lý</a>
+    </div>
+  </footer>
+
+  <!-- Hidden file inputs -->
+  <input id="imageUpload" type="file" accept="image/*" hidden>
+  <input id="deckImportFile" type="file" accept=".json,.hdslides.json,application/json" hidden>
+
+  <!-- Right-click Context Menu -->
+  <div id="slidesContextMenu" class="context-menu" role="menu" hidden></div>
+
+  <!-- In-page Fullscreen Presentation Overlay (never blocked by popup blockers) -->
+  <div id="presentOverlay" class="present-overlay" hidden aria-label="Chế độ trình chiếu toàn màn hình">
+    <div id="presentStageHost" class="present-stage-host"></div>
+    <div id="presentScreenCover" class="present-cover" hidden></div>
+    <aside id="presentNotesBox" class="present-notes-box" hidden>
+      <small>Ghi chú diễn giả (nhấn N để ẩn)</small>
+      <p id="presentNotesText"></p>
+    </aside>
+    <div id="presentHud" class="present-hud">
+      <button id="presentPrevBtn" type="button" title="Slide trước (←)">←</button>
+      <span id="presentCounter">1 / 2</span>
+      <button id="presentNextBtn" type="button" title="Slide tiếp (→ / Space)">→</button>
+      <button id="presentNotesBtn" type="button" title="Bật/tắt ghi chú diễn giả (N)">📝</button>
+      <button id="presentBlackBtn" type="button" title="Màn hình đen tạm nghỉ (B)">⬛</button>
+      <button id="presentExitBtn" type="button" title="Thoát trình chiếu (Esc)">✕ Thoát</button>
+    </div>
+  </div>
+
+  <!-- Dedicated 16:9 Print Container (visible only in @media print) -->
+  <div id="printDeck" class="print-deck" aria-hidden="true"></div>
+
+  <!-- Keyboard Shortcuts Dialog -->
+  <dialog id="slidesShortcutsDialog" class="shortcuts-dialog" aria-labelledby="slidesShortcutsTitle">
+    <div class="dialog-head">
+      <strong id="slidesShortcutsTitle">⌨ Phím tắt HAI ĐẤT SLIDES</strong>
+      <button id="closeShortcutsBtn" type="button" class="mini-btn">Đóng</button>
+    </div>
+    <div class="shortcuts-grid">
+      <div><kbd>F5 / Shift+F5</kbd><span>Trình chiếu từ đầu / từ slide hiện tại</span></div>
+      <div><kbd>Ctrl + M</kbd><span>Thêm nhanh slide mới</span></div>
+      <div><kbd>Ctrl + D</kbd><span>Nhân bản khối đang chọn</span></div>
+      <div><kbd>Ctrl + Z / Ctrl + Y</kbd><span>Hoàn tác / Làm lại</span></div>
+      <div><kbd>Ctrl + B / Ctrl + I</kbd><span>In đậm / In nghiêng khối chữ</span></div>
+      <div><kbd>↑ ↓ ← → (Shift)</kbd><span>Dịch chuyển khối 2px (hoặc 10px)</span></div>
+      <div><kbd>Nhấp đúp / Enter</kbd><span>Sửa trực tiếp nội dung chữ trong khối</span></div>
+      <div><kbd>Delete / Backspace</kbd><span>Xóa khối đang chọn</span></div>
+      <div><kbd>PageUp / PageDown</kbd><span>Chuyển slide trước / slide sau</span></div>
+      <div><kbd>B / W / N (Trình chiếu)</kbd><span>Màn đen / Màn trắng / Ghi chú diễn giả</span></div>
+      <div><kbd>Ctrl + S</kbd><span>Lưu ngay vào bộ nhớ thiết bị</span></div>
+      <div><kbd>Esc</kbd><span>Thoát sửa chữ / bỏ chọn / thoát trình chiếu</span></div>
+    </div>
+  </dialog>
+
+  <script type="module" src="app.js"></script>
+</body>
+</html>
