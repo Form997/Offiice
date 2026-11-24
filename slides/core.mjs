@@ -1,6 +1,6 @@
 export const STORAGE_KEY = "haidat-slides";
 export const DEFAULT_SLIDES = Object.freeze([
-  { title: "HAI ĐẤT OFFICE", body: "Bài trình chiếu đầu tiên\\nNhấn “Thêm slide” để tiếp tục." }
+  { title: "HAI ĐẤT OFFICE", body: "Bài trình chiếu đầu tiên\nNhấn “Thêm slide” để tiếp tục." }
 ]);
 
 export function normalizeSlides(value) {
@@ -43,7 +43,7 @@ export function buildPresentationHtml(input) {
   const sections = slides.map((slide, index) =>
     '<section class="slide" aria-label="Slide ' + (index + 1) + '">' +
       '<h1>' + escapeHtml(slide.title) + '</h1>' +
-      '<div class="body">' + escapeHtml(slide.body).replace(/\\r?\\n/g, "<br>") + '</div>' +
+      '<div class="body">' + escapeHtml(slide.body).replace(/\r?\n/g, "<br>") + '</div>' +
     '</section>'
   ).join("");
   const script = [
