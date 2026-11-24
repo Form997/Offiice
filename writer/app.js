@@ -10,7 +10,8 @@
   let folders=(()=>{try{const v=JSON.parse(localStorage.getItem(FOLDERS_STORE)||'null');return Array.isArray(v)&&v.length?v.filter(x=>typeof x==='string'&&x.trim()).slice(0,100):DEFAULT_FOLDERS.slice();}catch{return DEFAULT_FOLDERS.slice();}})();if(!folders.includes('Chưa phân loại'))folders.unshift('Chưa phân loại');
   let documents = [], activeId = null, saveTimer = null, deferredInstall = null, dirty = false, savedEditorRange = null, currentFileHandle = null, workDirectoryHandle = null;
   let baseDocuments=new Map(),storageRecoveryRaw=null;
-  const cloneJSON=value=>value===undefined?undefined:JSON.parse(JSON.stringify(value));
+  let statsTimer = null;
+  const cloneJSON=value=>value===undefined?undefined:(typeof structuredClone==='function'?structuredClone(value):JSON.parse(JSON.stringify(value)));
   const sameJSON=(a,b)=>JSON.stringify(a===undefined?null:a)===JSON.stringify(b===undefined?null:b);
 
   const makeId = () => {
@@ -227,7 +228,8 @@
     dirty=true; setState('Đang chờ lưu…','pending');
     clearTimeout(saveTimer);
     saveTimer=setTimeout(()=>persist(),500);
-    updateStats();
+    clearTimeout(statsTimer);
+    statsTimer=setTimeout(()=>updateStats(),250);
   }
   function renderFolderControls(){const filter=$('#folderFilter'),target=$('#docFolder');[filter,target].forEach((sel,i)=>{if(!sel)return;const old=sel.value;sel.replaceChildren();const first=document.createElement('option');first.value=i===0?'__all__':'__current__';first.textContent=i===0?'Tất cả thư mục':'Chuyển vào thư mục…';sel.append(first);folders.forEach(name=>{const o=document.createElement('option');o.value=name;o.textContent=name;sel.append(o);});if(i===0&&folders.includes(old))sel.value=old;});const d=documents.find(x=>x.id===activeId);if(target&&d&&folders.includes(d.folder))target.value=d.folder;}
   function renderDocList() {

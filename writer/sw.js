@@ -1,4 +1,4 @@
-const CACHE='haidat-work-v7-0-r1';
+const CACHE='haidat-work-v7-0-r2';
 const FILES=[
   './',
   './index.html',
@@ -34,6 +34,7 @@ self.addEventListener('activate',event=>{
 self.addEventListener('fetch',event=>{
   if(event.request.method!=='GET')return;
   const url=new URL(event.request.url);
+  if(url.origin!==self.location.origin)return;
   const isConfig=url.pathname.endsWith('/supabase-config.js');
   if(isConfig){
     event.respondWith(
@@ -54,6 +55,9 @@ self.addEventListener('fetch',event=>{
         caches.open(CACHE).then(cache=>cache.put(event.request,copy));
       }
       return response;
-    }).catch(()=>caches.match('./index.html')))
+    }).catch(()=>{
+      if(event.request.mode==='navigate')return caches.match('./index.html');
+      return new Response('',{status:504,statusText:'Offline'});
+    }))
   );
 });
