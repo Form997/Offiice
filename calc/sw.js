@@ -1,4 +1,4 @@
-const CACHE = 'haidat-calc-v6-core-ops';
+const CACHE = 'haidat-calc-v7-xlsx-print';
 const FILES = [
   './',
   './index.html',
@@ -13,7 +13,8 @@ const FILES = [
   './engine/cell-format.js',
   './engine/fill-series.js',
   './engine/history.js',
-  './engine/workbook-sheets.js'
+  './engine/workbook-sheets.js',
+  './engine/xlsx-csv-io.js'
 ];
 self.addEventListener('install', event => {
   event.waitUntil(

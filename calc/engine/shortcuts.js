@@ -238,7 +238,7 @@ export const CALC_SHORTCUT_GROUPS = Object.freeze([
       ["Nhấp đúp góc xanh (Fill)", "Tự động điền xuống hết cột liền kề"],
       ["Ctrl + Z / Ctrl + Y", "Hoàn tác / Làm lại"],
       ["Ctrl + F / Ctrl + H", "Tìm kiếm / Tìm và thay thế"],
-      ["Ctrl + S", "Lưu bảng tính ngay"],
+      ["Ctrl + S / Ctrl + P", "Lưu bảng tính / In & Lưu PDF (A4)"],
       ["Shift + F3", "Mở nhanh fx Thư viện 149+ hàm"],
       ["Ctrl + /", "Mở bảng phím tắt này"],
     ],

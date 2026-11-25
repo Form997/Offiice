@@ -267,3 +267,91 @@ test('Calc smart fill series, range-aware borders, number formatting & merge his
   assert.deepEqual(restored.merges, [{ startRow: 1, endRow: 1, startCol: 1, endCol: 2 }]);
 });
 
+test('Calc XLSX/CSV I/O: RFC 4180 CSV, multi-sheet XLSX round-trip, DEFLATE ZIP & Print HTML', async () => {
+  const {
+    parseCsv,
+    serializeCsv,
+    exportWorkbookToXlsx,
+    importXlsxToWorkbook,
+    buildPrintTableHtml,
+  } = await import('../calc/engine/xlsx-csv-io.js');
+
+  // 1) RFC 4180 CSV with BOM, semicolon delimiter, quoted multiline & escaped quotes
+  const vnCsv = '\ufeff"Sản phẩm";"Đơn giá";"Ghi chú"\r\n"Cà phê ""Đậm""";45000;"Dòng 1\nDòng 2"\r\nTrà đào;35000;Mới';
+  const parsedCsv = parseCsv(vnCsv);
+  assert.equal(parsedCsv.delimiter, ';');
+  assert.equal(parsedCsv.rows, 3);
+  assert.equal(parsedCsv.cells.A2, 'Cà phê "Đậm"');
+  assert.equal(parsedCsv.cells.B2, '45000');
+  assert.equal(parsedCsv.cells.C2, 'Dòng 1\nDòng 2');
+  const outCsv = serializeCsv(parsedCsv.cells);
+  assert.ok(outCsv.startsWith('\ufeff'));
+  assert.equal(parseCsv(outCsv).cells.A2, 'Cà phê "Đậm"');
+
+  // 2) Multi-sheet XLSX export & import round-trip (formulas, VN text, formats, borders, merges, freeze, geometry)
+  const sheets = [
+    {
+      id: 'sheet-1',
+      name: 'Doanh thu Q4',
+      cells: { A1: 'BÁO CÁO QUÝ 4', A2: 'Sản phẩm', B2: 'Doanh thu', C2: 'Tỷ lệ', A3: 'Cà phê', B3: '1500000', C3: '0.6', A4: 'Tổng', B4: '=SUM(B3:B3)' },
+      formats: {
+        A1: { bold: true, align: 'center', background: '#e3f1e9', color: '#145744' },
+        B3: { numberFormat: 'currency', borderBottom: 'thin' },
+        C3: { numberFormat: 'percent' },
+        B4: { bold: true, numberFormat: 'currency', borderBottom: 'double' },
+      },
+      merges: [{ startRow: 1, endRow: 1, startCol: 1, endCol: 3 }],
+      freeze: { rows: 2, columns: 0 },
+      geometry: { columnWidths: { 1: 180, 2: 140 }, rowHeights: { 1: 42 } },
+    },
+    {
+      id: 'sheet-2',
+      name: 'Ghi chú',
+      cells: { A1: 'Hoàn toàn cục bộ', B1: 'TRUE' },
+      formats: {},
+      merges: [],
+      freeze: { rows: 0, columns: 0 },
+      geometry: { columnWidths: {}, rowHeights: {} },
+    },
+  ];
+
+  const xlsxBytes = exportWorkbookToXlsx(sheets, (sid, addr) => (sid === 'sheet-1' && addr === 'B4' ? 1500000 : null));
+  assert.ok(xlsxBytes instanceof Uint8Array && xlsxBytes.length > 500);
+  // Valid PKZIP local header signature PK\x03\x04
+  assert.equal(xlsxBytes[0], 0x50);
+  assert.equal(xlsxBytes[1], 0x4b);
+
+  const imported = await importXlsxToWorkbook(xlsxBytes);
+  assert.equal(imported.sheets.length, 2);
+  assert.equal(imported.sheets[0].name, 'Doanh thu Q4');
+  assert.equal(imported.sheets[0].cells.A1, 'BÁO CÁO QUÝ 4');
+  assert.equal(imported.sheets[0].cells.B3, '1500000');
+  assert.equal(imported.sheets[0].cells.B4, '=SUM(B3:B3)');
+  assert.equal(imported.sheets[0].formats.A1.bold, true);
+  assert.equal(imported.sheets[0].formats.A1.align, 'center');
+  assert.equal(imported.sheets[0].formats.B3.numberFormat, 'currency');
+  assert.equal(imported.sheets[0].formats.C3.numberFormat, 'percent');
+  assert.equal(imported.sheets[0].formats.B4.borderBottom, 'double');
+  assert.deepEqual(imported.sheets[0].merges, [{ startRow: 1, endRow: 1, startCol: 1, endCol: 3 }]);
+  assert.deepEqual(imported.sheets[0].freeze, { rows: 2, columns: 0 });
+  assert.ok(imported.sheets[0].geometry.columnWidths[1] >= 170);
+  assert.equal(imported.sheets[1].name, 'Ghi chú');
+  assert.equal(imported.sheets[1].cells.B1, 'TRUE');
+
+  // 3) Print table HTML builder preserves merges, repeating <thead>, gridlines, and escapes XSS
+  const printHtml = buildPrintTableHtml({
+    sheetName: 'Doanh thu <script>',
+    cells: { A1: 'Tiêu đề', A2: '<b>Item</b>', B2: '100' },
+    formats: { A1: { bold: true } },
+    merges: [{ startRow: 1, endRow: 1, startCol: 1, endCol: 2 }],
+    repeatHeaderRow: true,
+    showGridlines: true,
+    showHeaders: true,
+  });
+  assert.ok(printHtml.includes('<thead>'));
+  assert.ok(printHtml.includes('colspan="2"'));
+  assert.ok(printHtml.includes('&lt;b&gt;Item&lt;/b&gt;'));
+  assert.ok(!printHtml.includes('<script>'));
+});
+
+

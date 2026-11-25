@@ -16,6 +16,7 @@ import { consumeAccountAction, validateNewPassword } from "./engine/account-life
 import { evaluateFormula, FormulaError, FUNCTION_CATEGORIES, getFormulaFunction, listFormulaFunctions } from "./engine/core.js";
 import { cycleReferenceAtCursor, findDataEdge, findContiguousRegion, computeAutoSumFormula, CALC_SHORTCUT_GROUPS } from "./engine/shortcuts.js";
 import { normalizeMerges, findMergeAt, getOverlappingMerges, expandBoundsForMerges, mergeRange, unmergeRange, insertOrDeleteAxis, computeDoubleClickFillTarget } from "./engine/sheet-ops.js";
+import { parseCsv, serializeCsv, exportWorkbookToXlsx, importXlsxToWorkbook, computeUsedBounds, buildPrintTableHtml } from "./engine/xlsx-csv-io.js";
 import { buildDependencyGraph, updateDependencyNode, planRecalculation } from "./engine/dependency-engine.js";
 import { CalculationScheduler } from "./engine/calculation-scheduler.js";
 import { FormulaResultCache } from "./engine/formula-result-cache.js";
@@ -199,12 +200,17 @@ window.addEventListener("keydown",event=>{
     searchInput.focus();searchInput.select();return;
   }
   if(mod&&key==="s"){event.preventDefault();save();calcStatus.textContent="Đã lưu bảng tính (Ctrl+S)";return;}
+  if(mod&&key==="p"){event.preventDefault();document.querySelector("#openPrintDialog")?.click();return;}
   if(mod&&key==="g"){event.preventDefault();cellAddress.focus();cellAddress.select();return;}
   if(event.shiftKey&&event.key==="F3"){event.preventDefault();window.sghtOpenDrawer?.("functions");return;}
   if(mod&&key==="/"){event.preventDefault();document.querySelector("#openCalcShortcuts")?.click();return;}
   if(key==="escape"){
+    const io=document.querySelector("#calcIoMenu");
+    if(io&&!io.hidden){io.hidden=true;document.querySelector("#calcIoMenuBtn")?.setAttribute("aria-expanded","false");return;}
     const cm=document.querySelector("#calcContextMenu");
     if(cm&&!cm.hidden){cm.hidden=true;cm.replaceChildren();return;}
+    const pd=document.querySelector("#calcPrintDialog");
+    if(pd&&pd.open){pd.close();return;}
     const sc=document.querySelector("#calcShortcutsDialog");
     if(sc&&sc.open){sc.close();return;}
     const sp=document.querySelector("#searchPanel");
@@ -1135,7 +1141,57 @@ window.addEventListener("pointercancel",()=>{if(fillDrag){clearFillPreview();sel
 
 function setValue(a,v){const point=parseAddress(a),before=raw(a),after=String(v??"");snapshot();if(before!==after)recordFormulaCellVersion(a,before,after,macroExecution?"macro":"edit");if(v===""){delete cells[a];if(!macroExecution)try{macroRecorder.recordClear(a);}catch(e){calcStatus.textContent=e.message;}}else{cells[a]=v;if(!macroExecution)try{macroRecorder.recordSet(a,v);}catch(e){calcStatus.textContent=e.message;}}if(point)expandTablesAfterWrite(point.r,point.r,point.c,point.c);invalidateFormulaCells([a]);render();save();calcStatus.textContent="Đã tính lại các ô phụ thuộc";}
 function apply(){const value=formulaInput.value;setValue(selected,value.trim()===""?"":value);updateSelection();}
-function exportCsv(){const used=Object.keys(cells).map(parseAddress).filter(Boolean);const maxR=Math.max(1,...used.map(x=>x.r)),maxC=Math.max(1,...used.map(x=>x.c));const lines=[];for(let r=1;r<=maxR;r++){const row=[];for(let c=1;c<=maxC;c++){const v=display(address(r,c));row.push('"'+v.replace(/"/g,'""')+'"');}lines.push(row.join(","));}const blob=new Blob(["\ufeff"+lines.join("\r\n")],{type:"text/csv;charset=utf-8"}),url=URL.createObjectURL(blob),link=document.createElement("a");link.href=url;link.download=(sheetTitle||"sght").replace(/[\\/:*?"<>|]/g,"_")+".csv";link.click();URL.revokeObjectURL(url);}
+function exportCsv(){
+  const csv=serializeCsv(cells,a=>display(a));
+  const blob=new Blob([csv],{type:"text/csv;charset=utf-8"}),url=URL.createObjectURL(blob),link=document.createElement("a");
+  link.href=url;link.download=(sheetTitle||"haidat-calc").replace(/[\\/:*?"<>|]/g,"_")+".csv";link.click();
+  setTimeout(()=>URL.revokeObjectURL(url),1000);
+  calcStatus.textContent="Đã xuất trang hiện tại ra tệp CSV (UTF-8 BOM).";
+}
+function exportXlsx(){
+  try{
+    storeActiveSheet();
+    const bytes=exportWorkbookToXlsx(workbookSheets,(sId,addr)=>calculate(addr,new Set(),sId));
+    const blob=new Blob([bytes],{type:"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"});
+    const url=URL.createObjectURL(blob),link=document.createElement("a");
+    link.href=url;link.download=(sheetTitle||"haidat-calc").replace(/[\\/:*?"<>|]/g,"_")+".xlsx";link.click();
+    setTimeout(()=>URL.revokeObjectURL(url),1000);
+    calcStatus.textContent="Đã xuất "+workbookSheets.length+" trang tính ra tệp XLSX chuẩn (kèm công thức, định dạng, viền & ô gộp).";
+  }catch(err){calcStatus.textContent="Không thể xuất XLSX: "+(err?.message||err);}
+}
+async function importSpreadsheetFile(file){
+  if(!file)return;
+  const name=String(file.name||"");
+  const lower=name.toLowerCase();
+  try{
+    if(lower.endsWith(".xlsx")){
+      const buf=await file.arrayBuffer();
+      const imported=await importXlsxToWorkbook(buf);
+      const normalized=normalizeWorkbookSheets(imported.sheets);
+      workbookSheets=normalized;
+      activeSheetId=workbookSheets[0].id;
+      applySheetState(workbookSheets[0]);
+      selected="A1";selectionCursor="A1";selectionRange={start:"A1",end:"A1"};
+      const used=computeUsedBounds(cells,cellFormats,mergedRanges);
+      growGridTo(used.endRow,used.endCol);
+      rebuildDependencyEngine();render();save();
+      calcStatus.textContent="Đã nhập tệp XLSX “"+name+"” ("+workbookSheets.length+" trang tính).";
+    }else{
+      const text=await file.text();
+      const parsed=parseCsv(text);
+      snapshot();
+      cells=Object.assign(Object.create(null),parsed.cells);
+      cellFormats=Object.create(null);
+      mergedRanges=[];
+      selected="A1";selectionCursor="A1";selectionRange={start:"A1",end:"A1"};
+      growGridTo(Math.max(1,parsed.rows),Math.max(1,parsed.cols));
+      rebuildDependencyEngine();render();save();
+      calcStatus.textContent="Đã nhập CSV “"+name+"” ("+parsed.rows+" hàng × "+parsed.cols+" cột · dấu tách “"+(parsed.delimiter==="\t"?"Tab":parsed.delimiter)+"”).";
+    }
+  }catch(err){
+    calcStatus.textContent="Không thể nhập tệp: "+(err?.message||err);
+  }
+}
 function pasteRange(text,clipboardPayload=null){const start=parseAddress(selected);if(!start)return;const matrix=parseTSV(text);if(!matrix.length)return;const width=Math.max(...matrix.map(row=>row.length));const targetRow=start.r+matrix.length-1,targetColumn=start.c+width-1;if(targetRow>MAX_ROWS||targetColumn>MAX_COLS){calcStatus.textContent="Vùng dán vượt giới hạn an toàn hiện tại: "+MAX_ROWS.toLocaleString("vi-VN")+" hàng × "+MAX_COLS.toLocaleString("vi-VN")+" cột.";return;}growGridTo(targetRow,targetColumn);snapshot();const pasteAddresses=matrix.flatMap((row,ri)=>row.map((_,ci)=>address(start.r+ri,start.c+ci)));if(clipboardPayload){const next=pasteCapturedRange(cells,cellFormats,start,clipboardPayload);for(const a of pasteAddresses)if(raw(a)!==(next.cells[a]??""))recordFormulaCellVersion(a,raw(a),next.cells[a]??"", "paste");cells=next.cells;cellFormats=next.formats;}else{matrix.forEach((row,ri)=>row.forEach((v,ci)=>{const a=address(start.r+ri,start.c+ci);if(raw(a)!==v)recordFormulaCellVersion(a,raw(a),v,"paste");if(v==="")delete cells[a];else cells[a]=v;}));}selectionRange={start:selected,end:address(start.r+matrix.length-1,start.c+width-1)};expandTablesAfterWrite(start.r,start.r+matrix.length-1,start.c,start.c+width-1);invalidateFormulaCells(matrix.flatMap((row,ri)=>row.map((_,ci)=>address(start.r+ri,start.c+ci))));render();save();calcStatus.textContent="Đã dán "+matrix.length+" hàng dữ liệu"+(clipboardPayload?" kèm định dạng":"");}
 function handlePaste(e){const text=e.clipboardData?.getData("text/plain");if(!text||!/[\t\n\r]/.test(text))return;e.preventDefault();pasteRange(text);}
 grid.addEventListener("paste",e=>{const text=e.clipboardData?.getData("text/plain");if(text){e.preventDefault();pasteRange(text);}});
@@ -1164,7 +1220,91 @@ function applyFreezeSettings(){
 document.querySelector("#applyFreeze").addEventListener("click",applyFreezeSettings);
 document.querySelector("#clearFreeze").addEventListener("click",()=>{frozenRows=0;frozenColumns=0;document.querySelector("#freezeRowsInput").value=0;document.querySelector("#freezeColumnsInput").value=0;render();save();calcStatus.textContent="Đã bỏ toàn bộ ghim.";});
 
-document.querySelector("#downloadCsv").addEventListener("click",exportCsv);
+// Export / Import Popover Menu & Print-to-PDF Setup Dialog
+const calcIoMenuBtn=document.querySelector("#calcIoMenuBtn");
+const calcIoMenu=document.querySelector("#calcIoMenu");
+const calcImportInput=document.querySelector("#calcImportFile");
+function closeCalcIoMenu(){
+  if(calcIoMenu)calcIoMenu.hidden=true;
+  if(calcIoMenuBtn)calcIoMenuBtn.setAttribute("aria-expanded","false");
+}
+if(calcIoMenuBtn&&calcIoMenu){
+  calcIoMenuBtn.addEventListener("click",e=>{
+    e.stopPropagation();
+    const opening=calcIoMenu.hidden;
+    calcIoMenu.hidden=!opening;
+    calcIoMenuBtn.setAttribute("aria-expanded",String(opening));
+    if(opening){
+      const r=calcIoMenuBtn.getBoundingClientRect();
+      const mw=calcIoMenu.offsetWidth||260;
+      calcIoMenu.style.left=Math.max(8,Math.min(r.right-mw,window.innerWidth-mw-8))+"px";
+      calcIoMenu.style.top=(r.bottom+6)+"px";
+    }
+  });
+  document.addEventListener("pointerdown",e=>{
+    if(!calcIoMenu.hidden&&!calcIoMenu.contains(e.target)&&e.target!==calcIoMenuBtn)closeCalcIoMenu();
+  });
+}
+document.querySelector("#importFileAction")?.addEventListener("click",()=>{closeCalcIoMenu();calcImportInput?.click();});
+calcImportInput?.addEventListener("change",async()=>{const f=calcImportInput.files?.[0];calcImportInput.value="";if(f)await importSpreadsheetFile(f);});
+document.querySelector("#exportXlsxAction")?.addEventListener("click",()=>{closeCalcIoMenu();exportXlsx();});
+document.querySelector("#downloadCsv")?.addEventListener("click",()=>{closeCalcIoMenu();exportCsv();});
+
+const calcPrintDialog=document.querySelector("#calcPrintDialog");
+const printScopeSelect=document.querySelector("#printScope");
+const printPaperSelect=document.querySelector("#printPaperSize");
+const printOrientSelect=document.querySelector("#printOrientation");
+const printScopeInfo=document.querySelector("#printScopeInfo");
+const calcPrintSheet=document.querySelector("#calcPrintSheet");
+function resolvePrintBounds(){
+  return printScopeSelect?.value==="selection"
+    ? getRangeBounds(selectionRange.start,selectionRange.end)
+    : computeUsedBounds(cells,cellFormats,mergedRanges);
+}
+function refreshPrintSummary(){
+  if(!printScopeInfo)return;
+  const b=resolvePrintBounds();
+  const rows=b.endRow-b.startRow+1,cols=b.endCol-b.startCol+1;
+  const orientLabel=printOrientSelect?.value==="portrait"?"Dọc":"Ngang";
+  printScopeInfo.textContent="Phạm vi: "+b.start+":"+b.end+" ("+rows+" hàng × "+cols+" cột) · Khổ "+(printPaperSelect?.value||"A4")+" "+orientLabel;
+}
+function openCalcPrintSetup(){
+  closeCalcIoMenu();
+  refreshPrintSummary();
+  if(!calcPrintDialog)return;
+  if(typeof calcPrintDialog.showModal==="function")calcPrintDialog.showModal();
+  else calcPrintDialog.setAttribute("open","");
+}
+function executeCalcPrint(){
+  try{
+    const b=resolvePrintBounds();
+    const html=buildPrintTableHtml({
+      sheetName:sheetTitle||"Trang tính",
+      cells,formats:cellFormats,merges:mergedRanges,bounds:b,
+      displayFn:a=>display(a),
+      repeatHeaderRow:Boolean(document.querySelector("#printRepeatHeader")?.checked),
+      showGridlines:Boolean(document.querySelector("#printGridlines")?.checked),
+      showHeaders:Boolean(document.querySelector("#printAxisHeaders")?.checked),
+    });
+    if(calcPrintSheet)calcPrintSheet.innerHTML=html;
+    let dynStyle=document.querySelector("#calcDynamicPageStyle");
+    if(!dynStyle){dynStyle=document.createElement("style");dynStyle.id="calcDynamicPageStyle";document.head.append(dynStyle);}
+    const paper=printPaperSelect?.value||"A4";
+    const orient=printOrientSelect?.value==="portrait"?"portrait":"landscape";
+    dynStyle.textContent=`@page{size:${paper} ${orient};margin:10mm}`;
+    calcPrintDialog?.close?.();
+    window.print();
+  }catch(err){
+    calcStatus.textContent="Không thể in bảng tính: "+(err?.message||err);
+  }
+}
+document.querySelector("#openPrintDialog")?.addEventListener("click",openCalcPrintSetup);
+document.querySelector("#closeCalcPrint")?.addEventListener("click",()=>calcPrintDialog?.close?.());
+document.querySelector("#cancelCalcPrint")?.addEventListener("click",()=>calcPrintDialog?.close?.());
+document.querySelector("#confirmCalcPrint")?.addEventListener("click",executeCalcPrint);
+calcPrintDialog?.addEventListener("click",e=>{if(e.target===calcPrintDialog)calcPrintDialog.close?.();});
+[printScopeSelect,printPaperSelect,printOrientSelect].forEach(el=>el?.addEventListener("change",refreshPrintSummary));
+
 document.querySelector("#saveAction").addEventListener("click",()=>{save();calcStatus.textContent="Đã lưu bảng tính";});
 document.querySelector("#undoAction").addEventListener("click",()=>historyMove(undoStack,redoStack));
 document.querySelector("#redoAction").addEventListener("click",()=>historyMove(redoStack,undoStack));

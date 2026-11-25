@@ -25,7 +25,17 @@
       <button id="redoAction" class="icon-action" type="button" title="Làm lại (Ctrl+Y)" aria-label="Làm lại" disabled>↷</button>
       <button id="toggleSearchBar" class="quiet" type="button" title="Tìm và thay thế (Ctrl+F)">🔍 Tìm</button>
       <button id="openSciCalc" class="quiet" type="button" title="Mở tiện ích Máy tính khoa học">🧮 Máy tính</button>
-      <button id="downloadCsv" class="primary" type="button" title="Xuất trang tính hiện tại ra CSV">Xuất CSV</button>
+      <div class="calc-menu-anchor">
+        <button id="calcIoMenuBtn" class="primary" type="button" aria-haspopup="menu" aria-expanded="false" title="Nhập/Xuất XLSX, CSV và In/Lưu PDF">📤 Xuất / Nhập</button>
+        <div id="calcIoMenu" class="calc-io-popover" role="menu" hidden>
+          <button id="importFileAction" type="button" role="menuitem">📂 Nhập tệp XLSX / CSV…</button>
+          <div class="ctx-sep"></div>
+          <button id="exportXlsxAction" type="button" role="menuitem">📊 Xuất bảng tính XLSX (.xlsx)</button>
+          <button id="downloadCsv" type="button" role="menuitem">📄 Xuất trang hiện tại CSV (.csv)</button>
+          <div class="ctx-sep"></div>
+          <button id="openPrintDialog" type="button" role="menuitem">🖨 In / Lưu PDF bảng tính… <small>Ctrl+P</small></button>
+        </div>
+      </div>
       <button id="calcThemeToggle" class="quiet" type="button" title="Chuyển giao diện Sáng / Tối">🌙 Tối</button>
       <a class="topbar-link" href="../academy/?app=calc" title="Giáo trình chung HAI ĐẤT OFFICE">📚 Giáo trình</a>
       <button id="install" class="quiet" type="button" hidden>Cài app</button>
@@ -178,13 +188,18 @@
 
     <div class="ribbon-strip" data-ribbon-panel="file" hidden>
       <div class="tool-group">
-        <button id="saveAction" class="tool-btn" type="button">💾 Lưu ngay</button>
-        <button id="newSheet" class="tool-btn" type="button">📄 Trang tính mới</button>
-        <button class="tool-btn" type="button" data-proxy-click="downloadCsv">📤 Xuất CSV</button>
-        <button class="tool-btn" type="button" data-proxy-click="openSciCalc">🧮 Máy tính khoa học</button>
-        <button class="tool-btn drawer-trigger" type="button" data-open-drawer="diagnostics">⚡ Kiểm thử hiệu năng</button>
+        <button class="tool-btn" type="button" data-proxy-click="importFileAction">📂 Nhập XLSX / CSV</button>
+        <button class="tool-btn" type="button" data-proxy-click="exportXlsxAction">📊 Xuất XLSX</button>
+        <button class="tool-btn" type="button" data-proxy-click="downloadCsv">📄 Xuất CSV</button>
+        <button class="tool-btn" type="button" data-proxy-click="openPrintDialog">🖨 In / PDF</button>
       </div>
-      <span class="ribbon-hint">Tự lưu trên thiết bị · Gõ <code>=</code> để gợi ý hàm · hỗ trợ dấu <code>,</code> hoặc <code>;</code></span>
+      <div class="tool-group">
+        <button id="saveAction" class="tool-btn" type="button">💾 Lưu ngay</button>
+        <button id="newSheet" class="tool-btn" type="button">📄 Trang mới</button>
+        <button class="tool-btn" type="button" data-proxy-click="openSciCalc">🧮 Máy tính</button>
+        <button class="tool-btn drawer-trigger" type="button" data-open-drawer="diagnostics">⚡ Hiệu năng</button>
+      </div>
+      <span class="ribbon-hint">100% cục bộ · Hỗ trợ XLSX đa trang, CSV UTF-8 &amp; In A4</span>
     </div>
   </section>
 
@@ -822,6 +837,53 @@
 
   <!-- Right-click Grid Context Menu -->
   <div id="calcContextMenu" class="calc-context-menu" role="menu" aria-label="Trình đơn thao tác bảng tính" hidden></div>
+
+  <!-- Hidden XLSX / CSV Import File Input -->
+  <input id="calcImportFile" type="file" accept=".xlsx,.csv,.tsv,.txt,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,text/csv,text/plain" hidden>
+
+  <!-- Print / Save PDF Setup Modal -->
+  <dialog id="calcPrintDialog" class="sci-calc-dialog print-dialog" aria-labelledby="calcPrintTitle">
+    <div class="sci-calc-head">
+      <strong id="calcPrintTitle">🖨 In / Lưu PDF bảng tính</strong>
+      <button id="closeCalcPrint" type="button" class="quiet">Đóng</button>
+    </div>
+    <div class="print-form">
+      <div class="print-grid-2">
+        <label class="field">Khổ giấy
+          <select id="printPaperSize">
+            <option value="A4" selected>A4</option>
+            <option value="A5">A5</option>
+            <option value="Letter">Letter</option>
+          </select>
+        </label>
+        <label class="field">Hướng trang
+          <select id="printOrientation">
+            <option value="landscape" selected>Ngang (Landscape)</option>
+            <option value="portrait">Dọc (Portrait)</option>
+          </select>
+        </label>
+      </div>
+      <label class="field">Phạm vi in
+        <select id="printScope">
+          <option value="sheet" selected>Toàn bộ vùng có dữ liệu của trang hiện tại</option>
+          <option value="selection">Chỉ vùng đang bôi đen</option>
+        </select>
+      </label>
+      <div class="print-checks">
+        <label><input id="printRepeatHeader" type="checkbox" checked> Lặp hàng tiêu đề đầu tiên trên mỗi trang in</label>
+        <label><input id="printGridlines" type="checkbox" checked> Hiển thị đường lưới bảng mờ</label>
+        <label><input id="printAxisHeaders" type="checkbox"> Hiển thị chữ cái cột (A, B, C) &amp; số hàng (1, 2, 3)</label>
+      </div>
+      <p id="printScopeInfo" class="print-scope-info"></p>
+      <div class="print-actions">
+        <button id="cancelCalcPrint" type="button" class="quiet">Hủy</button>
+        <button id="confirmCalcPrint" type="button" class="primary">🖨 In / Lưu PDF</button>
+      </div>
+    </div>
+  </dialog>
+
+  <!-- Dedicated Print-Only Container (visible only under @media print) -->
+  <div id="calcPrintSheet" class="calc-print-sheet" aria-hidden="true"></div>
 
   <script src="./scientific-calc.js"></script>
   <script type="module" src="./app.js"></script>
