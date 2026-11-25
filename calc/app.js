@@ -1353,8 +1353,30 @@ function openCalcContextMenu(e){
   ctxMenuEl.style.left=left+"px";
   ctxMenuEl.style.top=top+"px";
 }
+let calcLongPressTimer=null,calcLongPressOrigin=null;
+function cancelCalcLongPress(){if(calcLongPressTimer){clearTimeout(calcLongPressTimer);calcLongPressTimer=null;}calcLongPressOrigin=null;}
 for(const paneGrid of [grid,splitGrid,quadrantPanes.topRight.grid,quadrantPanes.bottomLeft.grid]){
   paneGrid.addEventListener("contextmenu",openCalcContextMenu);
+  paneGrid.addEventListener("pointerdown",e=>{
+    if(e.pointerType!=="touch")return;
+    if(e.target.closest("[data-fill-handle],[data-resize-axis]"))return;
+    const hitTarget=e.target.closest("[data-cell],th[data-row],th[data-column]");
+    if(!hitTarget)return;
+    cancelCalcLongPress();
+    const cx=e.clientX,cy=e.clientY;
+    calcLongPressOrigin={x:cx,y:cy};
+    calcLongPressTimer=setTimeout(()=>{
+      calcLongPressTimer=null;
+      pointerSelecting=false;
+      openCalcContextMenu({target:hitTarget,clientX:cx,clientY:cy,shiftKey:false,preventDefault(){}});
+    },520);
+  });
+  paneGrid.addEventListener("pointermove",e=>{
+    if(!calcLongPressTimer||!calcLongPressOrigin)return;
+    if(Math.hypot(e.clientX-calcLongPressOrigin.x,e.clientY-calcLongPressOrigin.y)>10)cancelCalcLongPress();
+  });
+  paneGrid.addEventListener("pointerup",cancelCalcLongPress);
+  paneGrid.addEventListener("pointercancel",cancelCalcLongPress);
   paneGrid.addEventListener("click",e=>{
     if(e.target.closest("[data-resize-axis]"))return;
     const rowHead=e.target.closest("th[data-row]");

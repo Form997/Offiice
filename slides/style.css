@@ -52,7 +52,7 @@ button{cursor:pointer}
 .topbar-link:hover{background:rgba(255,255,255,.22);color:#fff}
 
 .menu-anchor{position:relative}
-.popover-menu{position:absolute;top:calc(100% + 6px);right:0;z-index:90;min-width:250px;background:var(--surface);color:var(--ink);border:1px solid var(--line);border-radius:10px;box-shadow:0 14px 36px rgba(10,32,24,.24);padding:5px;display:grid;gap:2px}
+.popover-menu{position:fixed;z-index:140;min-width:248px;max-width:calc(100vw - 16px);background:var(--surface);color:var(--ink);border:1px solid var(--line);border-radius:10px;box-shadow:0 14px 36px rgba(10,32,24,.24);padding:5px;display:grid;gap:2px}
 .popover-menu button{width:100%;border:0;background:transparent;color:var(--ink);padding:8px 10px;border-radius:6px;font-size:12.5px;font-weight:550;text-align:left;justify-content:flex-start}
 .popover-menu button:hover{background:#e6f3ec;color:#144932}
 .popover-menu button.danger:hover{background:#fdecec;color:#a52422}
@@ -112,7 +112,8 @@ button{cursor:pointer}
 /* Center Stage Column */
 .stage-column{flex:1 1 auto;min-width:0;min-height:0;display:flex;flex-direction:column;background:var(--stage-bg);position:relative}
 .stage-viewport{flex:1 1 auto;min-height:0;display:grid;place-items:center;padding:18px;overflow:hidden;position:relative}
-.stage-scaler{position:relative;width:960px;height:540px;transform-origin:center center;flex-shrink:0}
+.stage-frame{position:relative;flex-shrink:0}
+.stage-scaler{position:absolute;top:0;left:0;width:960px;height:540px;transform-origin:top left}
 .slide-canvas{position:relative;width:960px;height:540px;border-radius:6px;overflow:hidden;box-shadow:0 14px 44px rgba(10,28,22,.22);user-select:none;outline:none}
 
 /* Snap Guides */
@@ -176,8 +177,8 @@ button{cursor:pointer}
 :root[data-slides-theme="dark"] .ctx-btn.danger:hover{background:#3c1f24;color:#fca5a5}
 
 /* In-page Fullscreen Presentation Overlay */
-.present-overlay{position:fixed;inset:0;z-index:200;background:#070c10;display:grid;place-items:center;overflow:hidden}
-.present-stage-host{position:relative;width:960px;height:540px;transform-origin:center center;box-shadow:0 24px 72px rgba(0,0,0,.6)}
+.present-overlay{position:fixed;inset:0;z-index:200;background:#070c10;overflow:hidden}
+.present-stage-host{position:fixed;left:50%;top:50%;margin-left:-480px;margin-top:-270px;width:960px;height:540px;transform-origin:center center;box-shadow:0 24px 72px rgba(0,0,0,.6)}
 .present-stage-host.anim-fade{animation:pFade .26s ease}
 .present-stage-host.anim-slide{animation:pSlide .26s ease}
 .present-stage-host.anim-zoom{animation:pZoom .26s ease}
@@ -216,18 +217,36 @@ button{cursor:pointer}
 }
 
 /* Mobile / Narrow Responsive */
+@media(pointer:coarse){
+  .rh{width:14px;height:14px}
+}
 @media(max-width:860px){
   .brand-text,.save-chip,#selectionStatus{display:none}
   .filmstrip{flex:0 0 132px;width:132px}
   .thumb-frame{width:92px;height:51.75px}
   .thumb-inner{transform:scale(0.095833)}
 }
+@media(max-width:720px){
+  .topbar{flex-wrap:wrap;padding:6px 8px;gap:5px;min-height:0}
+  .topbar-left{flex:1 1 100%;width:100%;gap:7px}
+  .deck-title{flex:1;width:auto;min-width:0;font-size:13px;padding:4px 8px}
+  .top-actions{width:100%;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;gap:5px;padding-bottom:1px}
+  .top-actions::-webkit-scrollbar{display:none}
+  .top-actions button,.topbar-link{padding:5px 8px;font-size:11.5px;flex:0 0 auto}
+  .slides-toolbar{padding:5px 8px;gap:6px;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+  .slides-toolbar::-webkit-scrollbar{display:none}
+}
 @media(max-width:600px){
   .slides-workspace{flex-direction:column-reverse}
-  .filmstrip{flex:0 0 104px;width:100%;height:104px;border-right:0;border-top:1px solid var(--line)}
+  .stage-viewport{padding:8px}
+  .filmstrip{flex:0 0 88px;width:100%;height:88px;border-right:0;border-top:1px solid var(--line)}
   .filmstrip-head{display:none}
-  .thumb-list{display:flex;overflow-x:auto;overflow-y:hidden;padding:6px}
+  .thumb-list{display:flex;overflow-x:auto;overflow-y:hidden;padding:6px 8px;gap:8px;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+  .thumb-list::-webkit-scrollbar{display:none}
   .thumb-card{flex:0 0 auto;grid-template-columns:1fr;padding:4px}
+  .thumb-frame{width:112px;height:63px}
+  .thumb-inner{transform:scale(0.116667)}
   .thumb-num,.thumb-title{display:none}
-  .deck-title{width:130px;font-size:12.5px}
+  .slides-bottombar{padding:3px 8px;gap:6px}
+  #stageScaleLabel,#openShortcutsBtn{display:none}
 }

@@ -66,6 +66,7 @@ const deckTransitionSelect = $("#deckTransition");
 const thumbList = $("#thumbList");
 const slideCountBadge = $("#slideCountBadge");
 const stageViewport = $("#stageViewport");
+const stageFrame = $("#stageFrame");
 const stageScaler = $("#stageScaler");
 const slideCanvas = $("#slideCanvas");
 const snapGuideV = $("#snapGuideV");
@@ -173,9 +174,14 @@ chromeThemeBtn.addEventListener("click", () => {
 // ---------- Stage Responsive Scaling ----------
 function updateStageScale() {
   const rect = stageViewport.getBoundingClientRect();
-  const availW = Math.max(240, rect.width - 36);
-  const availH = Math.max(160, rect.height - 36);
+  const pad = window.innerWidth <= 600 ? 16 : 36;
+  const availW = Math.max(180, rect.width - pad);
+  const availH = Math.max(120, rect.height - pad);
   stageScale = Math.min(availW / SLIDE_WIDTH, availH / SLIDE_HEIGHT, 1.35);
+  if (stageFrame) {
+    stageFrame.style.width = Math.round(SLIDE_WIDTH * stageScale) + "px";
+    stageFrame.style.height = Math.round(SLIDE_HEIGHT * stageScale) + "px";
+  }
   stageScaler.style.transform = `scale(${stageScale})`;
   stageScaleLabel.textContent = `16:9 · ${Math.round(stageScale * 100)}%`;
 }
@@ -905,7 +911,38 @@ exportMenuBtn.addEventListener("click", e => {
   const next = exportMenu.hidden;
   exportMenu.hidden = !next;
   exportMenuBtn.setAttribute("aria-expanded", String(next));
+  if (next) {
+    const r = exportMenuBtn.getBoundingClientRect();
+    const mw = exportMenu.offsetWidth || 252;
+    const left = Math.max(8, Math.min(r.right - mw, window.innerWidth - mw - 8));
+    exportMenu.style.left = left + "px";
+    exportMenu.style.top = (r.bottom + 6) + "px";
+  }
 });
+
+// Touch long-press context menu on Slides canvas (for phones without right-click)
+let slidesLongPress = null, slidesLongOrigin = null;
+function cancelSlidesLongPress() {
+  if (slidesLongPress) { clearTimeout(slidesLongPress); slidesLongPress = null; }
+  slidesLongOrigin = null;
+}
+slideCanvas.addEventListener("pointerdown", e => {
+  if (e.pointerType !== "touch" || editingElementId) return;
+  cancelSlidesLongPress();
+  const target = e.target, cx = e.clientX, cy = e.clientY;
+  slidesLongOrigin = { x: cx, y: cy };
+  slidesLongPress = setTimeout(() => {
+    slidesLongPress = null;
+    interaction = null;
+    openCanvasContextMenu({ target, clientX: cx, clientY: cy, shiftKey: false, preventDefault() {} });
+  }, 540);
+});
+slideCanvas.addEventListener("pointermove", e => {
+  if (!slidesLongPress || !slidesLongOrigin) return;
+  if (Math.hypot(e.clientX - slidesLongOrigin.x, e.clientY - slidesLongOrigin.y) > 10) cancelSlidesLongPress();
+});
+slideCanvas.addEventListener("pointerup", cancelSlidesLongPress);
+slideCanvas.addEventListener("pointercancel", cancelSlidesLongPress);
 
 function downloadBlob(blob, filename) {
   const url = URL.createObjectURL(blob);
