@@ -10,9 +10,9 @@ HAI ĐẤT OFFICE là bộ ứng dụng văn phòng gồm ba công cụ độc l
 
 ## Giáo trình dùng chung
 
-- **HAI ĐẤT OFFICE ACADEMY:** [Mã nguồn giáo trình trên nhánh v7-development](https://github.com/Form997/Offiice/tree/main/academy) — một kho bài học liên thông cho cả Writer, Calc và Slides. Đường dẫn xem trực tiếp chỉ được công bố sau khi có triển khai được xác minh.
-- Mỗi bài có mã ổn định; có thể đọc theo ứng dụng, trình độ và ngôn ngữ. Tiến độ học lưu trên thiết bị.
-- Giáo trình hiện có 14 bài. Tiếng Việt là nội dung gốc; tiếng Anh là gói khởi đầu, cần hiệu đính chuyên môn. Các ngôn ngữ khác chỉ được công bố khi có gói dịch và kiểm thử tương ứng. Không tự nhận nội dung dự phòng là bản dịch hoàn chỉnh.
+- **HAI ĐẤT OFFICE ACADEMY:** [Mở giáo trình trực tuyến](https://form997.github.io/Offiice/academy/) · [Mã nguồn giáo trình](https://github.com/Form997/Offiice/tree/main/academy) — một kho bài học liên thông cho cả Writer, Calc và Slides.
+- Mỗi bài có mã ổn định; có thể đọc theo ứng dụng, trình độ và ngôn ngữ. Tiến độ học lưu cục bộ trên thiết bị.
+- Giáo trình hiện có **18 bài (v2.0)** bao gồm nền tảng & quyền riêng tư, chuyên sâu Writer V7, Calc (149 hàm OpenFormula, thao tác lưới, XLSX/CSV, in PDF), Slides V2 Studio 16:9 và quy trình liên thông. Tiếng Việt là nội dung gốc; tiếng Anh là gói khởi đầu đầy đủ 18 bài, cần hiệu đính chuyên môn. Các ngôn ngữ khác chỉ được công bố khi có gói dịch và kiểm thử tương ứng. Không tự nhận nội dung dự phòng là bản dịch hoàn chỉnh.
 
 ## Mở ba ứng dụng
 

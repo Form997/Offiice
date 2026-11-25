@@ -11,8 +11,8 @@
 - Với ngôn ngữ RTL, đặt direction: rtl và kiểm tra hỗn hợp chữ, số, công thức và dấu câu.
 
 ## Trạng thái hiện tại
-- Tiếng Việt (vi): bản nội dung gốc.
-- English (en): gói khởi đầu đã có nội dung cho 14 bài; cần hiệu đính chuyên môn trước khi nâng trạng thái thành complete.
+- Tiếng Việt (vi): bản nội dung gốc (18 bài, v2.0).
+- English (en): gói khởi đầu đã có nội dung đầy đủ cho 18 bài; cần hiệu đính chuyên môn trước khi nâng trạng thái thành complete.
 - Các ngôn ngữ khác: chưa được dịch; không được quảng bá là đã sẵn sàng chỉ vì bộ đọc hỗ trợ Unicode.
 
 ## Quy trình thêm ngôn ngữ

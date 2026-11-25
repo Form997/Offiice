@@ -9,7 +9,7 @@ test('Academy renders, filters, switches locale and fits a phone viewport',async
   await page.goto(process.env.ACADEMY_URL||'http://127.0.0.1:4173/academy/',{waitUntil:'networkidle'});
   await page.waitForSelector('.lesson-link');
   assert.match(await page.locator('#pageTitle').innerText(),/Giáo trình/);
-  assert.equal(await page.locator('.lesson-link').count(),14);
+  assert.equal(await page.locator('.lesson-link').count(),18);
   await page.locator('#search').fill('CALC-002');
   assert.equal(await page.locator('.lesson-link').count(),1);
   assert.match(await page.locator('.lesson-link').first().innerText(),/CALC-002/);

@@ -26,9 +26,9 @@ Use a unique ID, chapter, app list, level, estimated minutes, title, objective, 
 
 
 ## Nội dung và chất lượng
-- Giáo trình hiện có 14 bài: nền tảng, chuyên sâu Writer/Calc/Slides, khả năng tiếp cận và quy trình liên thông.
+- Giáo trình hiện có 18 bài (phiên bản 2.0): nền tảng & quyền riêng tư, chuyên sâu Writer V7, Calc (149 hàm OpenFormula, thao tác lưới, XLSX/CSV, in PDF), Slides V2 Studio 16:9 và quy trình liên thông.
 - Xem bản đồ chương trình tại [COURSE-MAP.md](COURSE-MAP.md).
 - Quy chuẩn bản dịch tại [locales/README.md](locales/README.md).
-- Tiếng Việt là nội dung gốc; tiếng Anh hiện là gói khởi đầu, cần hiệu đính chuyên môn trước khi chứng nhận hoàn chỉnh.
+- Tiếng Việt là nội dung gốc; tiếng Anh hiện là gói khởi đầu đầy đủ 18 bài, cần hiệu đính chuyên môn trước khi chứng nhận hoàn chỉnh.
 - Kiểm thử dữ liệu: `node --test tests/academy.test.js`.
 - Kiểm thử Chromium trên màn hình điện thoại: workflow Academy Browser QA; đây là mô phỏng viewport, không thay thế kiểm thử trên điện thoại vật lý.
